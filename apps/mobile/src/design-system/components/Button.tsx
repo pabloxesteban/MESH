@@ -52,7 +52,11 @@ export function Button({
   // El acento aparece como máximo una vez por pantalla; `primary` es quien lo
   // usa. Ver docs/design/visual-language.md §4.
   const palette = {
-    primary: { background: theme.accent, text: 'accentContrast', border: null },
+    primary: {
+      background: theme.accentFill,
+      text: 'accentContrast',
+      border: null,
+    },
     secondary: {
       background: 'transparent',
       text: 'textPrimary',

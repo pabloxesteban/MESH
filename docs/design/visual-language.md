@@ -112,14 +112,14 @@ Anclado en la paleta del brief, refinado por contraste.
 
 ### Por qué la paleta necesita más de tres valores
 
-`signal` sobre `ink` mide ≈ 3,0:1 — **no pasa WCAG AA para texto.** Usar el rojo
+`signal` sobre `ink` mide ≈ 2,7:1 — **no pasa WCAG AA para texto.** Usar el rojo
 del brief para cualquier cosa textual sobre una superficie oscura sería un
 defecto de accesibilidad. Así que el acento existe en dos valores:
 
 | Token | Hex | Uso |
 |---|---|---|
 | `signal` | `#9C2D40` | Rellenos y trazos sobre superficies claras; texto sobre papel (≈6,4:1 ✅) |
-| `signal-raised` | `#C4485C` | Texto e íconos sobre superficies oscuras (≈5,1:1 ✅) |
+| `signal-raised` | `#D2687A` | Texto e íconos sobre superficies oscuras (≈5,6:1 ✅) |
 | `on-signal` | `#F4EFE6` | Texto sobre un relleno `signal` (≈5,6:1 ✅) |
 
 ### Neutros
@@ -149,6 +149,12 @@ Los valores `state-*` son para feedback del sistema (una subida fallida) y nada
 más. **Me gusta y paso nunca se colorean de verde y rojo.** Verde/rojo es una UI
 de juicio y pertenece a las apps de citas; el me gusta y el paso de MESH son
 neutros, pesados por tipografía y movimiento en lugar de por color.
+
+**El acento son dos roles, no uno.** `signal-raised` es solo para **texto e
+íconos** sobre oscuro; los **rellenos** usan siempre `signal` sin aclarar, con
+`on-signal` encima. Usar el valor aclarado también como relleno deja los
+botones rosados y apagados — se vio recién al mirar la app en un teléfono, no
+en la paleta.
 
 ### Disciplina
 

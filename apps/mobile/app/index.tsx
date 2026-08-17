@@ -14,6 +14,7 @@ import {
   Text,
   Toast,
   useTheme,
+  useThemePreference,
 } from '@/design-system/index.ts'
 
 /**
@@ -50,6 +51,10 @@ export default function DesignSystemGallery() {
           </Text>
         </Box>
 
+        <Section title="Tema">
+          <ThemeSwitch />
+        </Section>
+
         <Section title="Tipografía">
           <Text role="titleLg">Encontrá a tu gente</Text>
           <Text role="title">¿Quién hizo esto?</Text>
@@ -63,12 +68,12 @@ export default function DesignSystemGallery() {
         </Section>
 
         <Section title="Etiquetas y filtros">
-          <Box direction="row" gap="xs">
+          <Box direction="row" gap="xs" wrap>
             {styles.slice(0, 3).map((style) => (
               <Tag key={style.slug} label={style.slug} />
             ))}
           </Box>
-          <Box direction="row" gap="xs">
+          <Box direction="row" gap="xs" wrap>
             {styles.map((style) => (
               <FilterChip
                 key={style.slug}
@@ -114,7 +119,7 @@ export default function DesignSystemGallery() {
 
         <Section title="Carga">
           <Skeleton height={220} radius="lg" />
-          <Box direction="row" gap="xs">
+          <Box direction="row" gap="xs" wrap>
             <Skeleton height={16} width="40%" radius="sm" />
             <Skeleton height={16} width="25%" radius="sm" />
           </Box>
@@ -151,6 +156,36 @@ export default function DesignSystemGallery() {
         </Section>
       </Box>
     </ScrollView>
+  )
+}
+
+/**
+ * Selector de tema.
+ *
+ * Los dos temas están completos y un componente que solo funciona en oscuro no
+ * está terminado — pero eso no se puede revisar en un dispositivo si el tema lo
+ * decide solo el sistema. El ajuste real vive en Ajustes (Fase 18); acá está
+ * para poder mirar los dos sin cambiar la configuración del teléfono.
+ */
+function ThemeSwitch() {
+  const { preference, setPreference } = useThemePreference()
+  const options = [
+    ['system', 'Sistema'],
+    ['dark', 'Oscuro'],
+    ['light', 'Claro'],
+  ] as const
+
+  return (
+    <Box direction="row" gap="xs" wrap>
+      {options.map(([value, label]) => (
+        <FilterChip
+          key={value}
+          label={label}
+          selected={preference === value}
+          onToggle={() => setPreference(value)}
+        />
+      ))}
+    </Box>
   )
 }
 

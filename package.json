@@ -29,7 +29,8 @@
     "secrets:scan": "node scripts/scan-secrets.mjs",
     "brand:icons": "npm run icons -w @mesh/brand",
     "brand:proof": "npm run proof -w @mesh/brand",
-    "brand:specimen": "npm run specimen -w @mesh/brand"
+    "brand:specimen": "npm run specimen -w @mesh/brand",
+    "web:preview": "node scripts/build-web-preview.mjs"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

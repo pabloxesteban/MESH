@@ -41,7 +41,14 @@ export interface Theme {
   readonly borderStrong: string
 
   // Acento. Aparece como máximo una vez por pantalla.
+  //
+  // Son dos roles, no uno. `accent` es para texto e íconos sobre la superficie
+  // del tema, y sobre oscuro tiene que aclararse bastante para pasar AA — lo
+  // que le saca saturación. `accentFill` es el rojo de marca sin aclarar, que
+  // solo se usa como relleno con `accentContrast` encima. Usar el mismo valor
+  // para las dos cosas deja los botones rosados y apagados.
   readonly accent: string
+  readonly accentFill: string
 
   // Feedback del sistema.
   readonly statePositive: string
@@ -76,6 +83,7 @@ export const darkTheme: Theme = {
   borderStrong: palette.ink400,
 
   accent: palette.signalRaised,
+  accentFill: palette.signal,
 
   statePositive: palette.positiveRaised,
   stateNegative: palette.negativeRaised,
@@ -105,6 +113,7 @@ export const lightTheme: Theme = {
   borderStrong: palette.ink400,
 
   accent: palette.signal,
+  accentFill: palette.signal,
 
   statePositive: palette.positive,
   stateNegative: palette.negative,

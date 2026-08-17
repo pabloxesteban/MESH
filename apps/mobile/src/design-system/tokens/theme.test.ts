@@ -54,8 +54,15 @@ describe.each([
   })
 
   it('el texto sobre un relleno de acento llega a AA', () => {
-    const ratio = contrastRatio(theme.accentContrast, palette.signal)
-    expect(ratio).toBeGreaterThanOrEqual(AA_TEXT)
+    expect(
+      contrastRatio(theme.accentContrast, theme.accentFill),
+    ).toBeGreaterThanOrEqual(AA_TEXT)
+  })
+
+  it('usa el rojo de marca sin aclarar para el relleno', () => {
+    // El relleno no se aclara: aclararlo es lo que dejaba los botones rosados.
+    // Quien se aclara es el acento de TEXTO, y solo sobre oscuro.
+    expect(theme.accentFill).toBe(palette.signal)
   })
 
   it('el texto inverso llega a AA sobre la superficie del otro tema', () => {

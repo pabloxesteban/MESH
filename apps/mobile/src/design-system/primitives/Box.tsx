@@ -31,6 +31,7 @@ export interface BoxProps extends Omit<ViewProps, 'style'> {
   /** La elevación se expresa con superficie y borde de un píxel, no con sombras. */
   border?: BorderToken
   direction?: 'row' | 'column'
+  wrap?: boolean
   align?: 'flex-start' | 'center' | 'flex-end' | 'stretch'
   justify?: 'flex-start' | 'center' | 'flex-end' | 'space-between'
   flex?: number
@@ -47,6 +48,7 @@ export function Box({
   background,
   border,
   direction,
+  wrap,
   align,
   justify,
   flex,
@@ -71,6 +73,7 @@ export function Box({
           borderColor: theme[border],
         }),
         ...(direction != null && { flexDirection: direction }),
+        ...(wrap === true && { flexWrap: 'wrap' as const }),
         ...(align != null && { alignItems: align }),
         ...(justify != null && { justifyContent: justify }),
         ...(flex != null && { flex }),

@@ -13,6 +13,7 @@
     "test:watch": "jest --watch"
   },
   "dependencies": {
+    "@expo/metro-runtime": "~57.0.11",
     "@mesh/domain": "*",
     "expo": "~57.0.14",
     "expo-constants": "~57.0.12",
@@ -22,10 +23,12 @@
     "expo-router": "~57.0.14",
     "expo-status-bar": "~57.0.1",
     "react": "19.2.3",
+    "react-dom": "19.2.3",
     "react-native": "0.86.2",
     "react-native-reanimated": "4.5.1",
     "react-native-safe-area-context": "~5.7.0",
-    "react-native-screens": "~4.26.0"
+    "react-native-screens": "~4.26.0",
+    "react-native-web": "^0.21.2"
   },
   "devDependencies": {
     "@testing-library/react-native": "^13.3.3",
