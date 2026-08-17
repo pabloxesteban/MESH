@@ -1,72 +1,74 @@
-# Workflow — New feature
+# Workflow — Feature nueva
 
-For anything user-facing. Follow in order; do not skip to implementation.
+Para cualquier cosa de cara al usuario. Seguí el orden; no saltes a la
+implementación.
 
-## 0. Gate
+## 0. Filtro
 
-**Which of DISCOVERY, TASTE, MATCHING, TRUST, ACTION does this serve?**
-If none — stop. Say so and propose the thing that does.
-**Does it belong in V1?** V1 answers one hypothesis. If the feature would be
-built regardless of the answer, it is probably not V1.
+**¿A cuál de DESCUBRIMIENTO, GUSTO, MATCHING, CONFIANZA o ACCIÓN sirve esto?**
+Si a ninguno — pará. Decilo y proponé lo que sí sirve.
+**¿Pertenece a V1?** V1 responde una sola hipótesis. Si la feature se construiría
+igual sin importar la respuesta, probablemente no sea de V1.
 
-## 1. Critique — `product-critic`
+## 1. Crítica — `product-critic`
 
-Runs the ten questions. Reads `docs/product/product-spec.md`.
-**Produces:** ship / shrink / cut, with a reason. A "shrink" verdict names the
-smaller version explicitly.
+Corre las diez preguntas. Lee `docs/product/product-spec.md`.
+**Produce:** publicar / achicar / cortar, con una razón. Un veredicto de
+"achicar" nombra explícitamente la versión más chica.
 
-## 2. Design — `ux-product-designer`
+## 2. Diseño — `ux-product-designer`
 
-Reads the spec, `docs/architecture/navigation.md`, `docs/design/`.
-**Produces:** the flow, every state (loading / empty / error+retry / success),
-the copy in `es-AR`, the accessible non-gesture path, and where the user goes
-from each state.
-**Rejects:** anything without a forward action or a button equivalent for a
-gesture.
+Lee la spec, `docs/architecture/navigation.md`, `docs/design/`.
+**Produce:** el flujo, todos los estados (carga / vacío / error + reintentar /
+éxito), el copy en `es-AR`, el camino accesible sin gestos, y a dónde va la
+persona desde cada estado.
+**Rechaza:** cualquier cosa sin acción hacia adelante o sin botón equivalente para
+un gesto.
 
-## 3. Data & architecture — `product-architect`
+## 3. Datos y arquitectura — `product-architect`
 
-Only if new entities, fields, or queries are needed.
-**Produces:** schema deltas, query shapes, whether category-agnosticism holds,
-and an ADR if the decision is hard to reverse.
-→ If the schema changes, run `database-change.md` before continuing.
+Solo si hacen falta entidades, campos o consultas nuevas.
+**Produce:** los deltas de esquema, la forma de las consultas, si se sostiene la
+agnosticidad de categoría, y un ADR si la decisión es difícil de revertir.
+→ Si cambia el esquema, corré `database-change.md` antes de continuar.
 
 ## 4. Design system — `design-system-engineer`
 
-**Produces:** which existing components are used, which new one is justified
-(used twice, or encodes a rule), which tokens are needed.
-**Rejects:** any raw design value planned for a screen.
+**Produce:** qué componentes existentes se usan, cuál nuevo se justifica (usado
+dos veces, o codifica una regla), qué tokens hacen falta.
+**Rechaza:** cualquier valor de diseño crudo planeado para una pantalla.
 
-## 5. Implement — `mobile-engineer` (+ `backend-engineer`, `matching-engineer`)
+## 5. Implementar — `mobile-engineer` (+ `backend-engineer`, `matching-engineer`)
 
-Layering rules hold. Pure logic in `packages/domain`. Queries in
-`features/<x>/queries.ts`. All four states built as part of the feature, not
-after.
+Las reglas de capas se sostienen. La lógica pura va en `packages/domain`. Las
+consultas en `features/<x>/queries.ts`. Los cuatro estados se construyen como
+parte de la feature, no después.
 
-## 6. Test — `qa-engineer`
+## 6. Testear — `qa-engineer`
 
-Unit tests for new domain logic. RLS tests for new tables. Component state
-tests. Affected E2E flow re-run. Analytics events added to the catalogue in the
-same commit.
+Tests unitarios para la lógica de dominio nueva. Tests de RLS para tablas nuevas.
+Tests de estados de componentes. El flujo E2E afectado se vuelve a correr. Los
+eventos de analytics se agregan al catálogo en el mismo commit.
 
-## 7. Review — `security-reviewer`, then `performance-engineer`
+## 7. Revisar — `security-reviewer`, después `performance-engineer`
 
-Security if it touches data, auth, uploads, or deep links.
-Performance if it touches discovery, profiles, images, or adds a dependency.
+Seguridad si toca datos, auth, subidas o deep links.
+Performance si toca descubrimiento, perfiles, imágenes, o agrega una dependencia.
 
-## 8. Document
+## 8. Documentar
 
-Update whichever apply: `product-spec.md`, an ADR, the design-system catalogue,
-the metrics catalogue, the relevant SKILL.md.
+Actualizá lo que corresponda: `product-spec.md`, un ADR, el catálogo del design
+system, el catálogo de métricas, la SKILL.md relevante.
 
-## 9. Verify
+## 9. Verificar
 
-Definition of done: implementation works · types pass · lint passes · tests
-pass · security reviewed · four states exist · accessibility considered · docs
-updated · manual device pass if gestures or images are involved.
+Definición de terminado: la implementación funciona · los tipos pasan · el lint
+pasa · los tests pasan · se revisó seguridad · existen los cuatro estados · se
+consideró accesibilidad · la documentación está actualizada · pasada manual en
+dispositivo si hay gestos o imágenes involucrados.
 
-## Fast path
+## Camino rápido
 
-A copy change, a token tweak, or a bug fix does not need all nine steps. It
-still needs: tests, the four states intact, and lint. Judgement, not ceremony —
-but the gate in step 0 is never skipped for anything new.
+Un cambio de copy, un ajuste de token o un arreglo de bug no necesita los nueve
+pasos. Igual necesita: tests, los cuatro estados intactos, y lint. Criterio, no
+ceremonia — pero el filtro del paso 0 nunca se saltea para nada nuevo.

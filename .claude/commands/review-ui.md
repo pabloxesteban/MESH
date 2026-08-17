@@ -1,22 +1,23 @@
 ---
-description: Review a screen against MESH's UX, accessibility, design-system, and brand rules.
+description: Revisar una pantalla contra las reglas de UX, accesibilidad, design system y marca de MESH.
 ---
 
-Review this screen: **$ARGUMENTS** (default: the screens changed in the current
-diff).
+Revisá esta pantalla: **$ARGUMENTS** (por defecto: las pantallas modificadas en el
+diff actual).
 
-Run `.claude/workflows/ui-review.md` in full, taking the roles of
-`ux-product-designer`, `design-system-engineer`, `brand-designer`, and
-`product-critic` in that order.
+Corré `.claude/workflows/ui-review.md` completo, tomando los roles de
+`ux-product-designer`, `design-system-engineer`, `brand-designer` y
+`product-critic`, en ese orden.
 
-Report as a checklist with ✅ / ❌ / ⚠️ per item, then a short list of required
-changes ranked by impact. Be specific: "this screen ends at a style with no
-path to a person" beats "feels unfinished".
+Reportá como checklist con ✅ / ❌ / ⚠️ por ítem, y después una lista corta de
+cambios requeridos ordenados por impacto. Sé específico: "esta pantalla termina en
+un estilo y no hay ningún camino hacia una persona" le gana a "se siente
+incompleta".
 
-Flag as blocking, not advisory:
-- a missing loading / empty / error+retry state
-- a gesture with no ≥44pt labelled button equivalent
-- a dead end (no forward action from any state)
-- a raw design value in a screen
-- anything fabricated or inferred beyond the data
-- a dark pattern of any size
+Marcá como bloqueante, no como sugerencia:
+- un estado de carga / vacío / error + reintentar faltante
+- un gesto sin botón equivalente de ≥44pt con etiqueta
+- un callejón sin salida (sin acción hacia adelante desde algún estado)
+- un valor de diseño crudo en una pantalla
+- cualquier cosa inventada o inferida más allá de los datos
+- un dark pattern de cualquier tamaño

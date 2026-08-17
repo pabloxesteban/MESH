@@ -1,89 +1,91 @@
 ---
 name: brand-identity
-description: MESH's visual identity — the mark, colour, typography, voice, and what must never appear. Use when creating brand assets, evaluating a visual decision, or writing brand-level copy.
+description: La identidad visual de MESH — la marca gráfica, el color, la tipografía, la voz, y lo que nunca puede aparecer. Usala al crear assets de marca, al evaluar una decisión visual, o al escribir copy de nivel marca.
 ---
 
-# Brand identity
+# Identidad de marca
 
-## Purpose
+## Propósito
 
-Keep MESH recognisable, independent, and honest — a frame around other people's
-work rather than a competitor to it.
+Mantener a MESH reconocible, independiente y honesto — un marco alrededor del
+trabajo de otras personas, no un competidor de ese trabajo.
 
-## When to use
+## Cuándo usarla
 
-Creating or evaluating the logo, app icon, or any brand asset. Deciding whether
-a visual choice looks like MESH. Writing brand-level copy.
+Al crear o evaluar el logo, el ícono de app o cualquier asset de marca. Al
+decidir si una elección visual se ve como MESH. Al escribir copy de nivel marca.
 
-## The idea
+## La idea
 
-Connection and intersection. Two things that were separate crossing and
-continuing as one. People + taste + skills + ideas + work, meshing.
+Conexión e intersección. Dos cosas que estaban separadas que se cruzan y siguen
+como una. Gente + gusto + habilidades + ideas + trabajo, entramándose.
 
-**The work is the design.** MESH supplies silence, margin, and precise
-typography. Anything competing with a piece of artwork is wrong.
+**El trabajo es el diseño.** MESH aporta silencio, márgenes y tipografía precisa.
+Cualquier cosa que compita con una obra está mal.
 
-## Rules
+## Reglas
 
-1. **No tattoo iconography, ever.** Tattoo is the first vertical, not the
-   brand.
-2. **No node-and-edge network diagrams.** That is every B2B SaaS logo.
-3. The mark reads at **16px**, in **one colour**, with **no wordmark**. If it
-   needs size or colour, it failed.
-4. It works ink-on-paper (`#0C0C0E` on `#F4EFE6`) and inverted, identically.
-5. Icon-size art is **optically corrected**, not mathematically scaled — small
-   sizes need heavier strokes.
-6. `signal` red appears **at most once per screen**.
-7. Artwork is never tinted, overlaid with brand colour, or given a coloured
-   border.
-8. Serif never below 24px. Sans never above 20px.
+1. **Nada de iconografía de tatuaje, nunca.** El tatuaje es el primer vertical,
+   no la marca.
+2. **Nada de diagramas de red de nodos y aristas.** Ese es el logo de todas las
+   empresas de SaaS B2B.
+3. La marca se lee a **16px**, en **un solo color**, **sin logotipo**. Si
+   necesita tamaño o color, falló.
+4. Funciona tinta-sobre-papel (`#0C0C0E` sobre `#F4EFE6`) e invertida, idéntico.
+5. El arte a tamaño de ícono está **corregido ópticamente**, no escalado
+   matemáticamente — los tamaños chicos necesitan trazos más gruesos.
+6. `signal` rojo aparece **como máximo una vez por pantalla**.
+7. Las obras nunca se tiñen, ni se superponen con color de marca, ni reciben un
+   borde de color.
+8. La serif nunca por debajo de 24px. La sans nunca por encima de 20px.
 
-## Colour, with the accessibility correction
+## Color, con la corrección de accesibilidad
 
-| Token | Hex | Use |
+| Token | Hex | Uso |
 |---|---|---|
-| `ink` | `#0C0C0E` | Dark surface, text on paper |
-| `paper` | `#F4EFE6` | Light surface, text on ink |
-| `signal` | `#9C2D40` | Fills; text **on light only** (≈6.4:1) |
-| `signal-raised` | `#C4485C` | Text and icons **on dark** (≈5.1:1) |
-| `on-signal` | `#F4EFE6` | Text on a signal fill (≈5.6:1) |
+| `ink` | `#0C0C0E` | Superficie oscura, texto sobre papel |
+| `paper` | `#F4EFE6` | Superficie clara, texto sobre tinta |
+| `signal` | `#9C2D40` | Rellenos; texto **solo sobre claro** (≈6,4:1) |
+| `signal-raised` | `#C4485C` | Texto e íconos **sobre oscuro** (≈5,1:1) |
+| `on-signal` | `#F4EFE6` | Texto sobre un relleno signal (≈5,6:1) |
 
-`signal` on `ink` is ≈3.0:1 and **fails AA for text**. That is why
-`signal-raised` exists. Do not "fix" this by using `signal` anyway.
+`signal` sobre `ink` es ≈3,0:1 y **no pasa AA para texto**. Por eso existe
+`signal-raised`. No lo "arregles" usando `signal` igual.
 
-Neutrals are mixes of `ink` and `paper`, never pure grey — the system stays
-warm.
+Los neutros son mezclas de `ink` y `paper`, nunca gris puro — el sistema se
+mantiene cálido.
 
-## Typography
+## Tipografía
 
-**Fraunces** (variable, `wonk: 0`, `soft: 0`) for editorial moments, headings,
-the taste reveal, artist names. **Instrument Sans** for all functional UI. Both
-open-licence, variable, bundleable with Expo.
+**Fraunces** (variable, `wonk: 0`, `soft: 0`) para momentos editoriales, títulos,
+la revelación del gusto y los nombres de artistas. **Instrument Sans** para toda
+la UI funcional. Las dos de licencia abierta, variables, empaquetables con Expo.
 
-## Voice
+## Voz
 
-Rioplatense Spanish, *vos*. Direct, warm, unhurried, never salesy.
+Español rioplatense, *vos*. Directo, cálido, sin apuro, nunca vendedor.
 
-Good: "Empecemos por lo que te gusta." · "Encontrá a tu gente." · "Detrás de
-cada trabajo hay alguien." · "¿Quién hizo esto?" · "Hagámoslo realidad."
+Bien: "Empecemos por lo que te gusta." · "Encontrá a tu gente." · "Detrás de cada
+trabajo hay alguien." · "¿Quién hizo esto?" · "Hagámoslo realidad."
 
-Banned: "swipe right", "like Tinder", "AI-powered", "revolutionary",
-"seamless", "unlock", "level up", fake urgency of any kind.
+Prohibido: "deslizá a la derecha", "como Tinder", "con IA", "revolucionario",
+"seamless", "desbloqueá", "subí de nivel", cualquier urgencia falsa.
 
-## Anti-patterns
+## Anti-patrones
 
-Gradients in the mark · A mark needing a specific background · Two accent
-colours · Neon · Startup purple · Drop shadows for depth · Brand elements over
-photography · Filters or grading on artists' work · A wordmark that needs
-custom letterforms to be interesting · Stock imagery of any kind.
+Degradados en la marca · Una marca que necesita un fondo específico · Dos colores
+de acento · Neón · Violeta de startup · Sombras para dar profundidad · Elementos
+de marca sobre fotografías · Filtros o corrección de color sobre el trabajo de
+los artistas · Un logotipo que necesita letras customizadas para ser interesante ·
+Imágenes de banco, de cualquier tipo.
 
-## Quality checklist
+## Checklist de calidad
 
-- [ ] Legible at 16px and as a 60pt app icon
-- [ ] Works without the wordmark
-- [ ] Works in one colour, both polarities
-- [ ] Not confusable with Wi-Fi, infinity, a knot, a chain, or a node graph
-- [ ] Optical correction applied at icon size
-- [ ] Contrast verified for every token pair used
-- [ ] `signal` used at most once on the screen
-- [ ] No tattoo-specific imagery anywhere
+- [ ] Legible a 16px y como ícono de app de 60pt
+- [ ] Funciona sin el logotipo
+- [ ] Funciona en un solo color, en las dos polaridades
+- [ ] No confundible con Wi-Fi, infinito, un nudo, una cadena o un grafo de nodos
+- [ ] Corrección óptica aplicada a tamaño de ícono
+- [ ] Contraste verificado para cada par de tokens usado
+- [ ] `signal` usado como máximo una vez en la pantalla
+- [ ] Ninguna imagen específica de tatuaje en ningún lado

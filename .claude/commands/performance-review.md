@@ -1,38 +1,40 @@
 ---
-description: Measure MESH against its performance budgets and report with real numbers.
+description: Medir MESH contra sus presupuestos de performance y reportar con números reales.
 ---
 
-Review performance of **$ARGUMENTS** (default: the discovery and profile
-paths).
+Revisá la performance de **$ARGUMENTS** (por defecto: los caminos de
+descubrimiento y de perfil).
 
-Take the role of `performance-engineer`. Read
-`docs/architecture/system-architecture.md` §6 and
+Tomá el rol de `performance-engineer`. Leé
+`docs/architecture/system-architecture.md` §6 y
 `docs/testing/test-strategy.md` §7.
 
-Measure — on a real mid-range Android device, release build, and **name the
-device in the report**:
+Medí — en un Android real de gama media, build de release, y **nombrá el
+dispositivo en el reporte**:
 
-| Budget | Target |
+| Presupuesto | Objetivo |
 |---|---|
-| Cold start → first artwork painted | < 2.5s on 4G |
-| Deck gesture | 60fps sustained, 20 swipes, zero drops |
-| Profile open → hero painted | < 800ms warm |
-| Round trips per screen | 1 |
-| Memory after 100 deck cards | flat |
+| Arranque en frío → primera obra pintada | < 2,5s en 4G |
+| Gesto del mazo | 60fps sostenidos, 20 swipes, cero caídas |
+| Abrir perfil → hero pintado | < 800ms en caliente |
+| Round trips por pantalla | 1 |
+| Memoria después de 100 tarjetas | plana |
 
-Then investigate, in this order:
+Después investigá, en este orden:
 
-1. **Image bytes** — which derived size is actually requested on each surface?
-   How many bytes per deck card? Is prefetch firing for the next 3? Does the
-   disk cache hit on a second pass? This is the highest-leverage check and it
-   regresses silently.
-2. **Round trips** — anything above one per screen needs an RPC.
-3. **Query plans** — `explain analyze` the feed RPC, profile, and match queries
-   **with RLS predicates applied**; policy `EXISTS` subqueries are part of the
-   plan.
-4. **Gesture thread** — any React state update per frame is a bug.
-5. **Startup** — anything blocking the first frame.
+1. **Bytes de imagen** — ¿qué tamaño derivado se pide realmente en cada
+   superficie? ¿Cuántos bytes por tarjeta del mazo? ¿Se dispara el prefetch de
+   las 3 siguientes? ¿Acierta el caché de disco en una segunda pasada? Es el
+   chequeo de mayor palanca y regresiona en silencio.
+2. **Round trips** — cualquier cosa por encima de uno por pantalla necesita un
+   RPC.
+3. **Planes de consulta** — `explain analyze` sobre el RPC del feed, el perfil y
+   los matches **con los predicados de RLS aplicados**; las subconsultas `EXISTS`
+   de las políticas son parte del plan.
+4. **Hilo de gestos** — cualquier actualización de estado de React por frame es un
+   bug.
+5. **Arranque** — cualquier cosa que bloquee el primer frame.
 
-Rules: measure before proposing; never propose removing a loading/empty/error
-state; never propose degrading image quality below what the artwork deserves.
-If a budget was not measured, say "not measured" — do not estimate it.
+Reglas: medí antes de proponer; nunca propongas sacar un estado de carga, vacío o
+error; nunca propongas degradar la calidad de imagen por debajo de lo que la obra
+merece. Si un presupuesto no se midió, escribí "no medido" — no lo estimes.

@@ -1,45 +1,46 @@
 ---
 name: content-seeding
-description: Adding artists, validating content, and running the seed pipeline. Use when adding or updating artist content, changing the taxonomy, or working on tools/seed.
+description: Agregar artistas, validar contenido y correr el pipeline de carga. Usala al agregar o actualizar contenido de artistas, cambiar la taxonomía, o trabajar en tools/seed.
 ---
 
-# Content seeding
+# Carga de contenido
 
-## Purpose
+## Propósito
 
-Get real artists into MESH reliably, with consent, without fabrication, and
-without ever partially applying a broken batch.
+Meter artistas reales en MESH de forma confiable, con consentimiento, sin inventar
+nada, y sin aplicar nunca un lote roto a medias.
 
-## When to use
+## Cuándo usarla
 
-Adding or updating an artist. Changing the taxonomy. Any change to
-`tools/seed/` or `content/`.
+Al agregar o actualizar un artista. Al cambiar la taxonomía. Ante cualquier cambio
+en `tools/seed/` o en `content/`.
 
-## Absolute rules
+## Reglas absolutas
 
-1. **No consent record, no seed.** `content/artists/<slug>/consent.md` with
-   date, medium, scope, and who obtained it. Missing consent is a hard failure.
-2. **No scraping.** Every image comes from the artist or at their explicit
-   direction.
-3. **Never fabricate** a bio, price, availability, review, or credential. A
-   missing field renders nothing.
-4. **Fixtures are unmistakable:** `is_fixture = true`, `[Fixture] ` name
-   prefix, visible badge in non-production builds. **Production seeding fails
-   if any fixture is present.**
-5. **Validate everything before writing anything.** Abort before the first
-   insert. Never partially apply; never silently skip a bad record.
+1. **Sin registro de consentimiento, no hay carga.**
+   `content/artists/<slug>/consent.md` con fecha, medio, alcance y quién lo
+   obtuvo. La falta de consentimiento es una falla dura.
+2. **Nada de scraping.** Cada imagen viene del artista o se obtiene con su
+   indicación explícita.
+3. **Nunca inventes** una bio, un precio, disponibilidad, una reseña o una
+   credencial. Un campo faltante no renderiza nada.
+4. **Los fixtures son inconfundibles:** `is_fixture = true`, prefijo `[Fixture] `
+   en el nombre, insignia visible en builds no productivos. **La carga a
+   producción falla si hay algún fixture presente.**
+5. **Validá todo antes de escribir nada.** Abortá antes del primer insert. Nunca
+   apliques parcialmente; nunca saltees en silencio un registro inválido.
 
-## Content layout
+## Estructura de contenido
 
 ```
 content/artists/<slug>/
-  artist.yaml       identity, bio, location, styles, price, availability, socials
-  portfolio.yaml    per piece: file, caption, year, styles + weights
-  consent.md        required
-  media/            source images (gitignored — originals stay with the artist)
+  artist.yaml       identidad, bio, ubicación, estilos, precio, disponibilidad, redes
+  portfolio.yaml    por pieza: archivo, epígrafe, año, estilos + pesos
+  consent.md        requerido
+  media/            imágenes fuente (en gitignore — los originales quedan con el artista)
 ```
 
-## Example `artist.yaml`
+## Ejemplo de `artist.yaml`
 
 ```yaml
 slug: luna-vera
@@ -65,59 +66,63 @@ contact:
   whatsapp: "+5491155551234"
 ```
 
-`botanical` must exist in the taxonomy for `tattoo`, or validation fails.
+Las claves del archivo están en inglés porque mapean directo a columnas.
+`botanical` tiene que existir en la taxonomía de `tattoo`, o la validación falla.
 
-## Validation checklist (Zod, in `packages/domain/src/content/`)
+## Checklist de validación (Zod, en `packages/domain/src/content/`)
 
-- Required fields present and non-empty
-- `whatsapp` valid E.164; `instagram` a bare handle, not a URL
-- Every style slug exists for that category
-- Portfolio item style weights sum to 1 ± 0.001
-- `min ≤ max`; ISO-4217 currency; `priced_at` present if priced
-- `availability.updated_at` present if a status is given
-- Every media file exists, is JPEG/PNG/WebP/HEIC, ≤ 12 MB, dimensions readable
-- Consent record exists and is dated
+- Campos requeridos presentes y no vacíos
+- `whatsapp` en E.164 válido; `instagram` un handle pelado, no una URL
+- Todo slug de estilo existe para esa categoría
+- Los pesos de estilo por pieza suman 1 ± 0,001
+- `min ≤ max`; moneda ISO-4217; `priced_at` presente si hay precio
+- `availability.updated_at` presente si hay estado
+- Todo archivo de media existe, es JPEG/PNG/WebP/HEIC, ≤ 12 MB, con dimensiones
+  legibles
+- Existe registro de consentimiento y está fechado
 
 ## Pipeline
 
 ```
-validate all → resize (sm 400 / md 900 / lg 1600, WebP) → blurhash
-→ upload to Storage → upsert rows → write audit_event
+validar todo → redimensionar (sm 400 / md 900 / lg 1600, WebP) → blurhash
+→ subir a Storage → upsert de filas → escribir audit_event
 ```
 
-Idempotent — re-running produces the same result and does not duplicate media
-(checksum on `media_assets`). Uses the service-role key, which exists only
-here. The tool refuses to run inside a Metro/Expo context.
+Idempotente — volver a correrlo produce el mismo resultado y no duplica media
+(checksum en `media_assets`). Usa la service-role key, que existe solo acá. La
+herramienta se niega a correr dentro de un contexto de Metro/Expo.
 
-Always dry-run locally against `supabase start` before touching a hosted
-project.
+Siempre hacé una corrida en seco local contra `supabase start` antes de tocar un
+proyecto hosteado.
 
-## Style tagging is a product-quality problem
+## El etiquetado de estilos es un problema de calidad de producto
 
-Match quality is bounded by tagging quality. Tags come from the artist's own
-description wherever possible, and artists get to correct them. Item weights
-put the primary style highest so a five-tag piece cannot outvote a focused one.
+La calidad del match está acotada por la calidad del etiquetado. Las etiquetas
+salen de la propia descripción del artista siempre que se pueda, y los artistas
+pueden corregirlas. Los pesos por pieza ponen el estilo primario más arriba para
+que una pieza con cinco etiquetas no pese más que una enfocada.
 
-## Withdrawal
+## Retiro
 
-Unpublish immediately, delete storage objects and rows, remove the content
-directory — same working day. Keep only the consent/withdrawal record and an
-audit entry.
+Despublicar de inmediato, borrar objetos de storage y filas, eliminar el
+directorio de contenido — el mismo día hábil. Conservar solo el registro de
+consentimiento/retiro y una entrada de auditoría.
 
-## Anti-patterns
+## Anti-patrones
 
-Placeholder bios that read as real · Stock tattoo photography · A fixture with
-a plausible human name · Seeding to production without a local dry run · Style
-tags invented by whoever added the artist · Committing source media · A
-partially applied batch · A warning where a hard failure belongs.
+Bios placeholder que se leen como reales · Fotografía de tatuajes de banco de
+imágenes · Un fixture con nombre humano verosímil · Cargar a producción sin
+corrida en seco local · Etiquetas de estilo inventadas por quien agregó al
+artista · Commitear media fuente · Un lote aplicado a medias · Una advertencia
+donde corresponde una falla dura.
 
-## Quality checklist
+## Checklist de calidad
 
-- [ ] Consent record present and dated
-- [ ] All validation passes locally
-- [ ] Dry run against local Supabase clean
-- [ ] Re-run is idempotent (no duplicate media, no duplicate rows)
-- [ ] No fixture rows in a production run
-- [ ] Style tags reviewed against the artist's own description
-- [ ] Derived sizes and blurhash generated
-- [ ] `audit_event` written
+- [ ] Registro de consentimiento presente y fechado
+- [ ] Toda la validación pasa localmente
+- [ ] Corrida en seco contra Supabase local limpia
+- [ ] Volver a correr es idempotente (sin media duplicada, sin filas duplicadas)
+- [ ] Ninguna fila fixture en una corrida de producción
+- [ ] Etiquetas de estilo revisadas contra la descripción del propio artista
+- [ ] Tamaños derivados y blurhash generados
+- [ ] `audit_event` escrito

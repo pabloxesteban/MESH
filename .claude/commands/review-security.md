@@ -1,30 +1,33 @@
 ---
-description: Full security review — RLS, storage, auth, secrets, deep links, and product integrity.
+description: Revisión de seguridad completa — RLS, storage, auth, secretos, deep links e integridad de producto.
 ---
 
-Run a security review of **$ARGUMENTS** (default: the current diff; before a
-release, the whole codebase).
+Corré una revisión de seguridad de **$ARGUMENTS** (por defecto: el diff actual;
+antes de un release, todo el código).
 
-Take the role of `security-reviewer`. Follow
-`.claude/workflows/security-review.md` section by section, and read
-`docs/security/security-model.md` and `docs/security/threat-model.md` first.
+Tomá el rol de `security-reviewer`. Seguí
+`.claude/workflows/security-review.md` sección por sección, y leé primero
+`docs/security/security-model.md` y `docs/security/threat-model.md`.
 
-Assume the client is hostile: anyone can read the bundle, take the anon key,
-and call the API directly.
+Asumí que el cliente es hostil: cualquiera puede leer el bundle, tomar la anon key
+y llamar a la API directamente.
 
-Pay particular attention to:
-- Any `public` table without RLS enabled **and** forced, or with zero policies
-- `for all` policies, or insert policies without `with check`
-- Update policies that allow a row to be updated *into* another user's ownership
-- `SECURITY DEFINER` functions without `set search_path = ''`
-- `media_assets` exposing another user's private reference paths
-- Storage paths not scoped by `auth.uid()`
-- Any `service_role` reference reachable from `apps/`
-- Deep-link parameters used without validation, or links that mutate
-- Free text in analytics properties
-- Product integrity (T9): fabricated content, or a match reason that does not
-  map to a contributing component
+Prestá atención especial a:
+- Cualquier tabla de `public` sin RLS habilitado **y** forzado, o con cero
+  políticas
+- Políticas `for all`, o políticas de insert sin `with check`
+- Políticas de update que permitan actualizar una fila *hacia* la propiedad de
+  otra persona
+- Funciones `SECURITY DEFINER` sin `set search_path = ''`
+- `media_assets` exponiendo las rutas de referencias privadas de otra persona
+- Rutas de storage no acotadas por `auth.uid()`
+- Cualquier referencia a `service_role` alcanzable desde `apps/`
+- Parámetros de deep link usados sin validar, o links que mutan
+- Texto libre en las propiedades de analytics
+- Integridad de producto (T9): contenido inventado, o una razón de match que no
+  mapea a un componente que aportó
 
-For each finding give: what it is, the concrete exploitation path, the blast
-radius, and the fix. Rank by what an attacker actually gains. Do not pad the
-report — a list of theoretical low-severity issues buries the real one.
+Por cada hallazgo dá: qué es, el camino concreto de explotación, el radio de
+explosión, y el arreglo. Ordená por lo que el atacante efectivamente gana. No
+infles el reporte — una lista de problemas teóricos de severidad baja entierra el
+que importa.

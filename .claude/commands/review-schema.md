@@ -1,30 +1,32 @@
 ---
-description: Review a schema change against MESH's data-model rules and RLS requirements.
+description: Revisar un cambio de esquema contra las reglas de modelo de datos y los requisitos de RLS de MESH.
 ---
 
-Review the schema change: **$ARGUMENTS** (default: migrations in the current
-diff).
+Revisá el cambio de esquema: **$ARGUMENTS** (por defecto: las migraciones del diff
+actual).
 
-Follow `.claude/workflows/database-change.md`, taking the roles of
-`product-architect`, `backend-engineer`, and `security-reviewer`. Read
-`docs/architecture/data-model.md` first.
+Seguí `.claude/workflows/database-change.md`, tomando los roles de
+`product-architect`, `backend-engineer` y `security-reviewer`. Leé primero
+`docs/architecture/data-model.md`.
 
-Answer, explicitly:
+Respondé, explícitamente:
 
-1. **Does it earn its existence?** What reads or writes it, on which screen?
-   What breaks without it? Is it derivable from data we already have?
-2. **Is it category-agnostic?** Would adding *photography* still require only
-   rows in `categories`/`styles` plus content files?
-3. **Does it duplicate a fact** represented elsewhere?
-4. **Deletion behaviour** explicit on every foreign key?
-5. **Invariants as constraints**, not TypeScript checks?
-6. **RLS in the same migration** — enabled, forced, `revoke all` + grants,
-   per-command policies, `with check` on inserts, ownership via `auth.uid()`?
-7. **Indexes** — does each have a named query? Are the policy predicates
-   indexed?
-8. **Tests** — cross-user tests for the new table, rejection tests for new
-   constraints?
-9. **Docs** — `data-model.md` and the policy map updated in the same commit?
+1. **¿Se gana su existencia?** ¿Qué lo lee o escribe, y en qué pantalla? ¿Qué se
+   rompe sin eso? ¿Es derivable de datos que ya tenemos?
+2. **¿Es agnóstico de categoría?** ¿Agregar *fotografía* seguiría requiriendo solo
+   filas en `categories`/`styles` más archivos de contenido?
+3. **¿Duplica un hecho** representado en otro lado?
+4. **Comportamiento de borrado** explícito en cada clave foránea?
+5. **¿Invariantes como restricciones**, y no como chequeos en TypeScript?
+6. **¿RLS en la misma migración** — habilitado, forzado, `revoke all` + grants,
+   políticas por comando, `with check` en los inserts, propiedad vía
+   `auth.uid()`?
+7. **Índices** — ¿cada uno tiene una consulta con nombre? ¿Están indexados los
+   predicados de las políticas?
+8. **Tests** — ¿tests cruzados para la tabla nueva, tests de rechazo para las
+   restricciones nuevas?
+9. **Documentación** — ¿`data-model.md` y el mapa de políticas actualizados en el
+   mismo commit?
 
-Give a verdict: approve, approve-with-changes (list them), or reject with a
-simpler alternative.
+Dá un veredicto: aprobar, aprobar con cambios (listalos), o rechazar con una
+alternativa más simple.

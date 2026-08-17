@@ -1,28 +1,29 @@
 ---
-description: Run MESH's test suite in the right order and report what actually failed.
+description: Correr la suite de tests de MESH en el orden correcto y reportar qué falló realmente.
 ---
 
-Run the test suite for **$ARGUMENTS** (default: everything affected by the
-current diff).
+Corré la suite de tests para **$ARGUMENTS** (por defecto: todo lo afectado por el
+diff actual).
 
-Order — stop and report at the first layer that fails, since later layers
-depend on it:
+Orden — pará y reportá en la primera capa que falle, porque las capas siguientes
+dependen de ella:
 
-1. `npm run typecheck` (all workspaces)
-2. `npm run lint` — including the layering and no-raw-design-value rules
-3. `npm test -w packages/domain` — taste, matching, content schemas
-4. Content validation over `content/artists/**`
-5. `supabase start` → apply migrations → RLS and constraint tests
-6. Component tests (`jest-expo`)
-7. E2E (Maestro) — only when the critical path changed or before a release
+1. `npm run typecheck` (todos los workspaces)
+2. `npm run lint` — incluidas las reglas de capas y de valores de diseño crudos
+3. `npm test -w packages/domain` — gusto, matching, esquemas de contenido
+4. Validación de contenido sobre `content/artists/**`
+5. `supabase start` → aplicar migraciones → tests de RLS y restricciones
+6. Tests de componentes (`jest-expo`)
+7. E2E (Maestro) — solo cuando cambió el camino crítico o antes de un release
 
-Reporting rules:
+Reglas de reporte:
 
-- Quote the actual failure output. Do not summarise a failure into a guess.
-- For a failing **matching fixture**: investigate the algorithm. Never
-  re-baseline the expected value — that test is the enforcement mechanism for
-  the versioning rule in `docs/product/matching.md` §9.
-- For a failing **RLS test**: treat it as a security finding, not a test bug.
-- For a flaky test: fix it or delete it. Do not leave it and retry.
-- If a layer was skipped (no Docker, no device), say so explicitly rather than
-  reporting green.
+- Citá la salida real de la falla. No resumas una falla en una suposición.
+- Ante un **fixture de matching** que falla: investigá el algoritmo. Nunca
+  rebases el valor esperado — ese test es el mecanismo de enforcement de la regla
+  de versionado de `docs/product/matching.md` §9.
+- Ante un **test de RLS** que falla: tratalo como un hallazgo de seguridad, no
+  como un bug de test.
+- Ante un test intermitente: arreglalo o borralo. No lo dejes y reintentes.
+- Si se salteó una capa (sin Docker, sin dispositivo), decilo explícitamente en
+  vez de reportar verde.

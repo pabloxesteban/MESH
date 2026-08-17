@@ -1,72 +1,76 @@
-# Workflow — Release check
+# Workflow — Chequeo de release
 
-Run before any build that a real user or a real artist will see.
+Correr antes de cualquier build que vaya a ver una persona real o un artista
+real.
 
-## 1. Product — `product-critic`, `ux-product-designer`
+## 1. Producto — `product-critic`, `ux-product-designer`
 
-- [ ] Every acceptance criterion in `docs/product/product-spec.md` §13 verified
-      by hand, not assumed
-- [ ] No UX dead end: every screen has a forward action from every state
-- [ ] No dark pattern anywhere — no streak, point, badge, fake scarcity, fake
-      urgency, artificial limit, or engagement notification
-- [ ] Nothing on any screen is fabricated or inferred beyond what the data
-      supports
-- [ ] "Would a real person use this? Why would they come back?" answered
-      honestly, in writing
+- [ ] Todos los criterios de aceptación de `docs/product/product-spec.md` §13
+      verificados a mano, no supuestos
+- [ ] Ningún callejón sin salida de UX: toda pantalla tiene una acción hacia
+      adelante desde todos sus estados
+- [ ] Ningún dark pattern en ningún lado — ni racha, ni punto, ni insignia, ni
+      escasez falsa, ni urgencia falsa, ni límite artificial, ni notificación
+      carnada
+- [ ] Nada en ninguna pantalla es inventado ni inferido más allá de lo que
+      sostienen los datos
+- [ ] "¿Una persona real usaría esto? ¿Por qué volvería?" respondido con
+      honestidad, por escrito
 
-## 2. Correctness — `qa-engineer`
+## 2. Corrección — `qa-engineer`
 
-- [ ] Typecheck, lint, all unit tests green
-- [ ] Every matching fixture passes with no re-baselining
-- [ ] RLS guarantee test and all cross-user tests green
-- [ ] All six E2E flows green — including flow 4 (buttons only) and flow 5
-      (offline)
-- [ ] Component state coverage complete for changed surfaces
+- [ ] Chequeo de tipos, lint y todos los tests unitarios en verde
+- [ ] Todos los fixtures de matching pasan sin haber sido rebasados
+- [ ] Test de garantía de RLS y todos los tests cruzados en verde
+- [ ] Los seis flujos E2E en verde — incluidos el flujo 4 (solo botones) y el
+      flujo 5 (offline)
+- [ ] Cobertura de estados de componentes completa en las superficies tocadas
 
-## 3. Security — `security-reviewer`
+## 3. Seguridad — `security-reviewer`
 
-Run `security-review.md` in full. Every item, every time.
-- [ ] No open high or critical finding
-- [ ] `npm audit` clean at high/critical
-- [ ] Bundle secret scan green
-- [ ] Threat model re-read against anything new since last release
+Correr `security-review.md` completo. Cada ítem, cada vez.
+- [ ] Ningún hallazgo alto ni crítico abierto
+- [ ] `npm audit` limpio en alto/crítico
+- [ ] Escaneo de secretos del bundle en verde
+- [ ] Modelo de amenazas releído contra todo lo nuevo desde el último release
 
 ## 4. Performance — `performance-engineer`
 
-On a real mid-range Android device, release build. Record the device name.
-- [ ] Cold start → first artwork < 2.5s on 4G
-- [ ] Deck 60fps sustained over 20 swipes
-- [ ] Profile hero < 800ms warm
-- [ ] One round trip per screen, verified in the network log
-- [ ] Correct derived image size on every surface
-- [ ] Memory flat over 100 deck cards
+En un Android real de gama media, build de release. Registrá el nombre del
+dispositivo.
+- [ ] Arranque en frío → primera obra < 2,5s en 4G
+- [ ] Mazo a 60fps sostenidos en 20 swipes
+- [ ] Hero del perfil < 800ms en caliente
+- [ ] Un round trip por pantalla, verificado en el log de red
+- [ ] Tamaño derivado de imagen correcto en cada superficie
+- [ ] Memoria plana sobre 100 tarjetas del mazo
 
-## 5. Content — `content-engineer`
+## 5. Contenido — `content-engineer`
 
-- [ ] Every artist has a dated consent record
-- [ ] **Zero fixture rows** in the production database
-- [ ] Every published professional has at least one working contact channel
-- [ ] Availability data either fresh (<45 days) or absent
-- [ ] Prices carry a `priced_at` date, or are absent
-- [ ] Each artist has seen their own profile and approved it
-- [ ] Withdrawal procedure tested end to end at least once
+- [ ] Todo artista tiene un registro de consentimiento fechado
+- [ ] **Cero filas fixture** en la base de producción
+- [ ] Todo profesional publicado tiene al menos un canal de contacto que funciona
+- [ ] Los datos de disponibilidad están frescos (<45 días) o ausentes
+- [ ] Los precios llevan fecha `priced_at`, o están ausentes
+- [ ] Cada artista vio su propio perfil y lo aprobó
+- [ ] El procedimiento de retiro se probó de punta a punta al menos una vez
 
 ## 6. Analytics — `product-architect`
 
-- [ ] Every event in the catalogue fires exactly once in the E2E run
-- [ ] No free text in any property
-- [ ] Opt-out genuinely queues and sends nothing
+- [ ] Cada evento del catálogo se dispara exactamente una vez en la corrida E2E
+- [ ] Ningún texto libre en ninguna propiedad
+- [ ] El opt-out genuinamente no encola ni envía nada
 
-## 7. Release mechanics
+## 7. Mecánica del release
 
-- [ ] Store metadata and privacy declarations match what the app actually
-      collects
-- [ ] Migrations applied to production in order and verified
-- [ ] Rollback plan written: previous build, and how to revert a migration
-- [ ] Version bumped; ADRs and docs current
+- [ ] Los metadatos de tienda y las declaraciones de privacidad coinciden con lo
+      que la app efectivamente recolecta
+- [ ] Migraciones aplicadas a producción en orden y verificadas
+- [ ] Plan de rollback escrito: build anterior, y cómo revertir una migración
+- [ ] Versión subida; ADRs y documentación al día
 
-## 8. Sign-off
+## 8. Firma
 
-Write a short release note: what changed, what was measured (with numbers and
-the device), what is known-broken, and what we are watching after launch. An
-unrecorded measurement does not count as a measurement.
+Escribí una nota de release corta: qué cambió, qué se midió (con números y el
+dispositivo), qué está roto y se conoce, y qué vamos a observar después del
+lanzamiento. Una medición no registrada no cuenta como medición.

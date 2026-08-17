@@ -1,91 +1,94 @@
 ---
 name: performance
-description: Performance budgets and techniques for MESH — startup, gestures, images, queries, memory. Use when a surface feels slow, before a release, or when touching the discovery or profile path.
+description: Presupuestos y técnicas de performance para MESH — arranque, gestos, imágenes, consultas, memoria. Usala cuando una superficie se sienta lenta, antes de un release, o al tocar el camino de descubrimiento o de perfil.
 ---
 
 # Performance
 
-## Purpose
+## Propósito
 
-Make MESH feel fast on a real mid-range phone on a mobile network in Buenos
-Aires — not on a simulator on a laptop.
+Que MESH se sienta rápido en un teléfono real de gama media, sobre una red móvil
+en Buenos Aires — no en un simulador sobre una laptop.
 
-## When to use
+## Cuándo usarla
 
-Anything on the discovery or profile path. Adding a dependency. Before a
-release. Whenever something feels slow.
+Cualquier cosa del camino de descubrimiento o de perfil. Al agregar una
+dependencia. Antes de un release. Cada vez que algo se siente lento.
 
-## Budgets
+## Presupuestos
 
-Measured on a **real mid-range Android device**, **release build**, recorded
-with the device named. An unrecorded number is not a measurement.
+Medidos en un **Android real de gama media**, **build de release**, registrados
+con el nombre del dispositivo. Un número no registrado no es una medición.
 
-| Budget | Target |
+| Presupuesto | Objetivo |
 |---|---|
-| Cold start → first artwork painted | < 2.5s on 4G |
-| Deck gesture | 60fps sustained, 20 swipes, zero dropped frames |
-| Profile open → hero painted | < 800ms warm cache |
-| Round trips per screen | 1 |
-| Memory after 100 deck cards | no unbounded growth |
+| Arranque en frío → primera obra pintada | < 2,5s en 4G |
+| Gesto del mazo | 60fps sostenidos, 20 swipes, cero caídas |
+| Abrir perfil → hero pintado | < 800ms con caché caliente |
+| Round trips por pantalla | 1 |
+| Memoria después de 100 tarjetas | plana |
 
-## Where the time goes, in order
+## Dónde se va el tiempo, en orden
 
-1. **Image bytes** — ~95% of the deck's payload. Verify the client requests the
-   right derived size (`sm` grids / `md` deck / `lg` full). This is the highest
-   leverage check and it silently regresses.
-2. **Round trips** — one per screen. Three queries means an RPC is missing.
-3. **Decode and layout** — blurhash + stored dimensions reserve space before
-   decode, eliminating layout shift.
-4. **Bridge traffic during gestures** — any React state update per frame is a
-   bug.
-5. **Startup work** — nothing blocks the first frame.
+1. **Bytes de imagen** — ~95% del payload del mazo. Verificá qué tamaño derivado
+   se pide realmente en cada superficie (`sm` grillas / `md` mazo / `lg` completa).
+   Es el chequeo de mayor palanca y regresiona en silencio.
+2. **Round trips** — uno por pantalla. Tres queries significa que falta un RPC.
+3. **Decodificación y layout** — blurhash + dimensiones guardadas reservan el
+   espacio antes de decodificar, eliminando el salto de layout.
+4. **Tráfico de puente durante los gestos** — cualquier actualización de estado de
+   React por frame es un bug.
+5. **Trabajo de arranque** — nada bloquea el primer frame.
 
-## Techniques
+## Técnicas
 
-- `expo-image` with disk cache, blurhash, explicit `contentFit`,
-  `recyclingKey` in recycled lists.
-- Prefetch the next 3 deck images at `md`; the top match's hero at `lg` when
-  the match list renders.
-- FlashList with a real `estimatedItemSize`.
-- Cursor pagination — never `OFFSET`.
-- Gestures in Reanimated worklets, never React state.
-- At most 3 deck cards mounted; memoise card content on id.
-- Fonts and the intro screen ship in the bundle.
+- `expo-image` con caché de disco, blurhash, `contentFit` explícito y
+  `recyclingKey` en listas recicladas.
+- Precargar las 3 imágenes siguientes del mazo en `md`; el hero del primer match
+  en `lg` cuando se renderiza la lista.
+- FlashList con un `estimatedItemSize` real.
+- Paginación por cursor — nunca `OFFSET`.
+- Gestos en worklets de Reanimated, nunca en estado de React.
+- Como mucho 3 tarjetas del mazo montadas; memoizar el contenido por id.
+- Las tipografías y la pantalla de intro viajan en el bundle.
 
-## How to investigate
+## Cómo investigar
 
-- Network log through a deck session: which size, how many bytes per card, is
-  prefetch firing, does the disk cache hit on a second pass?
-- `explain analyze` the feed RPC, profile query, and match query **with RLS
-  predicates in place** — policy `EXISTS` subqueries are part of the plan.
-- Frame timing during a sustained swipe, on device.
-- Memory over 100 cards — is `recyclingKey` set, are cards unmounting?
-- Startup trace and bundle size after any dependency addition.
+- Log de red a lo largo de una sesión de mazo: qué tamaño, cuántos bytes por
+  tarjeta, ¿se dispara el prefetch?, ¿el caché de disco acierta en la segunda
+  pasada?
+- `explain analyze` sobre el RPC del feed, la query de perfil y la de matches
+  **con los predicados de RLS aplicados** — las subconsultas `EXISTS` de las
+  políticas son parte del plan.
+- Tiempos de frame durante un swipe sostenido, en dispositivo.
+- Memoria sobre 100 tarjetas — ¿está `recyclingKey`?, ¿se desmontan las tarjetas?
+- Traza de arranque y tamaño de bundle después de agregar cualquier dependencia.
 
-## Rules
+## Reglas
 
-- **Measure before optimising.** Intuition about React Native performance is
-  usually wrong.
-- Never "optimise" by removing a loading, empty, or error state.
-- Never degrade image quality below what the artwork deserves — this is a
-  product about looking at people's work. Find the bytes elsewhere.
-- Any caching proposal states its invalidation up front.
-- Any new dependency states its startup cost.
+- **Medí antes de optimizar.** La intuición sobre performance de React Native
+  suele estar equivocada.
+- Nunca "optimices" sacando un estado de carga, vacío o error.
+- Nunca degrades la calidad de imagen por debajo de lo que la obra merece — este
+  es un producto sobre mirar el trabajo de otras personas. Buscá los bytes en otro
+  lado.
+- Toda propuesta de caché declara su invalidación de entrada.
+- Toda dependencia nueva declara su costo de arranque.
 
-## Anti-patterns
+## Anti-patrones
 
-`OFFSET` pagination · Images without `recyclingKey` · `FlatList` for a media
-grid, or `FlashList` without a real `estimatedItemSize` · Fetching a whole
-portfolio for four thumbnails · `useEffect` chains causing a second mount
-render · Blocking network before the first frame · Premature `useMemo` ·
-Declaring the deck done without a real device.
+Paginación con `OFFSET` · Imágenes sin `recyclingKey` · `FlatList` para una
+grilla de media, o `FlashList` sin un `estimatedItemSize` real · Traer un
+portfolio entero para cuatro miniaturas · Cadenas de `useEffect` que causan un
+segundo render al montar · Red bloqueante antes del primer frame · `useMemo`
+prematuro · Declarar el mazo terminado sin un dispositivo real.
 
-## Quality checklist
+## Checklist de calidad
 
-- [ ] Correct derived image size on every surface
-- [ ] One round trip per screen
-- [ ] `recyclingKey` set; memory flat over 100 cards
-- [ ] Gesture runs on the UI thread; 60fps verified on device
-- [ ] Query plans checked with RLS applied
-- [ ] Budgets measured and recorded with the device named
-- [ ] No state removed in the name of speed
+- [ ] Tamaño derivado correcto en cada superficie
+- [ ] Un round trip por pantalla
+- [ ] `recyclingKey` seteado; memoria plana sobre 100 tarjetas
+- [ ] El gesto corre en el hilo de UI; 60fps verificados en dispositivo
+- [ ] Planes de consulta chequeados con RLS aplicado
+- [ ] Presupuestos medidos y registrados con el nombre del dispositivo
+- [ ] Ningún estado eliminado en nombre de la velocidad

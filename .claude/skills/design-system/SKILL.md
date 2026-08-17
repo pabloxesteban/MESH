@@ -1,60 +1,63 @@
 ---
 name: design-system
-description: Conventions for tokens, components, motion, and haptics in apps/mobile/src/design-system. Use when adding a component or token, or when a screen needs a design value.
+description: Convenciones de tokens, componentes, movimiento y hápticos en apps/mobile/src/design-system. Usala al agregar un componente o un token, o cuando una pantalla necesita un valor de diseño.
 ---
 
 # Design system
 
-## Purpose
+## Propósito
 
-One place where visual decisions are made, so screens are composition and
-nothing else.
+Un único lugar donde se toman las decisiones visuales, para que las pantallas
+sean composición y nada más.
 
-## When to use
+## Cuándo usarla
 
-Adding or changing a component. Adding a token. Any time a screen wants a
-colour, a spacing, a font size, or a duration.
+Al agregar o cambiar un componente. Al agregar un token. Cada vez que una
+pantalla quiere un color, un espaciado, un tamaño de fuente o una duración.
 
-## Rules
+## Reglas
 
-1. **`tokens/palette.ts` is the only file with a hex value.** Anywhere else is
-   a lint error.
-2. **Semantic, not literal.** Components consume `text-secondary`, never
-   `ink-500`. Needing a literal means the semantic layer is missing a token.
-3. **`Text` has no `fontSize` prop.** It takes `role` from a closed union.
-   Spacing works the same way. Remove escape hatches rather than documenting
-   that they shouldn't be used.
-4. **A component earns its place** by being used twice, or by encoding a rule
-   that must not be re-decided (contrast, target size, staleness, motion).
-5. **Interactive components ship with:** accessibility label support, ≥44×44pt
-   target, disabled, pressed, and loading (if they trigger work).
-6. **Data components ship with:** skeleton, empty, error variants.
-7. **Both themes.** Always.
-8. **Contrast is asserted in a test**, never judged by eye.
+1. **`tokens/palette.ts` es el único archivo con un valor hex.** En cualquier otro
+   lado es un error de lint.
+2. **Semántico, no literal.** Los componentes consumen `text-secondary`, nunca
+   `ink-500`. Necesitar un literal significa que falta un token semántico.
+3. **`Text` no tiene prop `fontSize`.** Toma un `role` de una unión cerrada. El
+   espaciado funciona igual. Sacá las escotillas de escape en vez de documentar
+   que no se deben usar.
+4. **Un componente se gana su lugar** al usarse dos veces, o al codificar una
+   regla que no se debe volver a decidir (contraste, área táctil,
+   desactualización, movimiento).
+5. **Los componentes interactivos vienen con:** soporte de etiqueta de
+   accesibilidad, área táctil de ≥44×44pt, estados deshabilitado, presionado, y
+   de carga (si disparan trabajo).
+6. **Los componentes de datos vienen con:** variantes de skeleton, vacío y error.
+7. **Los dos temas.** Siempre.
+8. **El contraste se verifica en un test**, nunca a ojo.
 
-## Motion
+## Movimiento
 
-Named tokens only: `instant` 120ms · `quick` 200ms · `standard` 280ms spring ·
-`deck` velocity-carrying spring · `reveal` 500ms staggered. Nothing exceeds
-500ms. The drag itself has no easing — physics start when the finger leaves.
-`MotionProvider` reads reduced-motion once; components ask it.
+Solo tokens con nombre: `instant` 120ms · `quick` 200ms · `standard` 280ms
+resorte · `deck` resorte que conserva velocidad · `reveal` 500ms escalonado. Nada
+supera los 500ms. El arrastre mismo no tiene easing — la física arranca cuando el
+dedo se levanta. `MotionProvider` lee la reducción de movimiento una sola vez; los
+componentes se lo preguntan a él.
 
-## Haptics
+## Hápticos
 
-Confirmation of a decision only. Like → `impactLight`. Save → `impactMedium`.
-Pass → **none**. Match list → `notificationSuccess`, once. Never on scroll,
-never per frame, never on entry.
+Solo confirmación de una decisión. Me gusta → `impactLight`. Guardar →
+`impactMedium`. Paso → **ninguno**. Lista de matches → `notificationSuccess`, una
+vez. Nunca al hacer scroll, nunca por frame, nunca al entrar.
 
-## Conventions
+## Convenciones
 
-- Files: `components/<Name>/<Name>.tsx`, `<Name>.test.tsx`, `index.ts`.
-- Variants are props from a closed union, never boolean soup
-  (`variant="primary"`, not `isPrimary` + `isGhost`).
-- Every component is added to the catalogue in
-  `docs/design/design-system.md` in the **same commit**.
-- Components never fetch. They receive data and a state.
+- Archivos: `components/<Nombre>/<Nombre>.tsx`, `<Nombre>.test.tsx`, `index.ts`.
+- Las variantes son props de una unión cerrada, nunca una sopa de booleanos
+  (`variant="primary"`, no `isPrimary` + `isGhost`).
+- Todo componente se agrega al catálogo de `docs/design/design-system.md` en el
+  **mismo commit**.
+- Los componentes nunca traen datos. Reciben datos y un estado.
 
-## Example
+## Ejemplo
 
 ```tsx
 // ✅
@@ -63,28 +66,28 @@ never per frame, never on entry.
 <Button variant="primary" size="lg" loading={isSubmitting}
         accessibilityLabel={t('contact.cta', { name })} />
 
-// ❌ every one of these is a lint error or a review rejection
+// ❌ cada una de estas es un error de lint o un rechazo en revisión
 <Text style={{ fontSize: 24, color: '#F4EFE6' }} />
 <View style={{ padding: 24 }} />
 <Button style={{ backgroundColor: '#9C2D40' }} />
 <Animated.View style={{ transitionDuration: 340 }} />
 ```
 
-## Anti-patterns
+## Anti-patrones
 
-`style` overrides passed into a design-system component from a screen · A
-duration inlined "because it felt better" · Drop shadows for hierarchy · Green/
-red for like/pass · Skeletons that don't match the content shape · A component
-that renders `null` on error · A new component missing from the catalogue · A
-token added without a documented intent.
+Anulaciones de `style` pasadas desde una pantalla a un componente del design
+system · Una duración en línea "porque quedaba mejor" · Sombras para jerarquía ·
+Verde/rojo para me gusta/paso · Skeletons que no coinciden con la forma del
+contenido · Un componente que renderiza `null` ante un error · Un componente
+nuevo ausente del catálogo · Un token agregado sin intención documentada.
 
-## Quality checklist
+## Checklist de calidad
 
-- [ ] Built entirely from tokens
-- [ ] All states present (loading/empty/error if data; disabled/pressed if
-      interactive)
-- [ ] Accessibility label support and ≥44pt target
-- [ ] Verified in both themes
-- [ ] Reduced-motion path verified if animated
-- [ ] Component test covers the states
-- [ ] Added to the catalogue in the same commit
+- [ ] Construido enteramente con tokens
+- [ ] Todos los estados presentes (carga/vacío/error si trae datos;
+      deshabilitado/presionado si es interactivo)
+- [ ] Soporte de etiqueta de accesibilidad y área táctil de ≥44pt
+- [ ] Verificado en los dos temas
+- [ ] Camino de reducción de movimiento verificado si está animado
+- [ ] Test de componente que cubre los estados
+- [ ] Agregado al catálogo en el mismo commit

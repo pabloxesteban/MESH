@@ -1,97 +1,99 @@
 ---
 name: testing
-description: What to test in MESH and how — unit, RLS, component state, and E2E conventions. Use when writing tests or deciding whether a feature is done.
+description: Qué testear en MESH y cómo — convenciones de tests unitarios, de RLS, de estados de componentes y E2E. Usala al escribir tests o al decidir si una feature está terminada.
 ---
 
 # Testing
 
-## Purpose
+## Propósito
 
-Protect the three things that matter: the matching engine, authorization, and
-the critical path.
+Proteger las tres cosas que importan: el motor de matching, la autorización, y el
+camino crítico.
 
-## When to use
+## Cuándo usarla
 
-Writing any test. Deciding whether a feature is done. Investigating a
-regression.
+Al escribir cualquier test. Al decidir si una feature está terminada. Al
+investigar una regresión.
 
-## Layers
+## Capas
 
-| Layer | Tool | Scope |
+| Capa | Herramienta | Alcance |
 |---|---|---|
-| Unit | Vitest | `packages/domain` — pure logic |
-| DB / RLS | Vitest vs local Supabase | Policies, constraints, triggers, RPCs |
-| Component | Jest + RNTL | Design-system and feature components |
-| E2E | Maestro | Six critical flows |
+| Unitaria | Vitest | `packages/domain` — lógica pura |
+| Base / RLS | Vitest contra Supabase local | Políticas, restricciones, triggers, RPCs |
+| Componentes | Jest + RNTL | Componentes del design system y de features |
+| E2E | Maestro | Seis flujos críticos |
 
-## The two load-bearing tests
+## Los dos tests que sostienen todo
 
-**Generic RLS guarantee** — enumerate `pg_tables` in `public`; fail if any has
-RLS off, force off, or zero policies; fail on any `for all` policy or any
-insert policy without a `with check`. This makes an insecure table
-un-shippable, which code review cannot.
+**Garantía genérica de RLS** — enumerar `pg_tables` en `public`; fallar si alguna
+tiene RLS apagado, force apagado, o cero políticas; fallar ante cualquier política
+`for all` o política de insert sin `with check`. Esto hace impublicable una tabla
+insegura, cosa que la revisión de código no puede.
 
-**Fabrication golden test** — given a taste profile and a project, the composed
-contact message equals exactly the expected string, containing nothing the user
-did not supply. And no match reason may reference an omitted component.
+**Test golden contra la fabricación** — dado un perfil de gusto y un proyecto, el
+mensaje de contacto compuesto es exactamente el string esperado, sin contener nada
+que la persona no haya provisto. Y ninguna razón de match puede referenciar un
+componente omitido.
 
-## Cross-user pattern
+## Patrón de acceso cruzado
 
 ```ts
-// for every user-owned table
+// para cada tabla de propiedad de usuario
 const a = await signIn(USER_A)
 const b = await signIn(USER_B)
 
 await a.from('projects').insert({ ... })              // ok
-const { data } = await b.from('projects').select()     // → [] (silence, not an error)
+const { data } = await b.from('projects').select()     // → [] (silencio, no error)
 const { count } = await b.from('projects')
-  .update({ title: 'x' }).eq('user_id', USER_A.id)     // → 0 rows affected
+  .update({ title: 'x' }).eq('user_id', USER_A.id)     // → 0 filas afectadas
 await expect(
   b.from('projects').insert({ user_id: USER_A.id, ... })
-).rejects.toThrow()                                     // policy violation
+).rejects.toThrow()                                     // violación de política
 ```
 
-Zero rows rather than an error on SELECT is deliberate — an error would leak
-that the row exists.
+Cero filas en lugar de un error en el SELECT es deliberado — un error filtraría
+que la fila existe.
 
-## State coverage
+## Cobertura de estados
 
-Every component rendering remote data is tested for **loading, empty,
-error+retry, success**. Use a shared helper so writing it is cheaper than
-skipping it. This is the coverage that rots first.
+Todo componente que renderiza datos remotos se testea para **carga, vacío, error
++ reintentar, éxito**. Usá un helper compartido para que escribirlo sea más barato
+que saltearlo. Esta es la cobertura que se pudre primero.
 
-## E2E flows
+## Flujos E2E
 
-1. First run → 12 interactions → taste → matches → profile → contact
-2. Directed user → project → matches → profile
-3. Anonymous → account upgrade → sign out → sign in → data intact
-4. **Flow 1 using only buttons, no swipes**
-5. Offline mid-deck → queue → reconnect → persisted exactly once
-6. Empty match list + forced network failure → correct states → retry recovers
+1. Primer arranque → 12 interacciones → gusto → matches → perfil → contacto
+2. Usuario dirigido → proyecto → matches → perfil
+3. Anónimo → upgrade de cuenta → cerrar sesión → ingresar → datos intactos
+4. **Flujo 1 usando solo botones, sin deslizar**
+5. Offline en medio del mazo → cola → reconexión → persistido exactamente una vez
+6. Lista de matches vacía + falla de red forzada → estados correctos → el
+   reintento recupera
 
-E2E covers flows, never algorithm correctness.
+El E2E cubre flujos, nunca corrección de algoritmos.
 
 ## Fixtures
 
-Matching fixtures are committed with expected values. **Changing an expected
-value requires an algorithm version bump and a documented rationale** — the
-test is the enforcement mechanism, so never "fix" a failing matching test by
-editing the expectation.
+Los fixtures de matching se commitean con sus valores esperados. **Cambiar un
+valor esperado requiere subir la versión del algoritmo y una justificación
+documentada** — el test es el mecanismo de enforcement, así que nunca "arregles"
+un test de matching que falla editando la expectativa.
 
-## Anti-patterns
+## Anti-patrones
 
-Testing implementation details instead of behaviour · Snapshots substituting
-for assertions · A flaky test left in the suite · Mocking the thing under
-test · Assessing algorithm correctness visually · Editing a fixture to make a
-test pass · E2E duplicating unit coverage until the suite is too slow to run ·
-Chasing a coverage percentage.
+Testear detalles de implementación en vez de comportamiento · Snapshots
+sustituyendo aserciones · Un test intermitente que queda en la suite · Mockear lo
+que se está testeando · Evaluar la corrección de un algoritmo visualmente · Editar
+un fixture para que un test pase · E2E duplicando la cobertura unitaria hasta que
+la suite es demasiado lenta para correrse · Perseguir un porcentaje de cobertura.
 
-## Quality checklist
+## Checklist de calidad
 
-- [ ] New pure logic has unit tests in `packages/domain`
-- [ ] New table has cross-user RLS tests
-- [ ] New constraint has a rejection test
-- [ ] Component states all tested
-- [ ] Critical-path change re-runs the affected E2E flow
-- [ ] No test relies on wall-clock time or random ordering
-- [ ] Failing matching tests investigated, never re-baselined
+- [ ] La lógica pura nueva tiene tests unitarios en `packages/domain`
+- [ ] La tabla nueva tiene tests cruzados de RLS
+- [ ] La restricción nueva tiene un test de rechazo
+- [ ] Los estados de los componentes están todos testeados
+- [ ] Un cambio en el camino crítico vuelve a correr el flujo E2E afectado
+- [ ] Ningún test depende del reloj ni de un orden aleatorio
+- [ ] Los tests de matching que fallan se investigan, nunca se rebasan

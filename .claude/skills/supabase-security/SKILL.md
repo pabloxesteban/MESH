@@ -1,35 +1,36 @@
 ---
 name: supabase-security
-description: Writing RLS policies, storage rules, and auth handling for MESH. Use for any migration, policy, storage bucket, upload path, or auth change.
+description: Escribir políticas RLS, reglas de storage y manejo de auth para MESH. Usala para cualquier migración, política, bucket de storage, camino de subida o cambio de autenticación.
 ---
 
-# Supabase security
+# Seguridad en Supabase
 
-## Purpose
+## Propósito
 
-Make the database the authorization boundary, so a client bug can never become
-a data breach.
+Hacer que la base de datos sea el límite de autorización, para que un bug del
+cliente nunca pueda transformarse en una filtración de datos.
 
-## When to use
+## Cuándo usarla
 
-Every migration. Every policy. Every storage bucket. Every upload path. Any
-change touching auth, sessions, or secrets.
+Cada migración. Cada política. Cada bucket de storage. Cada camino de subida.
+Cualquier cambio que toque auth, sesiones o secretos.
 
-## The invariants
+## Los invariantes
 
-1. Every `public` table: `enable row level security` **and**
+1. Toda tabla de `public`: `enable row level security` **y**
    `force row level security`.
-2. `revoke all … from anon, authenticated`, then grant only the verbs needed.
-3. Explicit **per-command** policies. **No `for all`.**
-4. Every `for insert` policy has a `with check`.
-5. Ownership is always `auth.uid()`. Never a client-supplied id.
-6. UPDATE policies repeat the ownership predicate in `using` **and**
-   `with check` — otherwise a row can be updated *into* your ownership.
-7. `SECURITY DEFINER` only where required: `set search_path = ''`, fully
-   qualified names, no interpolated identifiers.
-8. The table and its policies land in the **same migration file**.
+2. `revoke all … from anon, authenticated`, y después otorgar solo los verbos
+   necesarios.
+3. Políticas explícitas **por comando**. **Ninguna `for all`.**
+4. Toda política `for insert` tiene un `with check`.
+5. La propiedad siempre es `auth.uid()`. Nunca un id provisto por el cliente.
+6. Las políticas de UPDATE repiten el predicado de propiedad en `using` **y** en
+   `with check` — si no, una fila puede ser actualizada *hacia* tu propiedad.
+7. `SECURITY DEFINER` solo donde haga falta: `set search_path = ''`, nombres
+   completamente calificados, sin identificadores interpolados.
+8. La tabla y sus políticas aterrizan en el **mismo archivo de migración**.
 
-## Migration template
+## Plantilla de migración
 
 ```sql
 create table public.projects (
@@ -65,49 +66,50 @@ create index projects_user_status_idx on public.projects (user_id, status);
 
 ## Storage
 
-| Bucket | Read | Write | Path |
+| Bucket | Lectura | Escritura | Ruta |
 |---|---|---|---|
-| `portfolio` | public | service role | `{slug}/{item_id}/{size}.webp` |
-| `references` | owner only | owner only | `{user_id}/{uuid}.webp` |
-| `avatars` | public | owner only | `{user_id}/{uuid}.webp` |
+| `portfolio` | pública | service role | `{slug}/{item_id}/{size}.webp` |
+| `references` | solo dueño | solo dueño | `{user_id}/{uuid}.webp` |
+| `avatars` | pública | solo dueño | `{user_id}/{uuid}.webp` |
 
-Owner-writable buckets assert
-`(storage.foldername(name))[1] = auth.uid()::text`. MIME allow-list without
-SVG. 12 MB cap. **Server-generated UUID filenames — user input never reaches a
-path.** Private objects are served by short-lived signed URLs that are never
-logged, persisted, or put in a deep link.
+Los buckets escribibles por el dueño verifican
+`(storage.foldername(name))[1] = auth.uid()::text`. Lista blanca de MIME sin SVG.
+Tope de 12 MB. **Nombres de archivo UUID generados por el servidor — la entrada
+del usuario nunca llega a una ruta.** Los objetos privados se sirven con URLs
+firmadas de vida corta que nunca se loguean, ni se persisten, ni van en un deep
+link.
 
 ## Auth
 
-Anonymous sign-in on first launch; upgrade to email/password links the same
-`auth.users` row. Tokens in `expo-secure-store` only. Sign-out clears the query
-cache and every MMKV namespace holding user data. Never store, hash, or compare
-a password yourself. Never copy email from `auth.users` into a client-readable
-table.
+Ingreso anónimo en el primer arranque; el upgrade a email/contraseña vincula la
+misma fila de `auth.users`. Tokens solo en `expo-secure-store`. Cerrar sesión
+limpia el caché de queries y todos los namespaces de MMKV con datos de usuario.
+Nunca guardes, hashees ni compares una contraseña por tu cuenta. Nunca copies el
+email de `auth.users` a una tabla legible por el cliente.
 
-## Secrets
+## Secretos
 
-`EXPO_PUBLIC_*` is public **by design** — the anon key is meant to be
-published; RLS is what protects the data. The service-role key lives only in
-`tools/seed` and CI. CI greps the built bundle for `service_role`.
+`EXPO_PUBLIC_*` es público **por diseño** — la anon key está pensada para
+publicarse; lo que protege los datos es RLS. La service-role key vive solo en
+`tools/seed` y en CI. El CI busca `service_role` en el bundle compilado.
 
-## Anti-patterns
+## Anti-patrones
 
-Authorization in client query filters · A table shipped without policies ·
-`for all` policies · An insert policy with no `with check` · A `SECURITY
-DEFINER` function without a pinned `search_path` · Business rules enforced only
-in TypeScript · Trusting a client-side file-type check · A signed URL in a log ·
-Treating the anon key as a secret while the real secret is exposed · An error
-response that reveals whether a row exists.
+Autorización en los filtros del cliente · Una tabla publicada sin políticas ·
+Políticas `for all` · Una política de insert sin `with check` · Una función
+`SECURITY DEFINER` sin `search_path` fijado · Reglas de negocio impuestas solo en
+TypeScript · Confiar en un chequeo de tipo de archivo del lado del cliente · Una
+URL firmada en un log · Tratar la anon key como secreto mientras el secreto real
+queda expuesto · Una respuesta de error que revela si una fila existe.
 
-## Quality checklist
+## Checklist de calidad
 
-- [ ] RLS enabled **and** forced
-- [ ] `revoke all` then explicit grants
-- [ ] Per-command policies; no `for all`
-- [ ] Every insert policy has `with check`
-- [ ] Update policies guard `using` and `with check`
-- [ ] Policy predicates are indexed
-- [ ] Cross-user test written for the new table
-- [ ] Table added to the policy map in `docs/security/security-model.md`
-- [ ] No new PII copied into a client-readable table
+- [ ] RLS habilitado **y** forzado
+- [ ] `revoke all` y después grants explícitos
+- [ ] Políticas por comando; ninguna `for all`
+- [ ] Toda política de insert tiene `with check`
+- [ ] Las políticas de update protegen `using` y `with check`
+- [ ] Los predicados de las políticas están indexados
+- [ ] Test de acceso cruzado escrito para la tabla nueva
+- [ ] La tabla se agregó al mapa de políticas de `docs/security/security-model.md`
+- [ ] Ningún PII nuevo copiado a una tabla legible por el cliente

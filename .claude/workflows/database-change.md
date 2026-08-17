@@ -1,64 +1,68 @@
-# Workflow — Database change
+# Workflow — Cambio de base de datos
 
-Any migration. No exceptions, including "just adding a column".
+Cualquier migración. Sin excepciones, incluido "solo estoy agregando una
+columna".
 
-## 1. Justify — `product-architect`
+## 1. Justificar — `product-architect`
 
-- What reads or writes this, on which screen?
-- What breaks without it?
-- Is it derivable from existing data? If yes, derive it.
-- Does it leak category knowledge into the core? (`tattoo_*` → reject)
-- Does it duplicate a fact represented elsewhere?
+- ¿Qué lee o escribe esto, y en qué pantalla?
+- ¿Qué se rompe sin eso?
+- ¿Es derivable de datos existentes? Si sí, derivalo.
+- ¿Filtra conocimiento de categoría hacia el núcleo? (`tattoo_*` → rechazar)
+- ¿Duplica un hecho representado en otro lado?
 
-**Produces:** approval or a simpler alternative. Reviews *every* schema change —
-this step is not optional.
+**Produce:** aprobación o una alternativa más simple. Revisa *todo* cambio de
+esquema — este paso no es opcional.
 
-## 2. Design the schema — `backend-engineer`
+## 2. Diseñar el esquema — `backend-engineer`
 
-**Produces**, in one migration file:
-- Table/columns with UUID PK and explicit deletion behaviour on every FK
-- Constraints expressing the invariants (not TypeScript checks)
-- Enums for closed sets, tables for open sets
-- `enable row level security` **and** `force row level security`
-- `revoke all` then explicit per-verb grants
-- Explicit per-command policies; every insert policy has a `with check`;
-  update policies guard `using` **and** `with check`
-- Indexes, each with a named query behind it
+**Produce**, en un solo archivo de migración:
+- Tabla/columnas con PK UUID y comportamiento de borrado explícito en cada FK
+- Restricciones que expresen los invariantes (no chequeos en TypeScript)
+- Enums para conjuntos cerrados, tablas para conjuntos abiertos
+- `enable row level security` **y** `force row level security`
+- `revoke all` y después grants explícitos por verbo
+- Políticas explícitas por comando; toda política de insert con `with check`;
+  las de update protegiendo `using` **y** `with check`
+- Índices, cada uno con una consulta con nombre detrás
 
-## 3. Security review — `security-reviewer`
+## 3. Revisión de seguridad — `security-reviewer`
 
-- Does the policy predicate use `auth.uid()` and nothing client-supplied?
-- Can a row be updated *into* another user's ownership?
-- Does any error response leak existence where silence was correct?
-- Is the policy predicate indexed, or does every read pay for a sequential
-  `EXISTS`?
-- Is the table added to the policy map in `docs/security/security-model.md`?
+- ¿El predicado de la política usa `auth.uid()` y nada provisto por el cliente?
+- ¿Se puede actualizar una fila *hacia* la propiedad de otro usuario?
+- ¿Alguna respuesta de error filtra existencia donde correspondía silencio?
+- ¿El predicado de la política está indexado, o cada lectura paga un `EXISTS`
+  secuencial?
+- ¿La tabla se agregó al mapa de políticas de
+  `docs/security/security-model.md`?
 
-## 4. Test — `qa-engineer`
+## 4. Testear — `qa-engineer`
 
-- The generic RLS guarantee test still passes (RLS on + forced + ≥1 policy for
-  every `public` table; no `for all`; every insert policy has `with check`).
-- Cross-user tests for the new table: B selects A's rows → `[]`; B's update and
-  delete → 0 rows; B inserting with `user_id = A` → rejected.
-- One rejection test per new constraint.
-- `supabase db reset` clean from scratch.
+- El test de garantía genérica de RLS sigue pasando (RLS habilitado + forzado +
+  ≥1 política en toda tabla de `public`; ninguna `for all`; toda política de
+  insert con `with check`).
+- Tests cruzados para la tabla nueva: B selecciona las filas de A → `[]`; el
+  update y el delete de B → 0 filas; B insertando con `user_id = A` → rechazado.
+- Un test de rechazo por cada restricción nueva.
+- `supabase db reset` limpio desde cero.
 
-## 5. Types
+## 5. Tipos
 
-Regenerate TypeScript types from the schema. Reconcile with
-`packages/domain` types — a mismatch is a bug in one of them, resolved now, not
-later.
+Regenerar los tipos TypeScript desde el esquema. Reconciliar con los tipos de
+`packages/domain` — una discrepancia es un bug en alguno de los dos, resuelto
+ahora, no después.
 
-## 6. Document
+## 6. Documentar
 
-`docs/architecture/data-model.md` updated in the **same commit**. Policy map in
-`docs/security/security-model.md` updated. ADR if the decision is
-hard to reverse.
+`docs/architecture/data-model.md` actualizado en el **mismo commit**. Mapa de
+políticas de `docs/security/security-model.md` actualizado. ADR si la decisión es
+difícil de revertir.
 
-## Rules that do not bend
+## Reglas que no se negocian
 
-- The table and its policies land in the same migration file.
-- Migrations are forward-only and never edited after being applied to staging.
-- A migration creating a table without policies **fails CI**.
-- No soft-delete columns.
-- No index without a query.
+- La tabla y sus políticas aterrizan en el mismo archivo de migración.
+- Las migraciones son solo hacia adelante y nunca se editan después de aplicarse
+  a staging.
+- Una migración que crea una tabla sin políticas **rompe el CI**.
+- Ninguna columna de borrado lógico.
+- Ningún índice sin una consulta.

@@ -1,85 +1,86 @@
 ---
 name: react-native
-description: Expo and React Native conventions for MESH — layering, state, gestures, images, lists, and data fetching. Use when writing or reviewing anything in apps/mobile.
+description: Convenciones de Expo y React Native para MESH — capas, estado, gestos, imágenes, listas y obtención de datos. Usala al escribir o revisar cualquier cosa en apps/mobile.
 ---
 
 # React Native / Expo
 
-## Purpose
+## Propósito
 
-Keep the client fast, layered, and boring to read.
+Mantener el cliente rápido, en capas, y aburrido de leer.
 
-## When to use
+## Cuándo usarla
 
-Any change in `apps/mobile/`. Especially the deck, transitions, image loading,
-and data fetching.
+Cualquier cambio en `apps/mobile/`. Especialmente el mazo, las transiciones, la
+carga de imágenes y la obtención de datos.
 
-## Layering
+## Capas
 
 ```
-screens/         expo-router routes — composition only
-features/<x>/    components · hooks · queries.ts (only place supabase-js is called)
-design-system/   tokens and components
-data/            supabase client, query client, offline queue, error mapping
+screens/         rutas de expo-router — solo composición
+features/<x>/    components · hooks · queries.ts (único lugar donde se llama a supabase-js)
+design-system/   tokens y componentes
+data/            cliente supabase, query client, cola offline, mapeo de errores
 analytics/       track()
-i18n/            es-AR source
+i18n/            es-AR de origen
 ```
 
-Lint-enforced: `screens/` may not import `@supabase/supabase-js`; nothing
-outside `design-system/` may contain a raw design value; `packages/domain` may
-not import react, react-native, or supabase.
+Impuesto por lint: `screens/` no puede importar `@supabase/supabase-js`; nada
+fuera de `design-system/` puede contener un valor de diseño crudo;
+`packages/domain` no puede importar react, react-native ni supabase.
 
-## State
+## Estado
 
-| Kind | Tool |
+| Tipo | Herramienta |
 |---|---|
-| Server data | TanStack Query |
-| Per-frame / gesture | Reanimated shared values — **never** React state |
-| Cross-screen session | One small Zustand store |
-| Persistence | MMKV |
-| Session tokens | `expo-secure-store` only |
+| Datos de servidor | TanStack Query |
+| Por frame / gesto | Shared values de Reanimated — **nunca** estado de React |
+| Sesión entre pantallas | Un store chico de Zustand |
+| Persistencia | MMKV |
+| Tokens de sesión | Solo `expo-secure-store` |
 
-## Gestures
+## Gestos
 
-- `react-native-gesture-handler` + Reanimated worklets. If React re-renders
-  during a drag, it is a bug.
-- Velocity-aware thresholds: fast flick past 25% width commits; slow drag needs
-  45%; a stalled drag springs back.
-- Dismissal direction follows the throw.
-- Haptic at the commit point, not on release.
-- Every gesture has a button equivalent and an `accessibilityAction`.
+- `react-native-gesture-handler` + worklets de Reanimated. Si React re-renderiza
+  durante un arrastre, es un bug.
+- Umbrales sensibles a la velocidad: un envión rápido más allá del 25% del ancho
+  compromete; un arrastre lento necesita 45%; un arrastre detenido vuelve por
+  resorte.
+- La dirección del descarte sigue al envión.
+- El háptico se dispara en el punto de compromiso, no al soltar.
+- Todo gesto tiene un botón equivalente y una `accessibilityAction`.
 
-## Images
+## Imágenes
 
-- `expo-image`, always. Blurhash placeholder from `media_assets`, explicit
-  `contentFit`, `recyclingKey` in recycled lists.
-- Request the right derived size: grids `sm`, deck `md`, full view `lg`.
-- Prefetch the next 3 deck images at `md`.
-- Reserve space from stored dimensions — no layout shift.
+- `expo-image`, siempre. Placeholder blurhash desde `media_assets`, `contentFit`
+  explícito, `recyclingKey` en listas recicladas.
+- Pedí el tamaño derivado correcto: grillas `sm`, mazo `md`, vista completa `lg`.
+- Precargá las 3 imágenes siguientes del mazo en `md`.
+- Reservá el espacio con las dimensiones guardadas — sin salto de layout.
 
-## Lists
+## Listas
 
-FlashList with a real `estimatedItemSize`. Cursor pagination, never `OFFSET`.
-Stable `keyExtractor`. Memoise row content on id.
+FlashList con un `estimatedItemSize` real. Paginación por cursor, nunca `OFFSET`.
+`keyExtractor` estable. Memoizá el contenido de fila por id.
 
-## Data fetching
+## Obtención de datos
 
-- Queries live in `features/<x>/queries.ts` and nowhere else.
-- Query keys are structured arrays, exported from the feature.
-- Never filter by user id in a client query for *security* — RLS does that. A
-  client filter is for correctness only.
-- Mutations are idempotent where the network can retry them (interactions are
-  upserts on `(user_id, portfolio_item_id)`).
-- Optimistic updates always ship with a rollback.
+- Las queries viven en `features/<x>/queries.ts` y en ningún otro lado.
+- Las claves de query son arrays estructurados, exportados desde la feature.
+- Nunca filtres por id de usuario en una consulta del cliente por *seguridad* —
+  de eso se encarga RLS. Un filtro de cliente es solo por corrección.
+- Las mutaciones son idempotentes donde la red puede reintentarlas (las
+  interacciones son upserts sobre `(user_id, portfolio_item_id)`).
+- Las actualizaciones optimistas siempre vienen con un rollback.
 
-## Errors and states
+## Errores y estados
 
-Every remote surface: loading, empty, error+retry (and degraded for discovery).
-Errors are mapped in `data/errors.ts` to offline / server / not-found /
-permission. Raw Supabase or Postgres strings never reach a user or an
-analytics event.
+Toda superficie remota: carga, vacío, error + reintentar (y degradado para
+descubrimiento). Los errores se mapean en `data/errors.ts` a offline / servidor /
+no encontrado / permiso. Los strings crudos de Supabase o Postgres nunca llegan a
+una persona ni a un evento de analytics.
 
-## Example
+## Ejemplo
 
 ```tsx
 // features/discovery/queries.ts
@@ -100,20 +101,21 @@ export function useDiscoveryFeed(categoryId: string) {
 }
 ```
 
-## Anti-patterns
+## Anti-patrones
 
-`useState` inside a gesture handler · Legacy `Animated` where Reanimated
-belongs · Fetching in a screen file · `FlatList` for a long media grid · Images
-without `recyclingKey` · `OFFSET` pagination · Blocking network work before the
-first frame · `useEffect` chains causing a second mount render · Storing tokens
-in AsyncStorage or MMKV · Premature `useMemo` with no measurement.
+`useState` dentro de un handler de gesto · `Animated` (API vieja) donde
+corresponde Reanimated · Fetch dentro de un archivo de pantalla · `FlatList` para
+una grilla larga de media · Imágenes sin `recyclingKey` · Paginación con
+`OFFSET` · Trabajo de red bloqueante antes del primer frame · Cadenas de
+`useEffect` que provocan un segundo render al montar · Guardar tokens en
+AsyncStorage o MMKV · `useMemo` prematuro sin medición.
 
-## Quality checklist
+## Checklist de calidad
 
-- [ ] No layering violation (lint passes)
-- [ ] All four states implemented
-- [ ] Gesture has a button + accessibility action equivalent
-- [ ] Images use the correct derived size and a `recyclingKey`
-- [ ] One round trip for the screen
-- [ ] Mutations idempotent, optimistic updates have rollback
-- [ ] Tested on a real device if it touches gestures or images
+- [ ] Ninguna violación de capas (el lint pasa)
+- [ ] Los cuatro estados implementados
+- [ ] El gesto tiene equivalente de botón + acción de accesibilidad
+- [ ] Las imágenes usan el tamaño derivado correcto y un `recyclingKey`
+- [ ] Un round trip para la pantalla
+- [ ] Mutaciones idempotentes, actualizaciones optimistas con rollback
+- [ ] Probado en un dispositivo real si toca gestos o imágenes

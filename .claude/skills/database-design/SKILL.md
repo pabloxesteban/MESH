@@ -1,90 +1,96 @@
 ---
 name: database-design
-description: Schema conventions for MESH — naming, keys, constraints, enums, indexes, deletion behaviour, and migrations. Use when adding or changing any table, column, or index.
+description: Convenciones de esquema para MESH — nombres, claves, restricciones, enums, índices, comportamiento de borrado y migraciones. Usala al agregar o cambiar cualquier tabla, columna o índice.
 ---
 
-# Database design
+# Diseño de base de datos
 
-## Purpose
+## Propósito
 
-A schema that stays category-agnostic, enforces its own rules, and never leaves
-authorization to the client.
+Un esquema que se mantiene agnóstico de categoría, impone sus propias reglas, y
+nunca le deja la autorización al cliente.
 
-## When to use
+## Cuándo usarla
 
-Any migration. Any new entity, column, index, or constraint.
+Cualquier migración. Cualquier entidad, columna, índice o restricción nueva.
 
-## Rules
+## Reglas
 
-1. **No category-specific columns.** No `tattoo_*` anything. The acceptance
-   test: adding *photography* needs rows in `categories`/`styles` and content
-   files — no migration.
-2. **UUID v4 primary keys** (`gen_random_uuid()`). Sequential integers leak
-   catalogue size and enable enumeration.
-3. **Every foreign key declares deletion behaviour explicitly.** `cascade` for
-   owned children, `restrict` for reference data that must not vanish under
-   live rows, `set null` for optional links.
-4. **Constraints in the database, not in TypeScript.** If the client is the
-   only thing preventing an invalid state, that state is reachable.
-5. **Enums for closed sets** (`availability_status`, `interaction_verdict`,
-   `project_status`). **Tables for open sets** (styles, categories, locations).
-6. **Every index has a named query behind it.** No speculative indexes.
-7. **`created_at` on everything**, `updated_at` on anything mutable via a
-   shared trigger.
-8. **No soft deletion.** `is_published` covers the real case; a `deleted_at` on
-   every table doubles the ways every policy and query can be wrong.
-9. **RLS policies in the same migration as the table.**
+1. **Ninguna columna específica de categoría.** Nada `tattoo_*`. El test de
+   aceptación: agregar *fotografía* necesita filas en `categories`/`styles` y
+   archivos de contenido — sin migración.
+2. **Claves primarias UUID v4** (`gen_random_uuid()`). Los enteros secuenciales
+   filtran el tamaño del catálogo y habilitan enumeración.
+3. **Toda clave foránea declara el comportamiento de borrado explícitamente.**
+   `cascade` para hijos poseídos, `restrict` para datos de referencia que no
+   pueden desaparecer bajo filas vivas, `set null` para vínculos opcionales.
+4. **Las restricciones van en la base, no en TypeScript.** Si el cliente es lo
+   único que impide un estado inválido, ese estado es alcanzable.
+5. **Enums para conjuntos cerrados** (`availability_status`,
+   `interaction_verdict`, `project_status`). **Tablas para conjuntos abiertos**
+   (estilos, categorías, ubicaciones).
+6. **Todo índice tiene una consulta con nombre detrás.** Nada de índices
+   especulativos.
+7. **`created_at` en todo**, `updated_at` en todo lo mutable vía un trigger
+   compartido.
+8. **Sin borrado lógico.** `is_published` cubre el caso real; un `deleted_at` en
+   cada tabla duplica las formas en que cada política y cada consulta pueden
+   estar mal.
+9. **Las políticas RLS van en la misma migración que la tabla.**
 
-## Naming
+## Nombres
 
-`snake_case`, plural tables, singular columns. Join tables are
-`<a>_<b>` with a composite PK (`professional_styles`, `portfolio_item_styles`).
-Booleans read as assertions (`is_published`, `is_saved`). Money is
-`*_cents integer` plus a `*_currency char(3)` — never `float`.
+`snake_case`, tablas en plural, columnas en singular. Las tablas de unión son
+`<a>_<b>` con PK compuesta (`professional_styles`, `portfolio_item_styles`). Los
+booleanos se leen como afirmaciones (`is_published`, `is_saved`). El dinero es
+`*_cents integer` más `*_currency char(3)` — nunca `float`.
 
-## Constraint examples
+Todo en inglés: nombres de tablas, columnas, enums, índices y funciones.
+
+## Ejemplos de restricciones
 
 ```sql
--- a save cannot coexist with a pass
+-- guardar no puede coexistir con un paso
 check (not (is_saved and verdict = 'pass'))
 
--- a published professional must be contactable
+-- un profesional publicado tiene que ser contactable
 check (not is_published or whatsapp_e164 is not null or instagram_handle is not null)
 
--- price sanity, and a date so we know how stale it is
+-- sanidad de precio, y una fecha para saber qué tan viejo está
 check (price_min_cents is null or price_max_cents is null
        or price_min_cents <= price_max_cents)
 check (price_min_cents is null or priced_at is not null)
 
--- availability must carry its own freshness
+-- la disponibilidad tiene que llevar su propia frescura
 check (availability_status is null or availability_updated_at is not null)
 
 -- E.164
 check (whatsapp_e164 is null or whatsapp_e164 ~ '^\+[1-9]\d{7,14}$')
 ```
 
-## Migrations
+## Migraciones
 
-Numbered, forward-only, one concern per file. Never edited after being applied
-to staging. Reference data seeds idempotently (`on conflict do update`). Every
-migration is verified with `supabase db reset` locally before it leaves the
-machine.
+Numeradas, solo hacia adelante, un asunto por archivo. Nunca se editan después de
+aplicarse a staging. Los datos de referencia se cargan de forma idempotente
+(`on conflict do update`). Toda migración se verifica con `supabase db reset`
+localmente antes de salir de la máquina.
 
-## Anti-patterns
+## Anti-patrones
 
-A table added "for later" · A 1:1 split with no behavioural difference · Two
-representations of the same fact · Denormalised counters with no reconciliation
-plan · `float` for money · `text` where an enum belongs · A nullable foreign key
-that is actually required · An index with no query · Editing an applied
-migration · Business logic in a trigger where a constraint would do.
+Una tabla agregada "para después" · Una partición 1:1 sin diferencia de
+comportamiento · Dos representaciones del mismo hecho · Contadores
+desnormalizados sin plan de reconciliación · `float` para dinero · `text` donde
+corresponde un enum · Una clave foránea nullable que en realidad es requerida ·
+Un índice sin consulta · Editar una migración ya aplicada · Lógica de negocio en
+un trigger donde alcanzaba una restricción.
 
-## Quality checklist
+## Checklist de calidad
 
-- [ ] Category-agnostic
-- [ ] Deletion behaviour explicit on every FK
-- [ ] Invariants expressed as constraints
-- [ ] Indexes justified by a named query
-- [ ] RLS enabled, forced, policies in the same file
-- [ ] `supabase db reset` clean
-- [ ] Generated TS types regenerated and matching `packages/domain`
-- [ ] `docs/architecture/data-model.md` updated in the same commit
+- [ ] Agnóstico de categoría
+- [ ] Comportamiento de borrado explícito en cada FK
+- [ ] Invariantes expresados como restricciones
+- [ ] Índices justificados por una consulta con nombre
+- [ ] RLS habilitado, forzado, políticas en el mismo archivo
+- [ ] `supabase db reset` limpio
+- [ ] Tipos TS regenerados y coincidiendo con `packages/domain`
+- [ ] `docs/architecture/data-model.md` actualizado en el mismo commit

@@ -1,81 +1,85 @@
 ---
 name: product-thinking
-description: How to decide what MESH builds and what it refuses to build. Use before starting any feature, when scope grows mid-task, or when a request conflicts with the product principles.
+description: Cómo decidir qué construye MESH y qué se niega a construir. Usala antes de empezar cualquier feature, cuando el alcance crece a mitad de camino, o cuando un pedido entra en conflicto con los principios de producto.
 ---
 
-# Product thinking
+# Pensamiento de producto
 
-## Purpose
+## Propósito
 
-Keep MESH from becoming mediocre by accumulation. Every feature must pay for
-its own existence in user value, and V1 must stay small enough to actually
-answer its question.
+Evitar que MESH se vuelva mediocre por acumulación. Toda feature tiene que pagar
+su propia existencia en valor para el usuario, y V1 tiene que quedarse lo
+bastante chico como para efectivamente responder su pregunta.
 
-## When to use
+## Cuándo usarla
 
-Before starting any feature. When a task grows beyond what was asked. When a
-request contradicts a principle. At every milestone.
+Antes de empezar cualquier feature. Cuando una tarea crece más allá de lo pedido.
+Cuando un pedido contradice un principio. En cada hito.
 
-## Rules
+## Reglas
 
-1. **Every feature serves at least one of:** DISCOVERY, TASTE, MATCHING, TRUST,
-   ACTION. If none, it does not ship.
-2. **V1 is a validation instrument**, not a platform. The question is: *do
-   people discover artists better when MESH learns their taste?* Anything that
-   does not help answer it is out of scope, however reasonable.
-3. **Discovery before administration.** Nothing stands between a first-time
-   user and the first artwork.
-4. **Visual work before metadata.** The image is the largest element on any
-   screen that has one.
-5. **People before tasks.** Every path ends at a person, not at a listing.
-6. **Explainable before clever.** If we cannot say why, we do not say it.
-7. **Trust before monetisation.** There is no monetisation in V1, and no
-   pattern that would embarrass us if a user saw the code.
-8. **No dark patterns.** Not one, not small, not "just for the demo".
+1. **Toda feature sirve al menos a uno de:** DESCUBRIMIENTO, GUSTO, MATCHING,
+   CONFIANZA, ACCIÓN. Si a ninguno, no se publica.
+2. **V1 es un instrumento de validación**, no una plataforma. La pregunta es:
+   *¿la gente descubre artistas mejor cuando MESH aprende su gusto?* Todo lo que
+   no ayude a responder eso está fuera de alcance, por razonable que suene.
+3. **Descubrimiento antes que administración.** Nada se interpone entre alguien
+   que llega por primera vez y la primera obra.
+4. **Trabajo visual antes que metadatos.** La imagen es el elemento más grande de
+   cualquier pantalla que tenga una.
+5. **Gente antes que tareas.** Todo camino termina en una persona, no en un
+   listado.
+6. **Explicable antes que ingenioso.** Si no podemos decir por qué, no lo
+   decimos.
+7. **Confianza antes que monetización.** No hay monetización en V1, ni ningún
+   patrón que nos daría vergüenza si un usuario viera el código.
+8. **Nada de dark patterns.** Ni uno, ni chiquito, ni "solo para la demo".
 
-## The critique loop
+## El loop de crítica
 
-Ask, in order: Would a real person use this? Why would they come back? Is this
-Pinterest / Instagram / Airtasker / Tinder? Does it improve one of the five?
-What friction does it add? Does it belong in V1? What would we delete for it?
+Preguntá, en orden: ¿Una persona real usaría esto? ¿Por qué volvería? ¿Esto es
+Pinterest / Instagram / Airtasker / Tinder? ¿Mejora alguno de los cinco? ¿Qué
+fricción agrega? ¿Pertenece a V1? ¿Qué eliminaríamos para hacerle lugar?
 
-If "why would they come back" is answered with anything about engagement
-mechanics, the feature is wrong.
+Si "por qué volvería" se responde con cualquier cosa sobre mecánicas de
+interacción, la feature está mal.
 
-## Anti-patterns
+## Anti-patrones
 
-- Building the general case before the specific one works.
-- A feature that exists because it is interesting to build.
-- "We'll need it later" as justification for structure now.
-- Adding a screen to solve a problem better solved by removing one.
-- Measuring time-in-app, swipes, or session length as success.
-- Solving a supply-side problem with demand-side polish.
+- Construir el caso general antes de que funcione el específico.
+- Una feature que existe porque es interesante de construir.
+- "La vamos a necesitar después" como justificación de estructura hoy.
+- Agregar una pantalla para resolver un problema que se resuelve mejor sacando
+  una.
+- Medir tiempo en la app, swipes o duración de sesión como éxito.
+- Resolver un problema de oferta con pulido del lado de la demanda.
 
-## Conventions
+## Convenciones
 
-- Scope changes are recorded in `docs/product/product-spec.md`, including what
-  was cut and why. Cuts are decisions worth keeping.
-- Anything hard to reverse gets an ADR.
-- Open questions go in the spec's open-questions table with an owner and a
-  phase — not left implicit.
+- Los cambios de alcance se registran en `docs/product/product-spec.md`,
+  incluyendo qué se cortó y por qué. Los cortes son decisiones que vale la pena
+  conservar.
+- Todo lo difícil de revertir lleva un ADR.
+- Las preguntas abiertas van a la tabla de preguntas abiertas de la spec, con
+  responsable y fase — no quedan implícitas.
 
-## Example
+## Ejemplo
 
-> "Should we add follow/unfollow for artists?"
+> "¿Agregamos seguir/dejar de seguir artistas?"
 
-Serves DISCOVERY? No — the user already reaches artists through taste. TASTE?
-No. MATCHING? No. TRUST? No. ACTION? Marginally, as a bookmark — which `save`
-already covers.
-It is the Instagram question (#4 of the critique loop), it creates a social
-graph we would then have to maintain and moderate, and it turns MESH into a
-feed. **Reject.** If the real need is "come back to this artist later", that is
-a saved-artist row, not a follow.
+¿Sirve a DESCUBRIMIENTO? No — la persona ya llega a los artistas por el gusto.
+¿GUSTO? No. ¿MATCHING? No. ¿CONFIANZA? No. ¿ACCIÓN? Marginalmente, como marcador
+— que `save` ya cubre.
+Es la pregunta de Instagram (#4 del loop de crítica), crea un grafo social que
+después habría que mantener y moderar, y convierte a MESH en un feed.
+**Rechazar.** Si la necesidad real es "volver a este artista después", eso es una
+fila de artista guardado, no un seguir.
 
-## Quality checklist
+## Checklist de calidad
 
-- [ ] Names which of the five it serves
-- [ ] Would exist even if the hypothesis proves true (i.e. it is not a hedge)
-- [ ] Adds no friction to the first-run path
-- [ ] Contains no fabricated content or inferred claim
-- [ ] Contains no engagement mechanic
-- [ ] Cut list updated if something was displaced
+- [ ] Nombra a cuál de los cinco sirve
+- [ ] Existiría igual si la hipótesis resulta cierta (o sea, no es una cobertura)
+- [ ] No agrega fricción al camino del primer arranque
+- [ ] No contiene contenido inventado ni ninguna afirmación inferida
+- [ ] No contiene ninguna mecánica de interacción
+- [ ] La lista de cortes se actualizó si desplazó algo
