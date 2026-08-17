@@ -85,12 +85,26 @@ jobs:
         # está terminada.
         run: supabase db reset
 
-      - name: 5b · Garantía de RLS
-        # Fase 5. Este es el test que hace impublicable una tabla insegura:
-        # toda tabla de public con RLS habilitado, forzado y ≥1 política;
-        # ninguna política `for all`; todo insert con `with check`.
+      - name: 5b · Garantía de RLS, restricciones y aislamiento
+        # Este es el paso que hace impublicable una tabla insegura. Cubre, en
+        # supabase/tests/:
+        #   00 · toda tabla de public con RLS habilitado y forzado; ninguna
+        #        política `for all`; todo insert con `with check`; todo update
+        #        con las dos cláusulas; `anon` sin privilegios; toda función
+        #        security definer con search_path fijado.
+        #   10 · un test de rechazo por restricción.
+        #   20 · aislamiento entre usuarios, ejecutado como `authenticated`.
+        #   30 · orden, diversidad y paginación del feed.
         # Ver docs/testing/test-strategy.md §4.
-        run: npm run test:rls --workspaces --if-present
+        run: supabase test db
+
+      - name: 5c · La taxonomía y seed.sql no se separaron
+        run: npm run db:reference:check
+
+      - name: 5d · Los tipos generados coinciden con el esquema
+        # Si alguien cambió una migración y no regeneró los tipos, falla acá y
+        # no seis pantallas después con un error de runtime.
+        run: npm run db:types:check
 
       - name: Bajar Supabase
         if: always()

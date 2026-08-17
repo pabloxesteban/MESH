@@ -1,6 +1,6 @@
 # MESH — Modelo de dominio y de datos
 
-**Estado:** Propuesto · **Responsable:** product-architect · **Revisan:** backend-engineer, security-reviewer
+**Estado:** Implementado (Fase 4) · **Responsable:** product-architect · **Revisan:** backend-engineer, security-reviewer
 
 ---
 
@@ -52,7 +52,15 @@ de vectores de gusto vivos tiene que ser imposible por accidente.
 
 **`locations`** — `id`, `country_code`, `admin_area`, `city`, `slug` UNIQUE,
 `metro_key`, `lat`, `lng`. `metro_key` agrupa CABA con el Gran Buenos Aires para
-el componente de ubicación del matching.
+el componente de ubicación del matching; La Plata tiene el suyo, porque está a
+55 km y tratarla como el mismo lugar sería mentirle a alguien sobre cuánto tiene
+que viajar.
+
+Granularidad: ciudad. **Un barrio no es una ubicación.** Poner "Palermo" en la
+columna `city` sería llamar ciudad a algo que no lo es; el día que queramos
+mostrar el barrio va a ser una columna nueva. `lat`/`lng` quedan en NULL: la
+columna existe, pero V1 no compara distancias —compara `metro_key`— y no vamos a
+escribir coordenadas que no verificamos.
 
 `name_key`/`description_key` son claves de i18n, no strings visibles — así la
 taxonomía no queda con forma de inglés dentro de la base.
@@ -75,7 +83,7 @@ taxonomía no queda con forma de inglés dentro de la base.
 | `price_currency` | char(3) NULL | ISO-4217 |
 | `priced_at` | date NULL | requerido si hay precio |
 | `availability_status` | `availability_status` NULL | `open`/`limited`/`waitlist`/`closed` |
-| `availability_updated_at` | timestamptz NULL | requerido si hay estado |
+| `availability_updated_at` | date NULL | requerido si hay estado |
 | `instagram_handle` | text NULL | handle pelado, CHECK de formato |
 | `whatsapp_e164` | text NULL | CHECK `^\+[1-9]\d{7,14}$` |
 | `avatar_media_id`, `hero_media_id` | uuid NULL | → `media_assets` ON DELETE SET NULL |
@@ -84,8 +92,18 @@ taxonomía no queda con forma de inglés dentro de la base.
 | `claimed_at` | timestamptz NULL | |
 | `created_at`, `updated_at` | timestamptz | |
 
-CHECK: al menos un canal de contacto cuando `is_published` — un profesional
-publicado al que no se puede contactar es un callejón sin salida.
+Restricciones, todas verificadas con un test de rechazo en
+`supabase/tests/10_constraints.sql`:
+
+- **precio completo o ausente**: las cuatro columnas de precio van juntas, con
+  `min ≤ max`. Un precio sin fecha no es información;
+- **disponibilidad completa o ausente**, por la misma razón;
+- **un publicado es contactable**: al menos un canal cuando `is_published` — un
+  profesional publicado al que no se puede contactar es un callejón sin salida;
+- **reclamado ⟺ tiene dueño**: `claimed_at` y `owner_user_id` son nulos los dos
+  o ninguno;
+- formato de `instagram_handle` (handle pelado, nunca una URL) y de
+  `whatsapp_e164`.
 
 > **Desvío respecto del brief.** El brief lista `Professional` y
 > `ProfessionalProfile` como entidades separadas. Una partición 1:1 agrega un
@@ -95,17 +113,27 @@ publicado al que no se puede contactar es un callejón sin salida.
 > [ADR-003](../decisions/ADR-003-domain-model.md).
 
 **`professional_styles`** — PK `(professional_id, style_id)`, `proficiency`
-numeric CHECK `> 0 AND <= 1`, `is_primary` boolean. Ambas FK en CASCADE. Un
-índice único parcial limita a un artista a como mucho 3 estilos primarios.
+numeric CHECK `> 0 AND <= 1`, `is_primary` boolean. Un artista tiene como mucho
+3 estilos primarios: si todo es primario, nada lo es. No se puede expresar con
+un CHECK (mira otras filas) ni con un índice único (no cuenta), así que lo impone
+un trigger AFTER por fila — que alcanza porque el invariante es monótono.
 
 **`media_assets`** — `id`, `bucket`, `path` (UNIQUE junto con bucket),
 `mime_type`, `width`, `height`, `byte_size`, `blurhash`, `checksum`,
 `owner_user_id` NULL (se setea para subidas de usuario, NULL para contenido
 curado), `created_at`.
 
+`bucket` está acotado por CHECK a `portfolio` / `references` / `avatars`, y
+`mime_type` a JPEG / PNG / WebP / AVIF — **sin SVG**, que es un documento
+ejecutable servido desde nuestro dominio. `owner_user_id` cascadea al borrar la
+cuenta y no hace SET NULL: dejar huérfana una imagen privada la convertiría en
+media "curada", legible por cualquiera.
+
 **`portfolio_items`** — `id`, `professional_id` → CASCADE, `media_id` →
 RESTRICT (nunca dejar huérfana una referencia de imagen), `caption` NULL, `year`
-NULL, `is_featured`, `sort_order`, `is_fixture`, `created_at`.
+NULL, `is_featured`, `sort_order`, `is_fixture`, `created_at`. UNIQUE sobre
+`media_id`: dos piezas apuntando al mismo archivo serían dos tarjetas idénticas
+en el mazo.
 
 **`portfolio_item_styles`** — PK `(portfolio_item_id, style_id)`, `weight`
 numeric CHECK `> 0 AND <= 1`. Los pesos suman 1 por pieza; impuesto por el
@@ -157,6 +185,13 @@ va en el bucket privado `references`, propiedad del usuario.
 `components` y `reasons` se guardan para poder auditar un match meses después —
 "¿por qué dijimos eso?" tiene que ser una pregunta contestable.
 
+**Las razones están verificadas por la base, no solo por TypeScript.** El CHECK
+`matches_reasons_are_grounded` rechaza cualquier razón cuyo campo `component` no
+exista en `components` con aporte mayor a cero, y otro acota el arreglo a 3
+razones. Es el innegociable #2 del `CLAUDE.md`, y es demasiado importante para
+vivir solamente en el cliente: una razón inventada es una afirmación falsa sobre
+por qué le recomendamos a alguien una persona.
+
 ### Operacionales
 
 **`analytics_events`** — `id`, `user_id` NULL → SET NULL, `session_id uuid`,
@@ -207,6 +242,30 @@ Cada índice de acá existe porque una consulta concreta de
 [`system-architecture.md`](system-architecture.md) §4 lo necesita. Los índices
 sin una consulta con nombre no se agregan.
 
+## 4b. RPCs
+
+**`get_discovery_feed(p_category_slug, p_limit, p_cursor)`** — `SECURITY
+INVOKER`, con `search_path` fijado. Devuelve la pieza, su media, su profesional y
+sus estilos en un solo round trip: del lado del cliente, armar el mazo
+significaría bajar el catálogo entero para descartar la mayor parte.
+
+Que sea INVOKER importa: las políticas de `portfolio_items`, `professionals` e
+`interactions` se aplican adentro. Los predicados explícitos que igual están
+escritos son redundantes a propósito — si alguien afloja una política, la
+consulta no se abre sola.
+
+El orden implementa [`matching.md`](../product/matching.md) §7. Dos detalles que
+no son evidentes leyendo la consulta y que tienen su test:
+
+- La **profundidad** (qué número de obra es dentro de su profesional) se calcula
+  sobre todas las piezas publicadas, *antes* de descartar las ya vistas. Si se
+  calculara después, cada me gusta correría la numeración de todo lo que sigue y
+  la paginación por cursor empezaría a saltear obra.
+- El desempate dentro de una misma profundidad es una clave **por profesional**,
+  no por pieza. Con una clave por pieza el orden de los profesionales cambia en
+  cada vuelta, y el último de una vuelta puede ser el mismo que el primero de la
+  siguiente — que es exactamente el bug que encontró el test de diversidad.
+
 ## 5. Enums
 
 `availability_status`, `interaction_verdict`, `interaction_source`,
@@ -233,6 +292,15 @@ real cascadea y se audita.
   RLS, forzar RLS, revocar los grants por defecto y agregar políticas
   explícitas. Una migración que crea una tabla sin políticas rompe el CI.
 - Los datos de referencia (categorías, estilos, ubicaciones) se cargan desde
-  `supabase/seed.sql` y son idempotentes (`on conflict do update`).
+  `supabase/seed.sql` y son idempotentes (`on conflict do update`). Ese archivo
+  está **generado** desde `packages/domain/src/taxonomy/` (`npm run
+  db:reference`), y CI corre `db:reference:check`: la taxonomía existe dos veces
+  por necesidad —como constantes, porque el motor de gusto la necesita sin base
+  de datos; como filas, porque el esquema no puede tener los estilos
+  hardcodeados— y dos copias escritas a mano se separan.
+- Los tipos TypeScript se generan con `npm run db:types` a
+  `packages/domain/src/db/database.types.ts`, y `database.types.test.ts`
+  reconcilia esos tipos con los escritos a mano en `types/core.ts`. CI corre
+  `db:types:check`.
 - Ninguna migración se edita después de haber sido aplicada al proyecto de
   staging.

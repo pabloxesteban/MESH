@@ -79,11 +79,11 @@ valor— cuesta más en usuarios reales de lo que ahorra en abuso a esta escala.
 |---|---|---|---|---|
 | `profiles` | fila propia | solo por trigger | fila propia | fila propia |
 | `categories`, `styles`, `locations` | todas las filas activas | ✗ | ✗ | ✗ |
-| `professionals` | `is_published` | ✗ | solo dueño | ✗ |
-| `professional_styles` | padre publicado | ✗ | solo dueño | solo dueño |
-| `portfolio_items` | padre publicado | ✗ | solo dueño | solo dueño |
-| `portfolio_item_styles` | padre visible | ✗ | solo dueño | solo dueño |
-| `media_assets` | referenciado por una pieza publicada **o** `owner_user_id = auth.uid()` | subidas propias | ✗ | subidas propias |
+| `professionals` | `is_published` | ✗ | ✗ | ✗ |
+| `professional_styles` | padre publicado | ✗ | ✗ | ✗ |
+| `portfolio_items` | padre publicado | ✗ | ✗ | ✗ |
+| `portfolio_item_styles` | padre publicado | ✗ | ✗ | ✗ |
+| `media_assets` | subidas propias **o** referenciada por un profesional publicado | subidas propias, a `references`/`avatars` | ✗ | subidas propias |
 | `interactions` | propias | propias | propias | propias |
 | `taste_profiles` | propio | propio | propio | propio |
 | `projects` | propios | propios | propios | propios |
@@ -92,22 +92,60 @@ valor— cuesta más en usuarios reales de lo que ahorra en abuso a esta escala.
 | `analytics_events` | ✗ | propios (`user_id = auth.uid()`) | ✗ | ✗ |
 | `audit_events` | ✗ | ✗ | ✗ | ✗ (sin políticas — solo service role) |
 
-"solo dueño" significa `professionals.owner_user_id = auth.uid()`. En V1 ningún
-profesional está reclamado, así que estos caminos son en la práctica
-inalcanzables desde el cliente — pero se escriben ahora para que reclamar un
-perfil más adelante no sea un proyecto de seguridad.
+**Todo el catálogo es de solo lectura para el cliente**, y no por descuido: en V1
+no hay flujo de reclamo de perfil, así que las tablas de oferta no tienen ningún
+grant de escritura para `authenticated` y por lo tanto tampoco políticas de
+escritura. `professionals.owner_user_id` existe igual, para que agregar el
+reclamo más adelante sea una política nueva y no una migración de datos. Escribir
+una política de update para un flujo que no existe sería mantener una superficie
+de ataque a cambio de nada.
 
 El SELECT de `media_assets` es el caso sutil: un `using (true)` ingenuo filtraría
-las rutas de storage de las imágenes de referencia privadas de otras personas. La
-política es un `EXISTS` sobre piezas de portfolio publicadas, unido con la
-propiedad.
+las rutas de storage de las imágenes de referencia privadas de otras personas —
+la ruta *es* la llave para pedir el objeto. La política tiene dos ramas: la
+propia (`owner_user_id = auth.uid()`), definida junto con la tabla, y la del
+catálogo, un `EXISTS` que exige que la fila cuelgue de una pieza, un avatar o un
+hero de un profesional **publicado**. Esa segunda rama vive en la migración de
+portfolio, que es la primera donde existe la tabla que define qué está
+publicado.
+
+`media_assets` tampoco tiene UPDATE para nadie: una fila describe un archivo
+inmutable. Si el `path` pudiera cambiar, un `checksum` registrado dejaría de
+significar algo.
+
+`profiles` no tiene política de INSERT. La fila la crea un trigger sobre
+`auth.users`; un cliente que pudiera insertar perfiles podría crear filas con
+ids ajenos.
 
 ### La garantía, impuesta por test
 
-Un test enumera `pg_tables` en `public` y falla si alguna tabla tiene
-`rowsecurity = false`, `forcerowsecurity = false`, o cero filas en
-`pg_policies`. **No se puede agregar una tabla sin políticas.** Corre en CI en
-cada migración.
+`supabase/tests/00_rls_guarantee.sql` recorre el catálogo de Postgres —no una
+lista de tablas escrita a mano— y falla si:
+
+1. alguna tabla de `public` no tiene RLS habilitado,
+2. alguna no lo tiene **forzado**,
+3. alguna política usa `for all`,
+4. alguna política de insert no tiene `with check`,
+5. alguna de update no protege `using` **y** `with check`,
+6. alguna tabla sin políticas tiene igual grants de cliente,
+7. `anon` tiene algún privilegio sobre alguna tabla de `public`,
+8. alguna función `security definer` no fija su `search_path`.
+
+**No se puede agregar una tabla sin políticas.** Corre en CI en cada migración,
+y como no conoce ninguna tabla por nombre, una tabla nueva queda cubierta sin
+que nadie se acuerde de agregarla.
+
+El punto 6 dice "sin políticas **o** sin grants" y no "≥1 política" por un caso
+real: `audit_events` a propósito no tiene ninguna política. Una tabla que ningún
+rol de cliente puede tocar es inalcanzable tenga las políticas que tenga, y
+escribirle políticas de mentira para satisfacer un test las volvería la
+documentación equivocada de lo que hace.
+
+El aislamiento entre usuarios se verifica aparte, en
+`supabase/tests/20_cross_user.sql`, ejecutando con `set local role authenticated`
+más un claim `sub` — que es exactamente lo que PostgREST hace con un JWT. Correr
+esos tests como `postgres`, que tiene BYPASSRLS, los haría pasar siempre: es la
+forma más común de tener una suite de RLS que no prueba nada.
 
 ## 4. Storage
 

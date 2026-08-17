@@ -18,3 +18,7 @@ apps/mobile/assets/
 supabase/.temp/
 supabase/.branches/
 package-lock.json
+
+# Generado desde el esquema de Postgres. Lo formatea el generador de Supabase,
+# no nosotros, y reformatearlo haría fallar `db:types:check` en cada corrida.
+packages/domain/src/db/database.types.ts

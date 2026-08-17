@@ -24,6 +24,14 @@ export type {
   StyleDefinition,
 } from './taxonomy/taxonomy.ts'
 
+export {
+  LOCATIONS,
+  findLocation,
+  isKnownLocation,
+  isSameMetro,
+} from './taxonomy/locations.ts'
+export type { LocationDefinition } from './taxonomy/locations.ts'
+
 export type {
   Availability,
   AvailabilityStatus,

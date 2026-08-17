@@ -2,7 +2,7 @@
   "name": "mesh",
   "version": "0.1.0",
   "private": true,
-  "description": "MESH \u2014 descubr\u00ed gente, hac\u00e9 que las ideas pasen",
+  "description": "MESH — descubrí gente, hacé que las ideas pasen",
   "workspaces": [
     "apps/mobile",
     "packages/domain",
@@ -25,6 +25,11 @@
     "mobile": "npm run start -w @mesh/mobile",
     "db:start": "supabase start",
     "db:reset": "supabase db reset",
+    "db:reference": "npm run reference -w @mesh/seed",
+    "db:reference:check": "npm run reference:check -w @mesh/seed",
+    "db:types": "node scripts/generate-db-types.mjs",
+    "db:types:check": "node scripts/generate-db-types.mjs --check",
+    "db:test": "supabase test db",
     "db:stop": "supabase stop",
     "secrets:scan": "node scripts/scan-secrets.mjs",
     "brand:icons": "npm run icons -w @mesh/brand",
@@ -37,6 +42,7 @@
     "eslint": "^10.8.1",
     "globals": "^17.11.0",
     "prettier": "^3.9.6",
+    "supabase": "^2.114.0",
     "typescript": "~6.0.3",
     "typescript-eslint": "^8.67.0"
   },

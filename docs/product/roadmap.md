@@ -14,8 +14,8 @@ criterios de salida. Ninguna fase acumula código sin tests.
 | **1. Fundaciones** ✅ | Workspaces, tsconfig, eslint (con las reglas de enforcement), pipeline de CI, esqueleto de `packages/domain` con taxonomía y tipos | `npm run check` en verde sobre un código vacío; el CI corre en cada push |
 | **2. Marca** ✅ | SVG del símbolo (dos tamaños ópticos), lockup, set de íconos de app, ícono adaptativo, favicon, hoja de uso | La marca es legible a 16px, funciona tinta-sobre-papel e invertida, el ícono revisado en la home de un dispositivo |
 | **3. Design system** ✅ | Tokens, `ThemeProvider`, `MotionProvider`, primitivos, Button/Tag/Chip/Input, componentes de estado (Skeleton/Empty/Error/Toast) | El test de contraste pasa para todo par de tokens en ambos temas; las reglas de lint bloquean un hex crudo; los tests de componentes cubren los estados |
-| **4. Base de datos** | Migraciones de todas las tablas, enums, restricciones, índices, RPCs; seed de referencia (categorías, estilos, ubicaciones) | `supabase db reset` limpio; los tipos TS generados coinciden con `packages/domain`; pasan los tests de restricciones |
-| **5. Seguridad** | Políticas RLS de todas las tablas, políticas de storage, triggers de cuota | Pasa el test de garantía genérica de RLS; pasan los tests cruzados en todas las tablas de propiedad de usuario; escritura cruzada en storage bloqueada |
+| **4. Base de datos** ✅ | Migraciones de todas las tablas, enums, restricciones, índices, RPCs; seed de referencia (categorías, estilos, ubicaciones) | `supabase db reset` limpio; los tipos TS generados coinciden con `packages/domain`; pasan los tests de restricciones |
+| **5. Seguridad** | Buckets y políticas de storage, triggers de cuota, limpieza de EXIF en subidas (las políticas RLS por tabla ya aterrizaron con la Fase 4) | Escritura cruzada en storage bloqueada; las cuotas rechazan del lado del servidor; una foto subida no conserva coordenadas |
 | **6. Autenticación** | Arranque de sesión anónima, upgrade de cuenta, ingreso/salida, recuperación, guardado seguro de tokens, layout raíz con sesión | Pasa el flujo 3 de la suite E2E; ningún token fuera de `expo-secure-store`; escaneo de secretos del bundle limpio |
 | **7. Contenido** | Esquemas de contenido, CLI de seed (validar → redimensionar → blurhash → subir → upsert), 2–3 artistas reales de punta a punta | La carga es idempotente; el contenido malformado aborta antes de insertar; la falta de consentimiento bloquea la corrida; los fixtures se rechazan en modo producción |
 | **8. Descubrimiento** | RPC del feed, mazo, `ArtworkCard`, gestos, botones, deshacer, prefetch, detalle de obra, los cuatro estados | 60fps sostenidos en un Android de gama media; camino solo-botones completo; la cola offline sobrevive al modo avión |
@@ -83,12 +83,13 @@ Cerrada el 2026-08-17. Lo que quedó en pie:
 - Bundle de Android exportado: Metro resuelve `@mesh/domain` desde el workspace
   y la taxonomía viaja en el bundle.
 
-**Sin verificar en este entorno:** `supabase start` y `supabase db reset`. El
-entorno remoto de desarrollo no puede correrlos — los contenedores no confían en
-la CA del proxy saliente y el runtime no puede setear rlimits. Postgres 17
-levanta y el esquema inicializa; falla el paso que necesita salir a npm desde
-adentro de un contenedor. Hay que correrlos en una máquina local antes de
-empezar la Fase 4. El job `database` del CI sí los corre en GitHub Actions.
+**Resuelto durante la Fase 4.** `supabase start` y `supabase db reset` ahora
+corren en este entorno: hizo falta reiniciar dockerd con
+`--default-ulimit nofile=1024:4096` y arrancar sin los servicios que no usamos
+(`studio`, `realtime`, `logflare`, `vector`, `mailpit`, `edge-runtime`,
+`imgproxy`, `supavisor`, `pgbouncer`). Queda un aviso no fatal —el contenedor de
+`pg-delta` no confía en la CA del proxy y no puede cachear el catálogo de
+migraciones—, que no afecta ni al reset ni a los tests.
 
 ## Estado de la Fase 3
 
@@ -159,3 +160,42 @@ dispositivo real. Acá se verificó renderizándolo a 60/120/180pt con las másc
 squircle y circular, que es la parte que se puede automatizar, pero no reemplaza
 verlo entre los otros íconos del teléfono.
 
+## Estado de la Fase 4
+
+Cerrada el 2026-08-17.
+
+- **12 migraciones**, una por asunto, cada tabla con sus políticas en el mismo
+  archivo. 17 tablas, 6 enums, todas con RLS habilitado y forzado.
+- Un RPC: `get_discovery_feed`, `SECURITY INVOKER`, paginado por cursor.
+- `supabase/seed.sql` **generado** desde `packages/domain/src/taxonomy/`, con
+  `db:reference:check` en CI para que la taxonomía no pueda separarse de las
+  filas.
+- Tipos generados en `packages/domain/src/db/database.types.ts`, reconciliados
+  con los tipos escritos a mano por `database.types.test.ts` —enums en las dos
+  direcciones, columnas que el dominio lee, e inventario de tablas—, con
+  `db:types:check` en CI.
+- **52 tests de pgTAP** en `supabase/tests/`: garantía genérica de RLS,
+  restricciones, aislamiento entre usuarios y feed.
+- `docs/architecture/data-model.md`, `docs/security/security-model.md` y
+  `docs/testing/test-strategy.md` actualizados en el mismo commit.
+
+Tres cosas que encontraron los tests y no habría encontrado leer el SQL:
+
+1. **El feed servía dos piezas seguidas del mismo artista.** El round robin
+   ordenaba cada vuelta por una clave *por pieza*, así que el orden de los
+   artistas cambiaba en cada vuelta y el último de una podía ser el primero de
+   la siguiente. La clave de desempate pasó a ser por artista.
+2. **`MatchReason` no coincidía con lo que verifica la base.** El tipo del
+   dominio decía `templateKey` / `styleSlugs`; la restricción de Postgres busca
+   un campo `component` que exista en `components` con aporte mayor a cero.
+   Escribir la restricción obligó a resolver la discrepancia — que es
+   exactamente para lo que existe el paso de reconciliación.
+3. **La garantía genérica de RLS no podía pedir "≥1 política".** `audit_events`
+   a propósito no tiene ninguna. La regla correcta es "políticas **o** ningún
+   grant de cliente"; la otra habría empujado a escribir políticas de mentira.
+
+**Pendiente para la Fase 5:** buckets de storage y sus políticas, los triggers
+de cuota (20 proyectos por usuario, 10 referencias por proyecto, 50 MB por
+usuario) y los tests de storage cruzado. La Fase 4 se quedó con las políticas por
+tabla porque `.claude/workflows/database-change.md` exige que vayan en la misma
+migración que la tabla.

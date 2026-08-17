@@ -38,19 +38,28 @@ esquema — este paso no es opcional.
 
 ## 4. Testear — `qa-engineer`
 
-- El test de garantía genérica de RLS sigue pasando (RLS habilitado + forzado +
-  ≥1 política en toda tabla de `public`; ninguna `for all`; toda política de
-  insert con `with check`).
+- `npm run db:test` sigue en verde. La garantía genérica
+  (`supabase/tests/00_rls_guarantee.sql`) recorre el catálogo, así que una tabla
+  nueva queda cubierta sin tocarla: RLS habilitado y forzado; políticas **o**
+  ningún grant de cliente; ninguna `for all`; todo insert con `with check`; todo
+  update con `using` y `with check`; `anon` sin privilegios; toda función
+  `security definer` con `search_path` fijado.
 - Tests cruzados para la tabla nueva: B selecciona las filas de A → `[]`; el
   update y el delete de B → 0 filas; B insertando con `user_id = A` → rechazado.
-- Un test de rechazo por cada restricción nueva.
+- Un test de rechazo por cada restricción nueva, en
+  `supabase/tests/10_constraints.sql`. Un test del camino feliz no prueba nada
+  sobre una restricción: prueba que no molesta.
 - `supabase db reset` limpio desde cero.
 
 ## 5. Tipos
 
-Regenerar los tipos TypeScript desde el esquema. Reconciliar con los tipos de
-`packages/domain` — una discrepancia es un bug en alguno de los dos, resuelto
-ahora, no después.
+`npm run db:types` regenera `packages/domain/src/db/database.types.ts` desde el
+esquema. `database.types.test.ts` los reconcilia con los tipos escritos a mano de
+`types/core.ts` — una discrepancia es un bug en alguno de los dos, resuelto
+ahora, no después. Si tocaste la taxonomía, también `npm run db:reference`.
+
+Los dos tienen su `--check` en CI (`db:types:check`, `db:reference:check`), así
+que olvidarse de regenerar rompe el build y no una pantalla.
 
 ## 6. Documentar
 

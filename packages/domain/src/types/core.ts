@@ -164,10 +164,19 @@ export interface MatchComponents {
  * Las razones nunca se redactan: se derivan de componentes con aporte medido por
  * encima del umbral, desde un conjunto cerrado de plantillas. Una razón no puede
  * referenciar un componente omitido. Ver docs/product/matching.md §4.5.
+ *
+ * `component` no es decorativo: es el campo que la base verifica. La restricción
+ * `matches_reasons_are_grounded` rechaza cualquier razón cuyo `component` no
+ * exista en `components` con aporte mayor a cero. Renombrarlo acá sin cambiar la
+ * función de Postgres rompe silenciosamente esa garantía.
+ *
+ * `terms` son slugs de taxonomía, no texto: qué estilo, qué ubicación. El texto
+ * visible lo arma i18n con `templateKey` y estos términos.
  */
 export interface MatchReason {
+  readonly component: keyof MatchComponents
   readonly templateKey: string
-  readonly styleSlugs: readonly string[]
+  readonly terms: readonly string[]
   readonly contribution: number
 }
 

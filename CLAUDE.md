@@ -55,6 +55,7 @@ que se traduce es el nombre para mostrar, vía clave de i18n.
 | Motores de gusto y matching, taxonomía, tipos, esquemas Zod | `packages/domain/src/` |
 | CLI de carga de contenido (service role) | `tools/seed/` |
 | Migraciones SQL y políticas RLS | `supabase/migrations/` |
+| Tests de base de datos (pgTAP) | `supabase/tests/` |
 | Archivos de contenido de artistas | `content/artists/` |
 | Decisiones | `docs/decisions/` |
 

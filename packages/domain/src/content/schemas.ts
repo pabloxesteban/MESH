@@ -10,6 +10,7 @@
  */
 
 import { z } from 'zod'
+import { isKnownLocation } from '../taxonomy/locations.ts'
 import { isKnownStyle, type CategorySlug } from '../taxonomy/taxonomy.ts'
 
 /** Suma de pesos tolerada al validar los estilos de una pieza. */
@@ -101,6 +102,17 @@ export const artistSchema = z
     is_fixture: z.boolean().optional(),
   })
   .superRefine((artist, ctx) => {
+    if (!isKnownLocation(artist.location)) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['location'],
+        message:
+          `La ubicación "${artist.location}" no existe. Agregar una requiere ` +
+          `una fila en packages/domain/src/taxonomy/locations.ts y regenerar ` +
+          `supabase/seed.sql.`,
+      })
+    }
+
     artist.styles.forEach((style, index) => {
       if (!isKnownStyle(artist.category, style.slug)) {
         ctx.addIssue({

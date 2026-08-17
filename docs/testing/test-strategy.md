@@ -56,19 +56,33 @@ es el mecanismo de enforcement de §9 de la spec de matching.
 
 ## 4. Tests de base de datos y RLS
 
-Corren contra `supabase start` con JWTs reales de dos usuarios, A y B.
+Viven en `supabase/tests/`, en pgTAP, y corren con `npm run db:test` contra
+`supabase start`. Cambian de rol con `set local role authenticated` más un claim
+`sub`, que es exactamente lo que PostgREST hace con un JWT. **Correrlos como
+`postgres`, que tiene BYPASSRLS, los haría pasar siempre** — es la forma más
+común de tener una suite de RLS que no prueba nada.
 
-**La garantía genérica** — un test, aplica a todas las tablas para siempre:
+**La garantía genérica** (`00_rls_guarantee.sql`) — ocho tests que recorren el
+catálogo de Postgres, no una lista de tablas escrita a mano, así que una tabla
+nueva queda cubierta sin que nadie se acuerde de agregarla:
 
 ```
 para cada tabla del esquema public:
   verificar rowsecurity = true
   verificar forcerowsecurity = true
-  verificar count(políticas) > 0
-para cada política "for insert":
-  verificar with_check no es null
+  verificar que tenga políticas, O ningún grant de cliente
+para cada política "for insert":  verificar with_check no es null
+para cada política "for update":  verificar using Y with_check
 verificar que ninguna política tenga cmd = 'ALL'
+verificar que anon no tenga privilegios en public
+para cada función security definer:  verificar search_path fijado
 ```
+
+"Con políticas **o** sin grants" y no "≥1 política" por un caso real:
+`audit_events` a propósito no tiene ninguna. Una tabla que ningún rol de cliente
+puede tocar es inalcanzable tenga las políticas que tenga, y escribirle políticas
+de mentira para satisfacer un test las volvería la documentación equivocada de lo
+que hace.
 
 **Tests cruzados por tabla** — para cada tabla de propiedad de usuario
 (`interactions`, `taste_profiles`, `projects`, `project_styles`,
@@ -88,9 +102,21 @@ verificar que ninguna política tenga cmd = 'ALL'
 - `analytics_events` no puede ser seleccionada por ningún rol de cliente.
 - `audit_events` es inaccesible para `anon` y `authenticated` por completo.
 
-**Tests de restricciones:** `is_saved` con `verdict = 'pass'` rechazado; precio
-min > max rechazado; profesional publicado sin canal de contacto rechazado; pesos
-de estilo de una pieza que no sumen 1 rechazados por el validador.
+**Tests de restricciones** (`10_constraints.sql`) — uno de rechazo por
+restricción. Un test que solo verifica el camino feliz no prueba nada sobre una
+restricción: prueba que no molesta. Cubre precio incompleto, precio min > max,
+disponibilidad sin fecha, publicado sin canal de contacto, reclamado sin dueño,
+Instagram como URL, WhatsApp fuera de E.164, un cuarto estilo primario, pericia
+cero, dos piezas sobre la misma imagen, SVG, path absoluto, `is_saved` con
+`verdict = 'pass'`, interacción duplicada, y las dos formas de una razón de match
+sin fundamento. Los pesos de estilo de una pieza los rechaza el validador de
+contenido, no la base.
+
+**Tests del feed** (`30_discovery_feed.sql`) — sin sesión viene vacío; la obra de
+un profesional sin publicar no aparece; nunca dos piezas consecutivas del mismo
+profesional; dos llamadas idénticas devuelven el mismo orden; dos páginas de 6
+reconstruyen el feed sin repetir ni saltear; lo ya visto no vuelve, y el orden
+del resto no se mueve.
 
 **Tests de storage:** el usuario B no puede escribir en `references/{A}/…`;
 subida de SVG rechazada; subida sobre el tope rechazada.

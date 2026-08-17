@@ -83,6 +83,9 @@ export default tseslint.config(
       '**/*.d.ts',
       'apps/mobile/expo-env.d.ts',
       'supabase/.temp/**',
+      // Generado desde el esquema por scripts/generate-db-types.mjs. Lintear un
+      // archivo que nadie escribe solo produce reglas que nadie puede arreglar.
+      'packages/domain/src/db/database.types.ts',
     ],
   },
 
