@@ -282,8 +282,8 @@ V1 está terminado cuando todo lo siguiente es verdadero.
 
 | # | Pregunta | Responsable | Necesaria para |
 |---|---|---|---|
-| Q1 | ¿Mostramos un puntaje numérico o una banda? Recomendación: banda. | product-critic | Fase 10 |
+| ~~Q1~~ | **Resuelta (2026-08-17): banda.** El puntaje numérico queda en `matches.score` y en builds de debug. Ver ADR-005. | product-critic | — |
 | Q2 | ¿Cuatro pestañas (Descubrir / Matches / Proyectos / Vos) o tres con Proyectos anidado? Recomendación: cuatro, y después medir. | ux-product-designer | Fase 8 |
-| Q3 | ¿Auth anónima primero o registro primero? Recomendación: anónima primero. | product-architect | Fase 6 |
+| ~~Q3~~ | **Resuelta (2026-08-17): anónima primero.** Ya configurada en `supabase/config.toml`. Ver ADR-002. | product-architect | — |
 | Q4 | ¿Cuántas interacciones decisivas antes de que el gusto esté "listo"? Valor inicial 12. | matching-engineer | Fase 9 |
 | Q5 | ¿Es honesto mostrar un precio desde cuando los precios argentinos se mueven con la inflación? Recomendación: mostrar una banda con fecha `priced_at`, u omitirlo. | product-architect | Fase 11 |

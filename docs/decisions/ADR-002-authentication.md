@@ -1,6 +1,6 @@
 # ADR-002 — Autenticación anónima primero
 
-**Estado:** Propuesto · **Fecha:** 2026-08-17 · **Responsable:** product-architect
+**Estado:** Aceptado (2026-08-17) · **Fecha:** 2026-08-17 · **Responsable:** product-architect
 
 ## Contexto
 

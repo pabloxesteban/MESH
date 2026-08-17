@@ -1,0 +1,19 @@
+{
+  "name": "@mesh/seed",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "CLI de carga de contenido de MESH. Usa la service-role key — nunca se empaqueta en la app.",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "validate": "node --experimental-strip-types src/validate.ts",
+    "seed": "node --experimental-strip-types src/seed.ts"
+  },
+  "dependencies": {
+    "@mesh/domain": "*",
+    "yaml": "^2.9.0"
+  },
+  "devDependencies": {
+    "@types/node": "^26.2.0"
+  }
+}

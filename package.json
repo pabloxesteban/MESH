@@ -1,0 +1,38 @@
+{
+  "name": "mesh",
+  "version": "0.1.0",
+  "private": true,
+  "description": "MESH — descubrí gente, hacé que las ideas pasen",
+  "workspaces": [
+    "apps/mobile",
+    "packages/domain",
+    "tools/seed"
+  ],
+  "engines": {
+    "node": ">=20.19.0"
+  },
+  "scripts": {
+    "check": "npm run typecheck && npm run lint && npm run test && npm run content:validate",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "npm run test --workspaces --if-present",
+    "test:domain": "npm run test -w @mesh/domain",
+    "content:validate": "npm run validate -w @mesh/seed",
+    "mobile": "npm run start -w @mesh/mobile",
+    "db:start": "supabase start",
+    "db:reset": "supabase db reset",
+    "db:stop": "supabase stop",
+    "secrets:scan": "node scripts/scan-secrets.mjs"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.8.1",
+    "globals": "^17.11.0",
+    "prettier": "^3.9.6",
+    "typescript": "~6.0.3",
+    "typescript-eslint": "^8.67.0"
+  }
+}

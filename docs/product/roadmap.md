@@ -11,7 +11,7 @@ criterios de salida. Ninguna fase acumula código sin tests.
 | Fase | Entregable | Criterios de salida |
 |---|---|---|
 | **0. Auditoría y plan** ✅ | Auditoría del repo, docs, ADRs, agentes, skills, workflows, comandos | Este conjunto de documentos existe y está aprobado |
-| **1. Fundaciones** | Workspaces, tsconfig, eslint (con las reglas de enforcement), pipeline de CI, esqueleto de `packages/domain` con taxonomía y tipos | `npm run check` en verde sobre un código vacío; el CI corre en cada push |
+| **1. Fundaciones** ✅ | Workspaces, tsconfig, eslint (con las reglas de enforcement), pipeline de CI, esqueleto de `packages/domain` con taxonomía y tipos | `npm run check` en verde sobre un código vacío; el CI corre en cada push |
 | **2. Marca** | SVG del símbolo (dos tamaños ópticos), lockup, set de íconos de app, ícono adaptativo, favicon, hoja de uso | La marca es legible a 16px, funciona tinta-sobre-papel e invertida, el ícono revisado en la home de un dispositivo |
 | **3. Design system** | Tokens, `ThemeProvider`, `MotionProvider`, primitivos, Button/Tag/Chip/Input, componentes de estado (Skeleton/Empty/Error/Toast) | El test de contraste pasa para todo par de tokens en ambos temas; las reglas de lint bloquean un hex crudo; los tests de componentes cubren los estados |
 | **4. Base de datos** | Migraciones de todas las tablas, enums, restricciones, índices, RPCs; seed de referencia (categorías, estilos, ubicaciones) | `supabase db reset` limpio; los tipos TS generados coinciden con `packages/domain`; pasan los tests de restricciones |
@@ -60,6 +60,35 @@ archivo.
 - Si la sensación del mazo resulta más difícil de lo esperado en la Fase 8, se
   le da su propio timebox y un spike antes del resto de la fase — es el mayor
   riesgo de producto y el menos arreglable después.
+
+## Estado de la Fase 1
+
+Cerrada el 2026-08-17. Lo que quedó en pie:
+
+- Tres workspaces npm (`apps/mobile`, `packages/domain`, `tools/seed`), sin
+  orquestador.
+- Expo SDK 57 con Expo Router, esquema `mesh://`, rutas tipadas.
+- Las tres reglas de lint de ADR-008 y system-architecture §3, **verificadas
+  contra un archivo que las viola a propósito** — no se asumió que funcionaran.
+- `packages/domain`: taxonomía (1 categoría, 15 estilos), tipos centrales,
+  esquemas Zod de contenido, `TASTE_VERSION` / `MATCHING_VERSION`. 24 tests.
+- Validador de contenido real, ejercitado contra contenido roto: consentimiento
+  faltante, E.164 inválido, URL de Instagram, estilo fuera de taxonomía, pesos
+  que no suman 1, SVG, archivo faltante, archivo sobre 12 MB.
+- Escaneo de secretos y gate de `npm audit` con excepciones fechadas.
+- CI en tres jobs paralelos que cubren los ocho pasos de la estrategia de
+  testing §8.
+- `supabase init` con auth anónima habilitada (ADR-002), contraseña mínima de
+  10, y `mesh://auth/callback` como única URL de redirección.
+- Bundle de Android exportado: Metro resuelve `@mesh/domain` desde el workspace
+  y la taxonomía viaja en el bundle.
+
+**Sin verificar en este entorno:** `supabase start` y `supabase db reset`. El
+entorno remoto de desarrollo no puede correrlos — los contenedores no confían en
+la CA del proxy saliente y el runtime no puede setear rlimits. Postgres 17
+levanta y el esquema inicializa; falla el paso que necesita salir a npm desde
+adentro de un contenedor. Hay que correrlos en una máquina local antes de
+empezar la Fase 4. El job `database` del CI sí los corre en GitHub Actions.
 
 ## Primeras tareas de implementación (Fase 1)
 

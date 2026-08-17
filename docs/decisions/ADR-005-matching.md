@@ -1,6 +1,6 @@
 # ADR-005 — Matching determinístico, y bandas en lugar de porcentajes
 
-**Estado:** Propuesto · **Fecha:** 2026-08-17 · **Responsable:** matching-engineer
+**Estado:** Aceptado (2026-08-17) · **Fecha:** 2026-08-17 · **Responsable:** matching-engineer
 
 ## Contexto
 

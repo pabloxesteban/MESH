@@ -1,0 +1,121 @@
+name: CI
+
+# Implementa los ocho pasos de docs/testing/test-strategy.md §8.
+# El E2E no corre acá: va a demanda y antes de un release.
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NODE_VERSION: '22'
+
+jobs:
+  # Pasos 1-4, 6: todo lo que no necesita una base de datos.
+  build:
+    name: Tipos · lint · tests · contenido
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: 1 · Chequeo de tipos
+        run: npm run typecheck
+
+      - name: 2 · Lint
+        # Impone los tres límites arquitectónicos de ADR-008 y
+        # system-architecture §3, además de las reglas de corrección.
+        run: npm run lint
+
+      - name: 2b · Formato
+        run: npm run format:check
+
+      - name: 3 · Tests de dominio
+        run: npm run test
+
+      - name: 4 · Validación de contenido
+        # Falla si a un artista le falta el consentimiento, si un slug de estilo
+        # no está en la taxonomía, o si los pesos de una pieza no suman 1.
+        run: npm run content:validate
+
+      - name: 6 · Tests de componentes
+        # Fase 3. Sin componentes todavía, el script no existe y --if-present
+        # lo saltea; cuando exista, este paso empieza a correr solo.
+        run: npm run test:components --workspaces --if-present
+
+  # Paso 5: la base de datos y sus políticas.
+  # Job aparte porque levanta Docker y tarda; corre en paralelo con `build`.
+  database:
+    name: Migraciones · RLS
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: Levantar Supabase y aplicar migraciones
+        run: supabase start
+
+      - name: 5a · Reset limpio desde cero
+        # Verifica que las migraciones se apliquen en orden sobre una base
+        # vacía. Una migración que solo funciona sobre la base de alguien no
+        # está terminada.
+        run: supabase db reset
+
+      - name: 5b · Garantía de RLS
+        # Fase 5. Este es el test que hace impublicable una tabla insegura:
+        # toda tabla de public con RLS habilitado, forzado y ≥1 política;
+        # ninguna política `for all`; todo insert con `with check`.
+        # Ver docs/testing/test-strategy.md §4.
+        run: npm run test:rls --workspaces --if-present
+
+      - name: Bajar Supabase
+        if: always()
+        run: supabase stop --no-backup
+
+  # Pasos 7-8: seguridad de la cadena de suministro y del bundle.
+  security:
+    name: Secretos · dependencias
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: 7 · Escaneo de secretos
+        # Última red antes de que una clave que saltea RLS se publique.
+        run: npm run secrets:scan
+
+      - name: 8 · Avisos de dependencias
+        # Falla ante cualquier aviso alto o crítico que no esté aceptado con
+        # razón y fecha en scripts/audit-check.mjs.
+        run: node scripts/audit-check.mjs

@@ -8,6 +8,9 @@ node_modules/
 .expo-shared/
 dist/
 web-build/
+expo-env.d.ts
+.metro-health-check*
+.kotlin/
 *.jks
 *.p8
 *.p12

@@ -1,0 +1,17 @@
+# Markdown queda afuera a propósito.
+# Los docs están escritos a mano, ajustados a 80 columnas, con tablas compactas.
+# Prettier las expande a más de 200 caracteres por línea rellenando cada celda,
+# lo que las vuelve ilegibles en un editor y hace que cualquier cambio de una
+# palabra reformatee la tabla entera en el diff. El valor de formatear prosa es
+# bajo; el ruido es alto.
+*.md
+
+node_modules/
+.expo/
+dist/
+build/
+coverage/
+apps/mobile/assets/
+supabase/.temp/
+supabase/.branches/
+package-lock.json
