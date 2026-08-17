@@ -70,3 +70,26 @@ export type {
   PortfolioContent,
   PortfolioItemContent,
 } from './content/schemas.ts'
+
+export {
+  FORBIDDEN_EXIF_TAGS,
+  MAX_LIVE_PROJECTS,
+  MAX_PROJECT_REFERENCES,
+  MAX_UPLOAD_BYTES,
+  MAX_USER_STORAGE_BYTES,
+  PORTFOLIO_SIZES,
+  StoragePathError,
+  UPLOAD_MIME_TYPES,
+  avatarPath,
+  isOwnedPath,
+  isUploadMimeType,
+  portfolioPath,
+  referencePath,
+  validateUpload,
+} from './storage/paths.ts'
+export type {
+  Bucket,
+  PortfolioSize,
+  UploadCandidate,
+  UploadMimeType,
+} from './storage/paths.ts'

@@ -118,8 +118,21 @@ profesional; dos llamadas idénticas devuelven el mismo orden; dos páginas de 6
 reconstruyen el feed sin repetir ni saltear; lo ya visto no vuelve, y el orden
 del resto no se mueve.
 
-**Tests de storage:** el usuario B no puede escribir en `references/{A}/…`;
-subida de SVG rechazada; subida sobre el tope rechazada.
+**Tests de storage** (`40_storage.sql`) — configuración de los tres buckets
+(privacidad, tope de tamaño, lista de MIME, ningún SVG) y aislamiento entre
+carpetas: A escribe en la suya, A no escribe en la de B ni fabricando la ruta, un
+objeto sin carpeta se rechaza, nadie escribe en el catálogo desde el cliente, B
+no ve la referencia privada de A, y ninguna política nombra a `anon`.
+
+No se prueba un `delete` cruzado sobre `storage.objects`: storage tiene un
+trigger `protect_delete` que rechaza cualquier borrado directo sobre la tabla y
+obliga a pasar por su API. La política de delete existe igual, y es lo que la API
+evalúa.
+
+**Tests de cuotas** (`50_quotas.sql`) — el proyecto 21 se rechaza, archivar
+libera lugar, la referencia 11 de un proyecto se rechaza pero la cuota es por
+proyecto y no por persona, pasarse de 50 MB se rechaza, y la media curada no
+tiene cuota. Todos desde el rol `authenticated`.
 
 ## 5. Tests de componentes
 

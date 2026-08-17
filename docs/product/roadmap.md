@@ -15,7 +15,7 @@ criterios de salida. Ninguna fase acumula código sin tests.
 | **2. Marca** ✅ | SVG del símbolo (dos tamaños ópticos), lockup, set de íconos de app, ícono adaptativo, favicon, hoja de uso | La marca es legible a 16px, funciona tinta-sobre-papel e invertida, el ícono revisado en la home de un dispositivo |
 | **3. Design system** ✅ | Tokens, `ThemeProvider`, `MotionProvider`, primitivos, Button/Tag/Chip/Input, componentes de estado (Skeleton/Empty/Error/Toast) | El test de contraste pasa para todo par de tokens en ambos temas; las reglas de lint bloquean un hex crudo; los tests de componentes cubren los estados |
 | **4. Base de datos** ✅ | Migraciones de todas las tablas, enums, restricciones, índices, RPCs; seed de referencia (categorías, estilos, ubicaciones) | `supabase db reset` limpio; los tipos TS generados coinciden con `packages/domain`; pasan los tests de restricciones |
-| **5. Seguridad** | Buckets y políticas de storage, triggers de cuota, limpieza de EXIF en subidas (las políticas RLS por tabla ya aterrizaron con la Fase 4) | Escritura cruzada en storage bloqueada; las cuotas rechazan del lado del servidor; una foto subida no conserva coordenadas |
+| **5. Seguridad** ✅ | Buckets y políticas de storage, triggers de cuota, limpieza de EXIF en subidas (las políticas RLS por tabla ya aterrizaron con la Fase 4) | Escritura cruzada en storage bloqueada; las cuotas rechazan del lado del servidor; una foto subida no conserva coordenadas |
 | **6. Autenticación** | Arranque de sesión anónima, upgrade de cuenta, ingreso/salida, recuperación, guardado seguro de tokens, layout raíz con sesión | Pasa el flujo 3 de la suite E2E; ningún token fuera de `expo-secure-store`; escaneo de secretos del bundle limpio |
 | **7. Contenido** | Esquemas de contenido, CLI de seed (validar → redimensionar → blurhash → subir → upsert), 2–3 artistas reales de punta a punta | La carga es idempotente; el contenido malformado aborta antes de insertar; la falta de consentimiento bloquea la corrida; los fixtures se rechazan en modo producción |
 | **8. Descubrimiento** | RPC del feed, mazo, `ArtworkCard`, gestos, botones, deshacer, prefetch, detalle de obra, los cuatro estados | 60fps sostenidos en un Android de gama media; camino solo-botones completo; la cola offline sobrevive al modo avión |
@@ -199,3 +199,32 @@ de cuota (20 proyectos por usuario, 10 referencias por proyecto, 50 MB por
 usuario) y los tests de storage cruzado. La Fase 4 se quedó con las políticas por
 tabla porque `.claude/workflows/database-change.md` exige que vayan en la misma
 migración que la tabla.
+
+## Estado de la Fase 5
+
+Cerrada el 2026-08-17.
+
+- Tres buckets con tope de tamaño y lista blanca de MIME a nivel bucket —o sea,
+  impuestos por el servicio antes de escribir un byte—, ninguno acepta SVG.
+- Políticas de `storage.objects` por bucket. Las de los buckets del dueño
+  comparan `(storage.foldername(name))[1]` contra `auth.uid()`: el primer
+  segmento de la ruta **es** el id de quien sube.
+- Tres triggers de cuota, todos `SECURITY DEFINER` con `search_path` fijado: 20
+  proyectos sin archivar por persona, 10 referencias por proyecto, 50 MB por
+  persona.
+- `packages/domain/src/storage/paths.ts`: las rutas se arman en un solo lugar,
+  compartido por el seeder y la app, y rechazan cualquier id que no sea UUID.
+- **70 tests de base de datos** (18 nuevos).
+
+Dos decisiones que salieron de escribir esto:
+
+1. **Archivar no cuenta contra la cuota de proyectos.** La primera versión
+   contaba todos, lo que dejaba a alguien con 20 proyectos sin ninguna forma de
+   crear el 21 salvo borrar. Una cuota sin puerta de salida es una trampa.
+2. **Ningún bucket tiene política de UPDATE.** Reemplazar una imagen es subir y
+   borrar. Un update cambiaría los bytes debajo de una fila de `media_assets`
+   que ya registró un checksum, y ese checksum dejaría de significar algo.
+
+**Pendiente, y es de la Fase 12:** la limpieza de EXIF en las referencias que
+sube una persona. `FORBIDDEN_EXIF_TAGS` ya está declarado en el dominio; la
+recodificación y su test viven en el camino de subida, que todavía no existe.

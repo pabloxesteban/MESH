@@ -164,13 +164,30 @@ Los objetos privados se sirven vía URLs firmadas de vida corta (≤ 1 hora)
 generadas a demanda. Las URLs firmadas nunca se persisten, nunca se loguean y
 nunca van en un deep link.
 
+`portfolio` no tiene ninguna política de escritura: lo escribe el service role,
+que pasa por encima de RLS. Ninguno de los tres buckets tiene política de
+UPDATE — reemplazar una imagen es subir una nueva y borrar la vieja, porque un
+update cambiaría los bytes debajo de una fila de `media_assets` que ya registró
+un checksum.
+
+Las rutas se arman en un solo lugar, `packages/domain/src/storage/paths.ts`, que
+las usan tanto el seeder como la app. Una ruta armada de dos formas distintas es
+una política de storage que protege una de las dos. Ese módulo rechaza cualquier
+id que no sea un UUID, así que un nombre de archivo provisto por una persona no
+puede contener `../` ni llegar a formar parte de una ruta.
+
+Verificado en `supabase/tests/40_storage.sql`: A escribe en su carpeta, A no
+escribe en la de B ni fabricando la ruta, un objeto sin carpeta se rechaza, nadie
+escribe en el catálogo desde el cliente, B no ve la referencia privada de A, y
+ninguna política de storage nombra a `anon`.
+
 ## 5. Validación de subidas
 
 Los chequeos del lado del cliente son UX. Lo que realmente impone es:
 
 - Lista blanca de MIME a nivel bucket: `image/jpeg`, `image/png`, `image/webp`,
   `image/heic`. Nada de SVG — un SVG es un contenedor de scripts.
-- Tope de tamaño a nivel bucket: 12 MB.
+- Tope de tamaño a nivel bucket: 12 MB (2 MB para avatares).
 - Los nombres de archivo siempre son UUIDs generados por el servidor. Los
   nombres provistos por el usuario nunca se usan en una ruta — sin traversal,
   sin bytes nulos, sin trucos de homoglifos unicode.
@@ -189,11 +206,17 @@ Los chequeos del lado del cliente son UX. Lo que realmente impone es:
 |---|---|
 | Creación masiva de cuentas anónimas | Límite de tasa de Supabase en el ingreso anónimo; límites por IP en el gateway |
 | Inundación de interacciones | El UNIQUE `(user_id, portfolio_item_id)` acota las interacciones al tamaño del catálogo; límites de tasa por usuario |
-| Spam de proyectos | Máximo 20 proyectos activos por usuario, impuesto por un trigger `BEFORE INSERT`, no por el cliente |
-| Abuso de storage con imágenes de referencia | Máximo 10 referencias por proyecto, máximo 50 MB por usuario, impuesto del lado del servidor |
+| Spam de proyectos | Máximo 20 proyectos **sin archivar** por usuario, impuesto por un trigger `BEFORE INSERT`, no por el cliente. Los archivados no cuentan: archivar es la salida, y hacerla contar convertiría la cuota en una trampa sin puerta |
+| Abuso de storage con imágenes de referencia | Máximo 10 referencias por proyecto, máximo 50 MB por usuario, los dos con trigger `BEFORE INSERT`. La media curada no tiene cuota — la sube el seeder, no una persona |
 | Inundación de analytics | Solo inserción, sin lectura; se monitorea el volumen; los eventos se descartan, nunca se reintentan agresivamente |
 | Cosecha de datos de contacto | `whatsapp_e164` e `instagram_handle` son legibles para profesionales publicados — eso *es* el producto. La mitigación es el consentimiento (los artistas saben que sus datos se muestran) más límite de tasa en la lectura del catálogo, no la oscuridad. |
 | Scraping del catálogo | Aceptado como daño bajo en V1 con 12 perfiles públicos y consentidos. Revisitar antes de que el catálogo sea un activo. |
+
+Los tres triggers de cuota son `SECURITY DEFINER` con `search_path` fijado, a
+propósito: cuentan filas para decidir si aceptar una más, y una cuenta que RLS
+pudiera recortar sería una cuota evadible. Verificados en
+`supabase/tests/50_quotas.sql`, ejecutados desde el rol `authenticated` — que es
+desde donde se intentaría evadirlos.
 
 ## 7. Secretos
 
