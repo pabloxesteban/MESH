@@ -6,6 +6,9 @@
 # bajo; el ruido es alto.
 *.md
 
+# Prettier no parsea SVG. Los SVG de marca están escritos y comentados a mano.
+brand/**/*.svg
+
 node_modules/
 .expo/
 dist/

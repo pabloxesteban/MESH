@@ -212,7 +212,7 @@ export default tseslint.config(
     rules: { 'no-restricted-syntax': 'off' },
   },
   {
-    files: ['tools/**/*.ts', 'scripts/**/*.mjs', '*.mjs'],
+    files: ['tools/**/*.{ts,mjs}', 'scripts/**/*.mjs', '*.mjs'],
     languageOptions: { globals: { ...globals.node } },
     rules: { 'no-console': 'off' },
   },

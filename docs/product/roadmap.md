@@ -12,7 +12,7 @@ criterios de salida. Ninguna fase acumula código sin tests.
 |---|---|---|
 | **0. Auditoría y plan** ✅ | Auditoría del repo, docs, ADRs, agentes, skills, workflows, comandos | Este conjunto de documentos existe y está aprobado |
 | **1. Fundaciones** ✅ | Workspaces, tsconfig, eslint (con las reglas de enforcement), pipeline de CI, esqueleto de `packages/domain` con taxonomía y tipos | `npm run check` en verde sobre un código vacío; el CI corre en cada push |
-| **2. Marca** | SVG del símbolo (dos tamaños ópticos), lockup, set de íconos de app, ícono adaptativo, favicon, hoja de uso | La marca es legible a 16px, funciona tinta-sobre-papel e invertida, el ícono revisado en la home de un dispositivo |
+| **2. Marca** ✅ | SVG del símbolo (dos tamaños ópticos), lockup, set de íconos de app, ícono adaptativo, favicon, hoja de uso | La marca es legible a 16px, funciona tinta-sobre-papel e invertida, el ícono revisado en la home de un dispositivo |
 | **3. Design system** | Tokens, `ThemeProvider`, `MotionProvider`, primitivos, Button/Tag/Chip/Input, componentes de estado (Skeleton/Empty/Error/Toast) | El test de contraste pasa para todo par de tokens en ambos temas; las reglas de lint bloquean un hex crudo; los tests de componentes cubren los estados |
 | **4. Base de datos** | Migraciones de todas las tablas, enums, restricciones, índices, RPCs; seed de referencia (categorías, estilos, ubicaciones) | `supabase db reset` limpio; los tipos TS generados coinciden con `packages/domain`; pasan los tests de restricciones |
 | **5. Seguridad** | Políticas RLS de todas las tablas, políticas de storage, triggers de cuota | Pasa el test de garantía genérica de RLS; pasan los tests cruzados en todas las tablas de propiedad de usuario; escritura cruzada en storage bloqueada |
@@ -90,19 +90,32 @@ levanta y el esquema inicializa; falla el paso que necesita salir a npm desde
 adentro de un contenedor. Hay que correrlos en una máquina local antes de
 empezar la Fase 4. El job `database` del CI sí los corre en GitHub Actions.
 
-## Primeras tareas de implementación (Fase 1)
+## Estado de la Fase 2
 
-1. Inicializar workspaces npm: `apps/mobile`, `packages/domain`, `tools/seed`.
-2. `tsconfig.base.json` raíz, `eslint.config.mjs` con las reglas de capas y de
-   valores de diseño, Prettier, `.editorconfig`.
-3. `npx create-expo-app` dentro de `apps/mobile` con el SDK actual y TypeScript;
-   Expo Router; verificar que arranca en un dispositivo.
-4. `packages/domain`: taxonomía de categorías/estilos como datos, tipos
-   TypeScript centrales, esquemas Zod de contenido, constantes
-   `TASTE_VERSION`/`MATCHING_VERSION`, Vitest configurado con un test que pasa.
-5. `supabase init`; verificar `supabase start` y `supabase db reset` localmente.
-6. Workflow de CI que implemente los nueve pasos de la
-   [estrategia de testing §8](../testing/test-strategy.md).
-7. `.env.example` para la app y para la herramienta de seed, con un comentario
-   que explique qué claves son públicas por diseño y cuáles nunca salen de la
-   máquina del operador.
+Cerrada el 2026-08-17.
+
+- Símbolo en dos ópticos (`brand/logo/mesh-symbol.svg`, `mesh-symbol-icon.svg`),
+  monolínea, `currentColor`, sin rellenos ni degradados.
+- Logotipo en curvas desde Fraunces, más lockup horizontal y apilado.
+- Set completo de íconos de app, adaptativo de Android, monocromo y favicon,
+  **generados desde los SVG** con `npm run brand:icons`. Ningún PNG exportado a
+  mano.
+- Hojas de prueba en `brand/proof/`: el símbolo a sus ocho tamaños reales de uso
+  en las dos polaridades, los lockups incluido el ancho mínimo, y el ícono con
+  las máscaras reales de iOS y Android.
+- Hoja de uso en `brand/README.md`.
+
+Dos cosas se descubrieron mirando, no razonando, y las dos cambiaron el diseño:
+
+1. **El vuelo por debajo del cruce, no el grosor, es lo que rompe la marca a
+   16px.** Cuatro terminaciones seguidas en la base se funden cuando los huecos
+   caen por debajo de un píxel. El óptico de ícono acorta el vuelo.
+2. **El lockup se leía "MMESH".** El símbolo es una M y quedaba pegado a la M
+   del logotipo. Se resolvió con el símbolo a 1,35× la altura de mayúsculas y
+   más separación.
+
+**Pendiente de la Fase 2:** revisar el ícono en la pantalla de inicio de un
+dispositivo real. Acá se verificó renderizándolo a 60/120/180pt con las máscaras
+squircle y circular, que es la parte que se puede automatizar, pero no reemplaza
+verlo entre los otros íconos del teléfono.
+

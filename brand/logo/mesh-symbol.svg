@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 112 94" role="img" aria-label="MESH">
+  <title>MESH</title>
+  <!--
+    Símbolo MESH — óptico de display. Usar a 32px o más.
+
+    Construcción: dos trazos que se cruzan y siguen.
+
+      · El trazo A sube por la izquierda y baja en diagonal hacia la derecha.
+      · El trazo B sube por la derecha y baja en diagonal hacia la izquierda.
+      · Se cruzan en (56, 66.3) — el centro exacto, al 70% de la altura — y
+        ninguno se detiene ahí: los dos siguen hasta la línea de base.
+
+    De un vistazo se lee como una M. Mirado en serio, son dos caminos que se
+    encuentran y continúan. El vértice de la M queda elevado, y lo que los dos
+    trazos abren por debajo del cruce es un triángulo de papel: esa abertura es
+    el único detalle distintivo de la marca, y es el punto donde el gusto se
+    encuentra con una persona.
+
+    Un solo grosor, sin rellenos, sin degradados. Usa currentColor, así el
+    mismo archivo sirve tinta-sobre-papel y papel-sobre-tinta.
+
+    Debajo de 32px usar mesh-symbol-icon.svg: a ese tamaño esta versión se
+    empasta, y eso se verificó mirándola, no suponiéndolo. Ver brand/README.md.
+  -->
+  <g fill="none" stroke="currentColor" stroke-width="12" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M6 88V6l68 82" />
+    <path d="M106 88V6L38 88" />
+  </g>
+</svg>

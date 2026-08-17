@@ -1,0 +1,15 @@
+{
+  "name": "@mesh/brand",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Genera los assets de marca de MESH desde los SVG fuente en brand/",
+  "scripts": {
+    "typecheck": "echo 'sin TypeScript en este workspace'",
+    "icons": "node src/generate-icons.mjs",
+    "proof": "node src/proof-sheet.mjs"
+  },
+  "dependencies": {
+    "@resvg/resvg-js": "^2.6.2"
+  }
+}

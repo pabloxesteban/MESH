@@ -43,6 +43,23 @@ intersección. De un vistazo se lee como una **M** abstracta. Mirado en serio se
 lee como dos cosas que se encuentran. La abertura en el cruce es el único detalle
 distintivo de la marca: el punto donde el gusto se encuentra con una persona.
 
+Construido y verificado en la Fase 2. Geometría final, hoja de uso y criterios
+de verificación: [`brand/README.md`](../../brand/README.md).
+
+| | Display (≥32px) | Ícono (≤24px, app, favicon) |
+|---|---|---|
+| viewBox | 112 × 94 | 112 × 94 |
+| Trazo | 12 | 14 |
+| Fin de diagonales | 38 / 74 | 45 / 67 |
+| Cruce | (56, 66.3) — 70% de la altura | (56, 72.3) — 77% |
+
+La corrección óptica que importa no resultó ser el grosor sino **el vuelo por
+debajo del cruce**. Con el vuelo completo, la base tiene cuatro terminaciones
+seguidas; a 16px los huecos entre ellas caen por debajo de un píxel, se funden,
+y la marca se lee como una mancha. Acortar el vuelo junta las dos del medio en
+un solo vértice y devuelve la M a 16px. Esto se descubrió mirando la marca
+renderizada a tamaño real, no razonándolo.
+
 Requisitos que la marca tiene que cumplir:
 
 - Un solo grosor de trazo, sin rellenos, sin degradados — para que sobreviva a
@@ -61,10 +78,17 @@ empresa de SaaS B2B), mallas o grillas literales (se leen como textil o como
 "cargando"), un símbolo de infinito, un nudo, y cualquier M figurativa hecha con
 herramientas de tatuaje.
 
-**Logotipo:** `MESH` en la serif editorial, en mayúsculas, con tracking amplio
-(+0,12em). Las formas de las letras llevan la personalidad; el logotipo no
-necesita ninguna customización más allá del tracking y el espaciado óptico del
-par `M`/`E`.
+**Logotipo:** `MESH` en Fraunces (wght 600, opsz 144, SOFT 0, WONK 0),
+mayúsculas, tracking +0,12em. Las formas de las letras llevan la personalidad;
+el logotipo no necesita ninguna customización más allá del tracking. Se entrega
+**en curvas**: un SVG con `font-family` depende de que Fraunces esté instalada
+donde se abra, y en cualquier otra máquina deja de ser el logotipo.
+
+**El lockup tiene una trampa.** Con el símbolo a la altura de mayúsculas y poca
+separación se lee "MMESH" — la marca es una M y queda pegada a la M del
+logotipo. Se resuelve poniendo el símbolo a 1,35× la altura de mayúsculas, con
+separación amplia: que no se pueda confundir con una letra es lo que lo saca de
+la lectura. Hay además un lockup apilado para contextos cuadrados.
 
 **Área de resguardo:** la altura de la `M` en todos los lados. Tamaños mínimos:
 símbolo 16px; lockup 88px de ancho.
