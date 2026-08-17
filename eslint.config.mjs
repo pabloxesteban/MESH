@@ -216,6 +216,25 @@ export default tseslint.config(
     languageOptions: { globals: { ...globals.node } },
     rules: { 'no-console': 'off' },
   },
+
+  // Archivos de configuración y de setup de tests: corren en Node, en
+  // CommonJS, y fuera del bundle de la app.
+  {
+    files: [
+      '**/*.config.js',
+      '**/jest.setup.ts',
+      '**/jest.reanimated.js',
+      '**/metro.config.js',
+    ],
+    languageOptions: {
+      globals: { ...globals.node, ...globals.jest },
+      sourceType: 'commonjs',
+    },
+    rules: {
+      '@typescript-eslint/no-require-imports': 'off',
+      'no-undef': 'off',
+    },
+  },
   {
     files: ['**/*.test.ts', '**/*.test.tsx', '**/__fixtures__/**'],
     rules: { 'no-restricted-syntax': 'off' },

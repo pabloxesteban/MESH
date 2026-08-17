@@ -13,7 +13,7 @@ criterios de salida. Ninguna fase acumula código sin tests.
 | **0. Auditoría y plan** ✅ | Auditoría del repo, docs, ADRs, agentes, skills, workflows, comandos | Este conjunto de documentos existe y está aprobado |
 | **1. Fundaciones** ✅ | Workspaces, tsconfig, eslint (con las reglas de enforcement), pipeline de CI, esqueleto de `packages/domain` con taxonomía y tipos | `npm run check` en verde sobre un código vacío; el CI corre en cada push |
 | **2. Marca** ✅ | SVG del símbolo (dos tamaños ópticos), lockup, set de íconos de app, ícono adaptativo, favicon, hoja de uso | La marca es legible a 16px, funciona tinta-sobre-papel e invertida, el ícono revisado en la home de un dispositivo |
-| **3. Design system** | Tokens, `ThemeProvider`, `MotionProvider`, primitivos, Button/Tag/Chip/Input, componentes de estado (Skeleton/Empty/Error/Toast) | El test de contraste pasa para todo par de tokens en ambos temas; las reglas de lint bloquean un hex crudo; los tests de componentes cubren los estados |
+| **3. Design system** ✅ | Tokens, `ThemeProvider`, `MotionProvider`, primitivos, Button/Tag/Chip/Input, componentes de estado (Skeleton/Empty/Error/Toast) | El test de contraste pasa para todo par de tokens en ambos temas; las reglas de lint bloquean un hex crudo; los tests de componentes cubren los estados |
 | **4. Base de datos** | Migraciones de todas las tablas, enums, restricciones, índices, RPCs; seed de referencia (categorías, estilos, ubicaciones) | `supabase db reset` limpio; los tipos TS generados coinciden con `packages/domain`; pasan los tests de restricciones |
 | **5. Seguridad** | Políticas RLS de todas las tablas, políticas de storage, triggers de cuota | Pasa el test de garantía genérica de RLS; pasan los tests cruzados en todas las tablas de propiedad de usuario; escritura cruzada en storage bloqueada |
 | **6. Autenticación** | Arranque de sesión anónima, upgrade de cuenta, ingreso/salida, recuperación, guardado seguro de tokens, layout raíz con sesión | Pasa el flujo 3 de la suite E2E; ningún token fuera de `expo-secure-store`; escaneo de secretos del bundle limpio |
@@ -89,6 +89,46 @@ la CA del proxy saliente y el runtime no puede setear rlimits. Postgres 17
 levanta y el esquema inicializa; falla el paso que necesita salir a npm desde
 adentro de un contenedor. Hay que correrlos en una máquina local antes de
 empezar la Fase 4. El job `database` del CI sí los corre en GitHub Actions.
+
+## Estado de la Fase 3
+
+Cerrada el 2026-08-17.
+
+- Tokens: `palette.ts` (el único archivo del repo con hex), `theme.ts` con los
+  dos temas completos, tipografía, layout, movimiento y hápticos.
+- `ThemeProvider` (sistema + anulación) y `MotionProvider` (lee movimiento
+  reducido una sola vez).
+- Primitivos `Text`, `Box`, `Pressable`; controles `Button`, `Tag`,
+  `FilterChip`, `Input`; estados `Skeleton`, `EmptyState`, `ErrorState`,
+  `Toast`.
+- Tres cortes tipográficos estáticos generados desde las variables fonts
+  (212 KB), con SOFT=0 y WONK=0 fijados en el archivo para que nadie los pueda
+  reactivar desde una pantalla.
+- **120 tests**, en los dos temas.
+
+Lo que encontraron los tests, que una revisión visual no habría encontrado:
+
+- **`borderStrong` no llegaba a 3:1 en ninguno de los dos temas** (2,62:1 sobre
+  oscuro). Se corrigió a `ink400`, que funciona en ambos extremos.
+- La regla "serif nunca por debajo de 24, sans nunca por encima de 20" y el
+  techo de 500ms de movimiento ahora son tests, no párrafos.
+
+Tres decisiones de diseño que salieron de pelearse con el toolchain:
+
+1. **Los tokens de movimiento son datos puros.** Importar `Easing` de
+   Reanimated arrastraba su stack nativo a cualquier archivo que tocara un
+   token, incluido el test de contraste. Los easings son cuatro puntos de
+   Bézier; quien anima construye la curva.
+2. **Versiones alineadas al framework, no al registry.** Jest 29 (no 30) porque
+   jest-expo 57 está construido sobre esa; RNTL 13 (no 14) porque la 14 pide el
+   paquete `test-renderer@^1` mientras Expo trae `react-test-renderer`; React
+   fijado en 19.2.3 con `overrides` porque dos copias invalidan los hooks.
+3. **`Text` no tiene prop `fontSize` y `Box` no acepta espaciados numéricos.**
+   Sacar la escotilla de escape es más fuerte que documentar que no se use.
+
+**Pendiente:** mirar la galería del design system en un dispositivo real, en
+los dos temas y con el tamaño de tipografía accesible más grande. Es la misma
+pendiente que dejó la Fase 2 con el ícono.
 
 ## Estado de la Fase 2
 

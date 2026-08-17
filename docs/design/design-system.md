@@ -1,6 +1,6 @@
 # MESH — Design system
 
-**Estado:** Propuesto · **Responsable:** design-system-engineer
+**Estado:** Construido en la Fase 3 (2026-08-17), 120 tests · **Responsable:** design-system-engineer
 **Ubicación:** `apps/mobile/src/design-system/`
 
 ---
@@ -27,19 +27,31 @@
 
 ```
 design-system/
+  contrast.ts       WCAG puro, sin React — lo usa el test de contraste
   tokens/
     palette.ts      escalas literales — el único archivo con valores hex
     theme.ts        tokens semánticos, oscuro + claro
     typography.ts   familias, escala, roles
-    spacing.ts      4 8 12 16 24 32 48 64
-    radius.ts       4 12 20 999
-    motion.ts       duraciones, resortes, variantes de reducción de movimiento
+    layout.ts       espaciado 4 8 12 16 24 32 48 64 · radios 4 12 20 999 ·
+                    área táctil mínima · grosor de borde
+    motion.ts       duraciones, easings como puntos de Bézier, resortes
     haptics.ts      intenciones hápticas con nombre
-    elevation.ts    recetas de superficie + borde de un píxel
-  primitives/       Text, Box, Pressable, Icon, Image
+  primitives/       Text, Box, Pressable
   components/       el catálogo de abajo
-  providers/        ThemeProvider, MotionProvider (consciente de reducción de movimiento)
+  providers/        ThemeProvider, MotionProvider
+  test-utils.tsx    renderWithProviders, para correr cada test en los dos temas
 ```
+
+Espaciado y radios viven juntos en `layout.ts` y no en dos archivos: son la
+misma decisión (la grilla) y separarlos solo agregaba un import más. La
+elevación tampoco tiene archivo propio — se expresa con `background` y `border`
+en `Box`, porque no hay sombras que parametrizar.
+
+**Los tokens de movimiento son datos puros, sin dependencias.** Los easings son
+los cuatro puntos de control de una curva de Bézier, no objetos `Easing` de
+Reanimated: importar Reanimated ahí arrastraba su stack nativo a cualquier
+archivo que tocara un token, incluido el test de contraste, que no tiene nada
+que ver con animaciones.
 
 `ThemeProvider` resuelve oscuro/claro desde el sistema con una anulación del
 usuario. `MotionProvider` lee una sola vez el ajuste de reducción de movimiento
@@ -48,15 +60,18 @@ lugar de chequearlo por su cuenta.
 
 ## 3. Catálogo de componentes (V1)
 
-**Primitivos** — `Text` (prop de rol, nunca un tamaño crudo), `Box`, `Pressable`
-(maneja la expansión del área táctil, el estado presionado y la intención
-háptica), `Icon`, `Image` (envuelve `expo-image` con blurhash, dimensionado y
-defaults de reciclado).
+Marcados ✅ los construidos en la Fase 3; el resto llega en la fase que lo
+necesita, porque un componente sin consumidor no se puede evaluar.
 
-**Controles** — `Button` (variantes: primary, secondary, ghost, destructive;
+**Primitivos** — ✅ `Text` (prop de rol, **sin prop `fontSize`**), ✅ `Box`
+(espaciados por token, sin números), ✅ `Pressable` (expansión del área táctil,
+estado presionado, intención háptica) · `Icon` · `Image` (envuelve `expo-image`
+con blurhash, dimensionado y defaults de reciclado — Fase 8).
+
+**Controles** — ✅ `Button` (variantes: primary, secondary, ghost, destructive;
 tamaños: sm, md, lg; estados: normal, presionado, deshabilitado, cargando) ·
-`IconButton` · `FilterChip` · `Tag` · `Input` (etiqueta, ayuda, error, contador
-de caracteres) · `Stepper`.
+✅ `FilterChip` · ✅ `Tag` · ✅ `Input` (etiqueta, ayuda, error, contador) ·
+`IconButton` · `Stepper`.
 
 **Contenido** — `ArtworkCard` (la tarjeta del mazo) · `ProfessionalCard` ·
 `MatchCard` (profesional + banda + hasta 3 razones) · `MatchBadge` (banda, nunca
@@ -67,10 +82,11 @@ no se pueda olvidar).
 
 **Superficies** — `BottomSheet` · `Modal` · `Scrim`.
 
-**Estados** — `Skeleton` · `EmptyState` (espacio para ilustración, mensaje,
-acción) · `ErrorState` (mensaje mapeado a la causa + reintentar) · `Toast` ·
-`ProgressIndicator` (el progreso honesto del onboarding: sin conteos, sin "¡ya
-casi!").
+**Estados** — ✅ `Skeleton` (no pulsa con movimiento reducido) · ✅ `EmptyState`
+(la acción es una prop **requerida**: un estado vacío sin salida es un callejón,
+y hacerlo un tipo requerido es más fuerte que documentarlo) · ✅ `ErrorState`
+(causa de un conjunto cerrado; `permission` y `notFound` dicen lo mismo para no
+filtrar existencia) · ✅ `Toast` · `ProgressIndicator` (Fase 8).
 
 **Estructura** — `ScreenHeader` · `TabBarIcon` · `SectionHeader` · `Divider`.
 

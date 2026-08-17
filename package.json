@@ -28,7 +28,8 @@
     "db:stop": "supabase stop",
     "secrets:scan": "node scripts/scan-secrets.mjs",
     "brand:icons": "npm run icons -w @mesh/brand",
-    "brand:proof": "npm run proof -w @mesh/brand"
+    "brand:proof": "npm run proof -w @mesh/brand",
+    "brand:specimen": "npm run specimen -w @mesh/brand"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
@@ -37,5 +38,11 @@
     "prettier": "^3.9.6",
     "typescript": "~6.0.3",
     "typescript-eslint": "^8.67.0"
+  },
+  "overrides": {
+    "jest": "^29.7.0",
+    "react": "19.2.3",
+    "react-dom": "19.2.3",
+    "react-test-renderer": "19.2.3"
   }
 }
