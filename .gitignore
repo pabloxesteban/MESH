@@ -1,0 +1,58 @@
+# dependencies
+node_modules/
+.pnp/
+.pnp.js
+
+# expo
+.expo/
+.expo-shared/
+dist/
+web-build/
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+*.orig.*
+
+# native builds
+ios/
+android/
+*.ipa
+*.apk
+*.aab
+
+# env & secrets — never commit
+.env
+.env.*
+!.env.example
+*.pem
+service-role*
+supabase/.temp/
+supabase/.branches/
+
+# build output
+build/
+coverage/
+*.tsbuildinfo
+.turbo/
+
+# local media staging (large binaries — uploaded to Storage, not versioned)
+content/media/
+!content/media/.gitkeep
+
+# tooling
+.DS_Store
+Thumbs.db
+*.log
+npm-debug.log*
+yarn-error.log*
+.eslintcache
+.vscode/
+!.vscode/extensions.json
+.idea/
+
+# test artifacts
+.maestro/output/
+playwright-report/
+test-results/
