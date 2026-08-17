@@ -1,166 +1,174 @@
-# MESH — Test Strategy
+# MESH — Estrategia de testing
 
-**Status:** Proposed · **Owner:** qa-engineer
+**Estado:** Propuesto · **Responsable:** qa-engineer
 
 ---
 
-## 1. What we optimise for
+## 1. Qué optimizamos
 
-Tests exist to protect three things, in order:
+Los tests existen para proteger tres cosas, en este orden:
 
-1. **Correctness of the taste and matching engines** — the product's only
-   original claim. These must be provable, not observed.
-2. **Authorization** — a broken policy is a data breach, not a bug.
-3. **The critical path** — launch → discover → taste → match → profile →
-   contact. If that path breaks, MESH does nothing.
+1. **La corrección de los motores de gusto y matching** — la única afirmación
+   original del producto. Tiene que ser demostrable, no observada.
+2. **La autorización** — una política rota es una filtración de datos, no un
+   bug.
+3. **El camino crítico** — arranque → descubrir → gusto → match → perfil →
+   contacto. Si ese camino se rompe, MESH no hace nada.
 
-Coverage percentage is not a goal. Coverage of those three things is.
+El porcentaje de cobertura no es un objetivo. La cobertura de esas tres cosas
+sí.
 
-## 2. Layers
+## 2. Capas
 
-| Layer | Tool | Scope | Speed |
+| Capa | Herramienta | Alcance | Velocidad |
 |---|---|---|---|
-| Unit | Vitest | `packages/domain` — taste, matching, content schemas, formatters | ms |
-| Contract | Vitest + Zod | Content files validate; DB types match `packages/domain` types | ms |
-| Database / RLS | Vitest against local Supabase | Policies, constraints, triggers, RPCs, cross-user access | seconds |
-| Component | Jest + React Native Testing Library | Design-system primitives, cards, states | seconds |
-| E2E | Maestro | Critical flows on a real simulator/device | minutes |
-| Manual device pass | Checklist | Gesture feel, image loading, haptics, dynamic type | per release |
+| Unitaria | Vitest | `packages/domain` — gusto, matching, esquemas de contenido, formateadores | ms |
+| Contrato | Vitest + Zod | Los archivos de contenido validan; los tipos de la base coinciden con los de `packages/domain` | ms |
+| Base de datos / RLS | Vitest contra Supabase local | Políticas, restricciones, triggers, RPCs, acceso cruzado | segundos |
+| Componentes | Jest + React Native Testing Library | Primitivos del design system, tarjetas, estados | segundos |
+| E2E | Maestro | Flujos críticos en un simulador o dispositivo real | minutos |
+| Pasada manual en dispositivo | Checklist | Sensación del gesto, carga de imágenes, hápticos, tipografía dinámica | por release |
 
-Two runners is a deliberate trade: Vitest is much faster for pure logic and the
-domain suite runs on every save; `jest-expo` remains the mature path for the
-React Native component layer.
+Dos runners es una contrapartida deliberada: Vitest es mucho más rápido para
+lógica pura y la suite de dominio corre en cada guardado; `jest-expo` sigue
+siendo el camino maduro para la capa de componentes de React Native.
 
-## 3. Domain tests (`packages/domain`)
+## 3. Tests de dominio (`packages/domain`)
 
-The full required list is in
-[`matching.md`](../product/matching.md) §8 and is the acceptance criteria for
-Phases 9–10. Highlights:
+La lista completa requerida está en
+[`matching.md`](../product/matching.md) §8 y es el criterio de aceptación de las
+Fases 9–10. Lo principal:
 
-- Taste: interaction weighting, multi-style splitting, saturation, aversion,
-  undo symmetry, readiness boundary at `n = 11` vs `n = 12`, empty input.
-- Matching: exact / partial / zero overlap, location variants, price band
-  variants, availability freshness, **omission renormalisation**, ordering
-  stability, reason derivation and thresholds.
-- Property-based (fast-check): score always in `[0,1]`; adding a like never
-  lowers a matching artist's score; reasons are always a subset of
-  contributing components.
+- Gusto: ponderación de interacciones, reparto multi-estilo, saturación,
+  aversión, simetría del deshacer, límite del umbral en `n = 11` vs `n = 12`,
+  entrada vacía.
+- Matching: coincidencia exacta / parcial / nula, variantes de ubicación,
+  variantes de banda de precio, frescura de disponibilidad,
+  **renormalización por omisión**, estabilidad del orden, derivación de razones
+  y umbrales.
+- Basados en propiedades (fast-check): el puntaje siempre en `[0,1]`; agregar un
+  me gusta nunca baja el puntaje de un artista que coincide; las razones siempre
+  son un subconjunto de los componentes que aportan.
 
-Fixtures are committed with expected values. Changing an expected value
-requires an algorithm version bump and a documented rationale — the test is the
-enforcement mechanism for §9 of the matching spec.
+Los fixtures se commitean con sus valores esperados. Cambiar un valor esperado
+requiere subir la versión del algoritmo y una justificación documentada — el test
+es el mecanismo de enforcement de §9 de la spec de matching.
 
-## 4. Database and RLS tests
+## 4. Tests de base de datos y RLS
 
-Run against `supabase start` with real JWTs for two users, A and B.
+Corren contra `supabase start` con JWTs reales de dos usuarios, A y B.
 
-**The generic guarantee** — one test, applies to every table forever:
+**La garantía genérica** — un test, aplica a todas las tablas para siempre:
 
 ```
-for every table in schema public:
-  assert rowsecurity = true
-  assert forcerowsecurity = true
-  assert count(policies) > 0
-for every "for insert" policy:
-  assert with_check is not null
-assert no policy has cmd = 'ALL'
+para cada tabla del esquema public:
+  verificar rowsecurity = true
+  verificar forcerowsecurity = true
+  verificar count(políticas) > 0
+para cada política "for insert":
+  verificar with_check no es null
+verificar que ninguna política tenga cmd = 'ALL'
 ```
 
-**Per-table cross-user tests** — for each user-owned table
+**Tests cruzados por tabla** — para cada tabla de propiedad de usuario
 (`interactions`, `taste_profiles`, `projects`, `project_styles`,
 `project_references`, `matches`, `profiles`):
 
-- A can read/write its own rows.
-- B gets **zero rows** selecting A's rows (not an error — silence, so existence
-  is not leaked).
-- B's UPDATE and DELETE against A's rows affect 0 rows.
-- B cannot INSERT a row with `user_id = A`.
+- A puede leer y escribir sus propias filas.
+- B obtiene **cero filas** al seleccionar las de A (no un error — silencio, para
+  no filtrar existencia).
+- El UPDATE y el DELETE de B sobre filas de A afectan 0 filas.
+- B no puede INSERTAR una fila con `user_id = A`.
 
-**Catalogue tests:**
+**Tests de catálogo:**
 
-- Unpublished professionals and their portfolio items are invisible to clients.
-- `media_assets` for another user's private project reference is invisible.
-- `analytics_events` cannot be selected by any client role.
-- `audit_events` is inaccessible to `anon` and `authenticated` entirely.
+- Los profesionales no publicados y sus piezas de portfolio son invisibles para
+  los clientes.
+- Los `media_assets` de una referencia privada de otro usuario son invisibles.
+- `analytics_events` no puede ser seleccionada por ningún rol de cliente.
+- `audit_events` es inaccesible para `anon` y `authenticated` por completo.
 
-**Constraint tests:** `is_saved` with `verdict = 'pass'` rejected; price
-min > max rejected; published professional with no contact channel rejected;
-portfolio item style weights summing to ≠ 1 rejected by the validator.
+**Tests de restricciones:** `is_saved` con `verdict = 'pass'` rechazado; precio
+min > max rechazado; profesional publicado sin canal de contacto rechazado; pesos
+de estilo de una pieza que no sumen 1 rechazados por el validador.
 
-**Storage tests:** user B cannot write to `references/{A}/…`; SVG upload
-rejected; over-size upload rejected.
+**Tests de storage:** el usuario B no puede escribir en `references/{A}/…`;
+subida de SVG rechazada; subida sobre el tope rechazada.
 
-## 5. Component tests
+## 5. Tests de componentes
 
-For every component that fetches or displays remote data, assert all four
-states render: **loading, empty, error (with retry), success**. This is
-mechanical and it is the thing that most reliably rots.
+Para todo componente que trae o muestra datos remotos, verificar que rendericen
+los cuatro estados: **carga, vacío, error (con reintento), éxito**. Es mecánico y
+es lo que más confiablemente se pudre.
 
-Additional:
-- Design-system primitives render from tokens (a snapshot catches a raw hex
-  slipping in; a lint rule prevents it in the first place).
-- Interactive controls expose an accessibility label and a ≥44pt target —
-  asserted, not eyeballed.
-- The deck exposes accessibility actions for like/pass/save.
-- The contact message composer, given a taste profile and a project, produces
-  exactly the expected string and **nothing else** — a golden test against
-  fabrication.
+Además:
+- Los primitivos del design system renderizan desde tokens (un snapshot atrapa un
+  hex crudo que se cuela; una regla de lint lo impide de entrada).
+- Los controles interactivos exponen una etiqueta de accesibilidad y un área
+  táctil de ≥44pt — verificado, no mirado a ojo.
+- El mazo expone acciones de accesibilidad para me gusta / paso / guardar.
+- El compositor del mensaje de contacto, dado un perfil de gusto y un proyecto,
+  produce exactamente el string esperado y **nada más** — un test golden contra
+  la fabricación.
 
-## 6. E2E flows (Maestro)
+## 6. Flujos E2E (Maestro)
 
-1. **First run → contact.** Fresh install → intro → deck → 12 interactions →
-   taste reveal → matches → open profile → open contact → verify pre-filled
-   message content → (WhatsApp URL is asserted, not opened).
-2. **Directed user.** Fresh install → skip to Projects → create a project →
-   receive matches → open a profile.
-3. **Account upgrade.** Anonymous session with taste → create account → sign
-   out → sign in → taste and saves intact.
-4. **Accessibility path.** Complete flow 1 using only buttons, no swipes.
-5. **Offline.** Airplane mode mid-deck → interactions queue → reconnect →
-   interactions persisted exactly once.
-6. **Empty and error.** Empty match list shows the honest empty state; forced
-   network failure shows error + retry, and retry recovers.
+1. **Primer arranque → contacto.** Instalación limpia → intro → mazo → 12
+   interacciones → revelación de gusto → matches → abrir perfil → abrir contacto
+   → verificar el contenido del mensaje precargado (la URL de WhatsApp se
+   verifica, no se abre).
+2. **Usuario dirigido.** Instalación limpia → ir a Proyectos → crear un proyecto
+   → recibir matches → abrir un perfil.
+3. **Upgrade de cuenta.** Sesión anónima con gusto → crear cuenta → cerrar
+   sesión → ingresar → gusto y guardados intactos.
+4. **Camino de accesibilidad.** Completar el flujo 1 usando solo botones, sin
+   deslizar.
+5. **Offline.** Modo avión en medio del mazo → las interacciones se encolan →
+   reconectar → las interacciones se persisten exactamente una vez.
+6. **Vacío y error.** La lista de matches vacía muestra el estado vacío honesto;
+   una falla de red forzada muestra error + reintento, y el reintento recupera.
 
-E2E covers flows, never algorithm correctness — §3 owns that.
+El E2E cubre flujos, nunca corrección de algoritmos — de eso se ocupa §3.
 
-## 7. Performance tests
+## 7. Tests de performance
 
-Not automated in V1; a measured checklist per release on a real mid-range
-Android device, release build:
+No automatizados en V1; un checklist medido por release en un Android real de
+gama media, build de release:
 
-- Cold start → first artwork painted: **< 2.5s** on 4G
-- Deck gesture: sustained 60fps, no dropped frames over 20 swipes
-- Profile open → hero painted: **< 800ms** warm cache
-- Memory after 100 deck cards: no unbounded growth
-- Feed query, profile query, match query: **1 round trip each**, verified in
-  the network log
+- Arranque en frío → primera obra pintada: **< 2,5s** en 4G
+- Gesto del mazo: 60fps sostenidos, sin frames caídos en 20 swipes
+- Abrir perfil → hero pintado: **< 800ms** con caché caliente
+- Memoria después de 100 tarjetas: sin crecimiento sin límite
+- Query del feed, del perfil y de matches: **1 round trip cada una**, verificado
+  en el log de red
 
-Numbers recorded in the release check with the device named. An unrecorded
-number is not a measurement.
+Los números se registran en el release check con el nombre del dispositivo. Un
+número no registrado no es una medición.
 
 ## 8. CI
 
-On every push:
+En cada push:
 
-1. Typecheck all workspaces
-2. Lint (including the no-raw-design-values and no-supabase-in-screens rules)
-3. `packages/domain` unit tests
-4. Content validation over `content/artists/**`
-5. Start local Supabase → apply migrations → RLS + constraint tests
-6. Component tests
-7. Bundle secret scan
-8. `npm audit` (fail on high/critical)
+1. Chequeo de tipos en todos los workspaces
+2. Lint (incluidas las reglas de no-valores-de-diseño-crudos y
+   no-supabase-en-pantallas)
+3. Tests unitarios de `packages/domain`
+4. Validación de contenido sobre `content/artists/**`
+5. Levantar Supabase local → aplicar migraciones → tests de RLS y restricciones
+6. Tests de componentes
+7. Escaneo de secretos en el bundle
+8. `npm audit` (falla en alto/crítico)
 
-E2E runs on demand and before a release, not on every push.
+El E2E corre a demanda y antes de un release, no en cada push.
 
-## 9. Definition of done for a feature
+## 9. Definición de terminado para una feature
 
-- [ ] Types pass, lint passes
-- [ ] Unit tests for new logic in `packages/domain`
-- [ ] RLS tests for any new table or policy
-- [ ] Loading / empty / error / retry states implemented **and** tested
-- [ ] Accessibility: labels, targets, non-gesture path
-- [ ] No raw design values in screens
-- [ ] Analytics events added to the catalogue in the same commit
-- [ ] Docs updated (spec, ADR, or skill)
-- [ ] Manual device pass for anything touching gestures or images
+- [ ] Los tipos pasan, el lint pasa
+- [ ] Tests unitarios para la lógica nueva en `packages/domain`
+- [ ] Tests de RLS para cualquier tabla o política nueva
+- [ ] Estados de carga / vacío / error / reintento implementados **y** testeados
+- [ ] Accesibilidad: etiquetas, áreas táctiles, camino sin gestos
+- [ ] Ningún valor de diseño crudo en las pantallas
+- [ ] Eventos de analytics agregados al catálogo en el mismo commit
+- [ ] Documentación actualizada (spec, ADR o skill)
+- [ ] Pasada manual en dispositivo para todo lo que toque gestos o imágenes

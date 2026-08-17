@@ -1,146 +1,151 @@
-# MESH — Content & Real-Data Policy
+# MESH — Política de contenido y datos reales
 
-**Status:** Binding · **Owner:** content-engineer + product-architect
+**Estado:** Vinculante · **Responsables:** content-engineer + product-architect
 
-MESH's entire value rests on the user believing what it shows them. This policy
-is not a guideline.
+Todo el valor de MESH descansa en que la persona crea lo que se le muestra. Esta
+política no es una guía sugerida.
 
 ---
 
-## 1. Never fabricate
+## 1. Nunca inventar
 
-MESH must never generate, invent, estimate, or infer:
+MESH nunca puede generar, inventar, estimar ni inferir:
 
-- Reviews, ratings, testimonials
-- Booking counts, client counts, "X people contacted this artist"
-- Availability or wait times
-- Prices the artist did not publish
-- Credentials, awards, years of experience
-- Social proof of any kind
-- Match reasons not derived from contributing score terms
-  (see [`matching.md`](matching.md) §4.5)
-- Content in a pre-filled contact message that the user did not provide
-  (see [`product-spec.md`](product-spec.md) §10)
+- Reseñas, ratings, testimonios
+- Cantidad de reservas o de clientes, "X personas contactaron a este artista"
+- Disponibilidad o tiempos de espera
+- Precios que el artista no publicó
+- Credenciales, premios, años de experiencia
+- Prueba social de cualquier tipo
+- Razones de match que no deriven de términos que aportaron al puntaje
+  (ver [`matching.md`](matching.md) §4.5)
+- Contenido en un mensaje de contacto precargado que la persona no proveyó
+  (ver [`product-spec.md`](product-spec.md) §10)
 
-If a field is missing, the section does not render. An absent section is
-honest; a plausible guess is a lie with better typography.
+Si falta un campo, la sección no se renderiza. Una sección ausente es honesta;
+una suposición verosímil es una mentira con mejor tipografía.
 
-## 2. Consent is a prerequisite for inclusion
+## 2. El consentimiento es requisito de inclusión
 
-An artist may only appear in MESH after giving explicit, recorded consent
-covering:
+Un artista solo puede aparecer en MESH después de dar consentimiento explícito y
+registrado que cubra:
 
-- Display of their name, city, bio, and social handles
-- Display of the specific portfolio images provided
-- Being contacted by MESH users via the channel(s) they nominated
-- The style tags applied to them and to their work (they get to correct these)
-- Withdrawal on request, honoured within 48 hours
+- Mostrar su nombre, ciudad, bio y handles de redes
+- Mostrar las imágenes de portfolio específicas provistas
+- Ser contactado por usuarios de MESH por el canal o canales que designó
+- Las etiquetas de estilo aplicadas a él y a su trabajo (puede corregirlas)
+- Retiro a pedido, atendido dentro de las 48 horas
 
-Consent is recorded in `content/artists/<slug>/consent.md` — date, medium,
-scope, and who obtained it — and is **required by the seed validator**. An
-artist file without a consent record does not seed. This is a hard failure, not
-a warning.
+El consentimiento se registra en `content/artists/<slug>/consent.md` —fecha,
+medio, alcance y quién lo obtuvo— y es **requerido por el validador del seed**.
+Un archivo de artista sin registro de consentimiento no se carga. Esto es una
+falla dura, no una advertencia.
 
-**No scraping.** Not Instagram, not artist websites, not aggregators. Every
-image is provided by the artist or fetched with their explicit direction.
-Scraping is both a terms-of-service violation and a copyright problem, and it
-would poison the trust the product depends on.
+**Nada de scraping.** Ni Instagram, ni sitios de artistas, ni agregadores. Cada
+imagen la provee el artista o se obtiene con su indicación explícita. El
+scraping es a la vez una violación de términos de servicio y un problema de
+derechos de autor, y envenenaría la confianza de la que depende el producto.
 
-## 3. Attribution and rights
+## 3. Atribución y derechos
 
-- Every `portfolio_item` traces to exactly one `professional` who is the person
-  responsible for the work.
-- Images remain the artist's. MESH stores and displays them; it claims nothing.
-- Where a photograph of a tattoo was taken by a third party, the artist
-  confirms they have the right to share it.
-- Client-identifying imagery (faces, distinctive context) is avoided; if a
-  piece is on an identifiable person, it is excluded unless the artist confirms
-  that person consented.
+- Cada `portfolio_item` remite a exactamente un `professional` que es la persona
+  responsable del trabajo.
+- Las imágenes siguen siendo del artista. MESH las guarda y las muestra; no
+  reclama nada.
+- Cuando la foto de un tatuaje la sacó un tercero, el artista confirma que tiene
+  derecho a compartirla.
+- Se evitan las imágenes que identifican al cliente (caras, contexto
+  distintivo); si una pieza está sobre una persona identificable, se excluye
+  salvo que el artista confirme que esa persona consintió.
 
 ## 4. Fixtures
 
-Development fixtures may exist so the app can be built before real content
-lands, but they must be unmistakable:
+Pueden existir fixtures de desarrollo para poder construir la app antes de que
+llegue el contenido real, pero tienen que ser inconfundibles:
 
-1. `is_fixture = true` on `professionals` and `portfolio_items`.
-2. Names use an obvious reserved prefix — `[Fixture] …` — never a plausible
-   human name.
-3. Non-production builds render a visible fixture badge on any fixture record.
-4. Production seeding **fails** if any row has `is_fixture = true`. Enforced in
-   the seed CLI and asserted by a test.
-5. Fixture images are abstract placeholders, not real tattoos taken from
-   anywhere.
+1. `is_fixture = true` en `professionals` y `portfolio_items`.
+2. Los nombres usan un prefijo reservado y evidente — `[Fixture] …` — nunca un
+   nombre humano verosímil.
+3. Los builds no productivos muestran una insignia visible de fixture en
+   cualquier registro fixture.
+4. La carga en producción **falla** si alguna fila tiene `is_fixture = true`.
+   Impuesto en el CLI del seed y verificado por un test.
+5. Las imágenes fixture son placeholders abstractos, no tatuajes reales sacados
+   de ningún lado.
 
-Replacing a fixture with real content must be a single file edit plus a re-run
-of the seeder — nothing in the app may hardcode a fixture id.
+Reemplazar un fixture con contenido real tiene que ser la edición de un solo
+archivo más una nueva corrida del seeder — nada en la app puede hardcodear un id
+de fixture.
 
-## 5. Content structure
+## 5. Estructura del contenido
 
 ```
 content/
   artists/
     <slug>/
-      artist.yaml        identity, bio, location, styles, price, availability, socials
-      portfolio.yaml     one entry per piece: file, caption, year, styles + weights
-      consent.md         consent record — required
-      media/             source images, gitignored, uploaded to Storage by the seeder
+      artist.yaml        identidad, bio, ubicación, estilos, precio, disponibilidad, redes
+      portfolio.yaml     una entrada por pieza: archivo, epígrafe, año, estilos + pesos
+      consent.md         registro de consentimiento — requerido
+      media/             imágenes fuente, en gitignore, subidas a Storage por el seeder
 ```
 
-`artist.yaml` and `portfolio.yaml` are validated against Zod schemas in
-`packages/domain/src/content/`. The validator checks:
+`artist.yaml` y `portfolio.yaml` se validan contra esquemas Zod en
+`packages/domain/src/content/`. El validador chequea:
 
-- Required fields present and non-empty
-- `whatsapp` is valid E.164; `instagram` is a bare handle, not a URL
-- Every style slug exists in the taxonomy for the artist's category
-- Portfolio item style weights sum to 1 ± 0.001
-- Price min ≤ max; currency is ISO-4217; `priced_at` present if a price is given
-- `availability_updated_at` present if availability is given
-- Every referenced media file exists, is JPEG/PNG/WebP/HEIC, ≤ 12 MB, and has
-  readable dimensions
-- A consent record exists and is dated
+- Campos requeridos presentes y no vacíos
+- `whatsapp` en E.164 válido; `instagram` un handle pelado, no una URL
+- Todo slug de estilo existe en la taxonomía de la categoría del artista
+- Los pesos de estilo por pieza suman 1 ± 0,001
+- Precio min ≤ max; moneda ISO-4217; `priced_at` presente si hay precio
+- `availability_updated_at` presente si hay disponibilidad
+- Todo archivo de media referenciado existe, es JPEG/PNG/WebP/HEIC, ≤ 12 MB y
+  tiene dimensiones legibles
+- Existe un registro de consentimiento y está fechado
 
-Malformed content **aborts the run before any insert**. The seeder never
-partially applies a batch and never silently skips a bad record.
+El contenido malformado **aborta la corrida antes de cualquier inserción**. El
+seeder nunca aplica un lote parcialmente y nunca saltea en silencio un registro
+inválido.
 
-## 6. Taxonomy
+## 6. Taxonomía
 
-Styles are data, not strings in components. Initial tattoo vocabulary:
+Los estilos son datos, no strings dentro de componentes. Vocabulario inicial de
+tatuaje:
 
 `fine-line`, `blackwork`, `dotwork`, `old-school`, `traditional`,
 `neo-traditional`, `realism`, `black-and-grey`, `watercolor`, `ornamental`,
 `japanese`, `lettering`, `minimalist`, `fileteado-porteno`, `handpoke`
 
-Notes:
+Notas:
 
-- *Fileteado porteño* is included deliberately — it is specific to Buenos Aires
-  and signals to local users that MESH was built for their city, not translated
-  into it.
-- *Old School* and *Traditional* overlap heavily in practice. They are kept
-  separate because artists use both terms, but the taxonomy supports an
-  `aliases` field so they can be merged later without a migration.
-- Style display names are localised; slugs are stable, lowercase, and never
-  translated.
+- *Fileteado porteño* está incluido a propósito — es específico de Buenos Aires
+  y le señala al usuario local que MESH se construyó para su ciudad, no que se
+  tradujo a ella.
+- *Old School* y *Traditional* se solapan bastante en la práctica. Se mantienen
+  separados porque los artistas usan los dos términos, pero la taxonomía soporta
+  un campo `aliases` para poder fusionarlos más adelante sin una migración.
+- Los nombres visibles de los estilos se localizan; los slugs son estables, en
+  minúscula, y nunca se traducen.
 
-Adding a style requires a migration (styles are rows), a taxonomy entry, and
-review by content-engineer — because every existing taste vector silently
-changes meaning when the vocabulary changes.
+Agregar un estilo requiere una migración (los estilos son filas), una entrada de
+taxonomía y revisión de content-engineer — porque todo vector de gusto existente
+cambia de significado en silencio cuando cambia el vocabulario.
 
-## 7. Media handling
+## 7. Manejo de media
 
-- Uploaded to Supabase Storage, never into Postgres.
-- Bucket `portfolio` — public read, service-role write. Bucket `references` —
-  private, per-user paths.
-- Resized at seed time into `sm` (400px), `md` (900px), `lg` (1600px) longest
-  edge, WebP, plus a blurhash stored in `media_assets`.
-- The client requests the smallest size that fits the surface. Discovery uses
-  `md`, grid thumbnails `sm`, full view `lg`.
-- Originals are kept outside the repository, in the artist's own storage, so we
-  can re-derive if the pipeline changes.
+- Se sube a Supabase Storage, nunca a Postgres.
+- Bucket `portfolio` — lectura pública, escritura con service role. Bucket
+  `references` — privado, rutas por usuario.
+- Se redimensiona en el seed a `sm` (400px), `md` (900px), `lg` (1600px) sobre
+  el lado mayor, en WebP, más un blurhash guardado en `media_assets`.
+- El cliente pide el tamaño más chico que sirva a la superficie. Descubrimiento
+  usa `md`, las miniaturas de grilla `sm`, la vista completa `lg`.
+- Los originales se conservan fuera del repositorio, en el almacenamiento del
+  propio artista, para poder rederivar si cambia el pipeline.
 
-## 8. Withdrawal
+## 8. Retiro
 
-If an artist asks to be removed: set `is_published = false` (immediate effect
-via RLS), delete their storage objects, delete the rows, and remove the content
-directory in the same working day. Retain only the consent/withdrawal record.
-Document the removal in `content/artists/REMOVED.md` with the date — no
-details, just an audit trail that it happened.
+Si un artista pide ser eliminado: poner `is_published = false` (efecto inmediato
+vía RLS), borrar sus objetos de storage, borrar las filas y eliminar el
+directorio de contenido, el mismo día hábil. Conservar únicamente el registro de
+consentimiento/retiro. Documentar la baja en `content/artists/REMOVED.md` con la
+fecha — sin detalles, solo un rastro de auditoría de que ocurrió.

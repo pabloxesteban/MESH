@@ -1,69 +1,75 @@
-# ADR-007 — Expo Router and a four-tab structure
+# ADR-007 — Expo Router y una estructura de cuatro pestañas
 
-**Status:** Proposed · **Date:** 2026-08-17 · **Owner:** ux-product-designer, mobile-engineer
+**Estado:** Propuesto · **Fecha:** 2026-08-17 · **Responsables:** ux-product-designer, mobile-engineer
 
-## Context
+## Contexto
 
-The brief defines two equal entry points: **Discover** (exploratory) and
-**Create a project** (directed). It also requires that a directed user is never
-forced through onboarding, and that deep links work (`mesh://artist/:slug`).
+El brief define dos puntos de entrada iguales: **Descubrir** (exploratorio) y
+**Crear un proyecto** (dirigido). También exige que a un usuario dirigido nunca
+se lo fuerce a pasar por el onboarding, y que los deep links funcionen
+(`mesh://artist/:slug`).
 
-## Problem
+## Problema
 
-Which router, and how are the surfaces arranged so both intents are obvious at
-first launch without inflating the app?
+¿Qué router, y cómo se organizan las superficies para que ambas intenciones sean
+obvias en el primer arranque sin inflar la app?
 
-## Options — router
+## Opciones — router
 
-**A. Expo Router.** File-based, typed routes, deep linking and universal links
-built in, layouts map cleanly to tabs and modals.
-**B. React Navigation directly.** More explicit, more configuration, deep
-linking assembled by hand.
+**A. Expo Router.** Basado en archivos, rutas tipadas, deep linking y universal
+links incorporados, y los layouts mapean limpio a pestañas y modales.
+**B. React Navigation directo.** Más explícito, más configuración, deep linking
+armado a mano.
 
-## Options — structure
+## Opciones — estructura
 
-**W. 3 tabs** — Discover / Matches / You, with Projects nested under You.
-**X. 4 tabs** — Discover / Matches / Projects / You.
-**Y. 2 tabs + a central action button** — Discover / Matches with a "+".
+**W. 3 pestañas** — Descubrir / Matches / Vos, con Proyectos anidado bajo Vos.
+**X. 4 pestañas** — Descubrir / Matches / Proyectos / Vos.
+**Y. 2 pestañas + un botón central de acción** — Descubrir / Matches con un "+".
 
-## Decision
+## Decisión
 
-**Expo Router**, and **X — four tabs**: Discover · Matches · Projects · You.
+**Expo Router**, y **X — cuatro pestañas**: Descubrir · Matches · Proyectos ·
+Vos.
 
-Modals for project creation, contact, filters, and auth. Artist profile is a
-pushed screen reachable from every surface.
+Modales para creación de proyecto, contacto, filtros y auth. El perfil de artista
+es una pantalla apilada alcanzable desde todas las superficies.
 
-## Why
+## Por qué
 
-Expo Router is built on React Navigation, so nothing is lost, and it gives deep
-linking and typed routes without hand-maintained configuration — which matters
-because deep-link parameter handling is a security surface
-([threat model T7](../security/threat-model.md)) and hand-rolled linking configs
-are where those bugs live.
+Expo Router está construido sobre React Navigation, así que no se pierde nada, y
+da deep linking y rutas tipadas sin configuración mantenida a mano — lo que
+importa porque el manejo de parámetros de deep link es una superficie de
+seguridad ([modelo de amenazas T7](../security/threat-model.md)) y las configs de
+linking armadas a mano son donde viven esos bugs.
 
-On structure: the brief treats the directed user as a first-class case. Option W
-hides their entry point two levels deep behind a tab named after the *user*,
-which is where nobody looks for "post what I want". Option Y's central "+"
-button is a compose affordance borrowed from social apps and reads as "create
-content", which is the wrong verb — a project is a brief, not a post.
+Sobre la estructura: el brief trata al usuario dirigido como un caso de primera
+clase. La opción W esconde su punto de entrada dos niveles abajo, detrás de una
+pestaña nombrada por el *usuario*, que es donde nadie busca "publicar lo que
+quiero". El botón central "+" de la opción Y es un gesto de composición prestado
+de las apps sociales y se lee como "crear contenido", que es el verbo equivocado
+— un proyecto es un brief, no un posteo.
 
-Four tabs costs one slot of horizontal space and makes both intents visible on
-first launch. The empty Projects tab is not a placeholder: **the empty state is
-the create-project entry point.**
+Cuatro pestañas cuesta un espacio horizontal y hace que ambas intenciones sean
+visibles en el primer arranque. La pestaña Proyectos vacía no es un placeholder:
+**el estado vacío es el punto de entrada para crear un proyecto.**
 
-Matches carries the taste summary above the ranked people, because taste and
-matches are the same idea at two zoom levels. Separating them into two tabs
-would make the user assemble the connection MESH exists to draw.
+Matches lleva el resumen de gusto arriba de la gente rankeada, porque el gusto y
+los matches son la misma idea a dos niveles de zoom. Separarlos en dos pestañas
+obligaría a la persona a armar la conexión que MESH existe para trazar.
 
-## Consequences
+## Consecuencias
 
-- Four tabs is near the limit before a tab bar feels like a filing cabinet. Any
-  fifth surface must displace one of these, not join them.
-- This is [open question Q2](../product/product-spec.md#14-open-questions): if
-  `project_started` originating from the Projects tab is negligible after the
-  first cohort, collapse to three and surface projects from Discover.
-- Deep links must validate every parameter before use, and must never mutate
-  state. Unauthorized and nonexistent targets resolve to the same not-found
-  screen so links cannot probe for existence.
-- No tab may carry a badge or a notification dot in V1 — that is engagement
-  bait, and the brief forbids it.
+- Cuatro pestañas está cerca del límite antes de que una barra de pestañas se
+  sienta un archivero. Cualquier quinta superficie tiene que desplazar a una de
+  estas, no sumarse.
+- Esta es la [pregunta abierta Q2](../product/product-spec.md#14-preguntas-abiertas):
+  si los `project_started` originados en la pestaña Proyectos son insignificantes
+  después de la primera cohorte, colapsar a tres y exponer proyectos desde
+  Descubrir.
+- Los deep links tienen que validar todos sus parámetros antes de usarlos, y
+  nunca pueden mutar estado. Los destinos no autorizados e inexistentes resuelven
+  a la misma pantalla de no encontrado, para que los links no puedan sondear
+  existencia.
+- Ninguna pestaña puede llevar una insignia ni un punto de notificación en V1 —
+  eso es carnada de interacción, y el brief lo prohíbe.

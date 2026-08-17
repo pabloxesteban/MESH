@@ -1,99 +1,101 @@
-# ADR-005 — Deterministic matching, and bands instead of percentages
+# ADR-005 — Matching determinístico, y bandas en lugar de porcentajes
 
-**Status:** Proposed · **Date:** 2026-08-17 · **Owner:** matching-engineer
+**Estado:** Propuesto · **Fecha:** 2026-08-17 · **Responsable:** matching-engineer
 
-## Context
+## Contexto
 
-MESH's differentiator is that it recommends *people* based on demonstrated
-taste, and explains why. V1 has 8–15 artists, all in CABA, and users with a
-dozen interactions each.
+El diferencial de MESH es que recomienda *personas* en base a gusto demostrado, y
+explica por qué. V1 tiene 8–15 artistas, todos en CABA, y usuarios con una docena
+de interacciones cada uno.
 
-## Problem
+## Problema
 
-Two questions. What computes the recommendation? And how is its confidence
-presented?
+Dos preguntas. ¿Qué computa la recomendación? ¿Y cómo se presenta su confianza?
 
-## Options — computation
+## Opciones — cómputo
 
-**A. Deterministic weighted scoring** over an explicit taste vector.
-**B. Collaborative filtering.** Needs users we do not have.
-**C. Embedding similarity** (CLIP over artwork, cosine against artist
-centroids). Genuinely better at capturing visual style than tags — and
-unexplainable, unversionable in the same way, and dependent on inference
-infrastructure.
-**D. LLM ranking.** Non-deterministic, untestable, and it would happily invent
-reasons.
+**A. Puntaje determinístico ponderado** sobre un vector de gusto explícito.
+**B. Filtrado colaborativo.** Necesita usuarios que no tenemos.
+**C. Similitud por embeddings** (CLIP sobre las obras, coseno contra centroides
+de artista). Genuinamente mejor para capturar estilo visual que las etiquetas — y
+no explicable, no versionable de la misma manera, y dependiente de
+infraestructura de inferencia.
+**D. Ranking por LLM.** No determinístico, no testeable, y con toda la
+disposición a inventar razones.
 
-## Options — presentation
+## Opciones — presentación
 
-**W. Numeric percentage** ("96% match"), as the brief illustrates.
-**X. Band** (Fuerte / Bueno / Posible).
-**Y. Rank only** (an ordered list, no strength).
+**W. Porcentaje numérico** ("96% de match"), como ilustra el brief.
+**X. Banda** (Fuerte / Bueno / Posible).
+**Y. Solo ranking** (una lista ordenada, sin fuerza).
 
-## Decision
+## Decisión
 
-**A** for computation. **X** for presentation, with the numeric score retained
-internally, stored on `matches.score`, and visible in debug builds.
+**A** para el cómputo. **X** para la presentación, conservando el puntaje
+numérico internamente, guardado en `matches.score`, y visible en builds de debug.
 
-The full algorithm is specified in
+El algoritmo completo está especificado en
 [`docs/product/matching.md`](../product/matching.md).
 
-## Why — determinism
+## Por qué — determinismo
 
-Every recommendation must be explainable to the user, reproducible in a test,
-and defensible when wrong. Deterministic scoring gives all three; nothing else
-on the list gives any. It also costs nothing to run and can be unit-tested
-without a simulator or a network.
+Toda recomendación tiene que ser explicable a quien la recibe, reproducible en un
+test, y defendible cuando está equivocada. El puntaje determinístico da las tres
+cosas; nada más de la lista da ninguna. Además no cuesta nada correrlo y se puede
+testear por unidad sin simulador ni red.
 
-Embeddings (C) are the real long-term answer for visual style — tags cannot
-distinguish two artists who both say "fine line" but look nothing alike. The
-correct sequence is: ship the explainable version, learn what "style" actually
-means to users, then add embeddings **as an additional scored component with
-its own explanation**, not as a replacement for the reasoning.
+Los embeddings (C) son la respuesta real a largo plazo para el estilo visual —
+las etiquetas no pueden distinguir a dos artistas que ambos dicen "fine line" y
+se ven completamente distintos. La secuencia correcta es: publicar la versión
+explicable, aprender qué significa "estilo" para los usuarios, y después agregar
+embeddings **como un componente puntuado adicional con su propia explicación**,
+no como reemplazo del razonamiento.
 
-## Why — bands, against the brief
+## Por qué — bandas, en contra del brief
 
-The brief's example shows "96% match". With 8–15 artists in one city, scores
-will cluster in a narrow range, and small differences in tagging will move a
-displayed percentage by several points without meaning anything. Two problems
-follow:
+El ejemplo del brief muestra "96% de match". Con 8–15 artistas en una ciudad, los
+puntajes se van a agrupar en un rango angosto, y diferencias chicas de etiquetado
+van a mover el porcentaje mostrado varios puntos sin significar nada. De ahí se
+siguen dos problemas:
 
-1. **It is a precision claim the data cannot support.** Two significant figures
-   assert a resolution we do not have.
-2. **It invites disbelief.** A skeptical user's first reaction to "96%" is
-   "based on what, exactly?" — and if the answer is "eleven taps", the number
-   undermines the reasons standing next to it. The reasons are the thing that
-   actually persuades.
+1. **Es una afirmación de precisión que los datos no sostienen.** Dos cifras
+   significativas afirman una resolución que no tenemos.
+2. **Invita a la incredulidad.** La primera reacción de una persona escéptica
+   ante "96%" es "¿basado en qué, exactamente?" — y si la respuesta es "once
+   toques", el número socava las razones que están justo al lado. Las razones son
+   lo que efectivamente persuade.
 
-Bands rank just as well, degrade gracefully as the catalogue grows, and are
-honest about resolution. Below 0.40 nothing is shown at all — a short list is
-better than a padded one.
+Las bandas rankean igual de bien, se degradan con gracia a medida que crece el
+catálogo, y son honestas sobre la resolución. Por debajo de 0,40 no se muestra
+nada — una lista corta es mejor que una rellenada.
 
-**We would switch to percentages when:** the catalogue is large enough that
-scores spread across the range, style tagging is validated against artist
-self-description, and we have evidence that users read the number as relative
-rather than absolute.
+**Cambiaríamos a porcentajes cuando:** el catálogo sea lo bastante grande como
+para que los puntajes se distribuyan en el rango, el etiquetado de estilos esté
+validado contra la autodescripción de los artistas, y tengamos evidencia de que
+los usuarios leen el número como relativo y no como absoluto.
 
-## Other decisions recorded here
+## Otras decisiones registradas acá
 
-- **Missing components are omitted and weights renormalised**, never scored
-  zero. An artist who has not published a price is not a worse match; we just
-  know less.
-- **Stale availability (>45 days) is treated as unknown.** Asserting freshness
-  we do not have is the same class of error as inventing a review.
-- **Reasons come from a closed template set**, emitted only for components that
-  contributed ≥ 0.10 of the score, capped at three. No generated prose.
-- **Discovery ordering is not taste-driven** in V1 — that would make the taste
-  engine's input a function of its own output and build a filter bubble before
-  the profile is trustworthy.
+- **Los componentes faltantes se omiten y los pesos se renormalizan**, nunca
+  puntúan cero. Un artista que no publicó precio no es un peor match; solo
+  sabemos menos.
+- **La disponibilidad vieja (>45 días) se trata como desconocida.** Afirmar una
+  frescura que no tenemos es la misma clase de error que inventar una reseña.
+- **Las razones salen de un conjunto cerrado de plantillas**, emitidas solo para
+  componentes que aportaron ≥ 0,10 del puntaje, con tope de tres. Sin prosa
+  generada.
+- **El orden del descubrimiento no está guiado por el gusto** en V1 — eso haría
+  que la entrada del motor de gusto sea una función de su propia salida y
+  construiría una burbuja antes de que el perfil sea confiable.
 
-## Consequences
+## Consecuencias
 
-- Match quality is bounded by tagging quality. Tagging becomes a content-quality
-  problem, and artists must be able to correct their own tags.
-- The band boundaries (0.75 / 0.55 / 0.40) are assumptions and will need
-  calibration against real distributions once there is data.
-- Storing `components` and `reasons` on every match row means we can audit
-  "why did MESH say that?" months later.
-- Any weight change bumps `MATCHING_VERSION`, invalidates cached matches, and
-  requires this document to change with it.
+- La calidad del match está acotada por la calidad del etiquetado. El etiquetado
+  se vuelve un problema de calidad de contenido, y los artistas tienen que poder
+  corregir sus propias etiquetas.
+- Los límites de banda (0,75 / 0,55 / 0,40) son supuestos y van a necesitar
+  calibración contra distribuciones reales cuando haya datos.
+- Guardar `components` y `reasons` en cada fila de match permite auditar meses
+  después "¿por qué MESH dijo eso?".
+- Cualquier cambio de peso sube `MATCHING_VERSION`, invalida los matches
+  cacheados, y obliga a que este documento cambie con él.

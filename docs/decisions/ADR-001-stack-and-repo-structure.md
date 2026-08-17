@@ -1,91 +1,95 @@
-# ADR-001 — Stack and repository structure
+# ADR-001 — Stack y estructura del repositorio
 
-**Status:** Proposed · **Date:** 2026-08-17 · **Owner:** product-architect
+**Estado:** Propuesto · **Fecha:** 2026-08-17 · **Responsable:** product-architect
 
-## Context
+## Contexto
 
-MESH V1 is a mobile-first validation product built by one developer, targeting
-iOS and Android in Buenos Aires, with a catalogue of 8–15 artists and no
-back-office. Speed of iteration and low operational burden matter more than
-theoretical scale.
+MESH V1 es un producto de validación, mobile-first, construido por una sola
+persona, apuntando a iOS y Android en Buenos Aires, con un catálogo de 8–15
+artistas y sin back-office. La velocidad de iteración y la baja carga operativa
+importan más que la escala teórica.
 
-## Problem
+## Problema
 
-Which client stack, which backend, and how much repository structure is
-justified before any of it is proven useful?
+¿Qué stack de cliente, qué backend, y cuánta estructura de repositorio se
+justifica antes de que algo de eso demuestre ser útil?
 
-## Options
+## Opciones
 
-**Client**
-- **A. Expo (managed) + React Native + TypeScript.** One codebase, OTA updates,
-  strong gesture/animation ecosystem, no native toolchain required day to day.
-- **B. Bare React Native.** More native control, much more setup and
-  maintenance for a solo build.
-- **C. Native Swift + Kotlin.** Best possible feel; two codebases; not viable
-  for one person testing a hypothesis.
-- **D. Flutter.** Excellent motion, but a second language and a smaller
-  overlap with the rest of the stack.
+**Cliente**
+- **A. Expo (managed) + React Native + TypeScript.** Un solo código, updates
+  OTA, ecosistema fuerte de gestos y animación, sin necesidad de toolchain
+  nativo en el día a día.
+- **B. React Native bare.** Más control nativo, mucho más setup y mantenimiento
+  para un proyecto de una persona.
+- **C. Swift + Kotlin nativos.** La mejor sensación posible; dos códigos; no es
+  viable para una persona testeando una hipótesis.
+- **D. Flutter.** Excelente movimiento, pero un segundo lenguaje y menos
+  solapamiento con el resto del stack.
 
 **Backend**
-- **A. Supabase.** Postgres, Auth, Storage, RLS, edge functions, local dev via
-  Docker.
-- **B. Firebase.** Fast, but a document model fights a genuinely relational
-  taxonomy, and security rules are less expressive than RLS.
-- **C. Custom API (Node/Postgres).** Total control, plus a server to build,
-  deploy, secure, and operate.
+- **A. Supabase.** Postgres, Auth, Storage, RLS, edge functions, desarrollo
+  local vía Docker.
+- **B. Firebase.** Rápido, pero un modelo de documentos pelea con una taxonomía
+  genuinamente relacional, y las reglas de seguridad son menos expresivas que
+  RLS.
+- **C. API propia (Node/Postgres).** Control total, más un servidor que
+  construir, desplegar, asegurar y operar.
 
-**Repository**
-- **A. Full monorepo:** `apps/mobile`, `packages/design-system`,
+**Repositorio**
+- **A. Monorepo completo:** `apps/mobile`, `packages/design-system`,
   `packages/domain`, `packages/config`.
-- **B. Single app, everything inside it.**
-- **C. Minimal workspaces:** `apps/mobile`, `packages/domain`, `tools/seed`.
+- **B. Una sola app, todo adentro.**
+- **C. Workspaces mínimos:** `apps/mobile`, `packages/domain`, `tools/seed`.
 
-## Decision
+## Decisión
 
-**Expo + React Native + TypeScript**, **Supabase/Postgres**, and **option C**
-for the repository:
+**Expo + React Native + TypeScript**, **Supabase/Postgres**, y la **opción C**
+para el repositorio:
 
 ```
-apps/mobile/      Expo app; design system lives at src/design-system/
-packages/domain/  Pure TS: taxonomy, types, Zod schemas, taste + matching
-tools/seed/       Service-role content CLI
-supabase/         Migrations, functions, reference seed
-content/artists/  Curated content
+apps/mobile/      App Expo; el design system vive en src/design-system/
+packages/domain/  TS puro: taxonomía, tipos, esquemas Zod, gusto + matching
+tools/seed/       CLI de contenido con service role
+supabase/         Migraciones, funciones, seed de referencia
+content/artists/  Contenido curado
 ```
 
-npm workspaces. No Turbo, no Nx.
+Workspaces de npm. Sin Turbo, sin Nx.
 
-## Why
+## Por qué
 
-Expo's gesture and animation stack (Reanimated 3 + Gesture Handler) is exactly
-what the discovery deck needs, and OTA updates matter disproportionately for a
-product we expect to change weekly. The cost — less native control — does not
-bite for an app whose hardest requirement is a smooth card gesture and fast
-image loading.
+El stack de gestos y animación de Expo (Reanimated 3 + Gesture Handler) es
+exactamente lo que necesita el mazo de descubrimiento, y los updates OTA importan
+desproporcionadamente para un producto que esperamos cambiar todas las semanas.
+El costo —menos control nativo— no muerde en una app cuyo requisito más difícil
+es un gesto de tarjeta fluido y carga rápida de imágenes.
 
-Supabase gives us the one thing a custom API would have to be built to provide:
-**row-level authorization inside the database**, so a client bug cannot become a
-data breach. It also removes an entire operational surface. Firebase was
-rejected because Category → Style → Professional → PortfolioItem → Interaction
-is relational, and modelling it in documents would mean maintaining
-denormalised copies of the taxonomy — the exact thing that silently rots.
+Supabase nos da lo único que una API propia habría que construir para proveer:
+**autorización por fila dentro de la base de datos**, para que un bug del cliente
+no pueda transformarse en una filtración. Además elimina toda una superficie
+operativa. Firebase se descartó porque Categoría → Estilo → Profesional →
+PortfolioItem → Interacción es relacional, y modelarlo en documentos implicaría
+mantener copias desnormalizadas de la taxonomía — exactamente lo que se pudre en
+silencio.
 
-On structure: `packages/domain` earns its place because the taste and matching
-engines, the taxonomy, and the content schemas are genuinely consumed by three
-things (app, seeder, tests). `packages/design-system` does not — it has one
-consumer and is coupled to React Native; extracting it buys an import boundary
-we can get from a lint rule instead. `packages/config` would be two files.
-Structure that exists to look professional is a tax paid every day by the one
-person maintaining it.
+Sobre la estructura: `packages/domain` se gana su lugar porque los motores de
+gusto y matching, la taxonomía y los esquemas de contenido los consumen
+genuinamente tres cosas (app, seeder, tests). `packages/design-system` no —
+tiene un solo consumidor y está acoplado a React Native; extraerlo compra un
+límite de imports que podemos obtener de una regla de lint.
+`packages/config` serían dos archivos. La estructura que existe para parecer
+profesional es un impuesto que paga todos los días la única persona que la
+mantiene.
 
-## Consequences
+## Consecuencias
 
-- Native modules outside Expo's config-plugin ecosystem would require a
-  prebuild step. Acceptable; none are planned.
-- Vendor concentration on Supabase. Mitigated by the fact that it is Postgres —
-  the schema, the policies, and the data are portable; only Auth and Storage
-  are provider-shaped.
-- `packages/domain` must stay dependency-free of React and Supabase. Enforced
-  by a lint rule so the boundary is real.
-- If the design system is ever needed by a web app, extracting it is a folder
-  move — the tokens are already isolated.
+- Los módulos nativos fuera del ecosistema de config plugins de Expo requerirían
+  un paso de prebuild. Aceptable; no hay ninguno planeado.
+- Concentración de proveedor en Supabase. Mitigada por el hecho de que es
+  Postgres — el esquema, las políticas y los datos son portables; solo Auth y
+  Storage tienen forma de proveedor.
+- `packages/domain` tiene que mantenerse libre de dependencias de React y
+  Supabase. Impuesto por una regla de lint para que el límite sea real.
+- Si alguna vez una app web necesita el design system, extraerlo es mover una
+  carpeta — los tokens ya están aislados.

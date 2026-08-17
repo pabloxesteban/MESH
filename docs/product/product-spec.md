@@ -1,207 +1,211 @@
-# MESH — Product Specification (V1)
+# MESH — Especificación de producto (V1)
 
-**Status:** Draft for approval · **Owner:** product-architect · **Last updated:** 2026-08-17
+**Estado:** Borrador para aprobación · **Responsable:** product-architect · **Última actualización:** 2026-08-17
 
 ---
 
-## 1. Product statement
+## 1. Declaración de producto
 
-MESH helps people discover the right person to bring an idea to life.
+MESH ayuda a la gente a descubrir a la persona indicada para hacer realidad una
+idea.
 
-The problem: *"I know what I want, or what I like, but I don't know who is the
-right person to make it."*
+El problema: *"Sé lo que quiero, o lo que me gusta, pero no sé quién es la
+persona indicada para hacerlo."*
 
-The loop:
+El loop:
 
 ```
-DISCOVER → TASTE → PEOPLE → MATCH → ACTION
+DESCUBRIR → GUSTO → GENTE → MATCH → ACCIÓN
 ```
 
-The promise, in the user's words:
+La promesa, en palabras del usuario:
 
-> "Show us what you like. We'll help you discover who can make it."
+> "Mostranos lo que te gusta. Te ayudamos a descubrir quién puede hacerlo."
 
-## 2. Scope of V1
+## 2. Alcance de V1
 
-| Dimension | V1 |
+| Dimensión | V1 |
 |---|---|
-| Category | Tattoo only |
-| Market | Buenos Aires / CABA, Argentina |
-| Supply | 8–15 real artists, curated, consented |
-| Demand | Anyone; no gating on who can browse |
-| Contact | WhatsApp and Instagram, outside MESH |
-| Booking / payments | Out of scope |
-| In-app messaging | Out of scope (see §12) |
-| Reviews | Out of scope (see §12) |
-| Professional self-service | Out of scope; artists are onboarded manually |
-| Locale | `es-AR` primary, `en` secondary |
+| Categoría | Solo tatuajes |
+| Mercado | Buenos Aires / CABA, Argentina |
+| Oferta | 8–15 artistas reales, curados, con consentimiento |
+| Demanda | Cualquiera; sin restricción de quién puede explorar |
+| Contacto | WhatsApp e Instagram, fuera de MESH |
+| Reservas / pagos | Fuera de alcance |
+| Mensajería in-app | Fuera de alcance (ver §12) |
+| Reseñas | Fuera de alcance (ver §12) |
+| Autogestión de profesionales | Fuera de alcance; los artistas se cargan a mano |
+| Locale | `es-AR` primario, `en` secundario |
 
-V1 exists to test one hypothesis:
+V1 existe para testear una sola hipótesis:
 
-> People discover tattoo artists more effectively when MESH learns their visual
-> taste and recommends professionals based on that taste.
+> La gente descubre tatuadores de manera más efectiva cuando MESH aprende su
+> gusto visual y le recomienda profesionales en base a ese gusto.
 
-Everything that does not help test that hypothesis is out of scope, however
-reasonable it sounds.
+Todo lo que no ayude a testear eso está fuera de alcance, por más razonable que
+suene.
 
-## 3. Users
+## 3. Usuarios
 
-**The seeker** (primary). Wants a tattoo, or is tattoo-curious. Two mental
-states:
+**Quien busca** (primario). Quiere un tatuaje, o tiene curiosidad. Dos estados
+mentales:
 
-- *Exploratory* — "I like this kind of thing but I don't know what I want yet,
-  and I definitely don't know who." Enters through **Discover**.
-- *Directed* — "I know what I want. Find me someone who does it." Enters
-  through **Projects** or **Search**. Must never be forced through onboarding.
+- *Exploratorio* — "Me gustan estas cosas pero todavía no sé qué quiero, y
+  mucho menos quién." Entra por **Descubrir**.
+- *Dirigido* — "Sé lo que quiero. Encontrame a alguien que lo haga." Entra por
+  **Proyectos** o por búsqueda. Nunca se lo debe forzar a pasar por el
+  onboarding.
 
-**The artist** (secondary in V1). Does not use the app in V1. Receives a
-WhatsApp message from a stranger who already likes their work and can say why.
-Their success metric is the quality of the inbound, not the volume.
+**El artista** (secundario en V1). No usa la app en V1. Recibe un WhatsApp de
+alguien que ya conoce su trabajo, le gusta, y puede decir por qué. Su métrica
+de éxito es la calidad del contacto entrante, no el volumen.
 
-## 4. Entry points
+## 4. Puntos de entrada
 
-### A. Discover
-Explore visual work. Like, pass, save, inspect, open a profile, see the artist
-behind a piece. Taste accumulates silently.
+### A. Descubrir
+Explorar trabajo visual. Me gusta, paso, guardar, inspeccionar, abrir un perfil,
+ver quién está detrás de una pieza. El gusto se acumula en silencio.
 
-### B. Create a project
-Describe what you want. Category, description, styles, references, budget,
-timing, size, location, notes — all optional beyond title and category. MESH
-recommends professionals for it.
+### B. Crear un proyecto
+Describir lo que querés. Categoría, descripción, estilos, referencias,
+presupuesto, tiempos, tamaño, notas — todo opcional más allá de título y
+categoría. MESH recomienda profesionales.
 
-Both entry points converge on the same place: a ranked, explained list of
-people, and a way to talk to them.
+Ambos puntos de entrada convergen en el mismo lugar: una lista de gente,
+rankeada y explicada, y una forma de hablarles.
 
 ## 5. Onboarding
 
-**Principle: the first question is visual, not a form.**
+**Principio: la primera pregunta es visual, no un formulario.**
 
-1. Cold open on the value proposition — one editorial screen, one line of copy,
-   one action. No carousel, no permissions prompt, no signup wall.
-2. Straight into a taste sequence: *"Empecemos por lo que te gusta."*
-   ("Let's start with what you like.")
-3. The user reacts to work. Like / Save / Pass, via gesture **or** buttons.
-4. Progress is shown honestly and without pressure — a thin indicator, no
-   counters, no "3 more to unlock!".
-5. At sufficient signal (see `matching.md` §3.4), a taste reveal:
+1. Apertura en frío sobre la propuesta de valor — una pantalla editorial, una
+   línea de texto, una acción. Sin carrusel, sin pedido de permisos, sin muro
+   de registro.
+2. Directo a una secuencia de gusto: *"Empecemos por lo que te gusta."*
+3. La persona reacciona al trabajo. Me gusta / Guardar / Paso, por gesto **o**
+   por botón.
+4. El progreso se muestra con honestidad y sin presión — un indicador fino, sin
+   contadores, sin "¡3 más para desbloquear!".
+5. Con señal suficiente (ver `matching.md` §3.4), la revelación del gusto:
 
    > **Tu gusto**
    > Fine Line · 82%
    > Botanical · 74%
    > Minimal · 61%
 
-   Framed as *what we've inferred*, never as a measurement of the person.
-   Copy: "Esto es lo que estamos leyendo de tus elecciones." Every taste screen
-   carries an affordance to keep exploring and change it.
-6. Then, and only then, people.
+   Enmarcado como *lo que inferimos*, nunca como una medición de la persona.
+   Copy: "Esto es lo que estamos leyendo de tus elecciones." Toda pantalla de
+   gusto tiene una salida para seguir explorando y cambiarlo.
+6. Recién entonces, gente.
 
-**Account creation is deferred.** The user is signed in anonymously from first
-launch (Supabase anonymous auth). They are asked to create a real account at
-the first moment it buys them something — saving a project, or returning to
-their taste on another device. Rationale and trade-offs in
+**La creación de cuenta se posterga.** La persona entra con sesión anónima
+desde el primer arranque (auth anónima de Supabase). Se le pide crear una cuenta
+real en el primer momento en que eso le sirve para algo — guardar un proyecto, o
+recuperar su gusto en otro dispositivo. Justificación y contrapartidas en el
 [ADR-002](../decisions/ADR-002-authentication.md).
 
-## 6. Discovery
+## 6. Descubrimiento
 
-Discovery is the emotional core. Visual hierarchy is absolute:
+El descubrimiento es el corazón emocional. La jerarquía visual es absoluta:
 
-1. Artwork
-2. Artist
-3. Style
-4. Context (location, starting price if the artist published one)
-5. Controls
+1. La obra
+2. El artista
+3. El estilo
+4. El contexto (ubicación, precio desde si el artista lo publicó)
+5. Los controles
 
-A discovery card carries: the work, the artist's name, up to three style tags,
-location, an optional starting price, and controls for Like / Pass / Save /
-View artist. It should read as a piece of editorial content — a plate in a
-magazine — not a dating profile.
+Una tarjeta de descubrimiento lleva: la obra, el nombre del artista, hasta tres
+etiquetas de estilo, la ubicación, un precio desde opcional, y controles de Me
+gusta / Paso / Guardar / Ver artista. Tiene que leerse como una pieza de
+contenido editorial —una lámina de revista— no como un perfil de app de citas.
 
-Interaction requirements:
+Requisitos de interacción:
 
-- Native gesture with spring physics and velocity-aware dismissal.
-- Haptic confirmation on decisive actions only (like, save) — not on every
-  frame or every card.
-- Next 3 images preloaded; blurhash placeholder before decode.
-- Every gesture mirrored by a labelled button.
-- Undo the last action (single step). People misfire; punishing them is a dark
+- Gesto nativo con física de resorte y descarte sensible a la velocidad.
+- Confirmación háptica solo en acciones decisivas (me gusta, guardar) — no en
+  cada frame ni en cada tarjeta.
+- Las 3 imágenes siguientes precargadas; placeholder blurhash antes del decode.
+- Todo gesto espejado por un botón con etiqueta.
+- Deshacer la última acción (un paso). La gente se equivoca; castigarla por eso
+  es un dark pattern.
+
+Explícitamente **no**: pilas de tarjetas en 3D, confeti, parallax, partículas,
+mensajes tipo "¡estás on fire!", ni un contador de cuántas tarjetas viste.
+
+## 7. Gusto
+
+Las interacciones mueven un vector de gusto por estilo. Valores, pesos,
+normalización, umbrales y decaimiento están especificados en
+[`matching.md`](matching.md). Requisitos de producto por encima del algoritmo:
+
+- El gusto es **siempre visible y siempre editable.** La persona puede abrir su
+  gusto en cualquier momento y ver qué estilos están leyendo más fuerte.
+- El gusto se **explica con evidencia** — tocar un estilo muestra las piezas
+  concretas que aportaron a él.
+- La señal negativa (los pasos) se usa en el ranking pero **nunca se muestra de
+  vuelta** como "no te gusta X". Un paso es evidencia débil y ambigua, y
+  presentarla como un juicio sobre el gusto de alguien es incorrecto y
+  desagradable.
+- Se puede resetear el gusto. Un botón, una confirmación, sin fricción de dark
   pattern.
-
-Explicitly **not**: 3D card stacks, confetti, parallax tilt, particle effects,
-"you're on fire" messaging, or a counter of how many cards you've seen.
-
-## 7. Taste
-
-Interactions move a per-style taste vector. Values, weights, normalization,
-readiness thresholds, and decay are specified in
-[`matching.md`](matching.md). Product requirements on top of the algorithm:
-
-- Taste is **always visible and always editable.** The user can open their
-  taste at any time and see which styles are reading strongest.
-- Taste is **explained by evidence** — tapping a style shows the actual pieces
-  that contributed to it.
-- Negative signal (passes) is used in ranking but is **never displayed back**
-  as "you dislike X". A pass is weak, ambiguous evidence and presenting it as a
-  judgement about a person's taste is both wrong and unpleasant.
-- A user can reset their taste. One button, one confirmation, no dark-pattern
-  friction.
 
 ## 8. Matching
 
-Ranked professionals with an explanation each. Algorithm in
+Profesionales rankeados con una explicación cada uno. Algoritmo en
 [`matching.md`](matching.md).
 
-Product-level rules:
+Reglas a nivel producto:
 
-- **No match is shown before there is real signal.** Below the readiness
-  threshold, the Matches tab shows a genuine empty state that invites more
-  exploring — not a filler list dressed up as recommendations.
-- **Match strength is presented as a band** — *Fuerte / Bueno / Posible*
-  (Strong / Good / Possible) — not a two-significant-figure percentage. With
-  8–15 artists in one city, a "96%" is precision the data cannot support, and
-  it will be the first thing a skeptical user disbelieves. The numeric score
-  exists internally and is exposed in debug builds. See
-  [ADR-005](../decisions/ADR-005-matching.md) for the argument and the
-  conditions under which we would switch to percentages.
-- **Reasons are generated from contributing terms only,** ranked by their
-  actual contribution, capped at three. If there is no honest reason, there is
-  no match.
+- **No se muestra ningún match antes de que haya señal real.** Por debajo del
+  umbral, la pestaña Matches muestra un estado vacío genuino — no una lista de
+  relleno disfrazada de recomendaciones.
+- **La fuerza del match se presenta como banda** — *Fuerte / Bueno / Posible* —
+  no como un porcentaje de dos cifras significativas. Con 8–15 artistas en una
+  ciudad, un "96%" es una precisión que los datos no sostienen, y va a ser lo
+  primero que un usuario escéptico no se crea. El puntaje numérico existe
+  internamente y se expone en builds de debug. Ver
+  [ADR-005](../decisions/ADR-005-matching.md) para el argumento y las
+  condiciones bajo las cuales pasaríamos a porcentajes.
+- **Las razones se generan solo a partir de términos que aportaron**, ordenadas
+  por su aporte real, con tope de tres. Si no hay una razón honesta, no hay
+  match.
 
-Example:
+Ejemplo:
 
 > **¿Por qué esta persona?**
 > ✓ Marcaste varios trabajos de Fine Line
 > ✓ Guardaste diseños Botanical
 > ✓ Trabaja los dos estilos
-> ✓ En CABA *(shown only when location was actually a differentiator)*
+> ✓ En CABA *(solo si la ubicación efectivamente discriminó)*
 
-Never: "Our AI thinks you'll love this."
+Nunca: "Nuestra IA cree que esto te va a encantar."
 
-## 9. Professional profile
+## 9. Perfil profesional
 
-The profile is a portfolio, not a résumé.
+El perfil es un portfolio, no un currículum.
 
 ```
-Hero work (full-bleed)
-Identity — name, location, specialties, availability if fresh
-Portfolio — large visual grid, featured work first
-About — bio in the artist's own words
-Styles — tags, tappable into discovery
-Pricing — only if the artist published a range
-Availability — only if updated within 45 days, otherwise hidden
-Social — Instagram
-Primary CTA — "Hablá con {nombre}"
+Obra principal (a sangre)
+Identidad — nombre, ubicación, especialidades, disponibilidad si es fresca
+Portfolio — grilla visual grande, trabajos destacados primero
+Sobre — bio en las palabras del artista
+Estilos — etiquetas, tocables hacia descubrimiento
+Precios — solo si el artista publicó un rango
+Disponibilidad — solo si se actualizó en los últimos 45 días; si no, se oculta
+Redes — Instagram
+CTA principal — "Hablá con {nombre}"
 ```
 
-Nothing on this screen may be inferred or generated. If the artist did not
-provide it, the section does not render.
+Nada en esta pantalla puede ser inferido ni generado. Si el artista no lo
+proveyó, la sección no se renderiza.
 
-## 10. Contact handoff
+## 10. Traspaso al contacto
 
-Contact leaves MESH. Supported: WhatsApp (`https://wa.me/{e164}?text=...`) and
-Instagram.
+El contacto sale de MESH. Soportado: WhatsApp
+(`https://wa.me/{e164}?text=...`) e Instagram.
 
-The pre-filled WhatsApp message is composed **only** from facts the user
-actually produced:
+El mensaje precargado de WhatsApp se compone **únicamente** con hechos que la
+persona efectivamente produjo:
 
 > Hola {nombre}! Te encontré en MESH porque me gustaron tus trabajos de
 > {estilos que el usuario efectivamente marcó}.
@@ -209,70 +213,77 @@ actually produced:
 > {título del proyecto, si existe}
 > {descripción del proyecto, si existe}
 
-Rules:
+Reglas:
 
-- Styles named are the ones the user's own interactions support — nothing else.
-- Project details are quoted, never paraphrased or embellished.
-- Budget, timing, and personal details are included **only** if the user
-  entered them and confirmed sharing them.
-- The message is shown to the user and editable before it is sent. MESH never
-  sends anything on the user's behalf.
-- If the artist has no WhatsApp, the CTA is Instagram, and the copy changes —
-  we do not fake a channel.
+- Los estilos nombrados son los que las propias interacciones sostienen — nada
+  más.
+- Los detalles del proyecto se citan, nunca se parafrasean ni se adornan.
+- Presupuesto, tiempos y datos personales se incluyen **solo** si la persona los
+  cargó y confirmó compartirlos.
+- El mensaje se le muestra a la persona y es editable antes de enviarse. MESH
+  nunca envía nada en nombre de nadie.
+- Si el artista no tiene WhatsApp, el CTA es Instagram y el copy cambia — no
+  fingimos un canal.
 
-## 11. Projects
+## 11. Proyectos
 
-A project is a lightweight brief: title, category, description, styles,
-location, optional budget band, optional timing, optional size note, optional
-reference images.
+Un proyecto es un brief liviano: título, categoría, descripción, estilos,
+ubicación, banda de presupuesto opcional, tiempos opcionales, nota de tamaño
+opcional, imágenes de referencia opcionales.
 
-Creating a project produces a ranked list of professionals scored against the
-project (see `matching.md` §5) rather than against ambient taste.
+Crear un proyecto produce una lista rankeada de profesionales puntuados contra
+el proyecto (ver `matching.md` §5) en lugar de contra el gusto ambiente.
 
-Explicitly not in V1: bidding, auctions, proposals, quotes, escrow, deadlines,
-project status workflows. A project in V1 is a better-shaped search, not a job
-posting.
+Explícitamente fuera de V1: pujas, subastas, propuestas, presupuestos, escrow,
+deadlines, flujos de estado de proyecto. Un proyecto en V1 es una búsqueda mejor
+formada, no una publicación de trabajo.
 
-## 12. Deliberate omissions, and why
+## 12. Omisiones deliberadas, y por qué
 
-| Omitted | Reason |
+| Omitido | Motivo |
 |---|---|
-| In-app conversations / messages | §10 puts contact on WhatsApp. Shipping both means building a messaging surface nobody has asked for, plus its moderation, notification, and abuse burden. Revisit when there is evidence people want to leave WhatsApp. |
-| Reviews & ratings | With ~12 artists and no transactions, any review UI is either empty or fake. Both damage trust more than absent reviews do. |
-| An `availability` calendar table | Artists in V1 will not maintain a calendar. A stale calendar is worse than none. V1 stores a self-declared status with a freshness timestamp and hides it when stale. |
-| Separate `ProfessionalProfile` table | A 1:1 split of `professionals` adds a join and two policy sets for no behavioural difference. The important separation — *user* vs *professional* — is preserved. See [ADR-003](../decisions/ADR-003-domain-model.md). |
-| A `saved_items` table | A save is an interaction. Modelling it twice invites the two representations to disagree. |
-| Admin panel | 8–15 artists are seeded from version-controlled, schema-validated content files. |
-| Push notifications | Nothing in V1 is worth interrupting someone for. |
+| Conversaciones / mensajes in-app | §10 pone el contacto en WhatsApp. Hacer las dos cosas significa construir una superficie de mensajería que nadie pidió, más su carga de moderación, notificaciones y abuso. Revisitar cuando haya evidencia de que la gente quiere salir de WhatsApp. |
+| Reseñas y ratings | Con ~12 artistas y sin transacciones, cualquier UI de reseñas queda vacía o falsa. Las dos opciones dañan más la confianza que la ausencia de reseñas. |
+| Tabla `availability` de calendario | Los artistas de V1 no van a mantener un calendario. Un calendario desactualizado es peor que ninguno. V1 guarda un estado autodeclarado con marca de frescura y lo oculta cuando envejece. |
+| Tabla `ProfessionalProfile` separada | Partir `professionals` 1:1 agrega un join y dos juegos de políticas sin diferencia de comportamiento. La separación que importa —*usuario* vs *profesional*— se conserva. Ver [ADR-003](../decisions/ADR-003-domain-model.md). |
+| Tabla `saved_items` | Guardar es una interacción. Modelarlo dos veces invita a que las dos representaciones se contradigan. |
+| Panel de administración | 8–15 artistas se cargan desde archivos de contenido versionados y validados por esquema. |
+| Notificaciones push | Nada en V1 amerita interrumpir a nadie. |
 
-## 13. Success criteria
+## 13. Criterios de éxito
 
-V1 is done when all of the following are true.
+V1 está terminado cuando todo lo siguiente es verdadero.
 
-1. A new user reaches artwork within seconds of first launch, without a signup wall.
-2. They can react to work by gesture **and** by button, with undo.
-3. Their reactions move a taste profile that they can inspect and edit.
-4. They can see a taste summary with honest framing.
-5. They see personalised professionals only once there is real signal.
-6. Every match carries reasons derived from contributing score terms.
-7. They can open a profile and browse the portfolio smoothly on a real device.
-8. They can contact the artist on WhatsApp or Instagram with an editable,
-   truthful pre-filled message.
-9. They can create a project and get relevant, explained recommendations.
-10. They can create a durable account and keep their taste.
-11. Auth is secure; RLS blocks all cross-user access, proven by tests.
-12. Every network-driven surface has loading, empty, error, and retry states.
-13. 8–15 real artist profiles seed reliably and repeatably from content files.
-14. Adding a second category requires no core schema change.
-15. No critical security findings open.
-16. No UX dead ends: every screen has a way forward and a way back.
+1. Un usuario nuevo llega a ver una obra a segundos del primer arranque, sin
+   muro de registro.
+2. Puede reaccionar al trabajo por gesto **y** por botón, con deshacer.
+3. Sus reacciones mueven un perfil de gusto que puede inspeccionar y editar.
+4. Puede ver un resumen de su gusto con un encuadre honesto.
+5. Ve profesionales personalizados solo cuando hay señal real.
+6. Cada match lleva razones derivadas de términos que aportaron al puntaje.
+7. Puede abrir un perfil y recorrer el portfolio con fluidez en un dispositivo
+   real.
+8. Puede contactar al artista por WhatsApp o Instagram con un mensaje
+   precargado, editable y veraz.
+9. Puede crear un proyecto y obtener recomendaciones relevantes y explicadas.
+10. Puede crear una cuenta durable y conservar su gusto.
+11. La autenticación es segura; RLS bloquea todo acceso cruzado entre usuarios,
+    demostrado por tests.
+12. Toda superficie que depende de la red tiene estados de carga, vacío, error y
+    reintento.
+13. 8–15 perfiles reales de artistas se cargan de forma confiable y repetible
+    desde archivos de contenido.
+14. Agregar una segunda categoría no requiere ningún cambio de esquema central.
+15. No queda ningún hallazgo crítico de seguridad abierto.
+16. No queda ningún callejón sin salida de UX: toda pantalla tiene una forma de
+    avanzar y una de volver.
 
-## 14. Open questions
+## 14. Preguntas abiertas
 
-| # | Question | Owner | Needed by |
+| # | Pregunta | Responsable | Necesaria para |
 |---|---|---|---|
-| Q1 | Do we show a numeric match score or a band? Recommendation: band. | product-critic | Phase 10 |
-| Q2 | Four tabs (Discover / Matches / Projects / You) or three with Projects nested? Recommendation: four, then measure. | ux-product-designer | Phase 8 |
-| Q3 | Anonymous-first auth vs. signup-first. Recommendation: anonymous-first. | product-architect | Phase 6 |
-| Q4 | How many decisive interactions before taste is "ready"? Starting value 12. | matching-engineer | Phase 9 |
-| Q5 | Is a starting price honest to display when Argentine pricing moves with inflation? Recommendation: show a band with a `priced_at` date, or omit. | product-architect | Phase 11 |
+| Q1 | ¿Mostramos un puntaje numérico o una banda? Recomendación: banda. | product-critic | Fase 10 |
+| Q2 | ¿Cuatro pestañas (Descubrir / Matches / Proyectos / Vos) o tres con Proyectos anidado? Recomendación: cuatro, y después medir. | ux-product-designer | Fase 8 |
+| Q3 | ¿Auth anónima primero o registro primero? Recomendación: anónima primero. | product-architect | Fase 6 |
+| Q4 | ¿Cuántas interacciones decisivas antes de que el gusto esté "listo"? Valor inicial 12. | matching-engineer | Fase 9 |
+| Q5 | ¿Es honesto mostrar un precio desde cuando los precios argentinos se mueven con la inflación? Recomendación: mostrar una banda con fecha `priced_at`, u omitirlo. | product-architect | Fase 11 |

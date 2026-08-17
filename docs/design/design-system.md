@@ -1,137 +1,151 @@
-# MESH — Design System
+# MESH — Design system
 
-**Status:** Proposed · **Owner:** design-system-engineer
-**Location:** `apps/mobile/src/design-system/`
+**Estado:** Propuesto · **Responsable:** design-system-engineer
+**Ubicación:** `apps/mobile/src/design-system/`
 
 ---
 
-## 1. Rules
+## 1. Reglas
 
-1. **No raw values in screens or features.** No hex colours, no numeric
-   spacing, no font sizes, no durations, no easing curves. Import a token.
-   Enforced by an ESLint rule, not by review.
-2. **Tokens are semantic, not literal.** Components consume `text-secondary`,
-   never `ink-500`. The literal scale exists only inside the theme definition.
-3. **Every interactive component ships with:** an accessibility label or
-   `accessibilityLabel` prop, a ≥44×44pt hit target, a disabled state, a
-   pressed state, and a loading state where it can trigger work.
-4. **Every data component ships with:** loading (skeleton), empty, and error
-   variants. A component that can only render success is not finished.
-5. **A component earns its place by being used twice**, or by encoding a rule
-   that must not be re-decided (contrast, target size, motion). Otherwise it
-   stays local to its feature.
+1. **Ningún valor crudo en pantallas ni features.** Ni colores hex, ni
+   espaciados numéricos, ni tamaños de fuente, ni duraciones, ni curvas de
+   easing. Importá un token. Impuesto por una regla de ESLint, no por revisión.
+2. **Los tokens son semánticos, no literales.** Los componentes consumen
+   `text-secondary`, nunca `ink-500`. La escala literal existe únicamente dentro
+   de la definición del tema.
+3. **Todo componente interactivo viene con:** una etiqueta de accesibilidad o
+   una prop `accessibilityLabel`, un área táctil de ≥44×44pt, un estado
+   deshabilitado, un estado presionado, y un estado de carga si puede disparar
+   trabajo.
+4. **Todo componente de datos viene con:** variantes de carga (skeleton), vacío
+   y error. Un componente que solo sabe renderizar el éxito no está terminado.
+5. **Un componente se gana su lugar cuando se usa dos veces**, o cuando codifica
+   una regla que no se debe volver a decidir (contraste, tamaño de área táctil,
+   movimiento). Si no, se queda local a su feature.
 
-## 2. Token structure
+## 2. Estructura de tokens
 
 ```
 design-system/
   tokens/
-    palette.ts      literal scales — the only file with hex values
-    theme.ts        semantic tokens, dark + light
-    typography.ts   families, scale, roles
+    palette.ts      escalas literales — el único archivo con valores hex
+    theme.ts        tokens semánticos, oscuro + claro
+    typography.ts   familias, escala, roles
     spacing.ts      4 8 12 16 24 32 48 64
     radius.ts       4 12 20 999
-    motion.ts       durations, springs, reduced-motion variants
-    haptics.ts      named haptic intents
-    elevation.ts    surface + hairline recipes
+    motion.ts       duraciones, resortes, variantes de reducción de movimiento
+    haptics.ts      intenciones hápticas con nombre
+    elevation.ts    recetas de superficie + borde de un píxel
   primitives/       Text, Box, Pressable, Icon, Image
-  components/       the catalogue below
-  providers/        ThemeProvider, MotionProvider (reduced-motion aware)
+  components/       el catálogo de abajo
+  providers/        ThemeProvider, MotionProvider (consciente de reducción de movimiento)
 ```
 
-`ThemeProvider` resolves dark/light from the system with a user override.
-`MotionProvider` reads the OS reduced-motion setting once and exposes it; every
-animated component asks it rather than checking independently.
+`ThemeProvider` resuelve oscuro/claro desde el sistema con una anulación del
+usuario. `MotionProvider` lee una sola vez el ajuste de reducción de movimiento
+del sistema operativo y lo expone; cada componente animado se lo pregunta a él en
+lugar de chequearlo por su cuenta.
 
-## 3. Component catalogue (V1)
+## 3. Catálogo de componentes (V1)
 
-**Primitives** — `Text` (role prop, never a raw size), `Box`, `Pressable`
-(handles target expansion + press state + haptic intent), `Icon`, `Image`
-(wraps `expo-image` with blurhash, sizing, and recycling defaults).
+**Primitivos** — `Text` (prop de rol, nunca un tamaño crudo), `Box`, `Pressable`
+(maneja la expansión del área táctil, el estado presionado y la intención
+háptica), `Icon`, `Image` (envuelve `expo-image` con blurhash, dimensionado y
+defaults de reciclado).
 
-**Controls** — `Button` (variants: primary, secondary, ghost, destructive;
-sizes: sm, md, lg; states: default, pressed, disabled, loading) ·
-`IconButton` · `FilterChip` · `Tag` · `Input` (label, hint, error, character
-counter) · `Stepper`.
+**Controles** — `Button` (variantes: primary, secondary, ghost, destructive;
+tamaños: sm, md, lg; estados: normal, presionado, deshabilitado, cargando) ·
+`IconButton` · `FilterChip` · `Tag` · `Input` (etiqueta, ayuda, error, contador
+de caracteres) · `Stepper`.
 
-**Content** — `ArtworkCard` (the deck card) · `ProfessionalCard` ·
-`MatchCard` (professional + band + up to 3 reasons) · `MatchBadge` (band, never
-a bare number) · `Avatar` · `PortfolioGrid` · `StyleMeter` (the taste bar) ·
-`PriceRange` · `AvailabilityPill` (renders nothing when stale — the staleness
-rule lives in the component so it cannot be forgotten).
+**Contenido** — `ArtworkCard` (la tarjeta del mazo) · `ProfessionalCard` ·
+`MatchCard` (profesional + banda + hasta 3 razones) · `MatchBadge` (banda, nunca
+un número pelado) · `Avatar` · `PortfolioGrid` · `StyleMeter` (la barra de
+gusto) · `PriceRange` · `AvailabilityPill` (no renderiza nada cuando la
+disponibilidad está vieja — la regla de frescura vive en el componente para que
+no se pueda olvidar).
 
-**Surfaces** — `BottomSheet` · `Modal` · `Scrim`.
+**Superficies** — `BottomSheet` · `Modal` · `Scrim`.
 
-**States** — `Skeleton` · `EmptyState` (illustration slot, message, action) ·
-`ErrorState` (cause-mapped message + retry) · `Toast` · `ProgressIndicator`
-(the honest onboarding progress: no counts, no "almost there!").
+**Estados** — `Skeleton` · `EmptyState` (espacio para ilustración, mensaje,
+acción) · `ErrorState` (mensaje mapeado a la causa + reintentar) · `Toast` ·
+`ProgressIndicator` (el progreso honesto del onboarding: sin conteos, sin "¡ya
+casi!").
 
-**Structure** — `ScreenHeader` · `TabBarIcon` · `SectionHeader` · `Divider`.
+**Estructura** — `ScreenHeader` · `TabBarIcon` · `SectionHeader` · `Divider`.
 
-Deliberately absent: Card (too generic — three specific cards instead), Badge
-(only match bands need one), Carousel, Accordion, Tooltip. None are needed and
-each would attract misuse.
+Deliberadamente ausentes: `Card` (demasiado genérico — hay tres tarjetas
+específicas en su lugar), `Badge` (solo las bandas de match necesitan una),
+`Carousel`, `Accordion`, `Tooltip`. Ninguno hace falta y cada uno atraería mal
+uso.
 
-## 4. The deck (`ArtworkCard` + `Deck`)
+## 4. El mazo (`ArtworkCard` + `Deck`)
 
-The highest-risk component. Requirements:
+El componente de mayor riesgo. Requisitos:
 
-- At most 3 cards mounted. The card behind is scaled `0.96` and offset 8pt —
-  a hint of depth, not a 3D stack.
-- Gesture runs entirely on the UI thread (Reanimated worklets +
-  `react-native-gesture-handler`). No React state per frame, ever.
-- Dismissal threshold is **velocity-aware**: a fast flick past 25% of the
-  width dismisses; a slow drag needs 45%. A slow drag that stops springs back.
-- Rotation is subtle — max 6° at full displacement, anchored below the card so
-  it pivots naturally.
-- Direction indicators are typographic and neutral, appearing at ~15%
-  displacement — a word, not a green tick and a red cross.
-- Haptic fires at the commit point, not on release.
-- `recyclingKey={portfolioItemId}` so `expo-image` recycles rather than
-  remounting.
-- Prefetch the next 3 images at `md` when the deck advances.
+- Como mucho 3 tarjetas montadas. La de atrás con `scale 0.96` y 8pt de
+  desplazamiento — un indicio de profundidad, no una pila 3D.
+- El gesto corre enteramente en el hilo de UI (worklets de Reanimated +
+  `react-native-gesture-handler`). Nunca estado de React por frame.
+- El umbral de descarte es **sensible a la velocidad**: un envión rápido más
+  allá del 25% del ancho descarta; un arrastre lento necesita 45%. Un arrastre
+  lento que se detiene vuelve por resorte.
+- La rotación es sutil — máximo 6° a desplazamiento completo, con pivote debajo
+  de la tarjeta para que gire con naturalidad.
+- Los indicadores de dirección son tipográficos y neutros, y aparecen a ~15% de
+  desplazamiento — una palabra, no un tilde verde y una cruz roja.
+- El háptico se dispara en el punto de compromiso, no al soltar.
+- `recyclingKey={portfolioItemId}` para que `expo-image` recicle en vez de
+  remontar.
+- Precargar las 3 imágenes siguientes en `md` cuando el mazo avanza.
 
-**Accessible path (equal, not alternative):** Like / Pass / Save / Undo buttons
-sit below the card at ≥44pt, always visible. `accessibilityActions` on the card
-expose the same operations to screen readers. Every E2E flow is run once using
-buttons only (see [test strategy](../testing/test-strategy.md) §6.4).
+**Camino accesible (igual, no alternativo):** los botones Me gusta / Paso /
+Guardar / Deshacer están debajo de la tarjeta a ≥44pt, siempre visibles.
+`accessibilityActions` sobre la tarjeta expone las mismas operaciones a los
+lectores de pantalla. Todo flujo E2E se corre una vez usando solo botones (ver
+[estrategia de testing](../testing/test-strategy.md) §6.4).
 
-## 5. Accessibility baseline
+## 5. Línea base de accesibilidad
 
-- Contrast: 4.5:1 for body text, 3:1 for large text and meaningful icons.
-  Verified per token pair in a test, not judged by eye.
-- Targets: 44×44pt minimum, expanded via `hitSlop` where the visual is smaller.
-- Dynamic type honoured to the largest accessibility size. Text may wrap; it
-  may never clip. Card layouts use flow, not fixed heights.
-- Reduced motion honoured globally through `MotionProvider`.
-- Screen reader order per card: work → artist → styles → actions.
-- Colour is never the only carrier of meaning. Match bands carry a word.
-- Focus is managed on screen and modal entry.
+- Contraste: 4,5:1 para texto de cuerpo, 3:1 para texto grande e íconos
+  significativos. Verificado por par de tokens en un test, no juzgado a ojo.
+- Áreas táctiles: mínimo 44×44pt, expandidas con `hitSlop` cuando el elemento
+  visual es más chico.
+- Tipografía dinámica respetada hasta el tamaño accesible más grande. El texto
+  puede envolver; nunca puede recortarse. Los layouts de tarjeta usan flujo, no
+  alturas fijas.
+- Reducción de movimiento respetada globalmente vía `MotionProvider`.
+- Orden del lector de pantalla por tarjeta: obra → artista → estilos → acciones.
+- El color nunca es el único portador de significado. Las bandas de match llevan
+  una palabra.
+- El foco se maneja al entrar a una pantalla o a un modal.
 
-## 6. Theming
+## 6. Temas
 
-Dark is the default. Both themes are complete, and a component may not assume a
-theme — a design that only works dark is not done. Review happens in both.
+El oscuro es el predeterminado. Los dos temas están completos, y ningún
+componente puede asumir un tema — un diseño que solo funciona en oscuro no está
+terminado. La revisión se hace en ambos.
 
-## 7. Adding a component
+## 7. Agregar un componente
 
-1. Is it used twice, or does it encode a rule? If neither, keep it local.
-2. Build it from tokens; add no new token without design-system-engineer
-   approval.
-3. Ship loading / empty / error variants if it renders remote data.
-4. Ship accessibility label, target, disabled, and pressed states if
-   interactive.
-5. Add it to this catalogue in the same commit.
-6. Add a component test for the states.
+1. ¿Se usa dos veces, o codifica una regla? Si no es ninguna de las dos, dejalo
+   local.
+2. Construilo con tokens; no agregues ningún token nuevo sin aprobación de
+   design-system-engineer.
+3. Entregá las variantes de carga / vacío / error si renderiza datos remotos.
+4. Entregá etiqueta de accesibilidad, área táctil, y estados deshabilitado y
+   presionado si es interactivo.
+5. Agregalo a este catálogo en el mismo commit.
+6. Agregá un test de componente para los estados.
 
-## 8. Anti-patterns
+## 8. Anti-patrones
 
-- Passing `style` overrides from a screen into a design-system component to
-  "just tweak" it. Add a variant or don't.
-- Hard-coding an animation duration because it "felt better" — put it in
-  `motion.ts` with a name.
-- Green/red for like/pass.
-- Shadows to create hierarchy — use surface value and hairlines.
-- Icon-only primary actions.
-- Skeletons that do not match the shape of the content they replace.
-- A component that renders `null` on error instead of an `ErrorState`.
+- Pasar anulaciones de `style` desde una pantalla a un componente del design
+  system para "ajustarlo un poquito". Agregá una variante o no lo hagas.
+- Hardcodear una duración de animación porque "quedaba mejor" — poné el valor en
+  `motion.ts` con un nombre.
+- Verde/rojo para me gusta/paso.
+- Sombras para crear jerarquía — usá valor de superficie y bordes de un píxel.
+- Acciones principales solo con ícono.
+- Skeletons que no coinciden con la forma del contenido que reemplazan.
+- Un componente que renderiza `null` ante un error en vez de un `ErrorState`.

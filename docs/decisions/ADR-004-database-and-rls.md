@@ -1,76 +1,82 @@
-# ADR-004 — Postgres + RLS as the only authorization layer
+# ADR-004 — Postgres + RLS como única capa de autorización
 
-**Status:** Proposed · **Date:** 2026-08-17 · **Owner:** backend-engineer, security-reviewer
+**Estado:** Propuesto · **Fecha:** 2026-08-17 · **Responsables:** backend-engineer, security-reviewer
 
-## Context
+## Contexto
 
-The client talks directly to Supabase with a publishable anon key. There is no
-application server between the app and the database. The app holds users'
-taste, saved work, project briefs, reference images, and artists' contact
-details.
+El cliente le habla directamente a Supabase con una anon key publicable. No hay
+ningún servidor de aplicación entre la app y la base. La app guarda el gusto de
+las personas, sus trabajos guardados, sus briefs de proyecto, sus imágenes de
+referencia, y los datos de contacto de los artistas.
 
-## Problem
+## Problema
 
-Where does authorization live, and how do we guarantee we never ship a table
-that is accidentally readable by everyone?
+¿Dónde vive la autorización, y cómo garantizamos que nunca publiquemos una tabla
+accidentalmente legible por cualquiera?
 
-## Options
+## Opciones
 
-**A. Authorization in client queries.** Every query filters by the current user.
-Fast to write, and one forgotten `.eq()` is a breach.
+**A. Autorización en las consultas del cliente.** Cada consulta filtra por el
+usuario actual. Rápido de escribir, y un `.eq()` olvidado es una filtración.
 
-**B. A server layer between app and database.** Familiar, and it re-introduces
-the server we chose Supabase to avoid — plus its own auth, deploy, and scaling
-concerns.
+**B. Una capa de servidor entre la app y la base.** Familiar, y reintroduce el
+servidor que elegimos Supabase para evitar — más su propia autenticación,
+despliegue y escalado.
 
-**C. RLS as the sole boundary.** Policies in Postgres decide what any request
-can see, regardless of what the client asks for.
+**C. RLS como único límite.** Las políticas en Postgres deciden qué puede ver
+cada pedido, sin importar qué pida el cliente.
 
-**D. RLS plus a server layer.** Both. Strongest, and roughly double the work.
+**D. RLS más una capa de servidor.** Las dos. La más fuerte, y aproximadamente
+el doble de trabajo.
 
-## Decision
+## Decisión
 
-**Option C**, with these rules made mandatory and machine-checked:
+**Opción C**, con estas reglas hechas obligatorias y verificadas por máquina:
 
-1. Every `public` table has RLS **enabled and forced**.
-2. `revoke all` from `anon` and `authenticated`, then explicit per-verb grants.
-3. Policies are per-command; **no `for all` policies**.
-4. Every `for insert` policy has a `with check`.
-5. Ownership is always `auth.uid()` — never a client-supplied id.
-6. `SECURITY DEFINER` only where required, with `set search_path = ''` and no
-   interpolated identifiers.
-7. **CI fails** if any `public` table has RLS off, force off, or zero policies.
-8. Cross-user integration tests exist for every user-owned table.
+1. Toda tabla de `public` tiene RLS **habilitado y forzado**.
+2. `revoke all` de `anon` y `authenticated`, y después grants explícitos por
+   verbo.
+3. Políticas por comando; **ninguna política `for all`**.
+4. Toda política `for insert` tiene un `with check`.
+5. La propiedad siempre es `auth.uid()` — nunca un id provisto por el cliente.
+6. `SECURITY DEFINER` solo donde haga falta, con `set search_path = ''` y sin
+   identificadores interpolados.
+7. **El CI falla** si alguna tabla de `public` tiene RLS apagado, force apagado,
+   o cero políticas.
+8. Existen tests de acceso cruzado para cada tabla de propiedad de usuario.
 
-## Why
+## Por qué
 
-The client is untrusted and unmodifiable-by-us: anyone can read the bundle,
-take the anon key, and call PostgREST directly. Under option A the security of
-every user's data depends on the correctness of every query ever written — a
-guarantee that decays with every commit. Under option C, a forgotten client
-filter is a *correctness* bug: the query returns the user's own rows instead of
-the intended subset, and nothing leaks.
+El cliente no es confiable y no lo podemos modificar: cualquiera puede leer el
+bundle, tomar la anon key y llamar a PostgREST directamente. Bajo la opción A, la
+seguridad de los datos de todas las personas depende de la corrección de cada
+consulta que se haya escrito jamás — una garantía que se degrada con cada commit.
+Bajo la opción C, un filtro olvidado en el cliente es un bug de *corrección*: la
+consulta devuelve las filas propias de esa persona en lugar del subconjunto que
+se pretendía, y no se filtra nada.
 
-`FORCE ROW LEVEL SECURITY` is included deliberately: without it the table owner
-bypasses its own policies, which makes some tests pass that should not.
+`FORCE ROW LEVEL SECURITY` se incluye deliberadamente: sin eso, el dueño de la
+tabla saltea sus propias políticas, lo que haría pasar tests que deberían fallar.
 
-Rule 7 is the load-bearing one. Enumerating policies by hand at review time
-does not scale past a few tables and fails exactly when someone is in a hurry.
-A test over `pg_tables` and `pg_policies` makes "a table without policies"
-un-shippable.
+La regla 7 es la que sostiene todo. Enumerar políticas a mano en el momento de
+revisión no escala más allá de unas pocas tablas y falla exactamente cuando
+alguien está apurado. Un test sobre `pg_tables` y `pg_policies` hace que "una
+tabla sin políticas" sea impublicable.
 
-Option D was rejected on cost, not on merit — for one developer, the second
-layer would be shallower and less tested than the first, and a shallow second
-layer creates false confidence.
+La opción D se descartó por costo, no por mérito — para una sola persona, la
+segunda capa sería más superficial y menos testeada que la primera, y una segunda
+capa superficial genera falsa confianza.
 
-## Consequences
+## Consecuencias
 
-- Some reads need `SECURITY INVOKER` RPCs (the discovery feed) to stay at one
-  round trip. Those functions must be reviewed as carefully as policies.
-- Policy predicates appear in query plans; `EXISTS` subqueries in
-  `media_assets` and the portfolio policies must be indexed, or every image
-  read pays for them.
-- Migration files are longer, because each one carries its own policies. This
-  is the point: schema and its authorization arrive together or not at all.
-- Local development requires Docker for `supabase start`, since the RLS tests
-  need a real database.
+- Algunas lecturas necesitan RPCs `SECURITY INVOKER` (el feed de descubrimiento)
+  para mantenerse en un round trip. Esas funciones se revisan con el mismo
+  cuidado que las políticas.
+- Los predicados de las políticas aparecen en los planes de consulta; las
+  subconsultas `EXISTS` de `media_assets` y de las políticas de portfolio tienen
+  que estar indexadas, o cada lectura de imagen las paga.
+- Los archivos de migración son más largos, porque cada uno lleva sus propias
+  políticas. Ese es el punto: el esquema y su autorización llegan juntos o no
+  llegan.
+- El desarrollo local requiere Docker para `supabase start`, porque los tests de
+  RLS necesitan una base de datos real.

@@ -1,4 +1,4 @@
-# dependencies
+# dependencias
 node_modules/
 .pnp/
 .pnp.js
@@ -15,14 +15,14 @@ web-build/
 *.mobileprovision
 *.orig.*
 
-# native builds
+# builds nativos
 ios/
 android/
 *.ipa
 *.apk
 *.aab
 
-# env & secrets — never commit
+# entorno y secretos — nunca commitear
 .env
 .env.*
 !.env.example
@@ -31,17 +31,17 @@ service-role*
 supabase/.temp/
 supabase/.branches/
 
-# build output
+# salida de build
 build/
 coverage/
 *.tsbuildinfo
 .turbo/
 
-# local media staging (large binaries — uploaded to Storage, not versioned)
+# media local de trabajo (binarios grandes — se suben a Storage, no se versionan)
 content/media/
 !content/media/.gitkeep
 
-# tooling
+# herramientas
 .DS_Store
 Thumbs.db
 *.log
@@ -52,7 +52,7 @@ yarn-error.log*
 !.vscode/extensions.json
 .idea/
 
-# test artifacts
+# artefactos de tests
 .maestro/output/
 playwright-report/
 test-results/

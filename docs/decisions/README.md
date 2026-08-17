@@ -1,21 +1,24 @@
-# Architecture Decision Records
+# Registros de decisiones de arquitectura (ADRs)
 
-An ADR is written when a decision is **hard to reverse**, **contested**, or
-**surprising to a newcomer**. Not for every choice.
+Un ADR se escribe cuando una decisión es **difícil de revertir**, **discutida**,
+o **sorprendente para alguien que llega nuevo**. No para cada elección.
 
-Format: Context · Problem · Options · Decision · Why · Consequences.
+Formato: Contexto · Problema · Opciones · Decisión · Por qué · Consecuencias.
 
-Status is one of `Proposed`, `Accepted`, `Superseded by ADR-NNN`. ADRs are not
-edited after acceptance except to change status — a superseded decision is
-history worth keeping.
+El estado es uno de `Propuesto`, `Aceptado`, `Reemplazado por ADR-NNN`. Los ADRs
+no se editan después de ser aceptados, salvo para cambiar el estado — una
+decisión reemplazada es historia que vale la pena conservar.
 
-| # | Decision | Status |
+Los nombres de archivo se mantienen en inglés porque son referenciados desde
+todo el repositorio.
+
+| # | Decisión | Estado |
 |---|---|---|
-| [001](ADR-001-stack-and-repo-structure.md) | Expo + Supabase; three workspaces, not five packages | Proposed |
-| [002](ADR-002-authentication.md) | Anonymous-first auth, upgrade on value | Proposed |
-| [003](ADR-003-domain-model.md) | Merge `ProfessionalProfile` into `professionals`; drop `SavedItem`, messaging, reviews | Proposed |
-| [004](ADR-004-database-and-rls.md) | Postgres + RLS as the sole authorization layer | Proposed |
-| [005](ADR-005-matching.md) | Deterministic scoring; bands instead of percentages | Proposed |
-| [006](ADR-006-media.md) | Storage with derived sizes and blurhash; no binaries in Postgres | Proposed |
-| [007](ADR-007-navigation.md) | Expo Router, four tabs | Proposed |
-| [008](ADR-008-design-system.md) | Design system inside the app, enforced by lint | Proposed |
+| [001](ADR-001-stack-and-repo-structure.md) | Expo + Supabase; tres workspaces, no cinco paquetes | Propuesto |
+| [002](ADR-002-authentication.md) | Auth anónima primero, upgrade cuando aporta valor | Propuesto |
+| [003](ADR-003-domain-model.md) | Fusionar `ProfessionalProfile` en `professionals`; descartar `SavedItem`, mensajería y reseñas | Propuesto |
+| [004](ADR-004-database-and-rls.md) | Postgres + RLS como única capa de autorización | Propuesto |
+| [005](ADR-005-matching.md) | Puntaje determinístico; bandas en lugar de porcentajes | Propuesto |
+| [006](ADR-006-media.md) | Storage con tamaños derivados y blurhash; sin binarios en Postgres | Propuesto |
+| [007](ADR-007-navigation.md) | Expo Router, cuatro pestañas | Propuesto |
+| [008](ADR-008-design-system.md) | Design system dentro de la app, impuesto por lint | Propuesto |

@@ -1,83 +1,84 @@
-# ADR-003 — Domain model simplifications
+# ADR-003 — Simplificaciones del modelo de dominio
 
-**Status:** Proposed · **Date:** 2026-08-17 · **Owner:** product-architect
+**Estado:** Propuesto · **Fecha:** 2026-08-17 · **Responsable:** product-architect
 
-## Context
+## Contexto
 
-The brief enumerates entities including `Professional` **and**
-`ProfessionalProfile`, `SavedItem`, `Conversation`, `Message`, `Review`, and
-`Availability`. It also requires that the core stays category-agnostic and that
-`User`, `Professional`, and profile are properly distinguished because roles are
-not exclusive.
+El brief enumera entidades que incluyen `Professional` **y**
+`ProfessionalProfile`, `SavedItem`, `Conversation`, `Message`, `Review` y
+`Availability`. También exige que el núcleo se mantenga agnóstico de categoría y
+que `User`, `Professional` y el perfil estén correctamente distinguidos porque
+los roles no son excluyentes.
 
-## Problem
+## Problema
 
-Which of these entities exist in V1, and which are structure without a
-behaviour to justify it?
+¿Cuáles de estas entidades existen en V1, y cuáles son estructura sin un
+comportamiento que la justifique?
 
-## Decision
+## Decisión
 
-| Entity | V1 |
+| Entidad | V1 |
 |---|---|
-| `User` (as `profiles`) | ✅ |
-| `Professional` | ✅ — single table, `owner_user_id` nullable |
-| `ProfessionalProfile` | ❌ merged into `professionals` |
+| `User` (como `profiles`) | ✅ |
+| `Professional` | ✅ — una sola tabla, `owner_user_id` nullable |
+| `ProfessionalProfile` | ❌ fusionada en `professionals` |
 | `Category`, `Style`, `ProfessionalStyle` | ✅ |
 | `PortfolioItem`, `PortfolioItemStyle` | ✅ |
-| `Interaction` | ✅ — current-state row, not an event log |
+| `Interaction` | ✅ — fila de estado actual, no log de eventos |
 | `SavedItem` | ❌ — `interactions.is_saved` |
 | `TasteProfile` | ✅ |
 | `Project`, `ProjectStyle` | ✅ (+ `project_references`) |
 | `Match` | ✅ |
 | `Location` | ✅ |
-| `Availability` | ❌ — two columns on `professionals` |
-| `Conversation`, `Message` | ❌ deferred |
-| `Review` | ❌ deferred |
+| `Availability` | ❌ — dos columnas en `professionals` |
+| `Conversation`, `Message` | ❌ postergadas |
+| `Review` | ❌ postergada |
 | `AuditEvent` | ✅ |
 
-## Why
+## Por qué
 
-**Professional / ProfessionalProfile.** The separation the brief actually
-argues for is *a user is not a professional, and neither role excludes the
-other*. That is preserved: `professionals.owner_user_id` is nullable (curated
-artists have no account), and being a professional is a row in another table,
-never a flag on `profiles`. Splitting `professionals` into two 1:1 tables adds a
-join to every catalogue query, a second RLS policy set, and a "profile row
-missing" failure mode — for no behavioural difference. If a professional ever
-needs many profiles (one per category), that is a real 1:N and we will add it
-then, with a migration that is mechanical.
+**Professional / ProfessionalProfile.** La separación que el brief realmente
+argumenta es *un usuario no es un profesional, y ninguno de los dos roles excluye
+al otro*. Eso se conserva: `professionals.owner_user_id` es nullable (los
+artistas curados no tienen cuenta), y ser profesional es una fila en otra tabla,
+nunca una bandera en `profiles`. Partir `professionals` en dos tablas 1:1 agrega
+un join a cada consulta de catálogo, un segundo juego de políticas RLS, y un modo
+de falla de "falta la fila de perfil" — sin ninguna diferencia de comportamiento.
+Si algún día un profesional necesita muchos perfiles (uno por categoría), eso es
+un 1:N real y lo agregamos entonces, con una migración mecánica.
 
-**SavedItem.** A save is a property of an interaction, not a separate event. Two
-tables representing one fact will disagree, and the taste engine would have to
-reconcile them. `interactions.is_saved`, with a check constraint forbidding
-`saved + pass`, is one source of truth.
+**SavedItem.** Guardar es una propiedad de una interacción, no un evento aparte.
+Dos tablas representando un mismo hecho se van a contradecir, y el motor de gusto
+tendría que reconciliarlas. `interactions.is_saved`, con una restricción CHECK
+que prohíbe `saved + pass`, es una única fuente de verdad.
 
-**Availability as a table.** A calendar implies artists maintain it. They will
-not, in V1. A stale calendar is actively worse than no calendar — it makes MESH
-lie. Two columns (`availability_status`, `availability_updated_at`) with a
-45-day freshness rule enforced in both the matching engine and the
-`AvailabilityPill` component let us say only what we can stand behind.
+**Availability como tabla.** Un calendario implica que los artistas lo
+mantengan. En V1 no lo van a hacer. Un calendario desactualizado es activamente
+peor que ningún calendario — hace que MESH mienta. Dos columnas
+(`availability_status`, `availability_updated_at`) con una regla de frescura de
+45 días, impuesta tanto en el motor de matching como en el componente
+`AvailabilityPill`, nos dejan decir solo lo que podemos sostener.
 
-**Conversations and Messages.** §17 of the brief puts V1 contact on WhatsApp and
-Instagram. Building a messaging subsystem alongside that means shipping an
-unused surface plus its moderation, notification, blocking, and abuse burden. It
-also splits the conversation record across two places. Defer until there is
-evidence users want to leave WhatsApp.
+**Conversations y Messages.** §17 del brief pone el contacto de V1 en WhatsApp e
+Instagram. Construir un subsistema de mensajería en paralelo significa publicar
+una superficie sin uso más su carga de moderación, notificaciones, bloqueo y
+abuso. Además parte el registro de la conversación en dos lugares. Postergar
+hasta que haya evidencia de que la gente quiere salir de WhatsApp.
 
-**Reviews.** With ~12 artists and no transactions, a review surface renders
-empty or fabricated. Both cost more trust than absence does. And a review system
-without verified transactions is a system for reviewing strangers, which is a
-moderation problem we have not earned yet.
+**Reviews.** Con ~12 artistas y sin transacciones, una superficie de reseñas
+renderiza vacía o inventada. Las dos cuestan más confianza que la ausencia. Y un
+sistema de reseñas sin transacciones verificadas es un sistema para reseñar
+desconocidos, que es un problema de moderación que todavía no nos ganamos.
 
-## Consequences
+## Consecuencias
 
-- Adding messaging later means new tables and policies — but no change to
-  existing ones. Contact events already record `channel`, so we will have data
-  on whether people even want it.
-- Adding reviews later requires a verified-interaction concept, which we would
-  need regardless.
-- The `professionals` table is wide. Acceptable; it is read as a unit on the
-  profile screen.
-- `interactions` as current-state means we lose the history of a changed mind.
-  Accepted: taste is about current preference, and an append-only log would make
-  taste depend on replay order.
+- Agregar mensajería más adelante implica tablas y políticas nuevas — pero
+  ningún cambio en las existentes. Los eventos de contacto ya registran
+  `channel`, así que vamos a tener datos sobre si la gente siquiera lo quiere.
+- Agregar reseñas más adelante requiere un concepto de interacción verificada,
+  que necesitaríamos de todos modos.
+- La tabla `professionals` es ancha. Aceptable; se lee como una unidad en la
+  pantalla de perfil.
+- `interactions` como estado actual implica perder el historial de un cambio de
+  opinión. Aceptado: el gusto es sobre la preferencia actual, y un log de solo
+  agregado haría que el gusto dependa del orden de reproducción.

@@ -1,84 +1,92 @@
-# ADR-006 — Media storage and delivery
+# ADR-006 — Almacenamiento y entrega de media
 
-**Status:** Proposed · **Date:** 2026-08-17 · **Owner:** backend-engineer, performance-engineer
+**Estado:** Propuesto · **Fecha:** 2026-08-17 · **Responsables:** backend-engineer, performance-engineer
 
-## Context
+## Contexto
 
-MESH is an image product. The discovery deck shows a full-screen photograph
-every second or two, on mobile networks in Buenos Aires, and the perceived
-quality of the whole app is the perceived quality of image loading. Media
-includes curated artist portfolios (public) and user-uploaded project references
-(private).
+MESH es un producto de imágenes. El mazo de descubrimiento muestra una fotografía
+a pantalla completa cada uno o dos segundos, sobre redes móviles en Buenos Aires,
+y la calidad percibida de toda la app es la calidad percibida de la carga de
+imágenes. La media incluye portfolios curados de artistas (públicos) y
+referencias de proyecto subidas por usuarios (privadas).
 
-## Problem
+## Problema
 
-Where do the bytes live, how many variants do we make, and how does the client
-avoid downloading more than it needs?
+¿Dónde viven los bytes, cuántas variantes generamos, y cómo evita el cliente
+descargar más de lo que necesita?
 
-## Options
+## Opciones
 
-**A. Bytes in Postgres (`bytea`).** Rejected outright: bloats the database,
-destroys backup times, cannot be CDN-cached, and makes every row read expensive.
+**A. Bytes en Postgres (`bytea`).** Descartada de plano: infla la base, destruye
+los tiempos de backup, no se puede cachear en CDN, y encarece cada lectura de
+fila.
 
-**B. Storage, single original per image.** Simplest pipeline; the deck then
-downloads 2–4 MB per card. Unacceptable on mobile data.
+**B. Storage, un solo original por imagen.** El pipeline más simple; el mazo
+después descarga 2–4 MB por tarjeta. Inaceptable con datos móviles.
 
-**C. Storage with derived sizes generated at seed time.** More pipeline, far
-less bytes on the wire.
+**C. Storage con tamaños derivados generados en el seed.** Más pipeline, muchos
+menos bytes en la red.
 
-**D. Storage with on-the-fly transforms** at request time (Supabase image
-transformations or a CDN).
+**D. Storage con transformaciones al vuelo** en el momento del pedido
+(transformaciones de imagen de Supabase o una CDN).
 
-## Decision
+## Decisión
 
-**C**, with **D** as the upgrade path.
+**C**, con **D** como camino de actualización.
 
-- Two buckets: `portfolio` (public read, service-role write) and `references`
-  (private, owner-scoped paths). `avatars` added when users get avatars.
-- The seeder re-encodes each source image into **WebP** at three longest-edge
-  sizes: `sm` 400px, `md` 900px, `lg` 1600px.
-- A **blurhash** is computed at seed time and stored in `media_assets`
-  alongside dimensions, byte size, mime type, and checksum.
-- The client picks by surface: grids `sm`, deck `md`, full view `lg`.
-- `expo-image` with disk caching, blurhash placeholder, `recyclingKey`, and
-  explicit `contentFit`.
-- The deck prefetches the next **3** images at `md`.
-- Private references are served through short-lived signed URLs, never
-  persisted or logged.
+- Dos buckets: `portfolio` (lectura pública, escritura con service role) y
+  `references` (privado, rutas acotadas al dueño). `avatars` se agrega cuando los
+  usuarios tengan avatar.
+- El seeder recodifica cada imagen fuente a **WebP** en tres tamaños de lado
+  mayor: `sm` 400px, `md` 900px, `lg` 1600px.
+- Se calcula un **blurhash** en el seed y se guarda en `media_assets` junto con
+  dimensiones, tamaño en bytes, mime type y checksum.
+- El cliente elige según la superficie: grillas `sm`, mazo `md`, vista completa
+  `lg`.
+- `expo-image` con caché en disco, placeholder blurhash, `recyclingKey` y
+  `contentFit` explícito.
+- El mazo precarga las **3** imágenes siguientes en `md`.
+- Las referencias privadas se sirven vía URLs firmadas de vida corta, nunca
+  persistidas ni logueadas.
 
-## Why
+## Por qué
 
-The deck is the product's first impression and it is where bandwidth is spent.
-Downloading a 1600px image to show it at 390pt wide wastes roughly 75% of the
-bytes and the decode time; three derived sizes remove that in one step.
+El mazo es la primera impresión del producto y es donde se gasta el ancho de
+banda. Descargar una imagen de 1600px para mostrarla a 390pt de ancho desperdicia
+aproximadamente el 75% de los bytes y del tiempo de decodificación; tres tamaños
+derivados eliminan eso en un solo paso.
 
-Blurhash rather than a spinner or a grey box: it gives the correct dominant
-colours and composition immediately, so the card feels populated before the
-image lands. On a slow connection that is the difference between "loading" and
-"almost there".
+Blurhash en vez de un spinner o un cuadrado gris: da los colores dominantes y la
+composición correctos de inmediato, así la tarjeta se siente poblada antes de que
+llegue la imagen. En una conexión lenta esa es la diferencia entre "cargando" y
+"ya casi".
 
-WebP is universally supported on the platform versions we target and is
-meaningfully smaller than JPEG at equivalent quality.
+WebP tiene soporte universal en las versiones de plataforma que apuntamos y es
+significativamente más chico que JPEG a calidad equivalente.
 
-Storing dimensions in `media_assets` lets the client reserve exact space before
-decode, which removes layout shift in the portfolio grid — a jump in a grid of
-someone's artwork looks cheap.
+Guardar las dimensiones en `media_assets` permite que el cliente reserve el
+espacio exacto antes de decodificar, lo que elimina el salto de layout en la
+grilla de portfolio — un salto en la grilla de las obras de alguien se ve barato.
 
-Generating at seed time rather than on the fly (D) is right for V1 because the
-catalogue is small, static, and seeded from a controlled pipeline: the work
-happens once, offline, and there is no per-request cost or dependency. It stops
-being right when artists upload their own work — at which point D moves the
-resizing to the provider and the derived-size logic becomes a URL parameter.
+Generar en el seed en lugar de al vuelo (D) es lo correcto para V1 porque el
+catálogo es chico, estático y cargado desde un pipeline controlado: el trabajo
+sucede una vez, offline, y no hay costo ni dependencia por pedido. Deja de ser lo
+correcto cuando los artistas suban su propio trabajo — momento en el que D mueve
+el redimensionado al proveedor y la lógica de tamaños derivados se vuelve un
+parámetro de URL.
 
-## Consequences
+## Consecuencias
 
-- Storage holds ~3× the images. Trivial at this catalogue size.
-- Changing the size ladder requires re-running the pipeline. Originals are kept
-  outside the repository (artists' own storage) so re-derivation is possible.
-- The seed tool needs an image processing dependency (`sharp` or equivalent) —
-  in `tools/seed` only, never in the app's dependency tree.
-- Re-encoding strips EXIF, including GPS, as a side effect. For user-uploaded
-  references this must be done **client-side before upload**, and is asserted by
-  a test — a reference photo taken at home must not carry coordinates.
-- SVG is excluded from the allowed MIME types at the bucket level: it is a
-  script container, not an image format.
+- Storage guarda ~3× las imágenes. Trivial con este tamaño de catálogo.
+- Cambiar la escalera de tamaños requiere volver a correr el pipeline. Los
+  originales se conservan fuera del repositorio (en el almacenamiento del
+  artista) para poder rederivar.
+- La herramienta de seed necesita una dependencia de procesamiento de imágenes
+  (`sharp` o equivalente) — solo en `tools/seed`, nunca en el árbol de
+  dependencias de la app.
+- La recodificación elimina el EXIF, incluido el GPS, como efecto secundario.
+  Para las referencias subidas por usuarios esto tiene que hacerse **del lado del
+  cliente antes de subir**, y está verificado por un test — una foto de
+  referencia sacada en casa no puede llevar coordenadas.
+- El SVG queda excluido de los tipos MIME permitidos a nivel bucket: es un
+  contenedor de scripts, no un formato de imagen.

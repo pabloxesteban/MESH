@@ -1,70 +1,86 @@
-# MESH — working agreement
+# MESH — acuerdo de trabajo
 
-Read this before changing anything. It is short on purpose.
+Leé esto antes de cambiar nada. Es corto a propósito.
 
-## What MESH is
+## Qué es MESH
 
-MESH helps people discover the right person to bring an idea to life. It learns
-visual taste from like/save/pass decisions and recommends professionals, with
-an explanation. V1: tattoo artists, Buenos Aires / CABA, 8–15 curated real
-artists, no booking, no payments, contact via WhatsApp/Instagram.
+MESH ayuda a la gente a descubrir a la persona indicada para hacer realidad una
+idea. Aprende el gusto visual a partir de decisiones de me gusta / guardar /
+paso y recomienda profesionales, con una explicación. V1: tatuadores, Buenos
+Aires / CABA, 8–15 artistas reales curados, sin reservas, sin pagos, contacto
+por WhatsApp/Instagram.
 
-## Non-negotiables
+## Innegociables
 
-1. **Explainable over clever.** No ML or LLM in the recommendation path. The
-   matching function is deterministic, versioned, and unit-tested.
-2. **Never fabricate.** No invented reviews, testimonials, availability,
-   prices, booking stats, or match reasons. A reason may only be shown if the
-   term it describes actually contributed to the score.
-3. **No dark patterns.** No streaks, points, levels, fake scarcity or urgency,
-   artificial limits, or engagement-bait notifications. Ever.
-4. **RLS on every table.** Enabled *and* forced, with explicit policies.
-   Adding a table without policies fails CI.
-5. **Service-role key never touches the client.** It exists only in
-   `tools/seed` and server-side functions.
-6. **Swipe is never the only way.** Every gesture has an equivalent button with
-   an accessible label and a ≥44pt target.
-7. **The core is category-agnostic.** No `tattoo_*` columns, types, or props in
-   core entities. Use Category / Style / Professional / PortfolioItem /
-   Project.
-8. **Tokens, not hex.** No raw colors, spacings, radii, or durations inside
-   screens. Import from the design system.
-9. **Spanish first.** The market is CABA. Every user-facing string goes through
-   i18n with `es-AR` as the source locale.
+1. **Explicable antes que ingenioso.** Nada de ML ni LLM en el camino de
+   recomendación. La función de matching es determinística, versionada y con
+   tests unitarios.
+2. **Nunca inventar.** Nada de reseñas, testimonios, disponibilidad, precios,
+   estadísticas de reservas ni razones de match inventadas. Una razón solo se
+   puede mostrar si el término que describe efectivamente aportó al puntaje.
+3. **Nada de dark patterns.** Ni rachas, ni puntos, ni niveles, ni escasez o
+   urgencia falsas, ni límites artificiales, ni notificaciones carnada. Nunca.
+4. **RLS en todas las tablas.** Habilitado *y* forzado, con políticas
+   explícitas. Agregar una tabla sin políticas rompe el CI.
+5. **La service-role key nunca toca el cliente.** Existe solo en `tools/seed` y
+   en funciones del lado del servidor.
+6. **El swipe nunca es la única forma.** Todo gesto tiene un botón equivalente
+   con etiqueta accesible y área táctil de ≥44pt.
+7. **El núcleo es agnóstico de categoría.** Nada de columnas, tipos o props
+   `tattoo_*` en las entidades centrales. Usá Category / Style / Professional /
+   PortfolioItem / Project.
+8. **Tokens, no hex.** Nada de colores, espaciados, radios o duraciones crudos
+   dentro de las pantallas. Importalos del design system.
+9. **Español primero.** El mercado es CABA. Todo string de cara al usuario pasa
+   por i18n con `es-AR` como locale de origen.
 
-## Where things live
+## Idioma del proyecto
 
-| What | Where |
+- **Documentación, comentarios y comunicación: español rioplatense** (voseo).
+  `docs/`, `.claude/`, mensajes de commit, descripciones de PR.
+- **Código: inglés.** Nombres de tablas, columnas, enums, funciones, variables,
+  tokens de diseño, slugs de taxonomía, rutas de archivos, nombres de eventos
+  de analytics e identificadores de agentes y skills.
+- **Strings de UI: `es-AR` como origen**, con `en` como traducción. Nunca al
+  revés.
+
+Los slugs (`fine-line`, `blackwork`) son estables y no se traducen nunca; lo
+que se traduce es el nombre para mostrar, vía clave de i18n.
+
+## Dónde vive cada cosa
+
+| Qué | Dónde |
 |---|---|
-| App screens, components, design system | `apps/mobile/src/` |
-| Taste + matching engines, taxonomy, types, Zod schemas | `packages/domain/src/` |
-| Content seeding CLI (service role) | `tools/seed/` |
-| SQL migrations and RLS policies | `supabase/migrations/` |
-| Artist content files | `content/artists/` |
-| Decisions | `docs/decisions/` |
+| Pantallas, componentes, design system | `apps/mobile/src/` |
+| Motores de gusto y matching, taxonomía, tipos, esquemas Zod | `packages/domain/src/` |
+| CLI de carga de contenido (service role) | `tools/seed/` |
+| Migraciones SQL y políticas RLS | `supabase/migrations/` |
+| Archivos de contenido de artistas | `content/artists/` |
+| Decisiones | `docs/decisions/` |
 
-Pure logic goes in `packages/domain` so it can be tested without a simulator
-and reused by the seeder. If it imports from `react-native`, it does not belong
-there.
+La lógica pura va en `packages/domain` para poder testearla sin simulador y
+reutilizarla desde el seeder. Si importa algo de `react-native`, no va ahí.
 
-## Before you change something
+## Antes de cambiar algo
 
-- **Schema change** → follow `.claude/workflows/database-change.md`. A new
-  table without RLS policies and a cross-user access test is not done.
-- **New feature** → follow `.claude/workflows/new-feature.md`. Start by asking
-  whether it serves DISCOVERY, TASTE, MATCHING, TRUST, or ACTION. If it serves
-  none, do not build it.
-- **Matching change** → bump `MATCHING_VERSION`, update
-  `docs/product/matching.md`, update fixtures. Never change weights without
-  updating the documented rationale.
-- **Architectural decision** → write an ADR in `docs/decisions/`.
+- **Cambio de esquema** → seguí `.claude/workflows/database-change.md`. Una
+  tabla nueva sin políticas RLS y sin test de acceso cruzado entre usuarios no
+  está terminada.
+- **Feature nueva** → seguí `.claude/workflows/new-feature.md`. Empezá
+  preguntando si sirve a DESCUBRIMIENTO, GUSTO, MATCHING, CONFIANZA o ACCIÓN.
+  Si no sirve a ninguno, no lo construyas.
+- **Cambio de matching** → subí `MATCHING_VERSION`, actualizá
+  `docs/product/matching.md`, actualizá los fixtures. Nunca cambies pesos sin
+  actualizar la justificación documentada.
+- **Decisión arquitectónica** → escribí un ADR en `docs/decisions/`.
 
-## Definition of done
+## Definición de terminado
 
-Working code is not done. Done is: implementation works, types pass, lint
-passes, tests pass, security reviewed, loading/empty/error states exist,
-accessibility considered, docs updated, no regression.
+Que el código funcione no es estar terminado. Terminado es: la implementación
+funciona, los tipos pasan, el lint pasa, los tests pasan, se revisó seguridad,
+existen los estados de carga / vacío / error, se consideró accesibilidad, la
+documentación está actualizada, no hay regresiones.
 
-## Push target
+## Destino de push
 
-Development happens on `claude/mesh-v1-spec-7m86k7` unless told otherwise.
+El desarrollo sucede en `claude/mesh-v1-spec-7m86k7` salvo indicación contraria.

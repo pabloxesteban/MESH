@@ -1,84 +1,86 @@
-# MESH — Taste & Matching Engine
+# MESH — Motor de gusto y matching
 
-**Status:** Proposed · **Owner:** matching-engineer · **Algorithm version:** `taste/1` · `match/1`
+**Estado:** Propuesto · **Responsable:** matching-engineer · **Versión de algoritmo:** `taste/1` · `match/1`
 
-This document is the specification of record. The implementation in
-`packages/domain/src/matching/` must match it exactly, and the fixtures in
-`packages/domain/src/matching/__fixtures__/` are derived from the worked
-examples here. If the code and this document disagree, that is a bug in one of
-them — resolve it, do not let it drift.
+Este documento es la especificación de referencia. La implementación en
+`packages/domain/src/matching/` tiene que coincidir exactamente con él, y los
+fixtures en `packages/domain/src/matching/__fixtures__/` derivan de los ejemplos
+trabajados de acá. Si el código y este documento no coinciden, eso es un bug en
+alguno de los dos — resolvelo, no dejes que se separen.
 
 ---
 
-## 1. Design constraints
+## 1. Restricciones de diseño
 
-1. **Deterministic.** Same inputs → same score, same order, same reasons. No
-   randomness, no wall-clock reads inside scoring, no model inference.
-2. **Explainable.** Every point of the score is attributable to a named term.
-3. **Testable.** Pure functions over plain data. No database, no network.
-4. **Versioned.** `TASTE_VERSION` and `MATCHING_VERSION` are stored on every
-   persisted taste profile and match row. Changing weights bumps the version
-   and invalidates cached results.
-5. **Honest under sparsity.** With 8–15 artists the model must degrade to "we
-   don't know yet" rather than to confident nonsense.
+1. **Determinístico.** Mismas entradas → mismo puntaje, mismo orden, mismas
+   razones. Sin azar, sin lecturas de reloj dentro del scoring, sin inferencia
+   de modelos.
+2. **Explicable.** Cada punto del puntaje es atribuible a un término con nombre.
+3. **Testeable.** Funciones puras sobre datos planos. Sin base de datos, sin red.
+4. **Versionado.** `TASTE_VERSION` y `MATCHING_VERSION` se guardan en cada
+   perfil de gusto y cada fila de match persistida. Cambiar pesos sube la
+   versión e invalida los resultados cacheados.
+5. **Honesto con datos escasos.** Con 8–15 artistas, el modelo tiene que
+   degradar a "todavía no sabemos" y no a un disparate confiado.
 
-## 2. Vocabulary
+## 2. Vocabulario
 
-| Symbol | Meaning |
+| Símbolo | Significado |
 |---|---|
-| `S` | The style vocabulary of a category (e.g. tattoo → Fine Line, Blackwork, …) |
-| `t_s ∈ [0,1)` | User's taste score for style `s` |
-| `a_s ∈ [0,1)` | User's aversion score for style `s` (used internally, never displayed) |
-| `p_{a,s} ∈ (0,1]` | Artist `a`'s declared proficiency in style `s` |
-| `w_{i,s}` | Weight of style `s` on portfolio item `i`; `Σ_s w_{i,s} = 1` |
-| `n` | Count of decisive interactions (like or pass) by the user in a category |
+| `S` | Vocabulario de estilos de una categoría (p. ej. tatuaje → Fine Line, Blackwork, …) |
+| `t_s ∈ [0,1)` | Puntaje de gusto del usuario para el estilo `s` |
+| `a_s ∈ [0,1)` | Puntaje de aversión del usuario para `s` (uso interno, nunca se muestra) |
+| `p_{a,s} ∈ (0,1]` | Solvencia declarada del artista `a` en el estilo `s` |
+| `w_{i,s}` | Peso del estilo `s` en la pieza `i`; `Σ_s w_{i,s} = 1` |
+| `n` | Cantidad de interacciones decisivas (me gusta o paso) del usuario en una categoría |
 
-## 3. Taste engine (`taste/1`)
+## 3. Motor de gusto (`taste/1`)
 
-### 3.1 Interaction values
+### 3.1 Valores de interacción
 
-An interaction is stored as one row per (user, portfolio item), holding a
-verdict and a save flag — not as an append-only log — so that taste is a pure
-function of current state and undo is trivial.
+Una interacción se guarda como una fila por (usuario, pieza de portfolio), con
+un veredicto y una marca de guardado — no como un log de solo agregado — para
+que el gusto sea una función pura del estado actual y deshacer sea trivial.
 
-| State | Value `v` |
+| Estado | Valor `v` |
 |---|---|
 | `like` | **+1.0** |
 | `like` + `saved` | **+1.5** |
 | `pass` | **−0.25** |
 
-**Rationale for these values.** A save is a stronger, scarcer, more deliberate
-signal than a like — it costs an extra action and expresses intent to return —
-so it is weighted 1.5×. A pass is *weak* evidence: people pass on good work
-because of placement, mood, or scroll speed, so it is damped to a quarter of a
-like and can never by itself push a style negative enough to matter. The
-asymmetry is intentional: false negatives (missing something you'd like) are
-cheaper here than false positives (recommending someone wrong).
+**Justificación de estos valores.** Guardar es una señal más fuerte, más escasa
+y más deliberada que un me gusta —cuesta una acción extra y expresa intención de
+volver— así que pesa 1.5×. Un paso es evidencia *débil*: la gente pasa sobre
+buen trabajo por la ubicación en el cuerpo, por el humor del momento o por la
+velocidad del scroll, así que se amortigua a un cuarto de un me gusta y nunca
+puede por sí solo empujar un estilo a un negativo que importe. La asimetría es
+intencional: los falsos negativos (perderte algo que te gustaría) son más
+baratos acá que los falsos positivos (recomendarte a la persona equivocada).
 
-**Rejected:** dwell-time and view-count weighting. It would improve the model
-slightly and would make MESH optimise for time-on-card, which §44 of the brief
-forbids and which we do not want to build a habit of measuring.
+**Rechazado:** ponderación por tiempo de permanencia y por vistas. Mejoraría el
+modelo apenas y haría que MESH optimice por tiempo en tarjeta, que es lo que
+§44 del brief prohíbe y un hábito de medición que no queremos adquirir.
 
-A save without a like is not representable in the UI — saving implies liking —
-so `saved = true, verdict = pass` is an invalid state, rejected by a database
-check constraint.
+Guardar sin dar me gusta no es representable en la UI —guardar implica me
+gusta— así que `saved = true, verdict = 'pass'` es un estado inválido,
+rechazado por una restricción CHECK en la base.
 
-### 3.2 Accumulation
+### 3.2 Acumulación
 
-For each style `s`:
+Para cada estilo `s`:
 
 ```
-raw_s = Σ over interactions i  ( v_i × w_{i,s} )
+raw_s = Σ sobre interacciones i  ( v_i × w_{i,s} )
 ```
 
-Item style weights sum to 1 per item, so a piece tagged with four styles cannot
-outvote a piece tagged with one. Content authoring assigns weights explicitly;
-`packages/domain` normalises and the seed validator rejects sets that do not
-sum to 1 ± 0.001.
+Los pesos de estilo por pieza suman 1, así que una pieza etiquetada con cuatro
+estilos no puede pesar más que una etiquetada con uno. La autoría de contenido
+asigna los pesos explícitamente; `packages/domain` normaliza y el validador del
+seed rechaza conjuntos que no sumen 1 ± 0,001.
 
-### 3.3 Normalisation
+### 3.3 Normalización
 
-Split into positive and negative components, then saturate:
+Se separa en componente positivo y negativo, y después se satura:
 
 ```
 t_s = max(0, raw_s) / ( max(0, raw_s) + K )
@@ -86,246 +88,256 @@ a_s = max(0, −raw_s) / ( max(0, −raw_s) + K )
 K = 3.0
 ```
 
-**Why saturating rather than max-normalising.** Dividing by the strongest style
-would force some style to 1.0 even for a user with three interactions, which
-reads as certainty we do not have. The saturating form is *absolute*: `t_s` is
-"how much evidence do we have that you like `s`", asymptotic to 1, never
-reaching it. `K = 3.0` means roughly three liked pieces in a style reach 0.5
-and about seven reach 0.7 — which lines up with how much evidence a person
-would themselves consider convincing.
+**Por qué saturante y no normalizado al máximo.** Dividir por el estilo más
+fuerte forzaría a algún estilo a 1,0 incluso para alguien con tres
+interacciones, lo que se lee como una certeza que no tenemos. La forma saturante
+es *absoluta*: `t_s` es "cuánta evidencia tenemos de que te gusta `s`",
+asintótica a 1, sin llegar nunca. `K = 3.0` significa que aproximadamente tres
+piezas marcadas en un estilo llegan a 0,5 y unas siete llegan a 0,7 — que se
+alinea con cuánta evidencia una persona consideraría convincente sobre sí misma.
 
-Worked example, matching the product spec's reveal screen:
+Ejemplo trabajado, que coincide con la pantalla de revelación de la spec:
 
-| Style | Contributing interactions | `raw` | `t` |
+| Estilo | Interacciones que aportan | `raw` | `t` |
 |---|---|---|---|
-| Fine Line | 9 likes @ 0.55 + 4 saves @ 0.6 | 13.65 | **0.82** |
-| Botanical | 6 likes @ 0.45 + 2 saves @ 0.5 | 8.55 | **0.74** |
-| Minimal | 5 likes @ 0.5 + 1 save @ 0.4 | 3.10 | **0.51** |
-| Black & Grey | 2 likes @ 0.5, 3 passes @ 0.4 | 0.70 | **0.19** |
+| Fine Line | 9 me gusta @ 0,55 + 4 guardados @ 0,6 | 13,65 | **0,82** |
+| Botanical | 6 me gusta @ 0,45 + 2 guardados @ 0,5 | 8,55 | **0,74** |
+| Minimal | 5 me gusta @ 0,5 + 1 guardado @ 0,4 | 3,10 | **0,51** |
+| Black & Grey | 2 me gusta @ 0,5, 3 pasos @ 0,4 | 0,70 | **0,19** |
 
-### 3.4 Readiness
+### 3.4 Umbral de listo
 
 ```
-ready  ⇔  n ≥ 12  AND  at least 3 styles have t_s ≥ 0.30
+listo  ⇔  n ≥ 12  Y  al menos 3 estilos con t_s ≥ 0,30
 ```
 
-Below readiness there is **no taste screen and no match list** — the Matches
-tab shows an honest empty state. Two conditions rather than one because twelve
-interactions spread evenly across twelve styles is not a taste, it is noise.
+Por debajo del umbral **no hay pantalla de gusto ni lista de matches** — la
+pestaña Matches muestra un estado vacío honesto. Dos condiciones y no una,
+porque doce interacciones repartidas parejo entre doce estilos no son un gusto,
+son ruido.
 
-`n = 12` is a starting assumption based on how long a user will tolerate the
-onboarding deck before wanting a payoff. It is a constant in
-`packages/domain/src/taste/config.ts` and must be revisited against real
-funnel data (see [`metrics.md`](metrics.md), *taste completion*).
+`n = 12` es un supuesto inicial basado en cuánto va a tolerar alguien el mazo de
+onboarding antes de querer una recompensa. Es una constante en
+`packages/domain/src/taste/config.ts` y hay que revisitarla contra datos reales
+de embudo (ver [`metrics.md`](metrics.md), *completitud de gusto*).
 
-### 3.5 Display filter
+### 3.5 Filtro de visualización
 
-A style is shown on the taste screen only if `t_s ≥ 0.15` **and** it is
-supported by ≥ 2 interactions. Aversion is never displayed.
+Un estilo se muestra en la pantalla de gusto solo si `t_s ≥ 0,15` **y** está
+sostenido por ≥ 2 interacciones. La aversión no se muestra nunca.
 
-### 3.6 Recency
+### 3.6 Recencia
 
-V1 applies **no time decay**. A validation-stage user's taste does not
-meaningfully drift within the measurement window, and decay would make taste a
-function of wall-clock time — destroying determinism and testability. When
-sessions span months, add decay as `taste/2` with an explicit half-life and
-snapshot timestamps, not before.
+V1 no aplica **ningún decaimiento temporal**. El gusto de un usuario en etapa de
+validación no se mueve de forma significativa dentro de la ventana de medición, y
+el decaimiento haría del gusto una función del reloj — destruyendo el
+determinismo y la testeabilidad. Cuando las sesiones abarquen meses, agregá
+decaimiento como `taste/2` con una vida media explícita y timestamps de
+snapshot, no antes.
 
-## 4. Match engine (`match/1`) — taste-based
+## 4. Motor de match (`match/1`) — basado en gusto
 
-### 4.1 Components
+### 4.1 Componentes
 
-Each component returns `[0,1]`.
+Cada componente devuelve `[0,1]`.
 
-**Style (dominant).** Over the user's top 6 styles by `t_s`:
+**Estilo (dominante).** Sobre los 6 estilos con mayor `t_s` del usuario:
 
 ```
 style_raw   = Σ_s ( t_s × p_{a,s} ) / Σ_s t_s
-aversion    = Σ_s ( a_s × p_{a,s} ) / Σ_s a_s        (0 if the user has no aversion)
+aversion    = Σ_s ( a_s × p_{a,s} ) / Σ_s a_s        (0 si el usuario no tiene aversión)
 Style       = clamp01( style_raw − 0.5 × aversion )
 ```
 
-`style_raw` reads plainly: *of the taste this person has demonstrated, what
-fraction does this artist cover?* The aversion term is halved because passes
-are weak evidence (§3.1) and we would rather show a slightly wrong artist than
-silently suppress a good one.
+`style_raw` se lee de forma directa: *del gusto que esta persona demostró, qué
+fracción cubre este artista*. El término de aversión va a la mitad porque los
+pasos son evidencia débil (§3.1) y preferimos mostrar un artista levemente
+equivocado antes que suprimir en silencio uno bueno.
 
-**Location.**
+**Ubicación.**
 
-| Situation | Value |
+| Situación | Valor |
 |---|---|
-| Same city as the user/project | 1.0 |
-| Same metro area | 0.7 |
-| Different city, artist guests there | 0.4 |
-| Different city, no travel | 0.0 |
-| User location unknown | *component omitted* |
+| Misma ciudad que el usuario/proyecto | 1,0 |
+| Misma área metropolitana | 0,7 |
+| Otra ciudad, el artista viaja / hace guest | 0,4 |
+| Otra ciudad, no viaja | 0,0 |
+| Ubicación del usuario desconocida | *componente omitido* |
 
-**Price.** Overlap of the artist's published `[min, max]` with the project's
-budget band, as a fraction of the budget band. No budget or no published price
-→ *component omitted*.
+**Precio.** Solapamiento del `[min, max]` publicado del artista con la banda de
+presupuesto del proyecto, como fracción de la banda de presupuesto. Sin
+presupuesto o sin precio publicado → *componente omitido*.
 
-**Availability.** `open → 1.0`, `limited → 0.7`, `waitlist → 0.5`,
-`closed → 0.2`. If `availability_updated_at` is older than 45 days, the status
-is considered unknown and the component is *omitted* — MESH does not assert
-availability it cannot stand behind.
+**Disponibilidad.** `open → 1,0`, `limited → 0,7`, `waitlist → 0,5`,
+`closed → 0,2`. Si `availability_updated_at` tiene más de 45 días, el estado se
+considera desconocido y el componente se *omite* — MESH no afirma una
+disponibilidad que no puede sostener.
 
-### 4.2 Weights and the omission rule
+### 4.2 Pesos y la regla de omisión
 
-| Component | Weight |
+| Componente | Peso |
 |---|---|
-| Style | 0.70 |
-| Location | 0.15 |
-| Price | 0.10 |
-| Availability | 0.05 |
+| Estilo | 0,70 |
+| Ubicación | 0,15 |
+| Precio | 0,10 |
+| Disponibilidad | 0,05 |
 
-**Omitted components do not score zero — they are removed and the remaining
-weights are renormalised over what is known.** Missing data must never look
-like a bad answer; an artist who has not published a price is not a worse
-match, we simply know less about them.
+**Los componentes omitidos no puntúan cero — se eliminan y los pesos restantes
+se renormalizan sobre lo que sí se conoce.** Un dato faltante nunca puede
+parecer una mala respuesta; un artista que no publicó precio no es un peor
+match, simplemente sabemos menos de él.
 
 ```
-score = Σ_{c ∈ known} ( w_c × value_c ) / Σ_{c ∈ known} w_c        ∈ [0,1]
+puntaje = Σ_{c ∈ conocidos} ( w_c × valor_c ) / Σ_{c ∈ conocidos} w_c        ∈ [0,1]
 ```
 
-**A note on Location in V1.** Every artist in V1 is in CABA, so Location is
-effectively constant and contributes no ranking signal. It stays in the model
-for forward compatibility and because project-based matching may specify a
-different location — but it is never *shown* as a reason unless it actually
-discriminated between candidates in the result set.
+**Nota sobre Ubicación en V1.** Todos los artistas de V1 están en CABA, así que
+Ubicación es efectivamente constante y no aporta señal de ranking. Queda en el
+modelo por compatibilidad hacia adelante y porque el matching por proyecto puede
+especificar otra ubicación — pero nunca se *muestra* como razón salvo que
+efectivamente haya discriminado entre los candidatos del resultado.
 
-### 4.3 Ordering and ties
+### 4.3 Orden y empates
 
-Sort by `score` descending, then by number of overlapping styles descending,
-then by `professional.id` ascending. The final key is arbitrary but stable —
-so the same query always returns the same order, and the E2E tests are not
-flaky.
+Ordenar por `puntaje` descendente, después por cantidad de estilos solapados
+descendente, después por `professional.id` ascendente. La última clave es
+arbitraria pero estable — así la misma consulta siempre devuelve el mismo orden
+y los tests E2E no son intermitentes.
 
-### 4.4 Presentation
+### 4.4 Presentación
 
-The user sees a **band**, not a percentage:
+La persona ve una **banda**, no un porcentaje:
 
-| Score | Band (es-AR) |
+| Puntaje | Banda |
 |---|---|
-| `≥ 0.75` | Fuerte |
-| `0.55 – 0.75` | Bueno |
-| `0.40 – 0.55` | Posible |
-| `< 0.40` | not shown |
+| `≥ 0,75` | Fuerte |
+| `0,55 – 0,75` | Bueno |
+| `0,40 – 0,55` | Posible |
+| `< 0,40` | no se muestra |
 
-Rationale in [ADR-005](../decisions/ADR-005-matching.md). Short version: with
-one city and a dozen artists, most scores land in a narrow band, and a
-displayed "96%" is a precision claim the data cannot support. Bands are honest
-and still rank. The raw score is available in debug builds and in the
-`matches.score` column.
+Justificación en [ADR-005](../decisions/ADR-005-matching.md). En corto: con una
+ciudad y una docena de artistas, la mayoría de los puntajes cae en una banda
+angosta, y un "96%" en pantalla es una afirmación de precisión que los datos no
+sostienen. Las bandas son honestas y rankean igual. El puntaje crudo está
+disponible en builds de debug y en la columna `matches.score`.
 
-Candidates scoring below 0.40 are **not shown at all**, even if that leaves the
-list short or empty. A short honest list beats a padded one.
+Los candidatos por debajo de 0,40 **no se muestran en absoluto**, aunque eso
+deje la lista corta o vacía. Una lista corta y honesta le gana a una rellenada.
 
-### 4.5 Reasons
+### 4.5 Razones
 
-Reasons are derived, never authored. For each component, compute its
-contribution `w_c × value_c / Σw`. Emit at most three reasons, ordered by
-contribution, only for components contributing ≥ 0.10 of the final score, and
-only from this closed set of templates:
+Las razones se derivan, no se redactan. Para cada componente se calcula su
+aporte `w_c × valor_c / Σw`. Se emiten como máximo tres razones, ordenadas por
+aporte, solo para componentes que aporten ≥ 0,10 del puntaje final, y solo desde
+este conjunto cerrado de plantillas:
 
-| Condition | Reason (es-AR) |
+| Condición | Razón |
 |---|---|
-| Top contributing style `s` with `t_s ≥ 0.5`, mostly from likes | Marcaste varios trabajos de **{s}** |
-| Top contributing style `s`, mostly from saves | Guardaste diseños de **{s}** |
-| Artist is primary in ≥ 2 of the user's top styles | Trabaja **{s1}** y **{s2}** |
-| Location discriminated within the result set | En **{ciudad}** |
-| Price band overlaps a stated budget | Su rango entra en tu presupuesto |
-| Availability fresh and `open` | Está tomando turnos |
+| Estilo `s` que más aporta con `t_s ≥ 0,5`, mayormente de me gusta | Marcaste varios trabajos de **{s}** |
+| Estilo `s` que más aporta, mayormente de guardados | Guardaste diseños de **{s}** |
+| El artista es primario en ≥ 2 de los estilos top del usuario | Trabaja **{s1}** y **{s2}** |
+| La ubicación discriminó dentro del resultado | En **{ciudad}** |
+| La banda de precio solapa un presupuesto declarado | Su rango entra en tu presupuesto |
+| Disponibilidad fresca y `open` | Está tomando turnos |
 
-If fewer than one reason clears the threshold, the candidate is not shown.
-There is no "general vibe" fallback and no generated prose.
+Si menos de una razón supera el umbral, el candidato no se muestra. No hay
+fallback de "onda general" ni prosa generada.
 
-## 5. Project-based matching
+## 5. Matching basado en proyecto
 
-A project supplies explicit styles, location, and budget. Its style weights are
-the user-declared ones, normalised to sum to 1, then **blended** with ambient
-taste:
+Un proyecto aporta estilos, ubicación y presupuesto explícitos. Sus pesos de
+estilo son los declarados por el usuario, normalizados a sumar 1, y después
+**mezclados** con el gusto ambiente:
 
 ```
-t'_s = 0.75 × project_s + 0.25 × t_s
+t'_s = 0,75 × proyecto_s + 0,25 × t_s
 ```
 
-The stated brief dominates — the person told us what they want — but ambient
-taste still breaks ties between artists who all do "fine line botanical". If
-the user has no taste profile yet, `t' = project`, and the match runs normally.
-Location and budget come from the project when present, falling back to
-profile.
+El brief declarado domina —la persona nos dijo qué quiere— pero el gusto
+ambiente sigue rompiendo empates entre artistas que todos hacen "fine line
+botánico". Si el usuario todavía no tiene perfil de gusto, `t' = proyecto`, y el
+match corre normalmente. Ubicación y presupuesto salen del proyecto cuando están
+presentes, con fallback al perfil.
 
-## 6. Cold start
+## 6. Arranque en frío
 
-| State | Behaviour |
+| Estado | Comportamiento |
 |---|---|
-| `n = 0` | Discover feed only. No matches tab content beyond an invitation. |
-| `0 < n < 12` | Progress affordance. Still no matches. |
-| Ready, but no candidate ≥ 0.40 | Honest empty state: "Todavía no encontramos a alguien que encaje. Seguí explorando." Plus a link to browse all artists by style. |
-| Directed user, no taste, creates a project | Project matching runs immediately — no onboarding required. |
+| `n = 0` | Solo el feed de descubrimiento. Nada en Matches más allá de una invitación. |
+| `0 < n < 12` | Indicador de progreso. Todavía sin matches. |
+| Listo, pero ningún candidato ≥ 0,40 | Estado vacío honesto: "Todavía no encontramos a alguien que encaje. Seguí explorando." Más un enlace para ver todos los artistas por estilo. |
+| Usuario dirigido, sin gusto, crea un proyecto | El matching por proyecto corre de inmediato — no hace falta onboarding. |
 
-A "new to MESH, start here" ordering may be offered before readiness, but it is
-labelled as a starting point, never as a match, and it is ordered by portfolio
-depth and recency — not by a fake score.
+Se puede ofrecer un orden de "nuevos en MESH, empezá por acá" antes del umbral,
+pero está rotulado como punto de partida, nunca como match, y se ordena por
+profundidad de portfolio y recencia — no por un puntaje falso.
 
-## 7. Discovery feed ordering
+## 7. Orden del feed de descubrimiento
 
-Not a recommender in V1. The feed is:
+En V1 no es un recomendador. El feed es:
 
-1. Items in the user's category, published, not yet interacted with.
-2. Deterministically shuffled with a seed derived from `user_id` — so each user
-   sees a stable personal order and pagination never repeats or skips.
-3. Diversity constraint: no two consecutive items from the same professional,
-   and at most 3 of any 10 consecutive items from one professional.
+1. Piezas de la categoría del usuario, publicadas, sin interacción previa.
+2. Mezcladas determinísticamente con una semilla derivada de `user_id` — así
+   cada persona ve un orden personal estable y la paginación nunca repite ni
+   saltea.
+3. Restricción de diversidad: nunca dos piezas consecutivas del mismo
+   profesional, y como mucho 3 de cada 10 piezas consecutivas de un mismo
+   profesional.
 
-Making discovery itself taste-driven would create a filter bubble before the
-taste profile is trustworthy, and would make the taste engine's input a
-function of its own output. Keep the input unbiased in V1.
+Hacer que el descubrimiento mismo esté guiado por el gusto crearía una burbuja
+antes de que el perfil sea confiable, y volvería la entrada del motor de gusto
+una función de su propia salida. En V1 la entrada se mantiene sin sesgo.
 
-## 8. Required tests
+## 8. Tests requeridos
 
-Fixtures live in `packages/domain/src/matching/__fixtures__/`. Every case below
-has a committed expected value; a change to any of them requires a version bump
-and a documented rationale.
+Los fixtures viven en `packages/domain/src/matching/__fixtures__/`. Cada caso de
+abajo tiene un valor esperado commiteado; cambiar cualquiera de ellos requiere
+subir la versión y una justificación documentada.
 
-**Taste**
-- Single like on a single-style item → exact `t_s`.
-- Save weighted 1.5× a like, verified numerically.
-- Multi-style item splits by weight and does not outvote a single-style item.
-- Passes reduce but cannot make `t_s` negative; `a_s` rises instead.
-- Undo (delete interaction) returns the vector to its prior state exactly.
-- Readiness false at `n = 11`, true at `n = 12` with 3 styles ≥ 0.30.
-- Readiness false at `n = 20` spread across 20 styles.
-- Empty interaction set → zero vector, not `NaN`, not a divide-by-zero.
+**Gusto**
+- Un solo me gusta sobre una pieza de un solo estilo → `t_s` exacto.
+- Guardar pesa 1,5× un me gusta, verificado numéricamente.
+- Una pieza multi-estilo se reparte por peso y no pesa más que una de un estilo.
+- Los pasos reducen pero no pueden hacer `t_s` negativo; sube `a_s` en su lugar.
+- Deshacer (borrar la interacción) devuelve el vector exactamente al estado
+  anterior.
+- Umbral falso en `n = 11`, verdadero en `n = 12` con 3 estilos ≥ 0,30.
+- Umbral falso en `n = 20` repartido entre 20 estilos.
+- Conjunto vacío de interacciones → vector cero, no `NaN`, no división por cero.
 
 **Matching**
-- Exact style match → high score, correct reasons, correct band.
-- Partial match.
-- Zero overlap → below floor → not returned.
-- Location mismatch with travel and without.
-- Price band: overlapping, adjacent, disjoint, missing.
-- Availability: fresh open, fresh closed, stale (must be omitted, and must
-  *not* reduce the score relative to a candidate with no availability at all).
-- Omission renormalisation: an artist with unknown price and unknown
-  availability scores identically to one whose only known component is style.
-- Empty taste profile → project matching still works.
-- Ordering stability across two identical runs and across a permuted input array.
-- Reasons never reference a component that was omitted.
-- Reason count ≤ 3 and threshold respected.
+- Coincidencia exacta de estilos → puntaje alto, razones correctas, banda
+  correcta.
+- Coincidencia parcial.
+- Solapamiento nulo → por debajo del piso → no se devuelve.
+- Ubicación distinta con viaje y sin viaje.
+- Banda de precio: solapada, contigua, disjunta, ausente.
+- Disponibilidad: fresca abierta, fresca cerrada, vieja (tiene que omitirse, y
+  **no** debe reducir el puntaje respecto de un candidato sin disponibilidad).
+- Renormalización por omisión: un artista con precio y disponibilidad
+  desconocidos puntúa idéntico a uno cuyo único componente conocido es estilo.
+- Perfil de gusto vacío → el matching por proyecto igual funciona.
+- Estabilidad del orden en dos corridas idénticas y con el array de entrada
+  permutado.
+- Las razones nunca referencian un componente omitido.
+- Cantidad de razones ≤ 3 y umbral respetado.
 
-**Property-based**
-- Score always in `[0,1]`.
-- Adding a like for a style never decreases an artist's score in that style.
-- Reason set is always a subset of components with non-zero contribution.
+**Basados en propiedades**
+- El puntaje siempre en `[0,1]`.
+- Agregar un me gusta a un estilo nunca baja el puntaje de un artista en ese
+  estilo.
+- El conjunto de razones siempre es un subconjunto de los componentes con aporte
+  distinto de cero.
 
-## 9. Versioning and change control
+## 9. Versionado y control de cambios
 
-`TASTE_VERSION` and `MATCHING_VERSION` are exported constants. Any change to
-weights, thresholds, `K`, band boundaries, or the reason set requires:
+`TASTE_VERSION` y `MATCHING_VERSION` son constantes exportadas. Cualquier cambio
+en pesos, umbrales, `K`, límites de banda o el conjunto de razones requiere:
 
-1. Version bump.
-2. Update to this document, including the rationale.
-3. Updated fixtures with expected values recomputed and reviewed.
-4. Invalidation of `taste_profiles` and `matches` rows carrying the old version.
+1. Subir la versión.
+2. Actualizar este documento, incluida la justificación.
+3. Fixtures actualizados, con los valores esperados recalculados y revisados.
+4. Invalidar las filas de `taste_profiles` y `matches` con la versión vieja.
 
-Silent tuning is prohibited. If the numbers move, the reason moves with them.
+El ajuste silencioso está prohibido. Si se mueven los números, se mueve con
+ellos la razón escrita.

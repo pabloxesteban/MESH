@@ -1,218 +1,230 @@
-# MESH — System Architecture
+# MESH — Arquitectura del sistema
 
-**Status:** Proposed · **Owner:** product-architect
+**Estado:** Propuesto · **Responsable:** product-architect
 
 ---
 
-## 1. Shape of the system
+## 1. Forma del sistema
 
 ```
 ┌───────────────────────────────────────────────┐
 │  apps/mobile  — Expo / React Native / TS      │
 │                                               │
 │  screens (expo-router)                        │
-│  design-system  (tokens + components)         │
+│  design-system  (tokens + componentes)        │
 │  features/      discovery · taste · match ·   │
 │                 profile · project · contact   │
 │  data/          TanStack Query + supabase-js  │
-│  analytics/     buffered event sink           │
+│  analytics/     sink de eventos con buffer    │
 └──────────────┬────────────────────────────────┘
-               │ anon key + user JWT, HTTPS
+               │ anon key + JWT de usuario, HTTPS
                ▼
 ┌───────────────────────────────────────────────┐
 │  Supabase                                     │
-│   Auth   — anonymous + email/password         │
-│   Postgres — schema + RLS + RPCs              │
-│   Storage — portfolio (public) ·              │
-│             references (private)              │
-│   Edge Functions — only where a secret or     │
-│             cross-user read is required       │
+│   Auth   — anónima + email/contraseña         │
+│   Postgres — esquema + RLS + RPCs             │
+│   Storage — portfolio (público) ·             │
+│             references (privado)              │
+│   Edge Functions — solo donde haga falta un   │
+│             secreto o una lectura cruzada     │
 └───────────────────────────────────────────────┘
                ▲
-               │ service-role key, local only
+               │ service-role key, solo local
 ┌──────────────┴────────────────────────────────┐
-│  tools/seed — content CLI, never bundled      │
+│  tools/seed — CLI de contenido, nunca en el   │
+│               bundle                          │
 └───────────────────────────────────────────────┘
 
 ┌───────────────────────────────────────────────┐
-│  packages/domain — pure TypeScript            │
-│  taxonomy · types · Zod schemas ·             │
-│  taste engine · matching engine               │
-│  consumed by: mobile, seed, tests             │
+│  packages/domain — TypeScript puro            │
+│  taxonomía · tipos · esquemas Zod ·           │
+│  motor de gusto · motor de matching           │
+│  consumido por: mobile, seed, tests           │
 └───────────────────────────────────────────────┘
 ```
 
-No custom backend server. Supabase is the backend; Postgres is the
-authorization layer.
+Sin servidor propio. Supabase es el backend; Postgres es la capa de
+autorización.
 
-## 2. Repository structure, and what was rejected
+## 2. Estructura del repositorio, y qué se descartó
 
 ```
 MESH/
-├── apps/mobile/            Expo app. Design system lives in src/design-system.
-├── packages/domain/        Pure TS. No React, no react-native imports. Ever.
-├── tools/seed/             Service-role CLI: validate → upload media → upsert.
+├── apps/mobile/            App Expo. El design system vive en src/design-system.
+├── packages/domain/        TS puro. Sin React, sin imports de react-native. Nunca.
+├── tools/seed/             CLI con service role: validar → subir media → upsert.
 ├── supabase/
-│   ├── migrations/         Numbered SQL. Schema, policies, RPCs, indexes.
-│   ├── functions/          Edge functions (few).
-│   └── seed.sql            Reference data only: categories, styles, locations.
-├── content/artists/        Curated artist content + consent records.
+│   ├── migrations/         SQL numerado. Esquema, políticas, RPCs, índices.
+│   ├── functions/          Edge functions (pocas).
+│   └── seed.sql            Solo datos de referencia: categorías, estilos, ubicaciones.
+├── content/artists/        Contenido curado + registros de consentimiento.
 ├── docs/
 └── .claude/
 ```
 
-npm workspaces, three workspaces. **`packages/domain` is the only shared
-package, and it earns its place**: the taste and matching engines, the
-taxonomy, and the content schemas are used by the app, the seeder, and the test
-suite. Duplicating them would guarantee they diverge.
+Workspaces de npm, tres workspaces. **`packages/domain` es el único paquete
+compartido, y se gana su lugar**: los motores de gusto y matching, la taxonomía
+y los esquemas de contenido los usan la app, el seeder y la suite de tests.
+Duplicarlos garantizaría que se separen.
 
-**Rejected — `packages/design-system`.** One consumer, and it is coupled to
-React Native. Extracting it buys build complexity and an import boundary in
-exchange for the appearance of sophistication. It lives at
-`apps/mobile/src/design-system/` with a lint rule that screens may not define
-raw style values, which is the actual goal.
+**Descartado — `packages/design-system`.** Un solo consumidor, y está acoplado a
+React Native. Extraerlo compra complejidad de build y un límite de imports a
+cambio de la apariencia de sofisticación. Vive en
+`apps/mobile/src/design-system/` con una regla de lint que impide que las
+pantallas definan valores de estilo crudos, que es el objetivo real.
 
-**Rejected — `packages/config`.** Shared tsconfig and eslint config are two
-files. `tsconfig.base.json` and `eslint.config.mjs` at the root, extended by
-each workspace.
+**Descartado — `packages/config`.** El tsconfig y el eslint compartidos son dos
+archivos. `tsconfig.base.json` y `eslint.config.mjs` en la raíz, extendidos por
+cada workspace.
 
-**Rejected — a monorepo build orchestrator (Turbo/Nx).** Three workspaces and
-one developer. npm scripts are sufficient and legible.
+**Descartado — un orquestador de monorepo (Turbo/Nx).** Tres workspaces y un
+desarrollador. Los scripts de npm alcanzan y se leen mejor.
 
-See [ADR-001](../decisions/ADR-001-stack-and-repo-structure.md).
+Ver [ADR-001](../decisions/ADR-001-stack-and-repo-structure.md).
 
-## 3. Layering in the app
+## 3. Capas dentro de la app
 
 ```
-screens/            expo-router route files. Composition only — no logic, no queries.
-features/<name>/
-    components/     feature UI, built from design-system primitives
+screens/            Archivos de ruta de expo-router. Solo composición — sin lógica, sin queries.
+features/<nombre>/
+    components/     UI de la feature, construida con primitivos del design system
     hooks/          useDiscoveryFeed, useTasteProfile, useMatches …
-    queries.ts      the only place supabase-js is called for this feature
-design-system/      tokens, primitives, motion, haptics
-data/               supabase client, query client, offline queue, error mapping
+    queries.ts      el único lugar donde se llama a supabase-js para esta feature
+design-system/      tokens, primitivos, movimiento, hápticos
+data/               cliente supabase, query client, cola offline, mapeo de errores
 analytics/          track()
-i18n/               es-AR source, en target
+i18n/               es-AR de origen, en de destino
 ```
 
-Rules enforced by lint:
+Reglas impuestas por lint:
 
-- `screens/` may not import `@supabase/supabase-js`.
-- `packages/domain` may not import `react`, `react-native`, or `@supabase/*`.
-- Nothing outside `design-system/` may contain a raw hex colour, px spacing
-  value, or animation duration.
+- `screens/` no puede importar `@supabase/supabase-js`.
+- `packages/domain` no puede importar `react`, `react-native` ni `@supabase/*`.
+- Nada fuera de `design-system/` puede contener un color hex crudo, un valor de
+  espaciado en px o una duración de animación.
 
-## 4. Data flow
+## 4. Flujo de datos
 
-**Read path.** Screen → feature hook → TanStack Query → `queries.ts` →
-supabase-js (or an RPC) → Postgres, filtered by RLS. The client never sends a
-"give me user X's data" query — it sends "give me my data" and the database
-decides what that means.
+**Camino de lectura.** Pantalla → hook de feature → TanStack Query →
+`queries.ts` → supabase-js (o un RPC) → Postgres, filtrado por RLS. El cliente
+nunca envía una consulta del tipo "dame los datos del usuario X" — envía "dame
+mis datos" y la base decide qué significa eso.
 
-**Discovery feed.** A Postgres RPC, `get_discovery_feed(p_category, p_limit,
-p_cursor)`, `SECURITY INVOKER`, using `auth.uid()`. It excludes already-seen
-items, applies the deterministic per-user shuffle and the diversity constraint
-(see [`matching.md`](../product/matching.md) §7), and returns items with media
-and style tags in one round trip. Doing this client-side would mean fetching
-the whole catalogue.
+**Feed de descubrimiento.** Un RPC de Postgres,
+`get_discovery_feed(p_category, p_limit, p_cursor)`, `SECURITY INVOKER`, que usa
+`auth.uid()`. Excluye las piezas ya vistas, aplica la mezcla determinística por
+usuario y la restricción de diversidad (ver
+[`matching.md`](../product/matching.md) §7), y devuelve las piezas con su media y
+sus etiquetas de estilo en un solo round trip. Hacerlo del lado del cliente
+significaría bajar el catálogo entero.
 
-**Interaction write.** Optimistic local update → design-system haptic → queued
-upsert. Interactions are idempotent on `(user_id, portfolio_item_id)`, so a
-retry after a dropped connection is safe. Offline interactions queue in MMKV
-and flush on reconnect.
+**Escritura de interacción.** Actualización local optimista → háptico del design
+system → upsert encolado. Las interacciones son idempotentes sobre
+`(user_id, portfolio_item_id)`, así que reintentar tras una conexión caída es
+seguro. Las interacciones offline se encolan en MMKV y se descargan al
+reconectar.
 
-**Taste computation.** Runs **client-side** in `packages/domain` from the
-user's own interactions, then the resulting vector is persisted to
-`taste_profiles` for cross-device continuity. It is a pure function of rows the
-user already owns, so there is no trust boundary to defend — and computing it
-locally means the taste screen updates instantly with no round trip.
+**Cálculo del gusto.** Corre **del lado del cliente**, en `packages/domain`, a
+partir de las interacciones del propio usuario, y el vector resultante se
+persiste en `taste_profiles` para continuidad entre dispositivos. Es una función
+pura de filas que la persona ya posee, así que no hay ningún límite de confianza
+que defender — y calcularlo localmente hace que la pantalla de gusto se
+actualice al instante, sin round trip.
 
-**Matching.** Also `packages/domain`, over the user's taste vector plus the
-professional catalogue (which is public read). With ≤ 50 professionals this is
-microseconds of work and needs no server. Results are cached in `matches` for
-analytics and so a returning user sees a stable list. **This changes at scale**
-— once the catalogue is too large to ship to the client, matching moves to an
-edge function or a Postgres function with the same pure core. The engine is
-written to make that move a hosting change, not a rewrite.
+**Matching.** También en `packages/domain`, sobre el vector de gusto del usuario
+más el catálogo de profesionales (que es de lectura pública). Con ≤ 50
+profesionales esto son microsegundos de trabajo y no necesita servidor. Los
+resultados se cachean en `matches` para analytics y para que quien vuelve vea
+una lista estable. **Esto cambia a escala**: cuando el catálogo sea demasiado
+grande para mandárselo al cliente, el matching se muda a una edge function o a
+una función de Postgres con el mismo núcleo puro. El motor está escrito para que
+esa mudanza sea un cambio de hosting, no una reescritura.
 
-**Contact.** Fully client-side: build the message from local state, show it to
-the user for editing, open the WhatsApp/Instagram URL, fire `contact_clicked`.
+**Contacto.** Enteramente del lado del cliente: se arma el mensaje con el estado
+local, se le muestra a la persona para que lo edite, se abre la URL de
+WhatsApp/Instagram y se dispara `contact_clicked`.
 
-## 5. State management
+## 5. Manejo de estado
 
-| Kind | Tool | Why |
+| Tipo | Herramienta | Por qué |
 |---|---|---|
-| Server state | TanStack Query | Caching, retries, invalidation, offline-aware; removes most of the loading/error boilerplate |
-| Ephemeral UI state (deck position, gesture) | Local component state + Reanimated shared values | Gestures must run on the UI thread; nothing that touches a swipe goes through React state |
-| Cross-screen session state (current category, filters) | Zustand, one small store | Simpler than Context for a handful of values |
-| Persistence (taste cache, interaction queue, analytics buffer, settings) | MMKV | Synchronous, fast enough to read during startup |
+| Estado de servidor | TanStack Query | Caché, reintentos, invalidación, consciente de offline; elimina la mayor parte del boilerplate de carga y error |
+| Estado de UI efímero (posición del mazo, gesto) | Estado local + shared values de Reanimated | Los gestos tienen que correr en el hilo de UI; nada que toque un swipe pasa por estado de React |
+| Estado de sesión entre pantallas (categoría actual, filtros) | Zustand, un store chico | Más simple que Context para un puñado de valores |
+| Persistencia (caché de gusto, cola de interacciones, buffer de analytics, ajustes) | MMKV | Síncrono, suficientemente rápido para leerlo durante el arranque |
 
-No Redux. No global store of server data — that is what the query cache is.
+Sin Redux. Sin store global de datos de servidor — para eso está el caché de
+queries.
 
-## 6. Performance architecture
+## 6. Arquitectura de performance
 
-- **Startup:** no blocking network before the first frame. Fonts and the intro
-  screen ship in the bundle; the feed loads behind a skeleton.
-- **Images:** `expo-image` with disk caching, blurhash placeholders from
-  `media_assets`, `recyclingKey` set on deck cards, explicit `contentFit`.
-  Three derived sizes so the discovery deck never downloads a 1600px image.
-- **Prefetch:** the next 3 deck images are prefetched at `md`; the top match's
-  hero at `lg` when the match list renders.
-- **Lists:** portfolio grids use FlashList with a stable `estimatedItemSize`.
-- **Pagination:** cursor-based everywhere; no `OFFSET`.
-- **Renders:** the deck holds at most 3 mounted cards. Card content is memoised
-  on `portfolio_item_id`. Gesture state never crosses into React.
-- **Queries:** the feed, the profile, and the match list are one round trip
-  each. Any screen needing three queries gets an RPC instead.
+- **Arranque:** ningún trabajo de red bloqueante antes del primer frame. Las
+  tipografías y la pantalla de intro viajan en el bundle; el feed carga detrás
+  de un skeleton.
+- **Imágenes:** `expo-image` con caché en disco, placeholders blurhash desde
+  `media_assets`, `recyclingKey` en las tarjetas del mazo, `contentFit`
+  explícito. Tres tamaños derivados para que el mazo nunca baje una imagen de
+  1600px.
+- **Prefetch:** las 3 imágenes siguientes del mazo se precargan en `md`; el hero
+  del primer match en `lg` cuando se renderiza la lista.
+- **Listas:** las grillas de portfolio usan FlashList con un `estimatedItemSize`
+  estable.
+- **Paginación:** por cursor en todos lados; nada de `OFFSET`.
+- **Renders:** el mazo mantiene como mucho 3 tarjetas montadas. El contenido de
+  tarjeta se memoiza por `portfolio_item_id`. El estado del gesto nunca cruza a
+  React.
+- **Queries:** el feed, el perfil y la lista de matches son un round trip cada
+  uno. Cualquier pantalla que necesite tres queries recibe un RPC en su lugar.
 
-Budgets (measured on a mid-range Android device, release build): cold start to
-first artwork visible < 2.5s on 4G; deck gesture at 60fps sustained; profile
-open to hero painted < 800ms warm cache.
+Presupuestos (medidos en un Android de gama media, build de release): arranque
+en frío hasta primera obra visible < 2,5s en 4G; gesto del mazo a 60fps
+sostenidos; abrir perfil hasta hero pintado < 800ms con caché caliente.
 
-## 7. Offline and failure behaviour
+## 7. Comportamiento offline y ante fallas
 
-Every network-driven surface implements **loading / empty / error / retry**,
-and discovery additionally implements **degraded**: if the feed cannot refill,
-already-loaded cards stay swipeable and interactions queue locally. Errors are
-mapped to a small set of user-facing causes (offline, server, not-found,
-permission) in `data/errors.ts`; raw Postgres or Supabase messages are never
-shown to a user or written to analytics.
+Toda superficie que depende de la red implementa **carga / vacío / error /
+reintento**, y descubrimiento además implementa **degradado**: si el feed no
+puede reponerse, las tarjetas ya cargadas siguen siendo deslizables y las
+interacciones se encolan localmente. Los errores se mapean a un conjunto chico
+de causas visibles (offline, servidor, no encontrado, permiso) en
+`data/errors.ts`; los mensajes crudos de Postgres o Supabase nunca se le muestran
+a nadie ni se escriben en analytics.
 
-## 8. Environments
+## 8. Entornos
 
-| | Local | Preview | Production |
+| | Local | Preview | Producción |
 |---|---|---|---|
-| Supabase | `supabase start` (Docker) | Hosted project (staging) | Hosted project |
-| Content | Fixtures allowed | Fixtures allowed | Fixtures rejected by seeder |
-| Client keys | Local anon key | Staging anon key | Prod anon key |
-| Service role | `.env.local`, gitignored | CI secret | Operator machine only |
+| Supabase | `supabase start` (Docker) | Proyecto hosteado (staging) | Proyecto hosteado |
+| Contenido | Fixtures permitidos | Fixtures permitidos | Fixtures rechazados por el seeder |
+| Claves de cliente | Anon key local | Anon key de staging | Anon key de producción |
+| Service role | `.env.local`, en gitignore | Secreto de CI | Solo la máquina del operador |
 
-Client configuration is `EXPO_PUBLIC_SUPABASE_URL` and
-`EXPO_PUBLIC_SUPABASE_ANON_KEY` — both are publishable by design. Anything
-without the `EXPO_PUBLIC_` prefix must never be read from client code, and a
-test asserts the bundle contains no `service_role` string.
+La configuración de cliente es `EXPO_PUBLIC_SUPABASE_URL` y
+`EXPO_PUBLIC_SUPABASE_ANON_KEY` — ambas publicables por diseño. Nada sin el
+prefijo `EXPO_PUBLIC_` puede leerse desde el código del cliente, y un test
+verifica que el bundle no contenga el string `service_role`.
 
-## 9. Extending to a second category
+## 9. Extensión a una segunda categoría
 
-Adding *photography* should require:
+Agregar *fotografía* debería requerir:
 
-1. Rows in `categories` and `styles`.
-2. Content files for the new professionals.
-3. Localised display names.
-4. Possibly a category-specific taste readiness threshold.
+1. Filas en `categories` y `styles`.
+2. Archivos de contenido para los nuevos profesionales.
+3. Nombres visibles localizados.
+4. Posiblemente un umbral de gusto específico por categoría.
 
-It should require **no** schema migration, no change to the matching engine,
-and no new screens. This is the architectural acceptance test for V1: if
-adding a category needs code, the core leaked category knowledge and that is a
-defect.
+**No** debería requerir migración de esquema, ni cambio en el motor de matching,
+ni pantallas nuevas. Este es el test de aceptación arquitectónico de V1: si
+agregar una categoría requiere código, el núcleo filtró conocimiento de
+categoría y eso es un defecto.
 
-## 10. Known scaling limits (accepted for V1)
+## 10. Límites de escala conocidos (aceptados para V1)
 
-| Limit | Bites at | Response |
+| Límite | Empieza a doler en | Respuesta |
 |---|---|---|
-| Whole professional catalogue shipped to the client for matching | ~200 professionals | Move matching to an edge function; the engine is already pure |
-| Taste computed client-side from all interactions | ~2,000 interactions/user | Incremental accumulation, or compute in Postgres |
-| Deterministic shuffle over the full item set | ~10,000 items | Materialised feed table, or keyset over a precomputed rank |
-| No CDN in front of Storage | Real traffic | Supabase image transform / CDN |
+| Mandar el catálogo entero al cliente para hacer matching | ~200 profesionales | Mover el matching a una edge function; el motor ya es puro |
+| Calcular el gusto en el cliente desde todas las interacciones | ~2.000 interacciones por usuario | Acumulación incremental, o calcular en Postgres |
+| Mezcla determinística sobre el conjunto completo de piezas | ~10.000 piezas | Tabla de feed materializada, o keyset sobre un ranking precalculado |
+| Sin CDN delante de Storage | Tráfico real | Transformación de imágenes de Supabase / CDN |
 
-These are written down so they are decisions, not surprises.
+Estos están escritos para que sean decisiones y no sorpresas.

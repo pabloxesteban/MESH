@@ -1,78 +1,81 @@
-# ADR-008 — Design system inside the app, enforced by lint
+# ADR-008 — Design system dentro de la app, impuesto por lint
 
-**Status:** Proposed · **Date:** 2026-08-17 · **Owner:** design-system-engineer
+**Estado:** Propuesto · **Fecha:** 2026-08-17 · **Responsable:** design-system-engineer
 
-## Context
+## Contexto
 
-The brief requires a centralised design system with tokens and a named
-component catalogue, and forbids arbitrary design values inside screens. The
-proposed repository structure listed `packages/design-system` as a workspace.
+El brief pide un design system centralizado con tokens y un catálogo de
+componentes con nombre, y prohíbe los valores de diseño arbitrarios dentro de las
+pantallas. La estructura de repositorio propuesta listaba `packages/design-system`
+como workspace.
 
-## Problem
+## Problema
 
-Where does the design system live, and what actually stops a raw `#9C2D40` from
-appearing in a screen six weeks from now?
+¿Dónde vive el design system, y qué es lo que efectivamente impide que un
+`#9C2D40` crudo aparezca en una pantalla dentro de seis semanas?
 
-## Options — location
+## Opciones — ubicación
 
-**A. `packages/design-system` workspace.** A hard import boundary; publishable;
-reusable by a future web app.
-**B. `apps/mobile/src/design-system/`.** No build step, no version skew, one
-consumer.
+**A. Workspace `packages/design-system`.** Un límite de imports duro;
+publicable; reutilizable por una futura app web.
+**B. `apps/mobile/src/design-system/`.** Sin paso de build, sin desfasaje de
+versiones, un solo consumidor.
 
-## Options — enforcement
+## Opciones — enforcement
 
-**W. Convention and code review.**
-**X. ESLint rules that fail the build.**
-**Y. A type system that makes raw values unrepresentable** (e.g. branded
-tokens, no `style` prop escape hatch).
+**W. Convención y revisión de código.**
+**X. Reglas de ESLint que rompen el build.**
+**Y. Un sistema de tipos que haga irrepresentables los valores crudos** (por
+ejemplo tokens con marca de tipo, sin escotilla de escape vía `style`).
 
-## Decision
+## Decisión
 
-**B** for location, **X** as the primary enforcement with elements of **Y**.
+**B** para la ubicación, **X** como enforcement principal con elementos de **Y**.
 
-Rules:
+Reglas:
 
-- `no-restricted-syntax` forbidding hex colour literals, numeric `padding`/
-  `margin`/`gap`/`borderRadius`/`fontSize` values, and raw animation durations
-  anywhere outside `src/design-system/`.
-- `Text` takes a `role` prop from a closed union; it has no `fontSize` prop at
-  all. The same for spacing on `Box`.
-- Screens may not import `@supabase/supabase-js` (a layering rule, enforced the
-  same way).
-- Contrast ratios for every semantic token pair are asserted in a test, not
-  judged by eye.
+- `no-restricted-syntax` prohibiendo literales de color hex, valores numéricos de
+  `padding`/`margin`/`gap`/`borderRadius`/`fontSize`, y duraciones de animación
+  crudas en cualquier lugar fuera de `src/design-system/`.
+- `Text` toma una prop `role` de una unión cerrada; no tiene prop `fontSize` en
+  absoluto. Lo mismo para el espaciado en `Box`.
+- Las pantallas no pueden importar `@supabase/supabase-js` (una regla de capas,
+  impuesta de la misma manera).
+- Los ratios de contraste de cada par de tokens semánticos se verifican en un
+  test, no a ojo.
 
-## Why
+## Por qué
 
-The design system has exactly one consumer and is coupled to React Native.
-Extracting it into a workspace buys an import boundary and costs a build step,
-a version boundary, and an indirection on every edit — during the phase where
-tokens change most. Moving it later, if a web app appears, is a folder move; the
-tokens are already isolated in `tokens/`.
+El design system tiene exactamente un consumidor y está acoplado a React Native.
+Extraerlo a un workspace compra un límite de imports y cuesta un paso de build,
+un límite de versiones y una indirección en cada edición — justo durante la fase
+en que los tokens más cambian. Moverlo después, si aparece una app web, es mover
+una carpeta; los tokens ya están aislados en `tokens/`.
 
-The important half of this decision is enforcement. "No arbitrary values in
-screens" is a rule every team has and most teams break, because review is the
-weakest possible enforcement mechanism and it fails precisely when someone is
-rushing. A lint rule fails the build, is not negotiable at 2am, and does not
-require a reviewer to notice. Removing the escape hatch from `Text` and `Box` is
-stronger still: you cannot pass a font size that does not exist.
+La mitad importante de esta decisión es el enforcement. "Nada de valores
+arbitrarios en las pantallas" es una regla que todos los equipos tienen y la
+mayoría rompe, porque la revisión es el mecanismo de enforcement más débil posible
+y falla precisamente cuando alguien está apurado. Una regla de lint rompe el
+build, no es negociable a las 2 de la mañana, y no requiere que quien revisa se
+dé cuenta. Sacarle la escotilla de escape a `Text` y `Box` es todavía más fuerte:
+no podés pasar un tamaño de fuente que no existe.
 
-Asserting contrast in a test rather than in a review matters because the
-brief's accent colour **fails AA on the dark surface** — a mistake that is
-invisible to a designer with good eyesight on a good screen, and obvious to a
+Verificar el contraste en un test en lugar de en una revisión importa porque el
+color de acento del brief **no pasa AA sobre la superficie oscura** — un error
+invisible para un diseñador con buena vista en una buena pantalla, y obvio para un
 test.
 
-## Consequences
+## Consecuencias
 
-- Some legitimate one-off values will be blocked. Correct response: name it and
-  add it to `tokens/`, or use a variant. That friction is the feature.
-- Lint rules need occasional escape hatches for third-party wrappers; each
-  exemption is an inline disable with a comment explaining it, and they are
-  reviewed at release time.
-- Screens stay short — mostly composition — which makes them easy to read and
-  to change.
-- The catalogue in
-  [`docs/design/design-system.md`](../design/design-system.md) must be updated
-  in the same commit as a new component. A component not in the catalogue does
-  not exist.
+- Algunos valores puntuales legítimos van a quedar bloqueados. La respuesta
+  correcta: nombralo y agregalo a `tokens/`, o usá una variante. Esa fricción es
+  la feature.
+- Las reglas de lint necesitan escotillas ocasionales para wrappers de terceros;
+  cada excepción es un disable en línea con un comentario que la explica, y se
+  revisan en el momento del release.
+- Las pantallas quedan cortas —mayormente composición— lo que las hace fáciles
+  de leer y de cambiar.
+- El catálogo en
+  [`docs/design/design-system.md`](../design/design-system.md) tiene que
+  actualizarse en el mismo commit que un componente nuevo. Un componente que no
+  está en el catálogo no existe.

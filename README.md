@@ -1,169 +1,177 @@
 # MESH
 
-**Discover people. Make ideas happen.**
+**Descubrí gente. Hacé que las ideas pasen.**
 
-MESH helps you find the right person to bring an idea to life.
+MESH te ayuda a encontrar a la persona indicada para hacer realidad una idea.
 
-> "I know what I want, or I know what I like — but I don't know who is the right
-> person to make it."
+> "Sé lo que quiero, o sé lo que me gusta — pero no sé quién es la persona
+> indicada para hacerlo."
 
-That gap is the product. Pinterest tells you what you like. Instagram tells you
-who you follow. Airtasker tells you who can complete a task. None of them tell
-you *who is the right person for the thing you like*.
+Ese hueco es el producto. Pinterest te dice qué te gusta. Instagram te dice a
+quién seguís. Airtasker te dice quién puede completar una tarea. Ninguno te dice
+*quién es la persona indicada para eso que te gusta*.
 
-MESH learns your visual taste from the work you react to, then recommends the
-people behind that work — and explains why.
+MESH aprende tu gusto visual a partir de los trabajos con los que interactuás y
+después te recomienda a la gente detrás de esos trabajos — y te explica por qué.
 
-**Status:** V1 in planning. This repository currently contains the product,
-architecture, security, and design specification. No application code has been
-written yet. See [`docs/`](docs/) and
+**Estado:** V1 en planificación. Este repositorio contiene por ahora la
+especificación de producto, arquitectura, seguridad y diseño. Todavía no se
+escribió código de aplicación. Ver [`docs/`](docs/) y
 [`docs/decisions/`](docs/decisions/).
 
+**Idioma:** la documentación está en español rioplatense. El código —tablas,
+columnas, tokens, slugs, identificadores— está en inglés. Los strings de UI
+tienen `es-AR` como locale de origen.
+
 ---
 
-## The hypothesis being tested
+## La hipótesis que se está testeando
 
-> People discover tattoo artists more effectively when MESH learns their visual
-> taste and recommends professionals based on that taste — rather than making
-> them search a directory.
+> La gente descubre tatuadores de manera más efectiva cuando MESH aprende su
+> gusto visual y le recomienda profesionales en base a ese gusto.
 
-V1 is a validation instrument, not a platform. It is deliberately:
+V1 es un instrumento de validación, no una plataforma. Es deliberadamente:
 
-- **One category** — tattoo
-- **One market** — Buenos Aires / CABA, Argentina
-- **Curated** — 8–15 real artists from an existing network, with consent
-- **Without booking or payments** — contact happens on WhatsApp/Instagram
+- **Una sola categoría** — tatuajes
+- **Un solo mercado** — Buenos Aires / CABA
+- **Curado** — 8–15 artistas reales de una red existente, con consentimiento
+- **Sin reservas ni pagos** — el contacto sucede en WhatsApp/Instagram
 
-If the hypothesis is wrong, we want to know that in weeks with a small app, not
-in a year with a marketplace.
+Si la hipótesis está equivocada, queremos saberlo en semanas con una app chica,
+no en un año con un marketplace.
 
-## The loop
-
-```
-DISCOVER → TASTE → PEOPLE → MATCH → ACTION
-```
+## El loop
 
 ```
-"I like this."
+DESCUBRIR → GUSTO → GENTE → MATCH → ACCIÓN
+```
+
+```
+"Esto me gusta."
       ↓
-"Who made this?"
+"¿Quién hizo esto?"
       ↓
-"I like their work."
+"Me gusta su trabajo."
       ↓
-"They understand my taste."
+"Entiende mi gusto."
       ↓
-"This person might be right for me."
+"Esta persona puede ser la indicada."
       ↓
-"Let's make it happen."
+"Hagámoslo realidad."
 ```
 
-## Why the matching is deterministic, not AI
+## Por qué el matching es determinístico y no IA
 
-Every recommendation MESH makes must be explainable to the person receiving it,
-reproducible in a test, and defensible when it is wrong. A model that says
-"we think you'll love this" is unfalsifiable and, at 12 artists, dishonest.
+Cada recomendación que hace MESH tiene que ser explicable a quien la recibe,
+reproducible en un test y defendible cuando está equivocada. Un modelo que dice
+"creemos que esto te va a encantar" es infalsable y, con 12 artistas, deshonesto.
 
-MESH V1 uses an explicit, versioned, unit-tested scoring function over a taste
-vector built from the user's own like/save/pass decisions. Given the same
-inputs it always produces the same output and the same reasons. The reasons
-shown to the user are generated *from the terms that actually contributed to
-the score* — never written to sound good.
+MESH V1 usa una función de puntaje explícita, versionada y con tests unitarios
+sobre un vector de gusto construido a partir de las propias decisiones de me
+gusta / guardar / paso del usuario. Con las mismas entradas siempre produce la
+misma salida y las mismas razones. Las razones que se le muestran a la persona
+se generan *a partir de los términos que efectivamente aportaron al puntaje* —
+nunca se escriben para que suenen bien.
 
-Full algorithm: [`docs/product/matching.md`](docs/product/matching.md).
+Algoritmo completo: [`docs/product/matching.md`](docs/product/matching.md).
 
-## What MESH is not
+## Qué no es MESH
 
-Not Tinder for freelancers. Not Pinterest for professionals. Not Airtasker with
-nicer cards. The swipe is an input method, nothing more — and it is never the
-only way to do anything (see [accessibility](docs/design/design-system.md)).
+No es Tinder para freelancers. No es Pinterest para profesionales. No es
+Airtasker con tarjetas más lindas. El swipe es un método de entrada, nada más —
+y nunca es la única forma de hacer nada (ver
+[accesibilidad](docs/design/design-system.md)).
 
-MESH ships no streaks, no points, no fake scarcity, no fake urgency, no fake
-matches, no fake reviews, no manufactured notifications. Success is measured by
-whether people find someone worth contacting — not by time in app.
+MESH no tiene rachas, ni puntos, ni escasez falsa, ni urgencia falsa, ni
+matches falsos, ni reseñas falsas, ni notificaciones fabricadas. El éxito se
+mide por si la gente encuentra a alguien a quien valga la pena contactar — no
+por tiempo en la app.
 
-## Repository layout
+## Estructura del repositorio
 
 ```
-apps/mobile/        Expo + React Native + TypeScript client (design system lives here)
-packages/domain/    Pure TypeScript: taxonomy, types, Zod schemas, taste + matching engines
-tools/seed/         Service-role content seeding CLI (never bundled into the app)
-supabase/           Migrations, RLS policies, seed SQL, edge functions
-content/artists/    Curated artist content, one file per artist, schema-validated
-docs/               Product, design, architecture, security, testing, decisions
-.claude/            Agents, skills, commands, workflows for Claude Code
+apps/mobile/        Cliente Expo + React Native + TypeScript (el design system vive acá)
+packages/domain/    TypeScript puro: taxonomía, tipos, esquemas Zod, motores de gusto y matching
+tools/seed/         CLI de carga de contenido con service role (nunca se empaqueta en la app)
+supabase/           Migraciones, políticas RLS, seed SQL, edge functions
+content/artists/    Contenido curado de artistas, un archivo por artista, validado por esquema
+docs/               Producto, diseño, arquitectura, seguridad, testing, decisiones
+.claude/            Agentes, skills, comandos y workflows para Claude Code
 ```
 
-Why this and not more packages: see
+Por qué esto y no más paquetes: ver
 [ADR-001](docs/decisions/ADR-001-stack-and-repo-structure.md).
 
-## Documentation
+## Documentación
 
-| Area | Document |
+| Área | Documento |
 |---|---|
-| Product spec | [`docs/product/product-spec.md`](docs/product/product-spec.md) |
-| Matching algorithm | [`docs/product/matching.md`](docs/product/matching.md) |
-| Metrics & analytics | [`docs/product/metrics.md`](docs/product/metrics.md) |
-| Visual language | [`docs/design/visual-language.md`](docs/design/visual-language.md) |
+| Especificación de producto | [`docs/product/product-spec.md`](docs/product/product-spec.md) |
+| Algoritmo de matching | [`docs/product/matching.md`](docs/product/matching.md) |
+| Métricas y analytics | [`docs/product/metrics.md`](docs/product/metrics.md) |
+| Lenguaje visual | [`docs/design/visual-language.md`](docs/design/visual-language.md) |
 | Design system | [`docs/design/design-system.md`](docs/design/design-system.md) |
-| System architecture | [`docs/architecture/system-architecture.md`](docs/architecture/system-architecture.md) |
-| Data model & schema | [`docs/architecture/data-model.md`](docs/architecture/data-model.md) |
-| Navigation | [`docs/architecture/navigation.md`](docs/architecture/navigation.md) |
-| Security model | [`docs/security/security-model.md`](docs/security/security-model.md) |
-| Threat model | [`docs/security/threat-model.md`](docs/security/threat-model.md) |
-| Test strategy | [`docs/testing/test-strategy.md`](docs/testing/test-strategy.md) |
-| Content policy | [`docs/product/content-policy.md`](docs/product/content-policy.md) |
-| Decisions (ADRs) | [`docs/decisions/`](docs/decisions/) |
-| Build plan | [`docs/product/roadmap.md`](docs/product/roadmap.md) |
+| Arquitectura del sistema | [`docs/architecture/system-architecture.md`](docs/architecture/system-architecture.md) |
+| Modelo de datos y esquema | [`docs/architecture/data-model.md`](docs/architecture/data-model.md) |
+| Navegación | [`docs/architecture/navigation.md`](docs/architecture/navigation.md) |
+| Modelo de seguridad | [`docs/security/security-model.md`](docs/security/security-model.md) |
+| Modelo de amenazas | [`docs/security/threat-model.md`](docs/security/threat-model.md) |
+| Estrategia de testing | [`docs/testing/test-strategy.md`](docs/testing/test-strategy.md) |
+| Política de contenido | [`docs/product/content-policy.md`](docs/product/content-policy.md) |
+| Decisiones (ADRs) | [`docs/decisions/`](docs/decisions/) |
+| Plan de construcción | [`docs/product/roadmap.md`](docs/product/roadmap.md) |
 
-## Tech stack, and why
+## Stack técnico, y por qué
 
-| Layer | Choice | Why |
+| Capa | Elección | Por qué |
 |---|---|---|
-| Client | Expo (React Native) + TypeScript | One codebase, OTA updates for a validation product, mature gesture/animation stack (Reanimated + Gesture Handler) for the discovery deck |
-| Routing | Expo Router | File-based, typed routes, deep links come free — needed for `mesh://artist/:slug` |
-| Backend | Supabase | Postgres + Auth + Storage + RLS in one, no server to operate for a solo build |
-| Database | PostgreSQL | Relational taxonomy (category → style → professional → work) is genuinely relational; RLS gives per-row authorization at the database, not in app code |
-| Matching | Plain TypeScript in `packages/domain` | Deterministic, unit-testable, no inference cost, shared by app, seeder, and tests |
-| Media | Supabase Storage + `expo-image` | Binaries never go in Postgres; blurhash placeholders and disk cache keep discovery fast |
+| Cliente | Expo (React Native) + TypeScript | Un solo código, updates OTA para un producto de validación, ecosistema maduro de gestos y animación (Reanimated + Gesture Handler) para el mazo de descubrimiento |
+| Ruteo | Expo Router | Basado en archivos, rutas tipadas, deep links incluidos — hacen falta para `mesh://artist/:slug` |
+| Backend | Supabase | Postgres + Auth + Storage + RLS en uno solo, sin servidor que operar en un proyecto de una persona |
+| Base de datos | PostgreSQL | La taxonomía (categoría → estilo → profesional → obra) es genuinamente relacional; RLS da autorización por fila en la base, no en el código de la app |
+| Matching | TypeScript plano en `packages/domain` | Determinístico, testeable por unidad, sin costo de inferencia, compartido por app, seeder y tests |
+| Media | Supabase Storage + `expo-image` | Los binarios nunca van en Postgres; los placeholders blurhash y el caché en disco mantienen rápido el descubrimiento |
 
-Version pinning is deliberately deferred to implementation time so we install
-what is current and compatible rather than what was current when this was
-written.
+Fijar versiones se posterga deliberadamente al momento de implementar, para
+instalar lo que sea actual y compatible en vez de lo que era actual cuando se
+escribió esto.
 
-## Security posture
+## Postura de seguridad
 
-Every table has Row Level Security enabled and forced, with explicit policies.
-A test asserts that no table in `public` can exist without RLS and at least one
-policy — a table cannot be accidentally shipped public. The service-role key
-exists only in `tools/seed` and never in the Expo bundle. User-uploaded
-reference images live in a private bucket under `{user_id}/` paths enforced by
-storage policies.
+Todas las tablas tienen Row Level Security habilitado y forzado, con políticas
+explícitas. Un test verifica que no pueda existir ninguna tabla en `public` sin
+RLS y sin al menos una política — no se puede publicar una tabla abierta por
+accidente. La service-role key existe solo en `tools/seed` y nunca en el bundle
+de Expo. Las imágenes de referencia que sube el usuario viven en un bucket
+privado bajo rutas `{user_id}/` impuestas por políticas de storage.
 
-Details: [`docs/security/security-model.md`](docs/security/security-model.md),
+Detalle: [`docs/security/security-model.md`](docs/security/security-model.md),
 [`docs/security/threat-model.md`](docs/security/threat-model.md).
 
-## Content ethics
+## Ética de contenido
 
-Every artist in MESH is a real person who has given explicit, recorded consent
-for their name, work, and contact details to appear. No scraping. No fabricated
-reviews, testimonials, availability, prices, or booking statistics. Development
-fixtures are flagged `is_fixture` in the database and visually marked in
-non-production builds so they can never be mistaken for real people.
+Cada artista en MESH es una persona real que dio consentimiento explícito y
+registrado para que aparezcan su nombre, su trabajo y sus datos de contacto.
+Nada de scraping. Nada de reseñas, testimonios, disponibilidad, precios ni
+estadísticas de reservas inventados. Los fixtures de desarrollo están marcados
+con `is_fixture` en la base y señalizados visualmente en builds no productivos,
+para que nunca se puedan confundir con personas reales.
 
-See [`docs/product/content-policy.md`](docs/product/content-policy.md).
+Ver [`docs/product/content-policy.md`](docs/product/content-policy.md).
 
-## Roadmap after V1
+## Roadmap después de V1
 
-1. Second market before second category — validate that the taste engine
-   transfers to another city with the same vertical.
-2. Professional self-service — claim your profile, manage portfolio.
-3. In-app conversations, once there is evidence people want to leave WhatsApp.
-4. Second category (photography is the closest analogue: strong visual
-   portfolios, style-driven choice, project-shaped demand).
-5. Reviews and trust signals — only when there is real volume to make them
-   meaningful.
+1. Segundo mercado antes que segunda categoría — validar que el motor de gusto
+   se transfiere a otra ciudad con el mismo vertical.
+2. Autogestión para profesionales — reclamar tu perfil, administrar portfolio.
+3. Conversaciones dentro de la app, cuando haya evidencia de que la gente quiere
+   salir de WhatsApp.
+4. Segunda categoría (fotografía es el análogo más cercano: portfolios visuales
+   fuertes, elección guiada por estilo, demanda con forma de proyecto).
+5. Reseñas y señales de confianza — solo cuando haya volumen real que las haga
+   significativas.
 
 ---
 
-MESH is a personal product project. The name, product direction, and initial
-artist network are the author's own.
+MESH es un proyecto de producto personal. El nombre, la dirección de producto y
+la red inicial de artistas son propios del autor.

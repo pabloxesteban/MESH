@@ -1,111 +1,116 @@
-# MESH — Visual Language & Brand
+# MESH — Lenguaje visual y marca
 
-**Status:** Proposed · **Owner:** brand-designer
+**Estado:** Propuesto · **Responsable:** brand-designer
 
 ---
 
-## 1. The idea
+## 1. La idea
 
-MESH is about **connection and intersection** — people, taste, skills, ideas,
-and work meshing together. Two things that were separate crossing and
-continuing as one.
+MESH se trata de **conexión e intersección** — gente, gusto, habilidades, ideas
+y trabajo entramándose. Dos cosas que estaban separadas que se cruzan y siguen
+como una.
 
-The brand must never lean on tattoo iconography. Needles, machines, roses, and
-skulls would make MESH a tattoo app, and MESH is not a tattoo app — it is a
-product that currently starts with tattoo.
+La marca nunca puede apoyarse en iconografía de tatuaje. Agujas, máquinas, rosas
+y calaveras harían de MESH una app de tatuajes, y MESH no es una app de tatuajes
+— es un producto que hoy empieza por tatuaje.
 
-## 2. Positioning of the visual identity
+## 2. Posicionamiento de la identidad visual
 
-| We are | We are not |
+| Somos | No somos |
 |---|---|
-| Editorial | Neon |
-| Artistic | Gamified |
-| Tactile | Generic SaaS |
-| Premium | Crypto |
-| Calm | AI startup |
-| Confident | Dating app |
+| Editorial | Neón |
+| Artístico | Gamificado |
+| Táctil | SaaS genérico |
+| Premium | Cripto |
+| Calmo | Startup de IA |
+| Seguro | App de citas |
 
-The reference points are a well-made art book, a gallery wall label, and a
-printed magazine plate — not a dashboard, not a feed.
+Las referencias son un libro de arte bien hecho, la ficha de sala de una
+galería, y una lámina de revista impresa — no un dashboard, no un feed.
 
-**The single strongest brand decision: the work is the design.** MESH's
-interface is a frame. It provides silence, generous margin, and precise
-typography, then gets out of the way of the images. Any UI element competing
-with a piece of artwork for attention is wrong.
+**La decisión de marca más fuerte: el trabajo es el diseño.** La interfaz de
+MESH es un marco. Aporta silencio, márgenes generosos y tipografía precisa, y
+después se corre del camino de las imágenes. Cualquier elemento de UI que
+compita con una obra por la atención está mal.
 
-## 3. The mark
+## 3. La marca gráfica
 
-**Concept: two strokes that cross and continue.**
+**Concepto: dos trazos que se cruzan y siguen.**
 
-A monoline symbol in which two paths approach from different directions, cross,
-and carry on — leaving a small aperture at the intersection. At a glance it
-reads as an abstract **M**. Looked at properly it reads as two things meeting.
-The aperture at the crossing is the brand's one distinctive detail: the point
-where taste meets a person.
+Un símbolo monolínea en el que dos caminos se acercan desde direcciones
+distintas, se cruzan y continúan — dejando una pequeña abertura en la
+intersección. De un vistazo se lee como una **M** abstracta. Mirado en serio se
+lee como dos cosas que se encuentran. La abertura en el cruce es el único detalle
+distintivo de la marca: el punto donde el gusto se encuentra con una persona.
 
-Requirements the mark must satisfy:
+Requisitos que la marca tiene que cumplir:
 
-- Single stroke weight, no fills, no gradients — so it survives at 16px, in
-  one colour, embroidered, stamped, or engraved.
-- Legible as an app icon at 60×60pt with the strokes at optical weight (heavier
-  than the mathematically scaled version — an icon at small size needs thicker
-  strokes than a logo at large size; two optical sizes are produced).
-- Works ink-on-paper (`#0C0C0E` on `#F4EFE6`) and paper-on-ink, identically.
-- Works with the wordmark and entirely without it.
-- Animates as a single continuous draw — used as the loading mark, once, ~600ms,
-  never looping aggressively.
+- Un solo grosor de trazo, sin rellenos, sin degradados — para que sobreviva a
+  16px, en un solo color, bordada, estampada o grabada.
+- Legible como ícono de app a 60×60pt con los trazos en peso óptico (más grueso
+  que la versión escalada matemáticamente — un ícono chico necesita trazos más
+  gruesos que un logo grande; se producen dos tamaños ópticos).
+- Funciona tinta-sobre-papel (`#0C0C0E` sobre `#F4EFE6`) y papel-sobre-tinta,
+  idéntico.
+- Funciona con el logotipo y completamente sin él.
+- Se anima como un único trazo continuo — se usa como marca de carga, una sola
+  vez, ~600ms, nunca en loop agresivo.
 
-Explicitly rejected: node-and-edge network diagrams (every B2B SaaS company),
-literal woven mesh or grids (reads as textile or as "loading"), an infinity
-symbol, a knot, and any figurative M made of tattoo tools.
+Explícitamente rechazados: diagramas de red de nodos y aristas (los tiene toda
+empresa de SaaS B2B), mallas o grillas literales (se leen como textil o como
+"cargando"), un símbolo de infinito, un nudo, y cualquier M figurativa hecha con
+herramientas de tatuaje.
 
-**Wordmark:** `MESH` set in the editorial serif, uppercase, tracked wide
-(+0.12em). The letterforms carry the personality; the wordmark needs no
-customisation beyond tracking and optical spacing of the `M`/`E` pair.
+**Logotipo:** `MESH` en la serif editorial, en mayúsculas, con tracking amplio
+(+0,12em). Las formas de las letras llevan la personalidad; el logotipo no
+necesita ninguna customización más allá del tracking y el espaciado óptico del
+par `M`/`E`.
 
-**Clear space:** the height of the `M` on all sides. Minimum sizes: symbol
-16px; lockup 88px wide.
+**Área de resguardo:** la altura de la `M` en todos los lados. Tamaños mínimos:
+símbolo 16px; lockup 88px de ancho.
 
-Deliverables in Phase 2: `brand/logo/mesh-symbol.svg`,
-`mesh-symbol-icon.svg` (optical), `mesh-lockup.svg`, monochrome variants, app
-icon set, adaptive Android icon, favicon, and a one-page usage sheet.
+Entregables en la Fase 2: `brand/logo/mesh-symbol.svg`,
+`mesh-symbol-icon.svg` (óptico), `mesh-lockup.svg`, variantes monocromas, set de
+íconos de app, ícono adaptativo de Android, favicon y una hoja de uso de una
+página.
 
-## 4. Colour
+## 4. Color
 
-Anchored on the brief's palette, refined for contrast.
+Anclado en la paleta del brief, refinado por contraste.
 
-### Core
+### Base
 
-| Token | Hex | Role |
+| Token | Hex | Rol |
 |---|---|---|
-| `ink` | `#0C0C0E` | Near-black. Primary surface in dark, primary text on paper. |
-| `paper` | `#F4EFE6` | Warm paper. Primary surface in light, primary text on ink. |
-| `signal` | `#9C2D40` | Ink red. Accent, used sparingly. |
+| `ink` | `#0C0C0E` | Casi negro. Superficie principal en oscuro, texto principal sobre papel. |
+| `paper` | `#F4EFE6` | Papel cálido. Superficie principal en claro, texto principal sobre tinta. |
+| `signal` | `#9C2D40` | Rojo tinta. Acento, usado con mucha moderación. |
 
-### Why the palette needs more than three values
+### Por qué la paleta necesita más de tres valores
 
-`signal` on `ink` measures ≈ 3.0:1 — **it fails WCAG AA for text.** Using the
-brief's red for anything textual on a dark surface would be an accessibility
-defect. So the accent exists at two values:
+`signal` sobre `ink` mide ≈ 3,0:1 — **no pasa WCAG AA para texto.** Usar el rojo
+del brief para cualquier cosa textual sobre una superficie oscura sería un
+defecto de accesibilidad. Así que el acento existe en dos valores:
 
-| Token | Hex | Use |
+| Token | Hex | Uso |
 |---|---|---|
-| `signal` | `#9C2D40` | Fills and strokes on light surfaces; text on paper (≈6.4:1 ✅) |
-| `signal-raised` | `#C4485C` | Text and icons on dark surfaces (≈5.1:1 ✅) |
-| `on-signal` | `#F4EFE6` | Text on a `signal` fill (≈5.6:1 ✅) |
+| `signal` | `#9C2D40` | Rellenos y trazos sobre superficies claras; texto sobre papel (≈6,4:1 ✅) |
+| `signal-raised` | `#C4485C` | Texto e íconos sobre superficies oscuras (≈5,1:1 ✅) |
+| `on-signal` | `#F4EFE6` | Texto sobre un relleno `signal` (≈5,6:1 ✅) |
 
-### Neutrals
+### Neutros
 
-Derived by mixing `ink` and `paper` — not grey, so the whole system stays warm.
+Derivados mezclando `ink` y `paper` — no gris, así todo el sistema se mantiene
+cálido.
 
 `ink-900 #0C0C0E` · `ink-800 #1A1A1D` · `ink-700 #2C2B2E` ·
 `ink-500 #56545A` · `ink-300 #8C8A90` ·
 `paper-300 #C9C2B6` · `paper-200 #E2DCD1` · `paper-100 #F4EFE6` ·
 `paper-050 #FAF7F1`
 
-### Semantic tokens
+### Tokens semánticos
 
-Screens use only these. They resolve per theme.
+Las pantallas usan solo estos. Se resuelven según el tema.
 
 ```
 surface            surface-raised     surface-sunken
@@ -116,140 +121,145 @@ overlay-scrim
 state-positive     state-negative     state-warning
 ```
 
-`state-*` values are for system feedback (a failed upload) only. **Like and
-pass are never coloured green and red.** Green/red is a judgement UI and belongs
-to dating apps; MESH's like and pass are neutral, weighted by typography and
-motion rather than by colour.
+Los valores `state-*` son para feedback del sistema (una subida fallida) y nada
+más. **Me gusta y paso nunca se colorean de verde y rojo.** Verde/rojo es una UI
+de juicio y pertenece a las apps de citas; el me gusta y el paso de MESH son
+neutros, pesados por tipografía y movimiento en lugar de por color.
 
-### Discipline
+### Disciplina
 
-- `signal` appears **at most once per screen**. It marks the single most
-  important action or the one thing that must be noticed. When everything is
-  accented, nothing is.
-- Artwork is never tinted, overlaid with a brand colour, or given a coloured
-  border.
-- Scrims over images are `ink` at measured opacity, never coloured.
+- `signal` aparece **como máximo una vez por pantalla**. Marca la única acción
+  más importante, o la única cosa que hay que notar. Cuando todo tiene acento,
+  nada lo tiene.
+- Las obras nunca se tiñen, ni se superponen con un color de marca, ni reciben
+  un borde de color.
+- Los velos sobre imágenes son `ink` con opacidad medida, nunca coloreados.
 
-### Theme
+### Tema
 
-Dark (`ink` surface) is the default: it is the right frame for photography and
-it is what a gallery does. Light (`paper`) is fully supported and is not an
-afterthought — every token has both values, and the design is reviewed in both.
+El oscuro (superficie `ink`) es el predeterminado: es el marco correcto para la
+fotografía y es lo que hace una galería. El claro (`paper`) está soportado por
+completo y no es una ocurrencia tardía — todo token tiene los dos valores, y el
+diseño se revisa en ambos.
 
-## 5. Typography
+## 5. Tipografía
 
-Two families. Both are variable, open-licence, and bundleable with Expo.
+Dos familias. Las dos variables, de licencia abierta, y empaquetables con Expo.
 
-**Editorial serif — Fraunces.** Brand moments, emotional statements, major
-headings, the taste reveal, and profile names. Variable with optical-size and
-`soft`/`wonk` axes; run at `wonk: 0`, `soft: 0` so it reads contemporary rather
-than antique, with optical size tuned per step.
+**Serif editorial — Fraunces.** Momentos de marca, frases emocionales, títulos
+mayores, la revelación del gusto, y los nombres en los perfiles. Variable, con
+ejes de tamaño óptico y `soft`/`wonk`; se usa con `wonk: 0`, `soft: 0` para que
+se lea contemporánea y no anticuada, con el tamaño óptico ajustado por escalón.
 
-**Modern sans — Instrument Sans.** Navigation, buttons, metadata, tags,
-filters, all functional UI. Neutral without being Helvetica-anonymous, and it
-pairs with Fraunces by construction.
+**Sans moderna — Instrument Sans.** Navegación, botones, metadatos, etiquetas,
+filtros, toda la UI funcional. Neutra sin ser anónima como Helvetica, y hace
+pareja con Fraunces por construcción.
 
-**Alternates if Fraunces reads too characterful in situ:** Instrument Serif
-(display only, one weight) or Newsreader. Decided on-device in Phase 2, not
-from a specimen.
+### Escala
 
-### Scale
-
-| Token | Family | Size / line | Use |
+| Token | Familia | Tamaño / interlínea | Uso |
 |---|---|---|---|
-| `display` | Serif | 40 / 44 | Taste reveal, brand moments |
-| `title-lg` | Serif | 30 / 36 | Screen titles, artist name on profile |
-| `title` | Serif | 24 / 30 | Section heads |
-| `body-lg` | Sans | 17 / 26 | Bios, project descriptions |
-| `body` | Sans | 15 / 22 | Default |
-| `label` | Sans | 13 / 18 | Metadata, captions |
-| `micro` | Sans | 11 / 14, +0.08em | Tags, overlines — uppercase |
+| `display` | Serif | 40 / 44 | Revelación del gusto, momentos de marca |
+| `title-lg` | Serif | 30 / 36 | Títulos de pantalla, nombre del artista en el perfil |
+| `title` | Serif | 24 / 30 | Encabezados de sección |
+| `body-lg` | Sans | 17 / 26 | Bios, descripciones de proyecto |
+| `body` | Sans | 15 / 22 | Por defecto |
+| `label` | Sans | 13 / 18 | Metadatos, epígrafes |
+| `micro` | Sans | 11 / 14, +0,08em | Etiquetas, antetítulos — en mayúsculas |
 
-Rules: serif is never used below 24px, and sans is never used above 20px. That
-one constraint keeps the two families in their roles without a style guide
-argument every screen.
+Reglas: la serif nunca se usa por debajo de 24px, y la sans nunca por encima de
+20px. Esa única restricción mantiene a las dos familias en su rol sin discutir el
+manual de estilo en cada pantalla.
 
 ## 6. Layout
 
-- 8pt spacing scale: 4, 8, 12, 16, 24, 32, 48, 64.
-- Screen gutter 20pt. Content is generous rather than dense — this is a product
-  about looking at one thing, not scanning many.
-- Radii: 4 (chips), 12 (cards, sheets), 20 (deck cards), 999 (pills).
-  Artwork corners are radius 12 — softened, not rounded.
-- Elevation is expressed with surface value shifts and hairline borders, not
-  with drop shadows. Shadows on a warm dark surface look like dirt.
-- Discovery card: full-bleed artwork with metadata below, not on top of, the
-  image. Text over artwork is a scrim, and a scrim is a compromise of the work.
+- Escala de espaciado de 8pt: 4, 8, 12, 16, 24, 32, 48, 64.
+- Margen de pantalla 20pt. El contenido es generoso antes que denso — este es un
+  producto sobre mirar una cosa, no sobre escanear muchas.
+- Radios: 4 (chips), 12 (tarjetas, hojas), 20 (tarjetas del mazo), 999
+  (píldoras). Las esquinas de las obras van con radio 12 — suavizadas, no
+  redondeadas.
+- La elevación se expresa con cambios de valor de superficie y bordes de un
+  píxel, no con sombras. Las sombras sobre una superficie oscura cálida parecen
+  suciedad.
+- Tarjeta de descubrimiento: obra a sangre con los metadatos debajo, no encima,
+  de la imagen. Texto sobre la obra implica un velo, y un velo es una concesión
+  sobre el trabajo.
 
-## 7. Motion
+## 7. Movimiento
 
-Motion communicates direction, confirmation, connection, and hierarchy.
-Anything that does not communicate one of those does not ship.
+El movimiento comunica dirección, confirmación, conexión y jerarquía. Lo que no
+comunique alguna de esas cuatro no se publica.
 
-| Token | Spec | Use |
+| Token | Especificación | Uso |
 |---|---|---|
-| `instant` | 120ms, ease-out | State toggles, presses |
-| `quick` | 200ms, ease-out | Fades, chip changes |
-| `standard` | 280ms, spring (damping 22, stiffness 220) | Screen transitions, sheets |
-| `deck` | spring (damping 18, stiffness 180), velocity-carrying | Card dismissal |
-| `reveal` | 500ms staggered 60ms | Taste reveal only |
+| `instant` | 120ms, ease-out | Cambios de estado, presiones |
+| `quick` | 200ms, ease-out | Fundidos, cambios de chip |
+| `standard` | 280ms, resorte (damping 22, stiffness 220) | Transiciones de pantalla, hojas |
+| `deck` | resorte (damping 18, stiffness 180), conserva velocidad | Descarte de tarjeta |
+| `reveal` | 500ms escalonado 60ms | Solo la revelación del gusto |
 
-Rules:
+Reglas:
 
-- Nothing exceeds 500ms.
-- The deck follows the finger exactly — no lag, no easing on the drag itself.
-  Physics start when the finger leaves.
-- Dismissal direction follows the throw. A card leaves the way it was pushed.
-- Reduced-motion replaces every transform-based transition with a 120ms
-  cross-fade, and the taste reveal appears at once. Nothing becomes
-  unreachable.
-- No confetti, no particles, no looping idle animation, no bouncing UI.
+- Nada supera los 500ms.
+- El mazo sigue al dedo exactamente — sin retardo, sin easing sobre el arrastre
+  mismo. La física arranca cuando el dedo se levanta.
+- La dirección del descarte sigue al envión. La tarjeta se va por donde la
+  empujaron.
+- La reducción de movimiento reemplaza toda transición basada en transformación
+  por un fundido cruzado de 120ms, y la revelación del gusto aparece de una vez.
+  Nada queda inalcanzable.
+- Sin confeti, sin partículas, sin animaciones de reposo en loop, sin UI que
+  rebota.
 
-## 8. Haptics
+## 8. Hápticos
 
-Sparingly, and only as confirmation of a decision the user made.
+Con moderación, y solo como confirmación de una decisión que tomó la persona.
 
-| Action | Haptic |
+| Acción | Háptico |
 |---|---|
-| Like | `impactLight` |
-| Save | `impactMedium` |
-| Pass | none — passing is not an achievement |
-| Match list appears | `notificationSuccess`, once |
-| Destructive confirm | `impactHeavy` |
+| Me gusta | `impactLight` |
+| Guardar | `impactMedium` |
+| Paso | ninguno — pasar no es un logro |
+| Aparece la lista de matches | `notificationSuccess`, una vez |
+| Confirmación destructiva | `impactHeavy` |
 | Error | `notificationError` |
 
-Never on scroll, never per frame, never on card entry. Respect the system
-haptics setting; provide an in-app toggle.
+Nunca al hacer scroll, nunca por frame, nunca al entrar una tarjeta. Respetar el
+ajuste de hápticos del sistema; ofrecer un interruptor dentro de la app.
 
-## 9. Iconography
+## 9. Iconografía
 
-Monoline, 1.5px at 24px, rounded caps, matching the mark's construction. Feather
-or Lucide as a base, with any icon that does not fit redrawn rather than
-imported. Icons are never the sole label on a primary action.
+Monolínea, 1,5px a 24px, terminaciones redondeadas, coincidiendo con la
+construcción de la marca. Feather o Lucide como base, y cualquier ícono que no
+encaje se redibuja en vez de importarse. Los íconos nunca son la única etiqueta
+de una acción principal.
 
-## 10. Voice
+## 10. Voz
 
-Spanish (rioplatense) first — *vos*, not *tú*. Direct, warm, unhurried, never
-salesy.
+Español rioplatense primero — *vos*, no *tú*. Directo, cálido, sin apuro, nunca
+vendedor.
 
-**Good:**
+**Bien:**
 "Empecemos por lo que te gusta." · "Encontrá a tu gente." ·
 "Detrás de cada trabajo hay alguien." · "¿Quién hizo esto?" ·
 "Hagámoslo realidad."
 
-**Banned:** "Swipe right", "Like Tinder", "AI-powered", "revolutionary",
-"seamless", "unlock", "level up", "don't miss out", any exclamation stacking,
-any fake urgency.
+**Prohibido:** "deslizá a la derecha", "como Tinder", "con IA", "revolucionario",
+"seamless", "desbloqueá", "subí de nivel", "no te lo pierdas", cualquier
+apilamiento de signos de exclamación, cualquier urgencia falsa.
 
-**Empty states say what is true and what to do next**, and never apologise
-theatrically: "Todavía no hay coincidencias. Seguí explorando y vamos a ir
-entendiendo tu gusto."
+**Los estados vacíos dicen qué es cierto y qué hacer después**, y nunca se
+disculpan de forma teatral: "Todavía no hay coincidencias. Seguí explorando y
+vamos a ir entendiendo tu gusto."
 
-## 11. Photography and content presentation
+## 11. Fotografía y presentación del contenido
 
-- Artwork is shown uncropped where the aspect ratio permits; when it must be
-  cropped, the crop is centred and the full image is one tap away.
-- No filters, no colour grading, no vignettes over artists' work.
-- Attribution is always adjacent to the work — the artist's name is never more
-  than a glance away from their piece. This is a brand position: MESH exists to
-  put the person back next to the work.
+- Las obras se muestran sin recortar cuando la relación de aspecto lo permite;
+  cuando hay que recortar, el recorte es centrado y la imagen completa está a un
+  toque.
+- Sin filtros, sin corrección de color, sin viñetas sobre el trabajo de los
+  artistas.
+- La atribución siempre está junto a la obra — el nombre del artista nunca está a
+  más de un vistazo de su pieza. Esto es una posición de marca: MESH existe para
+  volver a poner a la persona al lado del trabajo.

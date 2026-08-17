@@ -1,139 +1,151 @@
-# MESH — Navigation Architecture
+# MESH — Arquitectura de navegación
 
-**Status:** Proposed · **Owner:** ux-product-designer + mobile-engineer
+**Estado:** Propuesto · **Responsables:** ux-product-designer + mobile-engineer
 
 ---
 
-## 1. Structure
+## 1. Estructura
 
-Expo Router, file-based, typed routes.
+Expo Router, basado en archivos, con rutas tipadas. Las rutas se nombran en
+inglés (son código); las etiquetas visibles van en español.
 
 ```
 app/
-  _layout.tsx                    root: providers, fonts, session bootstrap
-  intro.tsx                      one screen, one line, one action
+  _layout.tsx                    raíz: providers, tipografías, arranque de sesión
+  intro.tsx                      una pantalla, una línea, una acción
   (tabs)/
-    _layout.tsx                  4 tabs
+    _layout.tsx                  4 pestañas
     discover/
-      index.tsx                  the deck
-      [itemId].tsx               artwork detail (pushed)
+      index.tsx                  el mazo
+      [itemId].tsx               detalle de obra (push)
     matches/
-      index.tsx                  taste summary + ranked people
+      index.tsx                  resumen de gusto + gente rankeada
     projects/
-      index.tsx                  list, or the create-project empty state
-      [projectId].tsx            project + its matches
+      index.tsx                  lista, o el estado vacío de crear proyecto
+      [projectId].tsx            proyecto + sus matches
     you/
-      index.tsx                  saved · taste · account · settings
+      index.tsx                  guardados · gusto · cuenta · ajustes
   artist/
-    [slug].tsx                   professional profile (pushed from anywhere)
+    [slug].tsx                   perfil profesional (push desde cualquier lado)
   (modals)/
-    project-new.tsx              stepped sheet
-    contact.tsx                  editable pre-filled message
-    filters.tsx                  search/browse filters
-    auth.tsx                     account creation / sign-in, shown on demand
+    project-new.tsx              hoja por pasos
+    contact.tsx                  mensaje precargado y editable
+    filters.tsx                  filtros de búsqueda
+    auth.tsx                     creación de cuenta / ingreso, a demanda
 ```
 
-## 2. Tabs
+## 2. Pestañas
 
-**Discover · Matches · Projects · You**
+**Descubrir · Matches · Proyectos · Vos**
 
-Four rather than three, because §08 of the brief defines two *equal* entry
-points — exploratory and directed — and burying project creation inside a
-profile tab makes the directed user hunt for the thing they came to do. The
-cost is one more tab; the benefit is that both intents are visible at first
-launch.
+Cuatro y no tres, porque §08 del brief define dos puntos de entrada *iguales*
+—exploratorio y dirigido— y enterrar la creación de proyectos dentro de una
+pestaña de perfil hace que la persona dirigida tenga que buscar justamente
+aquello que vino a hacer. El costo es una pestaña más; el beneficio es que
+ambas intenciones son visibles en el primer arranque.
 
-This is [open question Q2](../product/product-spec.md#14-open-questions). If
-`project_started` from the Projects tab is negligible after the first cohort,
-collapse to three tabs and surface projects from Discover.
+Esta es la [pregunta abierta Q2](../product/product-spec.md#14-preguntas-abiertas).
+Si tras la primera cohorte los `project_started` originados en la pestaña
+Proyectos son insignificantes, colapsar a tres pestañas y exponer proyectos
+desde Descubrir.
 
-Tab notes:
+Notas por pestaña:
 
-- **Matches** carries the taste summary at the top, then the ranked people.
-  Taste and matches are the same idea at two zoom levels; splitting them into
-  separate tabs would make the user assemble the connection themselves.
-- **Projects** with no projects *is* the create-project entry — the empty state
-  is the feature, not a placeholder.
-- **You** holds saved work, taste settings, account, and privacy. No badge, no
-  dot, no notification affordance.
+- **Matches** lleva el resumen de gusto arriba, y después la gente rankeada. El
+  gusto y los matches son la misma idea a dos niveles de zoom; separarlos en
+  pestañas distintas obligaría a la persona a armar sola la conexión.
+- **Proyectos** sin proyectos *es* el punto de entrada para crear uno — el
+  estado vacío es la feature, no un placeholder.
+- **Vos** guarda los trabajos guardados, los ajustes de gusto, la cuenta y la
+  privacidad. Sin insignias, sin puntitos, sin nada que parezca una
+  notificación.
 
-## 3. Route access
+## 3. Acceso a las rutas
 
-| Route | Anonymous session | Durable account |
+| Ruta | Sesión anónima | Cuenta durable |
 |---|---|---|
-| Intro, Discover, artwork detail, artist profile, search | ✅ | ✅ |
-| Interactions, taste, matches | ✅ | ✅ |
-| Contact handoff | ✅ | ✅ |
-| Create/keep a project | prompted to create an account | ✅ |
-| Settings, account, delete data | ✅ | ✅ |
+| Intro, Descubrir, detalle de obra, perfil de artista, búsqueda | ✅ | ✅ |
+| Interacciones, gusto, matches | ✅ | ✅ |
+| Traspaso a contacto | ✅ | ✅ |
+| Crear/conservar un proyecto | se le propone crear cuenta | ✅ |
+| Ajustes, cuenta, borrar datos | ✅ | ✅ |
 
-Every user has a Supabase session from first launch (anonymous). There is no
-"logged out" browsing state to design, no unauthenticated read path in RLS, and
-therefore no route guard that can be forgotten. The prompt to create a real
-account appears where it buys the user something — keeping a project, keeping
-taste across devices — and is dismissible.
+Toda persona tiene una sesión de Supabase desde el primer arranque (anónima). No
+hay un estado de "deslogueado" que diseñar, ni un camino de lectura sin
+autenticar en RLS, y por lo tanto no hay ningún guard de ruta que se pueda
+olvidar. La propuesta de crear una cuenta real aparece donde le sirve a la
+persona —conservar un proyecto, conservar el gusto entre dispositivos— y se
+puede descartar.
 
-Rationale and trade-offs: [ADR-002](../decisions/ADR-002-authentication.md).
+Justificación y contrapartidas:
+[ADR-002](../decisions/ADR-002-authentication.md).
 
-## 4. Transitions
+## 4. Transiciones
 
-| From → To | Transition |
+| De → A | Transición |
 |---|---|
-| Tab → tab | Instant, no animation |
-| Deck card → artwork detail | Shared-element on the image, 240ms |
-| Anywhere → artist profile | Push, iOS-native slide; hero image shared where the source was an image |
-| Any → modal | Sheet, with a grabber; dismissible by drag and by an explicit Close |
-| Taste reveal | Editorial: styles resolve in sequence, ~500ms total, respects reduced-motion |
+| Pestaña → pestaña | Instantáneo, sin animación |
+| Tarjeta del mazo → detalle de obra | Elemento compartido sobre la imagen, 240ms |
+| Cualquier lado → perfil de artista | Push, slide nativo de iOS; hero compartido cuando el origen fue una imagen |
+| Cualquiera → modal | Hoja, con manija; se cierra arrastrando y con un Cerrar explícito |
+| Revelación del gusto | Editorial: los estilos aparecen en secuencia, ~500ms en total, respeta reducción de movimiento |
 
-Durations, easings, and reduced-motion behaviour are tokens in the design
-system — screens do not define them. Nothing exceeds 500ms. Transitions never
-block input.
+Las duraciones, los easings y el comportamiento con reducción de movimiento son
+tokens del design system — las pantallas no los definen. Nada supera los 500ms.
+Las transiciones nunca bloquean la entrada.
 
 ## 5. Deep links
 
-Scheme `mesh://`, plus universal/app links on a future `mesh.app` domain.
+Esquema `mesh://`, más universal/app links sobre un futuro dominio `mesh.app`.
 
-| Link | Target |
+| Link | Destino |
 |---|---|
-| `mesh://artist/{slug}` | Professional profile |
-| `mesh://work/{itemId}` | Artwork detail |
-| `mesh://style/{categorySlug}/{styleSlug}` | Filtered browse |
-| `mesh://project/{id}` | Project — **only if owned by the current session** |
+| `mesh://artist/{slug}` | Perfil profesional |
+| `mesh://work/{itemId}` | Detalle de obra |
+| `mesh://style/{categorySlug}/{styleSlug}` | Exploración filtrada |
+| `mesh://project/{id}` | Proyecto — **solo si pertenece a la sesión actual** |
 
-Rules:
+Reglas:
 
-1. Every parameter is validated before use — slug pattern, UUID format. A
-   malformed link lands on a not-found screen, never on a crash and never on a
-   raw query.
-2. Deep links may never carry tokens, credentials, or auth codes. Supabase
-   auth callbacks use the dedicated `mesh://auth/callback` route and nothing
-   else.
-3. A deep link to a resource the session does not own resolves to not-found —
-   the same response as a non-existent resource, so links cannot be used to
-   probe for existence. RLS enforces this regardless of what the client does.
-4. Deep links never perform a mutation. No `mesh://like/{id}`.
+1. Todo parámetro se valida antes de usarse — patrón de slug, formato UUID. Un
+   link malformado cae en una pantalla de no encontrado, nunca en un crash ni en
+   una consulta cruda.
+2. Los deep links nunca pueden llevar tokens, credenciales ni códigos de auth.
+   Los callbacks de auth de Supabase usan la ruta dedicada
+   `mesh://auth/callback` y ninguna otra.
+3. Un deep link a un recurso que la sesión no posee resuelve a no encontrado —
+   la misma respuesta que un recurso inexistente, para que los links no se puedan
+   usar para sondear existencia. RLS lo impone sin importar qué haga el cliente.
+4. Los deep links nunca ejecutan una mutación. Nada de `mesh://like/{id}`.
 
-See [`threat-model.md`](../security/threat-model.md) §T7.
+Ver [`threat-model.md`](../security/threat-model.md) §T7.
 
-## 6. Back behaviour and dead ends
+## 6. Comportamiento del "atrás" y callejones sin salida
 
-- Android hardware back is handled on every screen; from a tab root it
-  backgrounds the app rather than dropping to a blank stack.
-- Every error and empty state carries a forward action — retry, browse, or go
-  back. A screen whose only exit is the OS back gesture is a defect.
-- The contact modal returns to the profile, not to the deck: the user came from
-  somewhere and should land back in context.
-- After creating a project, the user lands on that project's matches — the
-  payoff, not a confirmation screen.
+- El botón físico de atrás de Android se maneja en todas las pantallas; desde
+  la raíz de una pestaña manda la app a segundo plano en vez de dejar una pila
+  vacía.
+- Todo estado de error y de vacío lleva una acción hacia adelante — reintentar,
+  explorar, o volver. Una pantalla cuya única salida es el gesto de atrás del
+  sistema operativo es un defecto.
+- El modal de contacto vuelve al perfil, no al mazo: la persona venía de algún
+  lado y tiene que aterrizar de nuevo en contexto.
+- Después de crear un proyecto, la persona aterriza en los matches de ese
+  proyecto — la recompensa, no una pantalla de confirmación.
 
-## 7. Accessibility
+## 7. Accesibilidad
 
-- Tab bar labels are always visible — never icon-only.
-- Every gesture has a labelled button equivalent; the deck's Like / Pass / Save
-  / Undo controls are the primary accessible path and are ≥ 44×44pt.
-- Screen readers get a linear reading order per card: work, artist, styles,
-  then actions. The deck exposes `accessibilityActions` for like/pass/save so
-  VoiceOver and TalkBack users act without swiping.
-- Reduced-motion collapses shared-element and reveal transitions to a fade.
-- Dynamic type is respected up to the largest accessibility size; layouts use
-  flow, not fixed heights, and cards clamp their text rather than clipping it.
+- Las etiquetas de la barra de pestañas están siempre visibles — nunca solo
+  íconos.
+- Todo gesto tiene un botón equivalente con etiqueta; los controles del mazo (Me
+  gusta / Paso / Guardar / Deshacer) son el camino accesible principal, no un
+  plan B, y miden ≥ 44×44pt.
+- Los lectores de pantalla reciben un orden lineal por tarjeta: obra, artista,
+  estilos, y después acciones. El mazo expone `accessibilityActions` para me
+  gusta / paso / guardar, así quien usa VoiceOver o TalkBack actúa sin
+  deslizar.
+- La reducción de movimiento colapsa las transiciones de elemento compartido y
+  de revelación a un fundido.
+- Se respeta la tipografía dinámica hasta el tamaño accesible más grande; los
+  layouts usan flujo, no alturas fijas, y las tarjetas ajustan su texto en vez
+  de recortarlo.

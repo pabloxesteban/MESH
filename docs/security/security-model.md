@@ -1,209 +1,228 @@
-# MESH — Security Model
+# MESH — Modelo de seguridad
 
-**Status:** Proposed · **Owner:** security-reviewer · **Reviewer:** backend-engineer
+**Estado:** Propuesto · **Responsable:** security-reviewer · **Revisa:** backend-engineer
 
 ---
 
-## 1. Trust boundaries
+## 1. Límites de confianza
 
 ```
-Untrusted ───────────────────────────────────────────────
-  The mobile app, its bundle, its network traffic, and
-  every value it sends. The anon key is public. The user
-  can read the bundle, proxy the traffic, and call the
-  API directly.
+No confiable ────────────────────────────────────────────
+  La app móvil, su bundle, su tráfico de red, y todo
+  valor que envía. La anon key es pública. La persona
+  puede leer el bundle, interceptar el tráfico y llamar
+  a la API directamente.
 ──────────────────────────────────────────────────────────
-Trusted
-  PostgreSQL + RLS. This is the only authorization
-  boundary that matters. If a rule is not expressed in
-  a policy or a constraint, it is not enforced.
+Confiable
+  PostgreSQL + RLS. Este es el único límite de
+  autorización que importa. Si una regla no está
+  expresada en una política o en una restricción, no
+  está impuesta.
 ──────────────────────────────────────────────────────────
-Privileged
-  Service-role key. Operator machine and CI only.
-  Never in the app, never in an environment variable
-  prefixed EXPO_PUBLIC_, never in a log.
+Privilegiado
+  Service-role key. Solo máquina del operador y CI.
+  Nunca en la app, nunca en una variable con prefijo
+  EXPO_PUBLIC_, nunca en un log.
 ```
 
-**Core assumption: the client is hostile.** Client-side validation exists only
-to make the UI pleasant. Every rule that matters is a policy, a constraint, or
-a check inside a `SECURITY DEFINER` function.
+**Supuesto central: el cliente es hostil.** La validación del lado del cliente
+existe solo para que la UI sea agradable. Toda regla que importa es una
+política, una restricción, o un chequeo dentro de una función `SECURITY
+DEFINER`.
 
-## 2. Authentication
+## 2. Autenticación
 
-- Supabase Auth. MESH never stores, hashes, compares, or transports a password
-  itself.
-- **Anonymous sign-in on first launch** so a user can explore without a wall,
-  and so there is no unauthenticated read path in the schema. Anonymous users
-  have a real `auth.uid()` and are subject to the same policies.
-- **Upgrade to a durable account** via email + password (or magic link) links
-  the same `auth.users` row — taste, saves, and projects carry over with no
-  data migration.
-- Session tokens are stored in `expo-secure-store` (Keychain / Android
-  Keystore), never in AsyncStorage or MMKV. Refresh is handled by supabase-js.
-- Password reset uses Supabase's flow, returning to `mesh://auth/callback`.
-- Sign-out clears the session, the query cache, and every MMKV namespace
-  holding user data — taste cache, interaction queue, analytics buffer.
+- Supabase Auth. MESH nunca guarda, hashea, compara ni transporta una
+  contraseña por su cuenta.
+- **Ingreso anónimo en el primer arranque** para que se pueda explorar sin muro,
+  y para que no exista ningún camino de lectura sin autenticar en el esquema.
+  Los usuarios anónimos tienen un `auth.uid()` real y están sujetos a las mismas
+  políticas.
+- **Upgrade a cuenta durable** vía email + contraseña (o magic link) que vincula
+  la misma fila de `auth.users` — gusto, guardados y proyectos se conservan sin
+  ninguna migración de datos.
+- Los tokens de sesión se guardan en `expo-secure-store` (Keychain / Android
+  Keystore), nunca en AsyncStorage ni en MMKV. El refresh lo maneja supabase-js.
+- La recuperación de contraseña usa el flujo de Supabase y vuelve a
+  `mesh://auth/callback`.
+- Cerrar sesión limpia la sesión, el caché de queries y todos los namespaces de
+  MMKV con datos de usuario — caché de gusto, cola de interacciones, buffer de
+  analytics.
 
-**Anonymous-auth trade-offs, accepted knowingly:** it makes account creation
-cheap for an attacker, so anonymous sign-ins are rate-limited in the Supabase
-dashboard, anonymous users get the same RLS treatment as everyone else, and
-Postgres row limits per user are enforced (§6). The alternative — a signup wall
-before any value — costs more in real users than it saves in abuse at this
-scale.
+**Contrapartidas de la auth anónima, aceptadas con conocimiento:** abarata la
+creación de cuentas para un atacante, así que los ingresos anónimos están
+limitados por tasa en el panel de Supabase, los usuarios anónimos reciben el
+mismo tratamiento de RLS que cualquiera, y se imponen límites de filas por
+usuario en Postgres (§6). La alternativa —un muro de registro antes de cualquier
+valor— cuesta más en usuarios reales de lo que ahorra en abuso a esta escala.
 
-## 3. Authorization: RLS on every table
+## 3. Autorización: RLS en todas las tablas
 
-**Rules that hold without exception:**
+**Reglas que valen sin excepción:**
 
-1. `alter table … enable row level security;` **and**
-   `alter table … force row level security;` on every table in `public`.
-   `FORCE` matters: without it, the table owner bypasses its own policies.
-2. `revoke all on <table> from anon, authenticated;` then explicit grants of
-   only the verbs that table needs.
-3. Every policy names its command (`for select` / `for insert` / …). No
-   `for all` policies — they hide which verb a `using` clause is protecting.
-4. Every `for insert` policy has a `with check`. A policy without one is a hole.
-5. No policy references a client-supplied user id. Ownership is always
-   `auth.uid()`.
+1. `alter table … enable row level security;` **y**
+   `alter table … force row level security;` en toda tabla de `public`.
+   `FORCE` importa: sin eso, el dueño de la tabla saltea sus propias políticas.
+2. `revoke all on <tabla> from anon, authenticated;` y después grants explícitos
+   solo de los verbos que esa tabla necesita.
+3. Toda política nombra su comando (`for select` / `for insert` / …). Nada de
+   políticas `for all` — esconden qué verbo está protegiendo una cláusula
+   `using`.
+4. Toda política `for insert` tiene un `with check`. Una política sin eso es un
+   agujero.
+5. Ninguna política referencia un id de usuario provisto por el cliente. La
+   propiedad siempre es `auth.uid()`.
 
-### Policy map
+### Mapa de políticas
 
-| Table | anon/auth SELECT | INSERT | UPDATE | DELETE |
+| Tabla | SELECT anon/auth | INSERT | UPDATE | DELETE |
 |---|---|---|---|---|
-| `profiles` | own row | via trigger only | own row | own row |
-| `categories`, `styles`, `locations` | all active rows | ✗ | ✗ | ✗ |
-| `professionals` | `is_published` | ✗ | owner only | ✗ |
-| `professional_styles` | parent published | ✗ | owner only | owner only |
-| `portfolio_items` | parent published | ✗ | owner only | owner only |
-| `portfolio_item_styles` | parent visible | ✗ | owner only | owner only |
-| `media_assets` | referenced by a published item **or** `owner_user_id = auth.uid()` | own uploads | ✗ | own uploads |
-| `interactions` | own | own | own | own |
-| `taste_profiles` | own | own | own | own |
-| `projects` | own | own | own | own |
-| `project_styles`, `project_references` | own parent project | own parent | own parent | own parent |
-| `matches` | own | own | own | own |
-| `analytics_events` | ✗ | own (`user_id = auth.uid()`) | ✗ | ✗ |
-| `audit_events` | ✗ | ✗ | ✗ | ✗ (no policies — service role only) |
+| `profiles` | fila propia | solo por trigger | fila propia | fila propia |
+| `categories`, `styles`, `locations` | todas las filas activas | ✗ | ✗ | ✗ |
+| `professionals` | `is_published` | ✗ | solo dueño | ✗ |
+| `professional_styles` | padre publicado | ✗ | solo dueño | solo dueño |
+| `portfolio_items` | padre publicado | ✗ | solo dueño | solo dueño |
+| `portfolio_item_styles` | padre visible | ✗ | solo dueño | solo dueño |
+| `media_assets` | referenciado por una pieza publicada **o** `owner_user_id = auth.uid()` | subidas propias | ✗ | subidas propias |
+| `interactions` | propias | propias | propias | propias |
+| `taste_profiles` | propio | propio | propio | propio |
+| `projects` | propios | propios | propios | propios |
+| `project_styles`, `project_references` | proyecto padre propio | padre propio | padre propio | padre propio |
+| `matches` | propios | propios | propios | propios |
+| `analytics_events` | ✗ | propios (`user_id = auth.uid()`) | ✗ | ✗ |
+| `audit_events` | ✗ | ✗ | ✗ | ✗ (sin políticas — solo service role) |
 
-"owner only" means `professionals.owner_user_id = auth.uid()`. In V1 no
-professional is claimed, so these paths are effectively unreachable from the
-client — but they are written now so that claiming a profile later is not a
-security project.
+"solo dueño" significa `professionals.owner_user_id = auth.uid()`. En V1 ningún
+profesional está reclamado, así que estos caminos son en la práctica
+inalcanzables desde el cliente — pero se escriben ahora para que reclamar un
+perfil más adelante no sea un proyecto de seguridad.
 
-`media_assets` SELECT is the subtle one: a naive `using (true)` would leak the
-storage paths of other users' private project reference images. The policy is
-an `EXISTS` over published portfolio items, unioned with ownership.
+El SELECT de `media_assets` es el caso sutil: un `using (true)` ingenuo filtraría
+las rutas de storage de las imágenes de referencia privadas de otras personas. La
+política es un `EXISTS` sobre piezas de portfolio publicadas, unido con la
+propiedad.
 
-### The guarantee, enforced by test
+### La garantía, impuesta por test
 
-A test enumerates `pg_tables` in `public` and fails if any table has
-`rowsecurity = false`, `forcerowsecurity = false`, or zero rows in
-`pg_policies`. **A table cannot be added without policies.** This runs in CI on
-every migration.
+Un test enumera `pg_tables` en `public` y falla si alguna tabla tiene
+`rowsecurity = false`, `forcerowsecurity = false`, o cero filas en
+`pg_policies`. **No se puede agregar una tabla sin políticas.** Corre en CI en
+cada migración.
 
 ## 4. Storage
 
-| Bucket | Visibility | Write | Path convention |
+| Bucket | Visibilidad | Escritura | Convención de rutas |
 |---|---|---|---|
-| `portfolio` | public read | service role only | `portfolio/{professional_slug}/{item_id}/{size}.webp` |
-| `references` | private | owner only | `references/{user_id}/{uuid}.webp` |
-| `avatars` | public read | owner only | `avatars/{user_id}/{uuid}.webp` |
+| `portfolio` | lectura pública | solo service role | `portfolio/{professional_slug}/{item_id}/{size}.webp` |
+| `references` | privado | solo dueño | `references/{user_id}/{uuid}.webp` |
+| `avatars` | lectura pública | solo dueño | `avatars/{user_id}/{uuid}.webp` |
 
-Storage policies for the owner-writable buckets assert
-`(storage.foldername(name))[1] = auth.uid()::text` — the first path segment is
-the caller's id, so a user cannot write into another user's folder even by
-crafting the path.
+Las políticas de storage de los buckets escribibles por el dueño verifican
+`(storage.foldername(name))[1] = auth.uid()::text` — el primer segmento de la
+ruta es el id de quien llama, así que nadie puede escribir en la carpeta de otra
+persona ni fabricando la ruta.
 
-Private objects are served via short-lived signed URLs (≤ 1 hour) generated on
-demand. Signed URLs are never persisted, never logged, and never put in a deep
-link.
+Los objetos privados se sirven vía URLs firmadas de vida corta (≤ 1 hora)
+generadas a demanda. Las URLs firmadas nunca se persisten, nunca se loguean y
+nunca van en un deep link.
 
-## 5. Upload validation
+## 5. Validación de subidas
 
-Client-side checks are UX. Real enforcement is:
+Los chequeos del lado del cliente son UX. Lo que realmente impone es:
 
-- Bucket-level MIME allow-list: `image/jpeg`, `image/png`, `image/webp`,
-  `image/heic`. No SVG — SVG is a script container.
-- Bucket-level size cap: 12 MB.
-- Filenames are always server-generated UUIDs. User-supplied names are never
-  used in a path — no traversal, no null bytes, no unicode homoglyph tricks.
-- Content-type is set explicitly on upload, never inferred from the extension.
-- Images are re-encoded during the seed pipeline, which strips EXIF (including
-  GPS) as a side effect. User-uploaded project references are re-encoded and
-  stripped client-side before upload, and this is asserted by a test — a
-  reference photo taken at home should not carry the user's coordinates.
-- Uploads count against a per-user quota (§6).
+- Lista blanca de MIME a nivel bucket: `image/jpeg`, `image/png`, `image/webp`,
+  `image/heic`. Nada de SVG — un SVG es un contenedor de scripts.
+- Tope de tamaño a nivel bucket: 12 MB.
+- Los nombres de archivo siempre son UUIDs generados por el servidor. Los
+  nombres provistos por el usuario nunca se usan en una ruta — sin traversal,
+  sin bytes nulos, sin trucos de homoglifos unicode.
+- El content-type se setea explícitamente en la subida, nunca se infiere de la
+  extensión.
+- Las imágenes se recodifican durante el pipeline de seed, lo que elimina el
+  EXIF (incluido el GPS) como efecto secundario. Las referencias que sube el
+  usuario se recodifican y limpian del lado del cliente antes de subirse, y un
+  test lo verifica — una foto de referencia sacada en casa no debería llevar las
+  coordenadas de esa persona.
+- Las subidas cuentan contra una cuota por usuario (§6).
 
-## 6. Abuse prevention
+## 6. Prevención de abuso
 
 | Vector | Control |
 |---|---|
-| Mass anonymous account creation | Supabase rate limit on anonymous sign-in; per-IP limits at the gateway |
-| Interaction flooding | UNIQUE `(user_id, portfolio_item_id)` caps interactions at the catalogue size; per-user request rate limits |
-| Project spam | Max 20 active projects per user, enforced by a `BEFORE INSERT` trigger, not by the client |
-| Reference-image storage abuse | Max 10 references per project, max 50 MB total per user, enforced server-side |
-| Analytics flooding | Insert-only, no read; volume monitored; events are dropped, never retried aggressively |
-| Contact-detail harvesting | `whatsapp_e164` and `instagram_handle` are readable for published professionals — that is the product. Mitigation is consent (artists know their details are shown) plus rate limiting the catalogue read, not obscurity. |
-| Catalogue scraping | Accepted as low-harm in V1 with 12 consenting public profiles. Revisit before the catalogue is an asset. |
+| Creación masiva de cuentas anónimas | Límite de tasa de Supabase en el ingreso anónimo; límites por IP en el gateway |
+| Inundación de interacciones | El UNIQUE `(user_id, portfolio_item_id)` acota las interacciones al tamaño del catálogo; límites de tasa por usuario |
+| Spam de proyectos | Máximo 20 proyectos activos por usuario, impuesto por un trigger `BEFORE INSERT`, no por el cliente |
+| Abuso de storage con imágenes de referencia | Máximo 10 referencias por proyecto, máximo 50 MB por usuario, impuesto del lado del servidor |
+| Inundación de analytics | Solo inserción, sin lectura; se monitorea el volumen; los eventos se descartan, nunca se reintentan agresivamente |
+| Cosecha de datos de contacto | `whatsapp_e164` e `instagram_handle` son legibles para profesionales publicados — eso *es* el producto. La mitigación es el consentimiento (los artistas saben que sus datos se muestran) más límite de tasa en la lectura del catálogo, no la oscuridad. |
+| Scraping del catálogo | Aceptado como daño bajo en V1 con 12 perfiles públicos y consentidos. Revisitar antes de que el catálogo sea un activo. |
 
-## 7. Secrets
+## 7. Secretos
 
-| Secret | Where it lives | Where it must never be |
+| Secreto | Dónde vive | Dónde nunca puede estar |
 |---|---|---|
-| `EXPO_PUBLIC_SUPABASE_URL` | Client bundle (public by design) | — |
-| `EXPO_PUBLIC_SUPABASE_ANON_KEY` | Client bundle (public by design) | — |
-| `SUPABASE_SERVICE_ROLE_KEY` | `tools/seed/.env.local`, CI secret | Any file under `apps/`, any log, any commit |
-| Database password | Operator password manager | Everywhere else |
+| `EXPO_PUBLIC_SUPABASE_URL` | Bundle del cliente (público por diseño) | — |
+| `EXPO_PUBLIC_SUPABASE_ANON_KEY` | Bundle del cliente (público por diseño) | — |
+| `SUPABASE_SERVICE_ROLE_KEY` | `tools/seed/.env.local`, secreto de CI | Cualquier archivo bajo `apps/`, cualquier log, cualquier commit |
+| Contraseña de la base | Gestor de contraseñas del operador | En cualquier otro lado |
 
-Controls:
-- `.env*` is gitignored except `.env.example`.
-- A CI check greps the built bundle for `service_role` and for the service-key
-  JWT prefix and fails the build on a hit.
-- `tools/seed` refuses to run if it detects it is executing inside a Metro or
-  Expo context.
-- Secret scanning is enabled on the repository.
+Controles:
+- `.env*` está en gitignore salvo `.env.example`.
+- Un chequeo de CI busca `service_role` y el prefijo del JWT de service key en
+  el bundle compilado y rompe el build si aparece.
+- `tools/seed` se niega a correr si detecta que está ejecutando dentro de un
+  contexto de Metro o Expo.
+- El escaneo de secretos está habilitado en el repositorio.
 
-## 8. Logging and PII
+## 8. Logging y datos personales
 
-- No production logging of tokens, emails, message bodies, project
-  descriptions, search text, or storage signed URLs.
-- Errors are mapped to codes before display; raw Postgres errors never reach a
-  user or an analytics event — they leak column and table names.
-- `audit_events` records who did what to which entity, with metadata limited to
-  ids and enums.
-- Crash reporting, if added, must scrub breadcrumbs; it is not in V1.
+- Nada de logging en producción de tokens, emails, cuerpos de mensajes,
+  descripciones de proyecto, texto de búsqueda ni URLs firmadas de storage.
+- Los errores se mapean a códigos antes de mostrarse; los errores crudos de
+  Postgres nunca llegan a una persona ni a un evento de analytics — filtran
+  nombres de tablas y columnas.
+- `audit_events` registra quién le hizo qué a qué entidad, con metadatos
+  limitados a ids y enums.
+- El reporte de crashes, si se agrega, tiene que limpiar los breadcrumbs; no
+  está en V1.
 
-## 9. Data rights
+## 9. Derechos sobre los datos
 
-- **Export:** a user can request their profile, interactions, taste, projects,
-  and matches as JSON. V1 may service this manually; the queries exist as a
-  script.
-- **Deletion:** deleting the auth user cascades to every owned row; storage
-  objects under `references/{user_id}/` and `avatars/{user_id}/` are removed by
-  the same routine. Recorded in `audit_events`.
-- **Analytics opt-out:** `profiles.analytics_opt_in`; when false the client
-  queues nothing.
-- **Artist withdrawal:** see
+- **Exportación:** la persona puede pedir su perfil, interacciones, gusto,
+  proyectos y matches en JSON. En V1 se puede atender manualmente; las consultas
+  existen como script.
+- **Borrado:** borrar el usuario de auth cascadea a todas las filas de su
+  propiedad; los objetos de storage bajo `references/{user_id}/` y
+  `avatars/{user_id}/` los elimina la misma rutina. Queda registrado en
+  `audit_events`.
+- **Opt-out de analytics:** `profiles.analytics_opt_in`; cuando está en falso el
+  cliente no encola nada.
+- **Retiro de artista:** ver
   [`content-policy.md`](../product/content-policy.md) §8.
 
-## 10. Dependencies and supply chain
+## 10. Dependencias y cadena de suministro
 
-- `npm audit` in CI; high/critical blocks merge.
-- Lockfiles committed. Dependencies added only with a stated reason.
-- No dependency gets access to secrets — the seed tool's dependency set is kept
-  minimal and separate from the app's.
-- Expo SDK upgrades are deliberate, tested on device, and recorded.
+- `npm audit` en CI; alto/crítico bloquea el merge.
+- Lockfiles commiteados. Las dependencias se agregan solo con una razón
+  declarada.
+- Ninguna dependencia recibe acceso a secretos — el conjunto de dependencias de
+  la herramienta de seed se mantiene mínimo y separado del de la app.
+- Los upgrades del SDK de Expo son deliberados, probados en dispositivo y
+  registrados.
 
-## 11. Review checklist (run before each release)
+## 11. Checklist de revisión (correr antes de cada release)
 
-- [ ] Every `public` table: RLS enabled **and** forced, ≥ 1 policy, correct verbs
-- [ ] Every `for insert` policy has a `with check`
-- [ ] No `for all` policies
-- [ ] Cross-user access tests pass for every user-owned table
-- [ ] No `service_role` string in the built bundle
-- [ ] Storage policies restrict writes to the caller's own folder
-- [ ] No new free-text analytics properties
-- [ ] Deep-link parameters validated; no mutating links
-- [ ] Session tokens only in `expo-secure-store`
-- [ ] `npm audit` clean at high/critical
-- [ ] New tables added to the policy map in §3
+- [ ] Toda tabla de `public`: RLS habilitado **y** forzado, ≥ 1 política,
+      verbos correctos
+- [ ] Toda política `for insert` tiene un `with check`
+- [ ] Ninguna política `for all`
+- [ ] Los tests de acceso cruzado pasan en todas las tablas de propiedad de
+      usuario
+- [ ] Ningún string `service_role` en el bundle compilado
+- [ ] Las políticas de storage restringen la escritura a la carpeta de quien
+      llama
+- [ ] Ninguna propiedad nueva de analytics con texto libre
+- [ ] Parámetros de deep link validados; ningún link que mute
+- [ ] Tokens de sesión solo en `expo-secure-store`
+- [ ] `npm audit` limpio en alto/crítico
+- [ ] Las tablas nuevas agregadas al mapa de políticas de §3
