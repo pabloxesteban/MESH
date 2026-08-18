@@ -4,6 +4,8 @@ import { router, useLocalSearchParams } from 'expo-router'
 import { useSession } from '@/features/auth/SessionProvider.tsx'
 import { MatchesScreen } from '@/features/matches/MatchesScreen.tsx'
 import { fetchProject } from '@/features/projects/queries.ts'
+import { ErrorView } from '@/components/ErrorView.tsx'
+import { asUuid } from '@/data/route-params.ts'
 import { todayIso } from '@/data/today.ts'
 
 /**
@@ -14,12 +16,21 @@ import { todayIso } from '@/data/today.ts'
  * distintas para el mismo objeto se separarían.
  */
 export default function ProjectMatchesRoute() {
-  const { id } = useLocalSearchParams<{ id: string }>()
+  const raw = useLocalSearchParams<{ id: string }>()
+  const id = asUuid(raw.id)
   const { userId } = useSession()
+
   const project = useQuery({
     queryKey: ['project', id],
-    queryFn: () => fetchProject(id),
+    // Un id que no es un UUID no llega a Postgres: ahí explotaría con 22P02 y
+    // se vería como un error de servidor en vez de como lo que es.
+    enabled: id != null,
+    queryFn: () => fetchProject(id as string),
   })
+
+  if (id == null) {
+    return <ErrorView cause="notFound" onBack={() => router.back()} />
+  }
 
   return (
     <MatchesScreen

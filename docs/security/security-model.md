@@ -294,6 +294,10 @@ Controles:
 
 ## 11. Checklist de revisión (correr antes de cada release)
 
+Última corrida: **2026-08-18**, resultado en
+[`audit-2026-08-18.md`](audit-2026-08-18.md). Un hallazgo (parámetros de deep
+link sin validar), corregido; un ítem informativo aceptado y documentado.
+
 - [ ] Toda tabla de `public`: RLS habilitado **y** forzado, ≥ 1 política,
       verbos correctos
 - [ ] Toda política `for insert` tiene un `with check`
