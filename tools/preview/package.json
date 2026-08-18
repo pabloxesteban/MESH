@@ -1,0 +1,15 @@
+{
+  "name": "@mesh/preview",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Hornea el catálogo fixture adentro del preview web de MESH",
+  "scripts": {
+    "typecheck": "echo 'sin TypeScript en este workspace'",
+    "data": "node src/build-data.mjs"
+  },
+  "dependencies": {
+    "sharp": "^0.35.3",
+    "yaml": "^2.8.1"
+  }
+}

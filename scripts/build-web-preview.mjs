@@ -65,8 +65,29 @@ try {
   console.log('· exportando con preview-entry.tsx…')
   execFileSync(
     'npx',
-    ['expo', 'export', '--platform', 'web', '--output-dir', exportDir],
-    { cwd: APP, stdio: 'pipe' },
+    [
+      'expo',
+      'export',
+      '--platform',
+      'web',
+      '--output-dir',
+      exportDir,
+      '--clear',
+    ],
+    {
+      cwd: APP,
+      stdio: 'pipe',
+      env: {
+        ...process.env,
+        // Metro cambia cada `queries.ts` por su `queries.preview.ts`. Sin esto
+        // el preview arranca pidiéndole datos a un Supabase que no existe.
+        MESH_PREVIEW: '1',
+        // El cliente real igual se construye en algún import suelto y tira si
+        // faltan. Nunca se usan: ningún módulo de preview habla con la red.
+        EXPO_PUBLIC_SUPABASE_URL: 'https://preview.invalid',
+        EXPO_PUBLIC_SUPABASE_ANON_KEY: 'preview',
+      },
+    },
   )
 } finally {
   // Se restaura siempre: dejar el package.json apuntando al entry de preview
@@ -121,7 +142,7 @@ for (const file of files) {
 const scriptEscapes = (bundle.match(/<\/script/gi) ?? []).length
 bundle = bundle.replace(/<\/script/gi, '<\\/script')
 
-const html = `<title>Galería MESH</title>
+const html = `<title>MESH — vista previa</title>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 
 <style>
@@ -165,14 +186,25 @@ console.log(
 /**
  * Texto que tiene que aparecer sí o sí.
  *
- * Sale del encabezado de la galería. Si la galería cambia de título, este canario
- * hay que cambiarlo — y que haya que tocarlo es preferible a un canario tan laxo
- * que pase con la pantalla equivocada renderizada.
+ * Dos canarios, y ninguno depende del idioma. El primero sale del catálogo
+ * horneado: si aparece el nombre de un artista, el bundle cargó, el store de
+ * preview resolvió y una tarjeta se pintó. El segundo sale de la interfaz.
+ *
+ * La versión anterior de este canario era un texto de i18n, y fallaba con el
+ * preview perfectamente sano: el navegador headless corre en inglés y la app
+ * traduce. Un canario que depende del locale del verificador no verifica el
+ * preview, verifica el locale.
  */
-const CANARIO = 'DESIGN SYSTEM'
+const CANARIOS = ['Tinta Negra', 'Irezumi']
 
-/** Mínimo de texto visible. Un render a medias produce muy poco. */
-const MINIMO_CARACTERES = 400
+/**
+ * Mínimo de texto visible.
+ *
+ * Bajo a propósito: la primera pantalla es el mazo, que es sobre todo imagen.
+ * El piso está para distinguir "renderizó algo" de "renderizó un fragmento",
+ * no para medir densidad de texto.
+ */
+const MINIMO_CARACTERES = 60
 
 let chromium
 try {
@@ -193,7 +225,11 @@ const browser = await chromium.launch({
 })
 
 try {
-  const page = await browser.newPage({ viewport: { width: 390, height: 844 } })
+  const page = await browser.newPage({
+    viewport: { width: 390, height: 844 },
+    // El mercado es CABA. Verificar en el idioma en el que se va a usar.
+    locale: 'es-AR',
+  })
   const errors = []
   page.on('pageerror', (error) => errors.push(String(error)))
   page.on('console', (message) => {
@@ -213,8 +249,8 @@ try {
   ).trim()
 
   // Los errores de supabase-js sobre SecureStore son esperados: el adaptador
-  // habla con un módulo nativo que en un navegador no existe. No impiden que la
-  // galería renderice, y la galería es lo único que este preview muestra.
+  // habla con un módulo nativo que en un navegador no existe. Ningún módulo de
+  // preview usa el cliente, así que no afectan lo que se ve.
   const reales = errors.filter(
     (error) => !/getValueWithKeyAsync|Auto refresh tick/.test(error),
   )
@@ -233,8 +269,12 @@ try {
     process.exit(1)
   }
 
-  if (!text.includes(CANARIO)) {
-    console.error(`✗ Renderizó algo pero falta "${CANARIO}". Puede estar rota.`)
+  const faltantes = CANARIOS.filter((canario) => !text.includes(canario))
+  if (faltantes.length === CANARIOS.length) {
+    console.error(
+      `✗ Renderizó algo pero no apareció ningún artista del catálogo ` +
+        `(${CANARIOS.join(', ')}). El mazo puede estar vacío.`,
+    )
     console.error(
       `  Primeros 200 caracteres: ${JSON.stringify(text.slice(0, 200))}`,
     )

@@ -69,6 +69,14 @@ jobs:
         # Incluye la verificación de que los derivados no conservan EXIF ni GPS.
         run: npm run test -w @mesh/seed
 
+      - name: 4d · El preview web sigue vivo
+        # Construye el preview y lo ABRE en un Chromium headless. Es el paso
+        # que impide volver a entregar un archivo que pesa lo correcto y se ve
+        # completamente negro. Ver docs/design/preview.md.
+        run: |
+          npm run preview:data
+          npm run web:preview
+
       - name: 6 · Tests de componentes
         # Fase 3. Sin componentes todavía, el script no existe y --if-present
         # lo saltea; cuando exista, este paso empieza a correr solo.

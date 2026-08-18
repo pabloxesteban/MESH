@@ -2,11 +2,12 @@
   "name": "mesh",
   "version": "0.1.0",
   "private": true,
-  "description": "MESH — descubrí gente, hacé que las ideas pasen",
+  "description": "MESH \u2014 descubr\u00ed gente, hac\u00e9 que las ideas pasen",
   "workspaces": [
     "apps/mobile",
     "packages/domain",
     "tools/seed",
+    "tools/preview",
     "tools/brand",
     "tests/integration"
   ],
@@ -42,7 +43,8 @@
     "brand:palette": "npm run palette -w @mesh/brand",
     "brand:palette:check": "npm run palette:check -w @mesh/brand",
     "web:preview": "node scripts/build-web-preview.mjs",
-    "perf:report": "node scripts/perf-report.mjs"
+    "perf:report": "node scripts/perf-report.mjs",
+    "preview:data": "npm run data -w @mesh/preview"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
