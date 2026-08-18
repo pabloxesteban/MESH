@@ -34,7 +34,7 @@ before(async () => {
         // Las peticiones de auth no cuentan: no son parte de pintar la
         // pantalla, y el token ya está en memoria cuando la persona navega.
         if (!url.includes('/auth/v1/')) requests.push(url)
-        return fetch(input as RequestInfo, init)
+        return fetch(input as Parameters<typeof fetch>[0], init)
       },
     },
   })

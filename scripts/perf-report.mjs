@@ -14,7 +14,7 @@
  */
 
 import { execFileSync } from 'node:child_process'
-import { readdirSync, readFileSync, statSync } from 'node:fs'
+import { readdirSync, statSync } from 'node:fs'
 import { extname, join, resolve } from 'node:path'
 
 const ROOT = resolve(import.meta.dirname, '..')
@@ -64,12 +64,14 @@ if (exportDir != null) {
 // --- lo que viaja por imagen -------------------------------------------------
 
 const contentRoot = join(ROOT, 'content/artists')
-let originals = []
+let originals
 try {
   originals = walk(contentRoot).filter((file) =>
     ['.jpg', '.jpeg', '.png', '.webp'].includes(extname(file).toLowerCase()),
   )
 } catch {
+  // Sin contenido cargado no hay nada que medir, y eso no es un error: pasa en
+  // un clon recién hecho, antes de generar los fixtures.
   originals = []
 }
 
