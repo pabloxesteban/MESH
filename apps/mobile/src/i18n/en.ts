@@ -220,4 +220,34 @@ export const en: Readonly<Record<TranslationKey, string>> = {
   'style.tattoo.minimalist': 'Minimalist',
   'style.tattoo.fileteado-porteno': 'Fileteado porteño',
   'style.tattoo.handpoke': 'Handpoke',
+  // --- studio (artist mode) ---
+  'studio.title': 'Your studio',
+  'studio.eyebrow': 'YOUR PROFILE',
+  'studio.unpublished': 'Not published yet. We publish it.',
+  'studio.claim.title': 'Claim your profile',
+  'studio.claim.body':
+    'If we built your profile, we send you an eight-character code. That code ' +
+    'lets you manage your portfolio from here.',
+  'studio.claim.label': 'Code',
+  'studio.claim.submit': 'Claim',
+  'studio.claim.invalid': 'That code is not valid, or it was already used.',
+  'studio.add.styles': 'Styles for this piece',
+  'studio.add.styles.hint':
+    'Tap in order: the first one weighs most. Up to three.',
+  'studio.add.styles.max': 'You picked {n}. Remove one to change it.',
+  'studio.add.featured.on': 'Will open your profile',
+  'studio.add.featured.off': 'Open my profile with this',
+  'studio.add.pick': 'Pick a photo and upload',
+  'studio.upload.done': 'Uploaded',
+  'studio.upload.failed': 'Upload failed. Try again.',
+  'studio.empty.title': 'Nothing uploaded yet',
+  'studio.empty.body':
+    'Your work is the only thing someone sees before deciding to reach out.',
+  'studio.piece.featured': 'Opens your profile',
+  'studio.piece.remove': 'Remove',
+  'studio.piece.removed': 'Removed',
+  'studio.entry.label': 'Do you tattoo?',
+  'studio.entry.hint':
+    'If we built your profile, your code lets you manage your portfolio.',
+  'studio.entry.action': 'Go to my studio',
 }

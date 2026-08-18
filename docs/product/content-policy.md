@@ -79,6 +79,56 @@ llegue el contenido real, pero tienen que ser inconfundibles:
 6. Las imágenes fixture son placeholders abstractos, no tatuajes reales sacados
    de ningún lado, y llevan "FIXTURE" impreso.
 
+### El artista sube su propia obra
+
+Hasta 2026-08-18 el catálogo lo escribía **solo** el service role desde
+`tools/seed`. Ahora un artista puede subir y sacar piezas de su propio
+portafolio desde la app.
+
+**Esto no deja de ser un catálogo curado.** Nadie se da de alta solo. El perfil
+lo armamos nosotros, con su consentimiento registrado acá, y recién después le
+entregamos un código de ocho caracteres:
+
+```bash
+npm run content:claim -- --slug briza-maldonado
+```
+
+El código se muestra una sola vez, vive en `professional_claims` —una tabla que
+el cliente **no puede leer**— y se consume al canjearse. La diferencia con el
+seeder es quién opera, no quién decide: seguimos eligiendo a quién invitamos.
+
+Qué habilita el código, y nada más:
+
+| Puede | No puede |
+|---|---|
+| Subir piezas a **su** portafolio | Crear un profesional |
+| Etiquetarlas con hasta tres estilos | Publicarse solo |
+| Sacar una pieza suya | Tocar el perfil de otro |
+| | Escribir en la carpeta de storage de otro |
+
+Las cuatro negativas las impone RLS, no la interfaz, y cada una tiene un test
+que falla si la política se afloja: `supabase/tests/25_artist_ownership.sql` y
+`tests/integration/src/artist.test.ts`.
+
+**El consentimiento de las piezas subidas es el acto de subirlas**, hecho por una
+persona autenticada que canjeó un código que le dimos en mano. Eso es un
+registro más fuerte que un archivo de texto escrito por nosotros. Lo que el
+`consent.md` sigue cubriendo es todo lo demás: el precio, la disponibilidad, los
+canales de contacto publicados y el acuerdo de retiro.
+
+**Las fotos se limpian antes de subirse.** La app recodifica la imagen desde los
+píxeles, así que lo que llega al bucket no tiene EXIF, ni GPS, ni marca de
+cámara. No es una optimización: el bucket `portfolio` es de lectura pública, y
+una foto sacada en el estudio lleva las coordenadas del estudio.
+
+**Lo que esto abre y hay que mirar:** contenido en un bucket público escrito por
+alguien que no somos nosotros. Con diez artistas invitados a mano y códigos
+entregados uno por uno, la accountability es total — sabemos exactamente quién
+subió qué. Eso deja de alcanzar mucho antes de lo que parece: el día que haya
+cincuenta artistas hace falta una cola de revisión, o al menos una forma de
+despublicar rápido. No está construido, y es lo primero que hay que construir
+antes de abrir el código a alguien que no conocemos.
+
 ### Borradores
 
 Un directorio con un archivo `DRAFT` no se valida ni se carga. Existe porque

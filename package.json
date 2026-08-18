@@ -25,6 +25,7 @@
     "test:domain": "npm run test -w @mesh/domain",
     "content:validate": "npm run validate -w @mesh/seed",
     "content:new": "npm run new -w @mesh/seed --",
+    "content:claim": "npm run claim -w @mesh/seed --",
     "content:fixtures": "npm run fixtures -w @mesh/seed",
     "content:seed": "npm run seed -w @mesh/seed",
     "mobile": "npm run start -w @mesh/mobile",

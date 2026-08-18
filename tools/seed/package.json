@@ -12,7 +12,8 @@
     "reference:check": "node --experimental-strip-types src/reference.ts --check",
     "test": "node --experimental-strip-types --test src/*.test.ts",
     "fixtures": "node --experimental-strip-types src/fixtures.ts",
-    "new": "node --experimental-strip-types src/new-artist.ts"
+    "new": "node --experimental-strip-types src/new-artist.ts",
+    "claim": "node --experimental-strip-types src/claim-code.ts"
   },
   "dependencies": {
     "@mesh/domain": "*",

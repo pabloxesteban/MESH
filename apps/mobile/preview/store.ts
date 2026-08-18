@@ -62,6 +62,62 @@ export function previewMediaUrl(path: string): string {
   return MEDIA.get(path) ?? ''
 }
 
+/** Registra una imagen subida desde el estudio. Vive solo en esta sesión. */
+export function registerPreviewMedia(id: string, dataUri: string): void {
+  MEDIA.set(id, dataUri)
+}
+
+// --- estudio -----------------------------------------------------------------
+//
+// El preview deja recorrer el modo artista: reclamar un perfil con un código,
+// subir una foto, y verla aparecer en el mazo. Lo que NO prueba es lo único que
+// importa de seguridad —que un artista no pueda escribir en el perfil de otro—,
+// porque eso lo decide RLS y acá no hay base.
+//
+// Los códigos están a la vista, en el código fuente de un archivo que se
+// publica. Es correcto: en el preview no hay nada que proteger. En la app de
+// verdad viven en `professional_claims`, una tabla que el cliente no puede leer.
+
+/** Código de preview → slug. En la app real esto es una tabla inaccesible. */
+const PREVIEW_CODES: Readonly<Record<string, string>> = {
+  BRIZA123: 'fixture-vieja-escuela',
+  AGUJA456: 'fixture-aguja-fina',
+}
+
+let ownedSlug: string | null = null
+
+export interface PreviewOwnPiece {
+  readonly id: string
+  readonly featured: boolean
+  readonly styles: readonly { readonly slug: string; readonly weight: number }[]
+}
+
+const ownPieces: PreviewOwnPiece[] = []
+
+export function claimPreviewProfessional(code: string): string | null {
+  const slug = PREVIEW_CODES[code.toUpperCase().trim()]
+  if (slug == null) return null
+  ownedSlug = slug
+  return slug
+}
+
+export function previewOwnedProfessional(): string | null {
+  return ownedSlug
+}
+
+export function previewPiecesOf(): readonly PreviewOwnPiece[] {
+  return ownPieces
+}
+
+export function addPreviewPiece(piece: PreviewOwnPiece): void {
+  ownPieces.unshift(piece)
+}
+
+export function removePreviewPiece(id: string): void {
+  const index = ownPieces.findIndex((piece) => piece.id === id)
+  if (index !== -1) ownPieces.splice(index, 1)
+}
+
 /** El id sintético de un profesional. Estable, porque sale del slug. */
 export function previewProfessionalId(slug: string): string {
   return `preview-${slug}`

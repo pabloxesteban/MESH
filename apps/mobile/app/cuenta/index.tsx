@@ -57,6 +57,28 @@ export default function AccountScreen() {
         </Text>
         <Text role="body">{email ?? ''}</Text>
       </Box>
+      {/* La puerta al modo artista.
+
+          Está en Cuenta y no en una pestaña propia a propósito: de cada mil
+          personas que usan MESH, quince son artistas. Una pestaña permanente
+          para el 1,5 % le saca lugar a lo que hace el otro 98,5 %, y a un
+          artista no le cuesta nada encontrarla una vez. */}
+      <Box gap="xs">
+        <Text role="label" color="textSecondary">
+          {t('studio.entry.label')}
+        </Text>
+        <Text role="micro" color="textTertiary">
+          {t('studio.entry.hint')}
+        </Text>
+        <Button
+          label={t('studio.entry.action')}
+          onPress={() => router.push('/estudio')}
+          variant="secondary"
+          fullWidth
+          testID="account-studio"
+        />
+      </Box>
+
       <Box gap="xs">
         <Text role="body" color="textSecondary">
           {t('auth.account.signOut.confirm')}

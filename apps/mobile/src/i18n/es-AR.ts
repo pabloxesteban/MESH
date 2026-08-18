@@ -246,6 +246,36 @@ export const esAR = {
   'style.tattoo.minimalist': 'Minimalista',
   'style.tattoo.fileteado-porteno': 'Fileteado porteño',
   'style.tattoo.handpoke': 'Handpoke',
+  // --- estudio (modo artista) ---
+  'studio.title': 'Tu estudio',
+  'studio.eyebrow': 'TU PERFIL',
+  'studio.unpublished': 'Todavía no está publicado. Lo publicamos nosotros.',
+  'studio.claim.title': 'Reclamá tu perfil',
+  'studio.claim.body':
+    'Si armamos tu perfil, te pasamos un código de ocho caracteres. Con eso ' +
+    'pasás a manejar tu portafolio desde acá.',
+  'studio.claim.label': 'Código',
+  'studio.claim.submit': 'Reclamar',
+  'studio.claim.invalid': 'Ese código no es válido o ya se usó.',
+  'studio.add.styles': 'Estilos de la pieza',
+  'studio.add.styles.hint':
+    'Tocá en orden: el primero es el que más pesa. Hasta tres.',
+  'studio.add.styles.max': 'Ya elegiste {n}. Sacá uno para cambiar.',
+  'studio.add.featured.on': 'Va a abrir tu perfil',
+  'studio.add.featured.off': 'Que abra mi perfil',
+  'studio.add.pick': 'Elegir foto y subir',
+  'studio.upload.done': 'Subida',
+  'studio.upload.failed': 'No se pudo subir. Probá de nuevo.',
+  'studio.empty.title': 'Todavía no subiste nada',
+  'studio.empty.body':
+    'Tu obra es lo único que alguien ve antes de decidir escribirte.',
+  'studio.piece.featured': 'Abre tu perfil',
+  'studio.piece.remove': 'Sacar',
+  'studio.piece.removed': 'La sacamos',
+  'studio.entry.label': '¿Tatuás?',
+  'studio.entry.hint':
+    'Si armamos tu perfil, con tu código pasás a manejar tu portafolio.',
+  'studio.entry.action': 'Ir a mi estudio',
 } as const
 
 export type TranslationKey = keyof typeof esAR

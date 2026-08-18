@@ -115,6 +115,12 @@ function toFeedItem(row: FeedRow): FeedItem {
  * otro nombre de archivo, así que se derivan sin consultar nada.
  */
 export function mediaUrl(path: string, size: 'sm' | 'md' | 'lg'): string {
-  const resized = path.replace(/\/(sm|md|lg)\.webp$/, `/${size}.webp`)
+  // Se cambia el tamaño y se CONSERVA la extensión: los tres derivados de una
+  // pieza comparten formato, y hay dos productores con formatos distintos —
+  // `tools/seed` escribe WebP y la app escribe JPEG. Ver storage/paths.ts.
+  const resized = path.replace(
+    /\/(sm|md|lg)\.(webp|jpg)$/,
+    (_match, _size, extension: string) => `/${size}.${extension}`,
+  )
   return supabase.storage.from('portfolio').getPublicUrl(resized).data.publicUrl
 }

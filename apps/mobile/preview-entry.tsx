@@ -15,6 +15,7 @@ import {
   useTheme,
   useThemePreference,
 } from '@/design-system/index.ts'
+import { StudioScreen } from '@/features/artist/StudioScreen.tsx'
 import { ContactScreen } from '@/features/contact/ContactScreen.tsx'
 import { DeckScreen } from '@/features/discovery/DeckScreen.tsx'
 import { MatchesScreen } from '@/features/matches/MatchesScreen.tsx'
@@ -52,12 +53,20 @@ import DesignSystemGallery from './app/galeria.tsx'
 const HOY = '2026-08-18'
 const USUARIO = 'preview-user'
 
-type Pestana = 'mazo' | 'gusto' | 'encajes' | 'galeria'
+type Pestana = 'mazo' | 'gusto' | 'encajes' | 'estudio' | 'galeria'
 
+/**
+ * Etiquetas de una palabra.
+ *
+ * En la app las pestañas dicen "Descubrí", "Tu gusto", "Para vos" — copy, no
+ * navegación. Acá son cinco y entran en 390 px solo si son cortas: con dos
+ * palabras, "Tu gusto" se partía en dos líneas y la barra crecía.
+ */
 const PESTANAS: ReadonlyArray<{ id: Pestana; label: string }> = [
-  { id: 'mazo', label: 'Descubrí' },
-  { id: 'gusto', label: 'Tu gusto' },
-  { id: 'encajes', label: 'Para vos' },
+  { id: 'mazo', label: 'Mazo' },
+  { id: 'gusto', label: 'Gusto' },
+  { id: 'encajes', label: 'Encajes' },
+  { id: 'estudio', label: 'Estudio' },
   { id: 'galeria', label: 'Diseño' },
 ]
 
@@ -134,6 +143,13 @@ function Shell() {
             onExplore={() => setPestana('mazo')}
             onOpenProfile={(slug) => setPerfil(slug)}
           />
+        )
+      case 'estudio':
+        // En la app de verdad esto NO es una pestaña: vive adentro de Cuenta,
+        // porque de cada mil personas que usan MESH quince son artistas. Acá es
+        // una pestaña para que se pueda encontrar sin explicación.
+        return (
+          <StudioScreen userId={USUARIO} onBack={() => setPestana('mazo')} />
         )
       case 'galeria':
         return (

@@ -458,6 +458,45 @@ export type Database = {
           },
         ]
       }
+      professional_claims: {
+        Row: {
+          claimed_at: string | null
+          claimed_by: string | null
+          code: string
+          created_at: string
+          professional_id: string
+        }
+        Insert: {
+          claimed_at?: string | null
+          claimed_by?: string | null
+          code: string
+          created_at?: string
+          professional_id: string
+        }
+        Update: {
+          claimed_at?: string | null
+          claimed_by?: string | null
+          code?: string
+          created_at?: string
+          professional_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "professional_claims_claimed_by_fkey"
+            columns: ["claimed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "professional_claims_professional_id_fkey"
+            columns: ["professional_id"]
+            isOneToOne: true
+            referencedRelation: "professionals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       professional_styles: {
         Row: {
           is_primary: boolean
@@ -910,6 +949,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      claim_professional: { Args: { p_code: string }; Returns: string }
       get_discovery_feed: {
         Args: { p_category_slug: string; p_cursor?: string; p_limit?: number }
         Returns: {

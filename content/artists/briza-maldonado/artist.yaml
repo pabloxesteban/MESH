@@ -23,9 +23,11 @@ location: palermo
 bio: >-
   Tatuadora vegana e ilustradora.
 
+# `japanese` estaba y salió: ninguna de las cinco piezas del portafolio es
+# japonés, y un estilo declarado sin obra que lo respalde hace que el matching
+# la recomiende para algo que no puede mostrar.
 styles:
   - { slug: traditional, proficiency: 1.0, primary: true }
-  - { slug: japanese, proficiency: 0.6, primary: false }
   - { slug: lettering, proficiency: 0.6, primary: false }
 
 travels: false

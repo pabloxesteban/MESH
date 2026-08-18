@@ -75,12 +75,41 @@ export async function fetchDiscoveryFeed(
   _categorySlug: string,
   cursor: string | null,
 ): Promise<FeedPage> {
-  const { previewInteractions } = await import('../../../preview/store.ts')
+  const { previewInteractions, previewOwnedProfessional, previewPiecesOf } =
+    await import('../../../preview/store.ts')
   const seen = new Set(
     previewInteractions().map((entry) => entry.portfolioItemId),
   )
 
-  const pending = ORDERED.filter((item) => !seen.has(item.portfolioItemId))
+  // Lo que se sube desde el estudio entra al mazo. Es la mitad que hace que el
+  // flujo se pueda evaluar: subir una foto y no verla aparecer no prueba nada.
+  const propio = previewOwnedProfessional()
+  const artista =
+    propio != null ? PREVIEW_ARTISTS.find((a) => a.slug === propio) : undefined
+
+  const subidas: FeedItem[] =
+    artista == null
+      ? []
+      : previewPiecesOf().map((piece) => ({
+          cursor: `000000000:${piece.id}`,
+          portfolioItemId: piece.id,
+          professionalId: previewProfessionalId(artista.slug),
+          professionalSlug: artista.slug,
+          professionalName: artista.displayName,
+          isFixture: artista.isFixture,
+          caption: null,
+          year: null,
+          mediaBucket: 'portfolio',
+          mediaPath: piece.id,
+          mediaWidth: null,
+          mediaHeight: null,
+          blurhash: null,
+          styles: piece.styles,
+        }))
+
+  const pending = [...subidas, ...ORDERED].filter(
+    (item) => !seen.has(item.portfolioItemId),
+  )
   const start =
     cursor == null ? 0 : pending.findIndex((item) => item.cursor === cursor) + 1
   const items = pending.slice(start, start + FEED_PAGE_SIZE)

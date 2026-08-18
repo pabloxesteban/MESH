@@ -97,6 +97,7 @@ export {
 } from './storage/paths.ts'
 export type {
   Bucket,
+  PortfolioFormat,
   PortfolioSize,
   UploadCandidate,
   UploadMimeType,

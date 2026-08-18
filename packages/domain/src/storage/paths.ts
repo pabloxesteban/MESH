@@ -76,20 +76,32 @@ function requireSlug(value: string, label: string): void {
   }
 }
 
+/** Extensiones que puede tener un derivado del catálogo. */
+export type PortfolioFormat = 'webp' | 'jpg'
+
 /**
  * Ruta de una imagen del catálogo.
  *
- * No lleva id de usuario porque no tiene dueño: el bucket es de lectura pública
- * y solo lo escribe el service role.
+ * No lleva id de usuario porque no tiene dueño: el bucket es de lectura pública.
+ *
+ * El formato es parte de la ruta porque hay dos productores. `tools/seed` corre
+ * en Node con sharp y produce WebP, que pesa la mitad a la misma calidad. La
+ * app produce JPEG: `expo-image-manipulator` lista WEBP como formato de salida
+ * pero no lo garantiza en todas las plataformas, y un formato que falla en la
+ * mitad de los teléfonos no es una optimización, es un bug.
+ *
+ * Los tres derivados de una pieza comparten formato, así que derivar el hermano
+ * `sm` de un `lg` es cambiar el tamaño y dejar la extensión.
  */
 export function portfolioPath(
   professionalSlug: string,
   portfolioItemId: string,
   size: PortfolioSize,
+  format: PortfolioFormat = 'webp',
 ): string {
   requireSlug(professionalSlug, 'El slug del profesional')
   requireUuid(portfolioItemId, 'El id de la pieza')
-  return `${professionalSlug}/${portfolioItemId}/${size}.webp`
+  return `${professionalSlug}/${portfolioItemId}/${size}.${format}`
 }
 
 /** Ruta de una imagen de referencia de proyecto. Privada, del dueño. */
