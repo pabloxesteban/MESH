@@ -1,6 +1,17 @@
 # MESH — Plan de construcción
 
-**Estado:** Propuesto · **Responsable:** product-architect
+**Estado:** Las 19 fases cerradas al 2026-08-18 · **Responsable:** product-architect
+
+Tres llevan ⚠️ y no ✅. No es un matiz: significa que una parte del criterio de
+salida **no se cumplió**, está dicho dónde, y depende de algo que no está en el
+repositorio.
+
+| Fase | Lo que falta | De quién depende |
+|---|---|---|
+| 7 · Contenido | Artistas reales. Hay tres fixtures sintéticos | De conseguir artistas y su consentimiento |
+| 15 · QA | Los seis flujos E2E están escritos y **no se ejecutaron** | De un dispositivo o emulador |
+| 17 · Performance | Arranque en frío, fps, hero y memoria sin medir | De un Android de gama media con build de release |
+| 19 · Publicar | Recorrida con artistas y capturas de tienda | De lo mismo que la Fase 7 |
 
 Cada fase sigue: **PLANIFICAR → IMPLEMENTAR → TESTEAR → REVISAR → CORREGIR →
 DOCUMENTAR → VERIFICAR**. Una fase no arranca hasta que la anterior cumple sus

@@ -5,7 +5,7 @@
   "type": "module",
   "description": "Tests de integración contra una instancia local de Supabase",
   "scripts": {
-    "test": "node --experimental-strip-types --test src/*.test.ts",
+    "integration": "node --experimental-strip-types --test src/*.test.ts",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

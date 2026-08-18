@@ -244,6 +244,7 @@ export type Database = {
           matching_version: string
           professional_id: string
           project_id: string | null
+          project_key: string
           reasons: Json
           score: number
           taste_version: string
@@ -259,6 +260,7 @@ export type Database = {
           matching_version: string
           professional_id: string
           project_id?: string | null
+          project_key?: string
           reasons?: Json
           score: number
           taste_version: string
@@ -274,6 +276,7 @@ export type Database = {
           matching_version?: string
           professional_id?: string
           project_id?: string | null
+          project_key?: string
           reasons?: Json
           score?: number
           taste_version?: string
