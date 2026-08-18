@@ -51,8 +51,12 @@ if (exportDir != null) {
   const fontBytes = fonts.reduce((sum, file) => sum + statSync(file).size, 0)
 
   console.log('## Bundle\n')
-  console.log(`- JavaScript: **${kb(jsBytes)}** en ${bundles.length} archivo(s)`)
-  console.log(`- Tipografías: **${kb(fontBytes)}** en ${fonts.length} archivo(s)`)
+  console.log(
+    `- JavaScript: **${kb(jsBytes)}** en ${bundles.length} archivo(s)`,
+  )
+  console.log(
+    `- Tipografías: **${kb(fontBytes)}** en ${fonts.length} archivo(s)`,
+  )
   console.log(
     '\nLas tipografías viajan en el bundle a propósito: sin eso, el primer\n' +
       'frame se pinta con el tipo del sistema y salta cuando llegan.\n',

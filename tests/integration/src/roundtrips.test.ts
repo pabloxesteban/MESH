@@ -19,7 +19,11 @@ import type { Database } from '@mesh/domain/db'
 
 import { SUPABASE_URL, serviceClient, signedInAnon } from './client.ts'
 
-let counting: { client: SupabaseClient<Database>; userId: string; requests: string[] }
+let counting: {
+  client: SupabaseClient<Database>
+  userId: string
+  requests: string[]
+}
 
 before(async () => {
   const { userId } = await signedInAnon()
@@ -104,13 +108,17 @@ describe('presupuesto de round trips', () => {
     const count = measure()
     const { data: professional } = await counting.client
       .from('professionals')
-      .select('id, slug, display_name, professional_styles ( proficiency, styles ( slug ) )')
+      .select(
+        'id, slug, display_name, professional_styles ( proficiency, styles ( slug ) )',
+      )
       .limit(1)
       .maybeSingle()
 
     await counting.client
       .from('portfolio_items')
-      .select('id, media_assets ( path, blurhash ), portfolio_item_styles ( weight, styles ( slug ) )')
+      .select(
+        'id, media_assets ( path, blurhash ), portfolio_item_styles ( weight, styles ( slug ) )',
+      )
       .eq('professional_id', professional?.id ?? '')
 
     assert.equal(count(), 2)

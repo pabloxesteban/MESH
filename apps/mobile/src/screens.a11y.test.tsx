@@ -197,8 +197,7 @@ function sweepDynamicType(name: string) {
   // El tipo del host es un string en el árbol de test, pero el tipado de RNTL
   // lo declara como la unión de roles. Se compara sobre el string.
   const textos = screen.UNSAFE_root.findAll(
-    (node) =>
-      String(node.type) === 'Text' && node.props?.children != null,
+    (node) => String(node.type) === 'Text' && node.props?.children != null,
   )
   expect(textos.length).toBeGreaterThan(0)
 
