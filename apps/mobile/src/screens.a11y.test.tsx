@@ -29,6 +29,7 @@ import { ProfileScreen } from '@/features/profile/ProfileScreen.tsx'
 import { ContactScreen } from '@/features/contact/ContactScreen.tsx'
 import { TasteScreen } from '@/features/taste/TasteScreen.tsx'
 import { ProjectFormScreen } from '@/features/projects/ProjectFormScreen.tsx'
+import { QuickSearchScreen } from '@/features/quick-search/QuickSearchScreen.tsx'
 
 const mockRpc = jest.fn()
 jest.mock('@/data/supabase.ts', () => ({
@@ -332,5 +333,17 @@ describe('barrido de accesibilidad y callejones', () => {
     render(<ProjectFormScreen onSubmit={jest.fn()} onCancel={jest.fn()} />)
     sweep('proyecto · formulario')
     sweepDynamicType('proyecto · formulario')
+  })
+
+  it('buscar por fotos', () => {
+    render(
+      <QuickSearchScreen
+        userId="u1"
+        onCreated={jest.fn()}
+        onCancel={jest.fn()}
+      />,
+    )
+    sweep('buscar por fotos')
+    sweepDynamicType('buscar por fotos')
   })
 })

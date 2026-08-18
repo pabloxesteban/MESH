@@ -276,6 +276,23 @@ export const esAR = {
   'studio.entry.hint':
     'Si armamos tu perfil, con tu código pasás a manejar tu portafolio.',
   'studio.entry.action': 'Ir a mi estudio',
+  // --- buscar por fotos ---
+  'quickSearch.title': 'Buscar por fotos',
+  'quickSearch.subtitle':
+    'Subí hasta 4 fotos de algo que te gusta. Elegís qué estilo es, y te llevamos con la gente cerca tuyo que lo hace.',
+  'quickSearch.photos': 'Fotos',
+  'quickSearch.photo.add': 'Agregar foto',
+  'quickSearch.photo.remove': 'Sacar la foto {n}',
+  'quickSearch.styles': 'Qué estilo es',
+  'quickSearch.location': 'Tu barrio',
+  'quickSearch.location.hint':
+    'Opcional. Si lo elegís, ordenamos por cercanía.',
+  'quickSearch.submit': 'Buscar',
+  'quickSearch.error': 'No pudimos hacer la búsqueda. Probá de nuevo.',
+  'quickSearch.uploadsFailed':
+    'Subimos {ok} de {total} fotos. Igual buscamos con lo que tenemos.',
+  'matches.notReady.searchByPhotos': 'O buscá por fotos',
+  'matches.empty.searchByPhotos': 'Probar con otras fotos',
 } as const
 
 export type TranslationKey = keyof typeof esAR

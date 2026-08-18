@@ -12,6 +12,9 @@ export default function MatchesRoute() {
       today={todayIso()}
       onExplore={() => router.replace('/')}
       onOpenProfile={(slug) => router.push(`/artista/${slug}`)}
+      {...(userId != null
+        ? { onSearchByPhotos: () => router.push('/buscar') }
+        : {})}
     />
   )
 }

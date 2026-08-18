@@ -19,6 +19,9 @@ import { StudioScreen } from '@/features/artist/StudioScreen.tsx'
 import { ContactScreen } from '@/features/contact/ContactScreen.tsx'
 import { DeckScreen } from '@/features/discovery/DeckScreen.tsx'
 import { MatchesScreen } from '@/features/matches/MatchesScreen.tsx'
+import type { ProjectBriefInput } from '@/features/matches/useMatches.ts'
+import { QuickSearchScreen } from '@/features/quick-search/QuickSearchScreen.tsx'
+import { fetchProject } from '@/features/projects/queries.ts'
 import { ProfileScreen } from '@/features/profile/ProfileScreen.tsx'
 import { TasteScreen } from '@/features/taste/TasteScreen.tsx'
 import { I18nProvider } from '@/i18n/I18nProvider.tsx'
@@ -53,7 +56,7 @@ import DesignSystemGallery from './app/galeria.tsx'
 const HOY = '2026-08-18'
 const USUARIO = 'preview-user'
 
-type Pestana = 'mazo' | 'gusto' | 'encajes' | 'estudio' | 'galeria'
+type Pestana = 'mazo' | 'gusto' | 'encajes' | 'buscar' | 'estudio' | 'galeria'
 
 /**
  * Etiquetas de una palabra.
@@ -66,6 +69,7 @@ const PESTANAS: ReadonlyArray<{ id: Pestana; label: string }> = [
   { id: 'mazo', label: 'Mazo' },
   { id: 'gusto', label: 'Gusto' },
   { id: 'encajes', label: 'Encajes' },
+  { id: 'buscar', label: 'Buscar' },
   { id: 'estudio', label: 'Estudio' },
   { id: 'galeria', label: 'Diseño' },
 ]
@@ -107,10 +111,26 @@ function Shell() {
   const [pestana, setPestana] = useState<Pestana>('mazo')
   const [perfil, setPerfil] = useState<string | null>(null)
   const [contacto, setContacto] = useState<string | null>(null)
+  // Resultado de "buscar por fotos": un ProjectBriefInput armado a partir del
+  // proyecto liviano que creó QuickSearchScreen. `null` mientras se busca o
+  // mientras no hay ninguna búsqueda activa.
+  const [resultadoBusqueda, setResultadoBusqueda] =
+    useState<ProjectBriefInput | null>(null)
 
   const contenido = (() => {
     if (contacto != null) {
       return <ContactScreen slug={contacto} onBack={() => setContacto(null)} />
+    }
+    if (resultadoBusqueda != null) {
+      return (
+        <MatchesScreen
+          userId={USUARIO}
+          today={HOY}
+          project={resultadoBusqueda}
+          onExplore={() => setResultadoBusqueda(null)}
+          onOpenProfile={(slug) => setPerfil(slug)}
+        />
+      )
     }
     if (perfil != null) {
       return (
@@ -144,6 +164,30 @@ function Shell() {
             onOpenProfile={(slug) => setPerfil(slug)}
           />
         )
+      case 'buscar':
+        // En la app de verdad esto tampoco es una pestaña: vive como un
+        // atajo desde "Encajes". Acá es una pestaña por la misma razón que
+        // Estudio — para que se pueda encontrar sin tener que simular el
+        // camino real.
+        return (
+          <QuickSearchScreen
+            userId={USUARIO}
+            onCreated={(projectId) => {
+              void (async () => {
+                const project = await fetchProject(projectId)
+                if (project == null) return
+                setResultadoBusqueda({
+                  id: project.id,
+                  styles: project.styles,
+                  ...(project.locationSlug != null
+                    ? { locationSlug: project.locationSlug }
+                    : {}),
+                })
+              })()
+            }}
+            onCancel={() => setPestana('mazo')}
+          />
+        )
       case 'estudio':
         // En la app de verdad esto NO es una pestaña: vive adentro de Cuenta,
         // porque de cada mil personas que usan MESH quince son artistas. Acá es
@@ -168,6 +212,7 @@ function Shell() {
         onCambiar={(id) => {
           setPerfil(null)
           setContacto(null)
+          setResultadoBusqueda(null)
           setPestana(id)
         }}
       />

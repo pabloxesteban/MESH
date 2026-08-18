@@ -46,6 +46,8 @@ export interface MatchesScreenProps {
   today: string
   onExplore: () => void
   onOpenProfile: (slug: string) => void
+  /** Ausente cuando la pantalla no puede ofrecer el atajo (ej. sin sesión). */
+  onSearchByPhotos?: (() => void) | undefined
   /** Con proyecto, el match corre aunque no haya perfil de gusto. */
   project?: ProjectBriefInput | undefined
 }
@@ -55,6 +57,7 @@ export function MatchesScreen({
   today,
   onExplore,
   onOpenProfile,
+  onSearchByPhotos,
   project,
 }: MatchesScreenProps) {
   const t = useT()
@@ -118,6 +121,14 @@ export function MatchesScreen({
             faltan: state.interactionsToReady,
           })}
           action={{ label: t('matches.notReady.action'), onPress: onExplore }}
+          {...(onSearchByPhotos != null
+            ? {
+                secondaryAction: {
+                  label: t('matches.notReady.searchByPhotos'),
+                  onPress: onSearchByPhotos,
+                },
+              }
+            : {})}
           testID="matches-not-ready"
         />
       )
@@ -129,6 +140,14 @@ export function MatchesScreen({
           title={t('matches.empty.title')}
           body={t('matches.empty.body')}
           action={{ label: t('matches.empty.action'), onPress: onExplore }}
+          {...(onSearchByPhotos != null
+            ? {
+                secondaryAction: {
+                  label: t('matches.empty.searchByPhotos'),
+                  onPress: onSearchByPhotos,
+                },
+              }
+            : {})}
           testID="matches-empty"
         />
       )
@@ -290,13 +309,24 @@ function renderReason(
   t: (key: TranslationKey, params?: Record<string, string | number>) => string,
   reason: MatchReason,
 ): string {
+  // Bug encontrado acá, no inventado ahora: esto decidía "¿es un slug de
+  // estilo?" probando la traducción y comparando si volvió sin cambios. La
+  // prueba asumía que una clave desconocida se devuelve a sí misma —
+  // `translate()` en realidad devuelve `undefined` para una clave que no
+  // existe, así que la comparación nunca podía dar "no es un estilo", y
+  // "En Villa Lugano" salía como "En undefined". Estuvo dormido hasta que el
+  // barrio empezó a discriminar de verdad: antes, ningún match real generaba
+  // una razón de ubicación con qué probarlo.
+  //
+  // El arreglo es no adivinar: `reason.component` ya dice si el término es un
+  // slug de estilo o no. Solo 'style' necesita traducción.
   const params: Record<string, string | number> = {}
   reason.terms.forEach((term, index) => {
     const key = index === 0 ? 'termino' : `termino${index + 1}`
-    // Un slug de estilo se traduce; una ciudad se muestra tal cual.
-    const styleKey = `style.tattoo.${term}` as TranslationKey
-    const translated = t(styleKey)
-    params[key] = translated === styleKey ? term : translated
+    params[key] =
+      reason.component === 'style'
+        ? t(`style.tattoo.${term}` as TranslationKey)
+        : term
   })
   return t(reason.templateKey as TranslationKey, params)
 }

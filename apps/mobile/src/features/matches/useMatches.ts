@@ -88,10 +88,17 @@ export function useMatches(
         taste: { scores, aversion: taste.taste?.aversion ?? {} },
         today,
         ...(project?.budget != null ? { budget: project.budget } : {}),
-        // En V1 todos los artistas están en CABA: ubicación es constante y no
-        // discrimina, así que se omite en vez de darle a todos el mismo 1,0 que
-        // no aporta nada al ranking pero sí diluye el peso del estilo.
-        locationDiscriminates: false,
+        // Bug encontrado acá: esto decía `locationDiscriminates: false` con un
+        // comentario de cuando la taxonomía era una sola ciudad. Desde que
+        // existen barrios (ver ADR posterior a matching/2), un proyecto que
+        // declaró locationSlug SÍ tiene que discriminar — si no, todo el
+        // trabajo de pedir el barrio en ProjectFormScreen no llegaba a
+        // afectar ningún resultado real. Sin locationSlug, el componente se
+        // sigue omitiendo solo — locationComponent() ya lo hace por su cuenta
+        // cuando context.locationSlug es null.
+        ...(project?.locationSlug != null
+          ? { locationSlug: project.locationSlug, locationDiscriminates: true }
+          : {}),
       },
       catalog.data,
       { projectId: project?.id ?? null },

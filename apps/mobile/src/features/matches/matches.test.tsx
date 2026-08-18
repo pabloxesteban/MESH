@@ -33,14 +33,18 @@ const tasteMock = fetchTasteSource as jest.MockedFunction<
 
 const HOY = '2026-08-18'
 
-function artist(id: string, styleSlugs: readonly string[]): Professional {
+function artist(
+  id: string,
+  styleSlugs: readonly string[],
+  location: Professional['location'] = null,
+): Professional {
   return {
     id,
     slug: id,
     categorySlug: 'tattoo',
     displayName: `${id}`,
     bio: null,
-    location: null,
+    location,
     travels: false,
     styles: styleSlugs.map((styleSlug) => ({
       styleSlug,
@@ -80,12 +84,17 @@ function tasteSource(count: number, styleSlugs: readonly string[]) {
   return { interactions, pieces }
 }
 
-function render() {
+function render(
+  overrides: Partial<
+    Pick<Parameters<typeof MatchesScreen>[0], 'project' | 'onSearchByPhotos'>
+  > = {},
+) {
   const client = new QueryClient({
     defaultOptions: { queries: { retry: false, gcTime: 0 } },
   })
   const onExplore = jest.fn()
   const onOpenProfile = jest.fn()
+  const onSearchByPhotos = overrides.onSearchByPhotos ?? jest.fn()
   renderWithProviders(
     <QueryClientProvider client={client}>
       <I18nProvider locale="es-AR">
@@ -94,11 +103,13 @@ function render() {
           today={HOY}
           onExplore={onExplore}
           onOpenProfile={onOpenProfile}
+          onSearchByPhotos={onSearchByPhotos}
+          {...(overrides.project != null ? { project: overrides.project } : {})}
         />
       </I18nProvider>
     </QueryClientProvider>,
   )
-  return { onExplore, onOpenProfile }
+  return { onExplore, onOpenProfile, onSearchByPhotos }
 }
 
 beforeEach(() => {
@@ -231,6 +242,86 @@ describe('MatchesScreen', () => {
     expect(screen.getAllByTestId('match-fixture-badge').length).toBeGreaterThan(
       0,
     )
+  })
+
+  it('un proyecto con barrio hace que la ubicación discrimine — regresión del bug de useMatches', async () => {
+    // useMatches.ts mandaba locationDiscriminates:false siempre, con un
+    // comentario de cuando toda la ciudad era una sola ubicación. Con barrios
+    // eso dejaba de tener sentido: un proyecto que declaró locationSlug tiene
+    // que poder discriminar por ubicación. Este test falla si alguien vuelve a
+    // hardcodear ese `false`.
+    catalogMock.mockResolvedValue([
+      artist('cerca', ['fine-line'], {
+        id: 'loc-palermo',
+        slug: 'palermo',
+        city: 'Ciudad Autónoma de Buenos Aires',
+        adminArea: 'Buenos Aires',
+        countryCode: 'AR',
+        metroKey: 'amba',
+      }),
+      artist('lejos', ['fine-line'], {
+        id: 'loc-lugano',
+        slug: 'villa-lugano',
+        city: 'Ciudad Autónoma de Buenos Aires',
+        adminArea: 'Buenos Aires',
+        countryCode: 'AR',
+        metroKey: 'amba',
+      }),
+    ])
+
+    render({
+      project: {
+        id: 'proj-1',
+        styles: [{ styleSlug: 'fine-line', weight: 1 }],
+        locationSlug: 'palermo',
+      },
+    })
+
+    await waitFor(() => expect(screen.getByTestId('matches-list')).toBeTruthy())
+    // El de Palermo tiene que puntuar más alto que el de Villa Lugano — si la
+    // ubicación se sigue omitiendo, los dos empatan solo por estilo.
+    const cards = screen.getAllByTestId(/^match-/)
+    expect(cards[0]?.props.testID).toBe('match-cerca')
+  })
+
+  it('la razón de ubicación muestra el barrio, no "undefined" — regresión de renderReason', async () => {
+    // Bug real: renderReason adivinaba si un término era un slug de estilo
+    // probando la traducción, y la prueba estaba rota — traducía CUALQUIER
+    // término que no fuera un estilo como undefined. Nunca se vio en
+    // producción porque hasta el fix de barrios ningún match generaba una
+    // razón de ubicación de verdad.
+    catalogMock.mockResolvedValue([
+      artist('lejos', ['fine-line'], {
+        id: 'loc-lugano',
+        slug: 'villa-lugano',
+        city: 'Ciudad Autónoma de Buenos Aires',
+        adminArea: 'Buenos Aires',
+        countryCode: 'AR',
+        metroKey: 'amba',
+      }),
+    ])
+
+    render({
+      project: {
+        id: 'proj-1',
+        styles: [{ styleSlug: 'fine-line', weight: 1 }],
+        locationSlug: 'palermo',
+      },
+    })
+
+    await waitFor(() => expect(screen.getByTestId('matches-list')).toBeTruthy())
+    expect(screen.getByText(/En Villa Lugano/)).toBeTruthy()
+    expect(screen.queryByText(/undefined/i)).toBeNull()
+  })
+
+  it('ofrece "buscar por fotos" en los dos estados vacíos', async () => {
+    tasteMock.mockResolvedValue(tasteSource(5, ['fine-line']))
+    const { onSearchByPhotos } = render()
+    await waitFor(() =>
+      expect(screen.getByTestId('matches-not-ready')).toBeTruthy(),
+    )
+    fireEvent.press(screen.getByText('O buscá por fotos'))
+    expect(onSearchByPhotos).toHaveBeenCalled()
   })
 
   it('muestra error con reintentar y sin el mensaje crudo', async () => {

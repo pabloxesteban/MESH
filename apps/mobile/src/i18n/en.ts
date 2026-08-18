@@ -250,4 +250,20 @@ export const en: Readonly<Record<TranslationKey, string>> = {
   'studio.entry.hint':
     'If we built your profile, your code lets you manage your portfolio.',
   'studio.entry.action': 'Go to my studio',
+  // --- search by photos ---
+  'quickSearch.title': 'Search by photos',
+  'quickSearch.subtitle':
+    "Upload up to 4 photos of something you like. Tell us the style, and we'll point you to people nearby who do it.",
+  'quickSearch.photos': 'Photos',
+  'quickSearch.photo.add': 'Add photo',
+  'quickSearch.photo.remove': 'Remove photo {n}',
+  'quickSearch.styles': 'What style is it',
+  'quickSearch.location': 'Your neighbourhood',
+  'quickSearch.location.hint': 'Optional. If you pick it, we rank by distance.',
+  'quickSearch.submit': 'Search',
+  'quickSearch.error': "Couldn't run the search. Try again.",
+  'quickSearch.uploadsFailed':
+    'We uploaded {ok} of {total} photos. Searching with what we have.',
+  'matches.notReady.searchByPhotos': 'Or search by photos',
+  'matches.empty.searchByPhotos': 'Try different photos',
 }

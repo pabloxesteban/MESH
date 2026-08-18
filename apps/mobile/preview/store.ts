@@ -139,3 +139,39 @@ export function previewLocation(slug: string | null): Location | null {
 
 export { PREVIEW_ARTISTS }
 export type { PreviewArtist }
+
+// --- proyectos / búsqueda por fotos -------------------------------------------
+//
+// Un proyecto en memoria, con lo mínimo que necesita el matching por brief:
+// estilos y barrio. Nada de presupuesto/timing/descripción porque el flujo de
+// preview que los usa es "buscar por fotos", que nunca los pide.
+
+export interface PreviewProject {
+  readonly id: string
+  readonly title: string
+  readonly styleSlugs: readonly string[]
+  readonly locationSlug: string | null
+}
+
+const previewProjects = new Map<string, PreviewProject>()
+let previewProjectCounter = 0
+
+export function createPreviewProject(input: {
+  title: string
+  styleSlugs: readonly string[]
+  locationSlug?: string | undefined
+}): string {
+  previewProjectCounter += 1
+  const id = `preview-project-${String(previewProjectCounter)}`
+  previewProjects.set(id, {
+    id,
+    title: input.title,
+    styleSlugs: input.styleSlugs,
+    locationSlug: input.locationSlug ?? null,
+  })
+  return id
+}
+
+export function previewProject(id: string): PreviewProject | undefined {
+  return previewProjects.get(id)
+}

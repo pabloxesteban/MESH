@@ -283,6 +283,25 @@ botánico". Si el usuario todavía no tiene perfil de gusto, `t' = proyecto`, y 
 match corre normalmente. Ubicación y presupuesto salen del proyecto cuando están
 presentes, con fallback al perfil.
 
+**"Buscar por fotos" es esto mismo, sin formulario.** La persona sube hasta 4
+fotos de referencia y toca los estilos que representan — nunca escribe un
+título, una descripción, un presupuesto ni un timing. Del lado del motor es
+un proyecto igual a cualquier otro: mismos pesos normalizados, misma mezcla
+0,75/0,25, mismo `blendProjectStyles`. Lo único que cambia es que el título
+se arma solo a partir de los estilos elegidos, y que las cuatro fotos quedan
+como referencias del proyecto — el mismo mecanismo que ya existía para
+proyectos completos, no uno nuevo. Ver
+`apps/mobile/src/features/quick-search/`.
+
+**Bug encontrado y corregido al construir esto:** `useMatches.ts` mandaba
+`locationDiscriminates: false` siempre, con un comentario de cuando toda la
+ciudad era una sola ubicación. Desde que existen barrios, un proyecto con
+`locationSlug` tiene que poder discriminar — si no, el barrio elegido en el
+formulario o en "buscar por fotos" nunca llegaba a afectar ningún resultado
+real. Corregido con test de regresión en `matches.test.tsx` y un test de
+integración de punta a punta contra Postgres real en
+`tests/integration/src/quick-search.test.ts`.
+
 ## 6. Arranque en frío
 
 | Estado | Comportamiento |
