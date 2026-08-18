@@ -210,6 +210,15 @@ export const esAR = {
   'projects.archive.confirm': 'Tocá de nuevo para archivarlo',
   'projects.matches': 'Ver quién encaja',
 
+  // --- ajustes ---------------------------------------------------------------
+  'settings.analytics.title': 'Datos de uso',
+  'settings.analytics.body':
+    'Guardamos qué pantallas se usan y qué botones se tocan, para saber qué funciona. Nunca lo que escribís, ni lo que buscás, ni tus estilos. Podés apagarlo y no se guarda nada.',
+  'settings.analytics.on': 'Está encendido',
+  'settings.analytics.off': 'Está apagado',
+  'settings.analytics.toggle.on': 'Apagar',
+  'settings.analytics.toggle.off': 'Encender',
+
   // --- taxonomía -------------------------------------------------------------
   'category.tattoo': 'Tatuaje',
 

@@ -186,6 +186,14 @@ export const en: Readonly<Record<TranslationKey, string>> = {
   'projects.archive.confirm': 'Tap again to archive it',
   'projects.matches': 'See who fits',
 
+  'settings.analytics.title': 'Usage data',
+  'settings.analytics.body':
+    'We record which screens are used and which buttons are tapped, so we know what works. Never what you write, what you search, or your styles. You can turn it off and nothing is recorded.',
+  'settings.analytics.on': "It's on",
+  'settings.analytics.off': "It's off",
+  'settings.analytics.toggle.on': 'Turn off',
+  'settings.analytics.toggle.off': 'Turn on',
+
   'category.tattoo': 'Tattoo',
 
   'style.tattoo.fine-line': 'Fine line',

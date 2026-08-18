@@ -12,6 +12,7 @@ import {
   ThemeProvider,
   useTheme,
 } from '@/design-system/index.ts'
+import { AnalyticsProvider } from '@/analytics/AnalyticsProvider.tsx'
 import { ErrorView } from '@/components/ErrorView.tsx'
 import {
   SessionProvider,
@@ -56,11 +57,13 @@ export default function RootLayout() {
             <MotionProvider>
               <I18nProvider>
                 <SessionProvider>
-                  <StatusBar style="auto" />
-                  {/* Sin pantalla de carga con spinner: el fondo del tema pintado
-                mientras cargan las tipografías es menos ruidoso que un
-                indicador que aparece y desaparece en 200ms. */}
-                  {fontsLoaded ? <SessionGate /> : <ThemedBackdrop />}
+                  <AnalyticsProvider>
+                    <StatusBar style="auto" />
+                    {/* Sin pantalla de carga con spinner: el fondo del tema
+                        pintado mientras cargan las tipografías es menos ruidoso
+                        que un indicador que aparece y desaparece en 200ms. */}
+                    {fontsLoaded ? <SessionGate /> : <ThemedBackdrop />}
+                  </AnalyticsProvider>
                 </SessionProvider>
               </I18nProvider>
             </MotionProvider>

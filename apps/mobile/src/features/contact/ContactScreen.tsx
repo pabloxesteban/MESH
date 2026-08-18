@@ -36,6 +36,7 @@ import {
   spacing,
   useTheme,
 } from '@/design-system/index.ts'
+import { track } from '@/analytics/track.ts'
 import { ErrorView } from '@/components/ErrorView.tsx'
 import { fetchProfile } from '@/features/profile/queries.ts'
 import { useI18n } from '@/i18n/I18nProvider.tsx'
@@ -59,6 +60,7 @@ export function ContactScreen({
   const insets = useSafeAreaInsets()
   const [message, setMessage] = useState('')
   const [copied, setCopied] = useState(false)
+  const [reportedEdit, setReportedEdit] = useState(false)
 
   const query = useQuery({
     queryKey: ['profile', slug],
@@ -149,8 +151,20 @@ export function ContactScreen({
 
         <MessageField
           value={message}
-          onChange={setMessage}
           label={t('contact.edit')}
+          onChange={(next) => {
+            setMessage(next)
+            // Una sola vez por pantalla. Que alguien edite el mensaje señala
+            // que la plantilla no le sirve; que edite veinte veces no señala
+            // veinte veces lo mismo.
+            if (!reportedEdit) {
+              setReportedEdit(true)
+              track({
+                name: 'contact_message_edited',
+                props: { professional_id: professional.id },
+              })
+            }
+          }}
         />
 
         <Box gap="xs">
@@ -158,6 +172,17 @@ export function ContactScreen({
             <Button
               label={t('contact.whatsapp')}
               onPress={() => {
+                // Métrica primaria. Es lo más cerca que MESH puede estar de
+                // saber si sirvió: no hay reservas, así que un contacto es el
+                // único resultado observable.
+                track({
+                  name: 'contact_clicked',
+                  props: {
+                    professional_id: professional.id,
+                    channel: 'whatsapp',
+                    has_project: false,
+                  },
+                })
                 void openUrl(
                   whatsappUrl(professional.whatsappE164 as string, message),
                 )
@@ -173,6 +198,14 @@ export function ContactScreen({
                 label={t('contact.instagram')}
                 variant={hasWhatsapp ? 'secondary' : 'primary'}
                 onPress={() => {
+                  track({
+                    name: 'contact_clicked',
+                    props: {
+                      professional_id: professional.id,
+                      channel: 'instagram',
+                      has_project: false,
+                    },
+                  })
                   // Se copia ANTES de abrir: si se abriera primero, la app
                   // pasa a segundo plano y el portapapeles puede no escribirse.
                   void copyToClipboard(message).then(() => setCopied(true))

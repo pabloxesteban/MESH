@@ -8,10 +8,13 @@
 
 create table public.analytics_events (
   id uuid primary key default gen_random_uuid(),
-  -- SET NULL: los eventos sobreviven al borrado de la cuenta, desasociados.
-  -- Es lo que permite responder "¿cuánta gente completó el onboarding?" sin
-  -- conservar a quién.
-  user_id uuid references public.profiles(id) on delete set null,
+  -- CASCADE, no SET NULL. Es la promesa de privacidad de
+  -- docs/product/metrics.md §5.6: borrar la cuenta borra sus eventos.
+  --
+  -- Conservarlos desasociados serviría para responder "¿cuánta gente completó
+  -- el onboarding?" después de que alguien se fue, y esa métrica no vale
+  -- romper lo que le dijimos. Los reportes se calculan sobre quienes están.
+  user_id uuid not null references public.profiles(id) on delete cascade,
   session_id uuid not null,
   name text not null check (name ~ '^[a-z][a-z0-9_]{2,63}$'),
   props jsonb not null default '{}'::jsonb

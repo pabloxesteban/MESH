@@ -31,6 +31,11 @@ export interface DeckState {
   readonly isEmpty: boolean
   readonly error: unknown
   readonly canUndo: boolean
+  /** Qué se desharía. Lo necesita analytics, y también un aviso de "deshecho". */
+  readonly undoTarget: {
+    readonly portfolioItemId: string
+    readonly verdict: 'like' | 'pass'
+  } | null
   readonly decide: (decision: Decision) => void
   readonly undo: () => void
   readonly retry: () => void
@@ -43,6 +48,7 @@ export function useDiscoveryDeck(
   const queryClient = useQueryClient()
   const [decidedIds, setDecidedIds] = useState<readonly string[]>([])
   const [lastDecided, setLastDecided] = useState<FeedItem | null>(null)
+  const [lastVerdict, setLastVerdict] = useState<'like' | 'pass'>('like')
 
   const query = useInfiniteQuery({
     queryKey: ['discovery', categorySlug],
@@ -84,6 +90,7 @@ export function useDiscoveryDeck(
       // de 200ms en uno de dos segundos.
       setDecidedIds((previous) => [...previous, top.portfolioItemId])
       setLastDecided(top)
+      setLastVerdict(decision === 'pass' ? 'pass' : 'like')
 
       void recordInteraction(userId, {
         portfolioItemId: top.portfolioItemId,
@@ -123,6 +130,13 @@ export function useDiscoveryDeck(
       !query.hasNextPage,
     error: query.error,
     canUndo: lastDecided != null,
+    undoTarget:
+      lastDecided == null
+        ? null
+        : {
+            portfolioItemId: lastDecided.portfolioItemId,
+            verdict: lastVerdict,
+          },
     decide,
     undo,
     retry,

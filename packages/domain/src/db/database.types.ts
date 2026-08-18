@@ -55,7 +55,7 @@ export type Database = {
           platform: string | null
           props: Json
           session_id: string
-          user_id: string | null
+          user_id: string
         }
         Insert: {
           app_version?: string | null
@@ -65,7 +65,7 @@ export type Database = {
           platform?: string | null
           props?: Json
           session_id: string
-          user_id?: string | null
+          user_id: string
         }
         Update: {
           app_version?: string | null
@@ -75,7 +75,7 @@ export type Database = {
           platform?: string | null
           props?: Json
           session_id?: string
-          user_id?: string | null
+          user_id?: string
         }
         Relationships: [
           {

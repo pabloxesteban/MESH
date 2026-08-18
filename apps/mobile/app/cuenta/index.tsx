@@ -1,6 +1,7 @@
 import { router } from 'expo-router'
 
 import { Box, Button, Text } from '@/design-system/index.ts'
+import { AnalyticsToggle } from '@/features/settings/AnalyticsToggle.tsx'
 import { useSession } from '@/features/auth/SessionProvider.tsx'
 import { signOut } from '@/features/auth/queries.ts'
 import { useT } from '@/i18n/I18nProvider.tsx'
@@ -17,7 +18,7 @@ import { useT } from '@/i18n/I18nProvider.tsx'
  */
 export default function AccountScreen() {
   const t = useT()
-  const { isAnonymous, email } = useSession()
+  const { isAnonymous, email, userId } = useSession()
 
   if (isAnonymous) {
     return (
@@ -41,6 +42,8 @@ export default function AccountScreen() {
             fullWidth
           />
         </Box>
+
+        <AnalyticsToggle userId={userId} />
       </Box>
     )
   }
@@ -65,6 +68,8 @@ export default function AccountScreen() {
           fullWidth
         />
       </Box>
+
+      <AnalyticsToggle userId={userId} />
     </Box>
   )
 }

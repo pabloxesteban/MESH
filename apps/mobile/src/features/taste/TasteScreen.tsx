@@ -31,6 +31,9 @@ import {
   spacing,
   useTheme,
 } from '@/design-system/index.ts'
+import { useEffect } from 'react'
+
+import { track } from '@/analytics/track.ts'
 import { ErrorView } from '@/components/ErrorView.tsx'
 import { useT } from '@/i18n/I18nProvider.tsx'
 import type { TranslationKey } from '@/i18n/index.ts'
@@ -47,6 +50,23 @@ export function TasteScreen({ userId, onExplore }: TasteScreenProps) {
   const theme = useTheme()
   const insets = useSafeAreaInsets()
   const { taste, isLoading, error, retry, reset } = useTaste('tattoo', userId)
+
+  useEffect(() => {
+    if (taste == null) return
+    track({ name: 'taste_profile_viewed', props: { source: 'tab' } })
+    if (taste.isReady) {
+      // Sin nombres de estilos: un vector de gusto es un proxy razonable de la
+      // identidad de alguien. Ver metrics.md §5.3.
+      track({
+        name: 'taste_profile_generated',
+        props: {
+          style_count: taste.visible.length,
+          interaction_count: taste.decisiveCount,
+          taste_version: taste.algoVersion,
+        },
+      })
+    }
+  }, [taste?.isReady, taste?.decisiveCount])
 
   const body = (() => {
     if (error != null) {
@@ -138,7 +158,15 @@ export function TasteScreen({ userId, onExplore }: TasteScreenProps) {
           <Text role="micro" color="textTertiary">
             {t('taste.reset.explanation')}
           </Text>
-          <ResetButton onReset={reset} />
+          <ResetButton
+            onReset={async () => {
+              track({
+                name: 'taste_profile_reset',
+                props: { interaction_count: taste.decisiveCount },
+              })
+              await reset()
+            }}
+          />
         </Box>
       </Box>
     )

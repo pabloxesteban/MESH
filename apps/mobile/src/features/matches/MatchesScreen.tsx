@@ -27,6 +27,9 @@ import {
   spacing,
   useTheme,
 } from '@/design-system/index.ts'
+import { useEffect } from 'react'
+
+import { track } from '@/analytics/track.ts'
 import { ErrorView } from '@/components/ErrorView.tsx'
 import { useT } from '@/i18n/I18nProvider.tsx'
 import type { TranslationKey } from '@/i18n/index.ts'
@@ -57,6 +60,31 @@ export function MatchesScreen({
   const theme = useTheme()
   const insets = useSafeAreaInsets()
   const state = useMatches('tattoo', userId, today, project)
+
+  // Los eventos de lista se emiten en un efecto, no durante el render: emitir
+  // desde el cuerpo del componente los dispararía otra vez en cada re-render.
+  useEffect(() => {
+    if (state.isLoading || state.error != null) return
+    if (!state.isReady) {
+      track({ name: 'match_list_empty', props: { reason: 'not_ready' } })
+      return
+    }
+    if (state.matches.length === 0) {
+      track({ name: 'match_list_empty', props: { reason: 'no_candidates' } })
+      return
+    }
+    state.matches.forEach((entry, index) => {
+      track({
+        name: 'match_viewed',
+        props: {
+          professional_id: entry.match.professionalId,
+          band: entry.match.band,
+          rank: index + 1,
+          matching_version: entry.match.matchingVersion,
+        },
+      })
+    })
+  }, [state.isLoading, state.error, state.isReady, state.matches])
 
   const body = (() => {
     if (state.error != null) {
@@ -111,7 +139,16 @@ export function MatchesScreen({
           <MatchCard
             key={entry.match.professionalId}
             entry={entry}
-            onPress={() => onOpenProfile(entry.professional.slug)}
+            onPress={() => {
+              track({
+                name: 'professional_profile_viewed',
+                props: {
+                  professional_id: entry.match.professionalId,
+                  source: 'match',
+                },
+              })
+              onOpenProfile(entry.professional.slug)
+            }}
           />
         ))}
       </Box>

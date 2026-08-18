@@ -26,6 +26,7 @@ import {
   spacing,
   useTheme,
 } from '@/design-system/index.ts'
+import { track } from '@/analytics/track.ts'
 import { ErrorView } from '@/components/ErrorView.tsx'
 import { useT } from '@/i18n/I18nProvider.tsx'
 
@@ -51,7 +52,17 @@ export function DeckScreen({ categorySlug, userId }: DeckScreenProps) {
   const insets = useSafeAreaInsets()
   const deck = useDiscoveryDeck(categorySlug, userId)
 
-  function decide(decision: Decision) {
+  function decide(decision: Decision, via: 'gesture' | 'button') {
+    const item = deck.top
+    if (item != null) {
+      // `via` es lo que nos dice si el camino accesible efectivamente se usa.
+      // Si nadie toca los botones, o están escondidos o no se entienden.
+      const props = { portfolio_item_id: item.portfolioItemId, via }
+      if (decision === 'like') track({ name: 'artwork_liked', props })
+      if (decision === 'save') track({ name: 'artwork_saved', props })
+      if (decision === 'pass') track({ name: 'artwork_passed', props })
+    }
+
     // El háptico confirma una decisión de la persona.
     // `pass` no lleva háptico: pasar es lo que más se hace, y vibrar en cada
     // paso convierte la confirmación en ruido de fondo. Ver tokens/haptics.ts.
@@ -130,7 +141,7 @@ export function DeckScreen({ categorySlug, userId }: DeckScreenProps) {
               {isTop ? (
                 <SwipeCard
                   onDecide={(direction) =>
-                    decide(DIRECTION_TO_DECISION[direction])
+                    decide(DIRECTION_TO_DECISION[direction], 'gesture')
                   }
                   testID="deck-swipe"
                 >
@@ -167,8 +178,20 @@ export function DeckScreen({ categorySlug, userId }: DeckScreenProps) {
       <DeckControls
         disabled={deck.top == null}
         canUndo={deck.canUndo}
-        onDecide={decide}
-        onUndo={deck.undo}
+        onDecide={(decision) => decide(decision, 'button')}
+        onUndo={() => {
+          const undone = deck.undoTarget
+          if (undone != null) {
+            track({
+              name: 'artwork_undone',
+              props: {
+                portfolio_item_id: undone.portfolioItemId,
+                previous_verdict: undone.verdict,
+              },
+            })
+          }
+          deck.undo()
+        }}
       />
     </View>
   )

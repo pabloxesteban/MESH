@@ -24,7 +24,7 @@ criterios de salida. Ninguna fase acumula código sin tests.
 | **11. Perfiles** ✅ | Perfil profesional, grilla de portfolio, hero, pill de disponibilidad, precio, estilos, redes | Hero pintado en < 800ms en caliente; los campos faltantes no renderizan nada en vez de un placeholder; la grilla no salta |
 | **12. Proyectos** ✅ | Flujo de creación, subida de referencias (con EXIF removido), matching por proyecto, detalle de proyecto | Pasan los tests de matching por proyecto; cuotas impuestas del lado del servidor; borradores abandonados recuperables |
 | **13. Contacto** ✅ | Compositor de mensaje, vista previa editable, traspaso a WhatsApp/Instagram | Test golden: el mensaje compuesto no contiene nada que la persona no haya provisto; la falta de canal cambia el CTA en vez de fingir uno |
-| **14. Analytics** | `track()`, unión tipada de eventos, buffer MMKV, ajuste de opt-out | Cada evento del catálogo se dispara una vez en la corrida E2E; sin texto libre en ninguna propiedad; el opt-out no encola nada |
+| **14. Analytics** ✅ | `track()`, unión tipada de eventos, buffer MMKV, ajuste de opt-out | Cada evento del catálogo se dispara una vez en la corrida E2E; sin texto libre en ninguna propiedad; el opt-out no encola nada |
 | **15. QA** | Suite E2E, cobertura de estados de componentes, casos borde | Los seis flujos E2E en verde, incluidos el de solo accesibilidad y el offline |
 | **16. Auditoría de seguridad** | Revisión completa contra el checklist del modelo de seguridad; modelo de amenazas revisitado | Todos los ítems tildados; `npm audit` sin alto/crítico; ningún hallazgo abierto |
 | **17. Performance** | Pasada de medición en dispositivo, verificación del pipeline de imágenes, auditoría de round trips | Todos los presupuestos de la estrategia de testing §7 cumplidos y registrados con el nombre del dispositivo |
@@ -444,3 +444,33 @@ pensado y cada uno tiene su test:
   intenta.
 - **Si la fila no se puede escribir, el objeto se borra.** Un objeto sin fila
   cuenta contra la cuota de la persona sin que ella pueda verlo ni borrarlo.
+
+## Estado de la Fase 14
+
+Cerrada el 2026-08-18.
+
+- Catálogo de eventos como **unión discriminada tipada**. Es lo que impone
+  `metrics.md` §5.2: ningún evento admite texto libre. Agregar uno con una
+  propiedad `string` suelta obliga a escribirla, y ese es exactamente el momento
+  de preguntarse si corresponde.
+- Buffer local con tope de 200. Cuando se llena se tiran **los más viejos**: si
+  se llenó es porque hace rato que no hay red, y lo reciente describe mejor lo
+  que está pasando.
+- Se envía al pasar la app a segundo plano, no cada N segundos. Mandar mientras
+  alguien está usando la app gasta red que la app necesita para lo que la
+  persona vino a hacer.
+- Interruptor visible en Cuenta, con la explicación **antes** del control.
+
+Tres decisiones sobre el opt-out, cada una con su test:
+
+1. **Apagado no encola.** No es que encola y no envía: si encolara, el evento
+   existiría en el teléfono de la persona esperando que cambie de opinión.
+2. **Apagar borra el buffer.** Dejarlo significaría que apagar solo pausa, y no
+   es eso lo que dice el interruptor.
+3. **Hasta saber la preferencia, apagado.** Recolectar mientras se averigua y
+   borrar después no es lo mismo que no recolectar.
+
+Un cambio de esquema que salió de escribir esto: `analytics_events.user_id`
+pasó de `ON DELETE SET NULL` a `ON DELETE CASCADE`. La migración conservaba los
+eventos desasociados para poder medir después de que alguien se fuera, y
+`metrics.md` §5.6 promete lo contrario. Vale más la promesa que la métrica.
