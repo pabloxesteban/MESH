@@ -7,7 +7,8 @@ import {
   ThemeProvider,
   useTheme,
 } from '@/design-system/index.ts'
-import DesignSystemGallery from './app/index.tsx'
+import { I18nProvider } from '@/i18n/I18nProvider.tsx'
+import DesignSystemGallery from './app/galeria.tsx'
 
 /**
  * Punto de entrada del preview web.
@@ -21,6 +22,14 @@ import DesignSystemGallery from './app/index.tsx'
  * Los componentes, los tokens y las tipografías son los reales. Lo que este
  * entry NO ejercita es la navegación, que es justamente lo único que le sobra a
  * una galería de un solo tramo.
+ *
+ * **Monta la galería, no el inicio de la app.** `app/index.tsx` es el mazo, y
+ * el mazo necesita sesión, cliente de queries y una base alcanzable — nada de
+ * eso existe en un HTML suelto. Cuando la galería se mudó de `app/index.tsx` a
+ * `app/galeria.tsx`, este import quedó apuntando al mazo y el preview salió
+ * completamente negro: el error de "falta SessionProvider" se tragó el render
+ * entero. Por eso `build-web-preview.mjs` ahora ABRE el resultado en un
+ * navegador headless antes de dar el archivo por bueno.
  *
  * Lo usa scripts/build-web-preview.mjs, que intercambia el `main` del
  * package.json mientras dura el export y después lo restaura.
@@ -37,8 +46,10 @@ function PreviewRoot() {
   return (
     <ThemeProvider>
       <MotionProvider>
-        <StatusBar style="auto" />
-        {fontsLoaded ? <DesignSystemGallery /> : <ThemedBackdrop />}
+        <I18nProvider>
+          <StatusBar style="auto" />
+          {fontsLoaded ? <DesignSystemGallery /> : <ThemedBackdrop />}
+        </I18nProvider>
       </MotionProvider>
     </ThemeProvider>
   )

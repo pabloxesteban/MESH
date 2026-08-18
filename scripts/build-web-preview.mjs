@@ -19,6 +19,14 @@
  * intercambia el `main` del package.json mientras dura el export y lo restaura
  * después, incluso si el export falla.
  *
+ * **El archivo no se da por bueno hasta abrirlo.** Al final, el script lo carga
+ * en un Chromium headless y verifica que renderice texto y que no haya tirado
+ * ningún error. Sin ese paso, el preview salió una vez completamente negro
+ * —montaba `app/index.tsx`, que había dejado de ser la galería para pasar a ser
+ * el mazo, y el mazo necesita una sesión que en un HTML suelto no existe— y el
+ * archivo se entregó igual porque pesaba lo esperado. El tamaño no dice nada
+ * sobre si se ve algo.
+ *
  * Uso:
  *   node scripts/build-web-preview.mjs
  *
@@ -26,6 +34,7 @@
  */
 
 import { execFileSync } from 'node:child_process'
+import { createRequire } from 'node:module'
 import {
   readdirSync,
   readFileSync,
@@ -147,7 +156,99 @@ const outPath = join(exportDir, 'preview.html')
 writeFileSync(outPath, html)
 
 const mb = (Buffer.byteLength(html) / 1024 / 1024).toFixed(2)
-console.log(`✓ ${outPath}`)
 console.log(
-  `  ${mb} MB · ${inlined} fuente(s) embebida(s) · ${scriptEscapes} escape(s) de </script>`,
+  `· ${mb} MB · ${inlined} fuente(s) embebida(s) · ${scriptEscapes} escape(s) de </script>`,
 )
+
+// --- verificación: abrirlo -----------------------------------------------
+
+/**
+ * Texto que tiene que aparecer sí o sí.
+ *
+ * Sale del encabezado de la galería. Si la galería cambia de título, este canario
+ * hay que cambiarlo — y que haya que tocarlo es preferible a un canario tan laxo
+ * que pase con la pantalla equivocada renderizada.
+ */
+const CANARIO = 'DESIGN SYSTEM'
+
+/** Mínimo de texto visible. Un render a medias produce muy poco. */
+const MINIMO_CARACTERES = 400
+
+let chromium
+try {
+  chromium = createRequire(import.meta.url)('playwright').chromium
+} catch {
+  console.error(
+    '✗ Falta playwright. El preview NO se verificó, así que no se entrega.\n' +
+      '  npm i -D playwright',
+  )
+  process.exit(1)
+}
+
+const browser = await chromium.launch({
+  // Chromium ya viene instalado en el entorno; sin esto intenta descargarlo.
+  ...(process.env.PLAYWRIGHT_BROWSERS_PATH != null
+    ? { executablePath: '/opt/pw-browsers/chromium' }
+    : {}),
+})
+
+try {
+  const page = await browser.newPage({ viewport: { width: 390, height: 844 } })
+  const errors = []
+  page.on('pageerror', (error) => errors.push(String(error)))
+  page.on('console', (message) => {
+    if (message.type() === 'error') errors.push(message.text())
+  })
+
+  await page.goto(`file://${outPath}`)
+  await page.waitForTimeout(3000)
+
+  // El cuerpo de `evaluate` corre en el navegador, no en Node, así que `document`
+  // existe allá aunque el lint de este archivo no lo conozca.
+  const text = (
+    await page.evaluate(
+      // eslint-disable-next-line no-undef
+      () => document.body.innerText,
+    )
+  ).trim()
+
+  // Los errores de supabase-js sobre SecureStore son esperados: el adaptador
+  // habla con un módulo nativo que en un navegador no existe. No impiden que la
+  // galería renderice, y la galería es lo único que este preview muestra.
+  const reales = errors.filter(
+    (error) => !/getValueWithKeyAsync|Auto refresh tick/.test(error),
+  )
+
+  if (text.length === 0) {
+    console.error('✗ La página no renderizó NADA. Errores:')
+    for (const error of errors.slice(0, 5)) console.error(`  · ${error}`)
+    process.exit(1)
+  }
+
+  if (text.length < MINIMO_CARACTERES) {
+    console.error(
+      `✗ Renderizó solo ${text.length} caracteres, menos de ${MINIMO_CARACTERES}.`,
+    )
+    console.error(`  ${JSON.stringify(text.slice(0, 200))}`)
+    process.exit(1)
+  }
+
+  if (!text.includes(CANARIO)) {
+    console.error(`✗ Renderizó algo pero falta "${CANARIO}". Puede estar rota.`)
+    console.error(
+      `  Primeros 200 caracteres: ${JSON.stringify(text.slice(0, 200))}`,
+    )
+    process.exit(1)
+  }
+
+  if (reales.length > 0) {
+    console.error('✗ Renderizó, pero tiró errores:')
+    for (const error of reales.slice(0, 5)) console.error(`  · ${error}`)
+    process.exit(1)
+  }
+
+  console.log(`✓ ${outPath}`)
+  console.log(`  Verificado en Chromium: ${text.length} caracteres visibles.`)
+} finally {
+  await browser.close()
+}
