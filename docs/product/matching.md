@@ -280,9 +280,25 @@ En V1 no es un recomendador. El feed es:
 2. Mezcladas determinísticamente con una semilla derivada de `user_id` — así
    cada persona ve un orden personal estable y la paginación nunca repite ni
    saltea.
-3. Restricción de diversidad: nunca dos piezas consecutivas del mismo
-   profesional, y como mucho 3 de cada 10 piezas consecutivas de un mismo
-   profesional.
+3. Restricción de diversidad: **ninguna repetición adyacente evitable**, y como
+   mucho 3 de cada 10 piezas consecutivas de un mismo profesional.
+
+   "Evitable" no es una salvedad cómoda. Cuando queda obra sin ver de un solo
+   profesional, dos piezas seguidas de esa persona son matemáticamente
+   inevitables, y ningún orden lo arregla.
+
+   La implementación reparte a cada profesional a lo largo de todo el feed: a la
+   obra número `i` de un artista con `n` piezas se le asigna la posición
+   `(i − 0,5) / n`. Un artista con seis piezas se extiende sobre todo el
+   recorrido y uno con cuatro también, así que nadie se agrupa en ninguna punta.
+
+   **La versión anterior era un round robin por vueltas** —todas las primeras
+   obras, después todas las segundas— y funcionaba perfecto mientras todos
+   tuvieran la misma cantidad de obra. Con 5, 6 y 4 piezas el que tiene más se
+   queda solo al final y aparece dos veces seguidas. El test de pgTAP no lo veía
+   porque usaba tres artistas con cuatro piezas cada uno; lo encontró el test de
+   integración contra el contenido real. Un fixture parejo es un fixture que no
+   se parece a la realidad.
 
 Hacer que el descubrimiento mismo esté guiado por el gusto crearía una burbuja
 antes de que el perfil sea confiable, y volvería la entrada del motor de gusto

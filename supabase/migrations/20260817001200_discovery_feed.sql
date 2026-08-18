@@ -17,23 +17,32 @@
 --      estable, y la paginación nunca repite ni saltea.
 --   3. Diversidad: nunca dos piezas seguidas del mismo profesional.
 --
--- El punto 3 se resuelve con un round robin: se numera la obra DENTRO de cada
--- profesional en el orden mezclado, y se ordena primero por esa profundidad.
--- Salen todas las primeras obras, después todas las segundas, y así.
+-- El punto 3 se resuelve **repartiendo cada profesional a lo largo de todo el
+-- feed**, no por vueltas.
 --
--- Dentro de una misma profundidad, el desempate es una clave POR PROFESIONAL,
--- no por pieza. Es sutil y es la parte que importa: con una clave por pieza el
--- orden de los profesionales cambia en cada vuelta, y entonces el último de una
--- vuelta puede ser el mismo que el primero de la siguiente. Con una clave por
--- profesional el orden es el mismo en todas las vueltas, así que el último es
--- siempre el profesional de clave más alta y el primero el de clave más baja.
--- Con dos o más profesionales, dos piezas seguidas del mismo es imposible.
--- (Con uno solo, obviamente no hay diversidad que preservar.)
+-- La versión anterior era un round robin por profundidad: todas las primeras
+-- obras, después todas las segundas. Funciona perfecto mientras todos tengan la
+-- misma cantidad de obra, y se rompe apenas no la tienen — que es siempre. Con
+-- artistas de 5, 6 y 4 piezas, el que tiene más se queda solo al final y
+-- aparece dos veces seguidas. El test de pgTAP no lo veía porque usaba tres
+-- artistas con cuatro piezas cada uno; lo encontró el test de integración,
+-- contra el contenido real.
 --
--- La profundidad se calcula sobre TODAS las piezas publicadas, antes de
--- descartar las ya vistas. Si se calculara después, cada me gusta correría la
--- numeración de todo lo que sigue y la paginación por cursor empezaría a
--- saltear obra.
+-- Lo que se hace ahora: a la obra número `i` de un profesional con `n` piezas se
+-- le asigna la posición `(i - 0,5) / n`. Un artista con seis piezas se reparte
+-- sobre todo el recorrido, uno con cuatro también, y el orden global sale
+-- intercalado sin que nadie se agrupe en ninguna punta.
+--
+-- Sigue sin poder garantizarse lo imposible: cuando queda obra sin ver de un
+-- solo profesional, dos piezas seguidas de esa persona son inevitables. La
+-- garantía real, y la que verifican los tests, es que **no haya repeticiones
+-- adyacentes evitables** — o sea, mientras más de un profesional tenga obra
+-- pendiente.
+--
+-- Tanto la posición como el total se calculan sobre TODAS las piezas
+-- publicadas, antes de descartar las ya vistas. Si se calcularan después, cada
+-- me gusta correría la numeración de todo lo que sigue y la paginación por
+-- cursor empezaría a saltear obra.
 
 create or replace function public.get_discovery_feed(
   p_category_slug text,
@@ -71,6 +80,7 @@ as $$
         partition by pi.professional_id
         order by md5(v.user_id::text || pi.id::text), pi.id
       ) as depth,
+      count(*) over (partition by pi.professional_id) as total_for_professional,
       md5(v.user_id::text || pi.professional_id::text) as professional_key
     from public.portfolio_items pi
     join public.professionals p on p.id = pi.professional_id
@@ -85,7 +95,14 @@ as $$
     select
       r.id,
       r.professional_id,
-      lpad(r.depth::text, 6, '0') || ':' || r.professional_key as sort_key
+      -- La posición fraccionaria, escalada a entero y rellenada con ceros para
+      -- que ordene como texto. El desempate por clave de profesional mantiene
+      -- el orden estable cuando dos posiciones caen igual.
+      lpad(
+        round((r.depth - 0.5) / r.total_for_professional * 1000000)::text,
+        9,
+        '0'
+      ) || ':' || r.professional_key as sort_key
     from ranked r
     cross join viewer v
     where not exists (

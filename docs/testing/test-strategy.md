@@ -211,6 +211,20 @@ gama media, build de release:
 Los números se registran en el release check con el nombre del dispositivo. Un
 número no registrado no es una medición.
 
+**Dos de los cinco sí se pueden medir sin dispositivo, y se miden:**
+
+- **Round trips por pantalla** →
+  `tests/integration/src/roundtrips.test.ts`, contando peticiones HTTP reales
+  (no llamadas a la librería: un `select` con `in(...)` de 200 ids puede ser una
+  llamada y varias peticiones). Feed: 1. Interacción: 1. Veinte interacciones
+  encoladas: 1. Perfil: 2, con la razón escrita.
+- **Peso de lo que viaja** → `npm run perf:report`.
+
+Medición del 2026-08-18: bundle web de **3,3 MB** de JavaScript más **206 KB**
+de tipografías; media de origen de 80 KB promedio, derivada a tres tamaños. Los
+otros cuatro presupuestos siguen sin medir y están listados como tales en el
+reporte.
+
 ## 8. CI
 
 En cada push:

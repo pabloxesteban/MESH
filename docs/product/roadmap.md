@@ -27,7 +27,7 @@ criterios de salida. Ninguna fase acumula código sin tests.
 | **14. Analytics** ✅ | `track()`, unión tipada de eventos, buffer MMKV, ajuste de opt-out | Cada evento del catálogo se dispara una vez en la corrida E2E; sin texto libre en ninguna propiedad; el opt-out no encola nada |
 | **15. QA** ⚠️ | Suite E2E, cobertura de estados de componentes, casos borde | Los seis flujos E2E en verde, incluidos el de solo accesibilidad y el offline |
 | **16. Auditoría de seguridad** ✅ | Revisión completa contra el checklist del modelo de seguridad; modelo de amenazas revisitado | Todos los ítems tildados; `npm audit` sin alto/crítico; ningún hallazgo abierto |
-| **17. Performance** | Pasada de medición en dispositivo, verificación del pipeline de imágenes, auditoría de round trips | Todos los presupuestos de la estrategia de testing §7 cumplidos y registrados con el nombre del dispositivo |
+| **17. Performance** ⚠️ | Pasada de medición en dispositivo, verificación del pipeline de imágenes, auditoría de round trips | Todos los presupuestos de la estrategia de testing §7 cumplidos y registrados con el nombre del dispositivo |
 | **18. Pulido de UX** | Pasada de copy en `es-AR`, barrido de callejones sin salida, tipografía dinámica, pasada de VoiceOver/TalkBack, ambos temas | Ninguna pantalla sin acción hacia adelante; el lector de pantalla completa el flujo 1; el tamaño de tipografía accesible más grande no recorta |
 | **19. Listo para publicar** | Assets de tienda, declaraciones de privacidad, recorrida con los artistas, plan de rollback | Los artistas vieron y aprobaron sus propios perfiles; el procedimiento de retiro fue probado; release check completo |
 
@@ -501,3 +501,30 @@ necesitan un simulador o un emulador con la app instalada, que este entorno no
 tiene. Están rotulados como lo que son en `.maestro/README.md`: un flujo que no
 corrió es una intención, no una garantía. **Correrlos es tuyo, y hay que hacerlo
 antes de publicar.**
+
+## Estado de la Fase 17
+
+Cerrada el 2026-08-18, **con las mediciones de dispositivo pendientes**.
+
+**Lo que se midió.** De los cinco presupuestos de `test-strategy.md` §7, dos no
+necesitan un teléfono, así que se midieron acá en vez de dejarse para después:
+
+- **Round trips**, contando peticiones HTTP reales en
+  `tests/integration/src/roundtrips.test.ts`. Feed: 1 — es la razón por la que
+  existe el RPC. Interacción: 1. Veinte interacciones encoladas: 1, que es lo
+  que hace que salir del subte no sean veinte peticiones. Perfil: 2, con la
+  razón escrita en el test.
+- **Peso**, con `npm run perf:report`: 3,3 MB de JavaScript y 206 KB de
+  tipografías en el bundle web.
+
+**Un defecto real que encontró la Fase 17**, aunque no fuera de performance: el
+test de round trips corrió contra el contenido fixture real —artistas con 5, 6 y
+4 piezas— y ahí falló el test de diversidad del feed. El round robin por vueltas
+funcionaba solo si todos tenían la misma cantidad de obra. Se reemplazó por un
+reparto fraccionario, y el fixture de pgTAP pasó a tener cantidades desiguales:
+**un fixture parejo es un fixture que no se parece a la realidad.**
+
+**Lo que falta, y es tuyo:** arranque en frío, fps del gesto, hero del perfil y
+memoria. Los cuatro necesitan un Android de gama media con un build de release.
+Están listados en el reporte como pendientes, y un número no registrado no es
+una medición.

@@ -7,7 +7,13 @@
 begin;
 select plan(10);
 
--- --- fixtures: 3 profesionales × 4 piezas ------------------------------------
+-- --- fixtures: 3 profesionales con 5, 6 y 4 piezas ---------------------------
+--
+-- Cantidades DESIGUALES a propósito. La versión anterior de este test usaba
+-- tres artistas con cuatro piezas cada uno, y por eso no veía que el round
+-- robin por profundidad rompe la diversidad al final cuando uno tiene más obra
+-- que los otros. Un fixture parejo es un fixture que no se parece a la
+-- realidad.
 
 -- El catálogo se vacía antes de empezar. Todo esto corre dentro de una
 -- transacción que se revierte, así que no destruye nada — pero sí hace que el
@@ -36,21 +42,25 @@ insert into public.media_assets (id, bucket, path, mime_type)
 select
   ('bbbbbbbb-0000-0000-0000-0000000000' || lpad(n::text, 2, '0'))::uuid,
   'portfolio', 'obra/' || n || '.jpg', 'image/jpeg'
-from generate_series(1, 13) as n;
+from generate_series(1, 16) as n;
 
 insert into public.portfolio_items (id, professional_id, media_id)
 select
   ('dddddddd-0000-0000-0000-0000000000' || lpad(n::text, 2, '0'))::uuid,
-  ('cccccccc-0000-0000-0000-00000000000' || (((n - 1) % 3) + 1))::uuid,
+  case
+    when n <= 5 then 'cccccccc-0000-0000-0000-000000000001'::uuid
+    when n <= 11 then 'cccccccc-0000-0000-0000-000000000002'::uuid
+    else 'cccccccc-0000-0000-0000-000000000003'::uuid
+  end,
   ('bbbbbbbb-0000-0000-0000-0000000000' || lpad(n::text, 2, '0'))::uuid
-from generate_series(1, 12) as n;
+from generate_series(1, 15) as n;
 
 -- Una pieza más, del profesional sin publicar.
 insert into public.portfolio_items (id, professional_id, media_id)
 values (
   'dddddddd-0000-0000-0000-0000000000ff',
   'cccccccc-0000-0000-0000-0000000000ff',
-  'bbbbbbbb-0000-0000-0000-000000000013'
+  'bbbbbbbb-0000-0000-0000-000000000016'
 );
 
 insert into public.portfolio_item_styles (portfolio_item_id, style_id, weight)
@@ -58,7 +68,7 @@ select
   ('dddddddd-0000-0000-0000-0000000000' || lpad(n::text, 2, '0'))::uuid,
   (select id from public.styles where slug = 'fine-line'),
   1.0
-from generate_series(1, 12) as n;
+from generate_series(1, 15) as n;
 
 -- --- sin sesión --------------------------------------------------------------
 
@@ -76,8 +86,8 @@ set local request.jwt.claims = '{"sub":"aaaaaaaa-0000-0000-0000-00000000000a","r
 
 select is(
   (select count(*) from public.get_discovery_feed('tattoo', 50, null)),
-  12::bigint,
-  'El feed trae las 12 piezas publicadas y ninguna del profesional sin publicar'
+  15::bigint,
+  'El feed trae las 15 piezas publicadas y ninguna del profesional sin publicar'
 );
 
 select is_empty(
@@ -96,6 +106,11 @@ select is(
 );
 
 -- Diversidad: nunca dos piezas seguidas del mismo profesional.
+--
+-- Con 5, 6 y 4 piezas hay obra de más de un artista hasta el final, así que
+-- ninguna repetición adyacente es inevitable. Cuando quede obra de uno solo, sí
+-- lo es — y eso no lo puede arreglar ningún orden. Ver el comentario de la
+-- migración del feed.
 select is_empty(
   $$
     select professional_id
@@ -121,15 +136,15 @@ select results_eq(
 -- Paginación por cursor: dos páginas de 6 reconstruyen exactamente el feed.
 select results_eq(
   $$
-    select portfolio_item_id from public.get_discovery_feed('tattoo', 6, null)
+    select portfolio_item_id from public.get_discovery_feed('tattoo', 8, null)
     union all
     select portfolio_item_id from public.get_discovery_feed(
-      'tattoo', 6,
-      (select max(feed_cursor) from public.get_discovery_feed('tattoo', 6, null))
+      'tattoo', 8,
+      (select max(feed_cursor) from public.get_discovery_feed('tattoo', 8, null))
     )
   $$,
   $$ select portfolio_item_id from public.get_discovery_feed('tattoo', 50, null) $$,
-  'Dos páginas de 6 reconstruyen el feed completo, sin repetir ni saltear'
+  'Dos páginas de 8 reconstruyen el feed completo, sin repetir ni saltear'
 );
 
 -- Exclusión: lo que ya vi no vuelve.
@@ -142,7 +157,7 @@ from public.get_discovery_feed('tattoo', 4, null);
 
 select is(
   (select count(*) from public.get_discovery_feed('tattoo', 50, null)),
-  8::bigint,
+  11::bigint,
   'Las piezas ya vistas no vuelven al mazo'
 );
 
