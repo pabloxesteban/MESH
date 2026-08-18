@@ -29,7 +29,7 @@ criterios de salida. Ninguna fase acumula código sin tests.
 | **16. Auditoría de seguridad** ✅ | Revisión completa contra el checklist del modelo de seguridad; modelo de amenazas revisitado | Todos los ítems tildados; `npm audit` sin alto/crítico; ningún hallazgo abierto |
 | **17. Performance** ⚠️ | Pasada de medición en dispositivo, verificación del pipeline de imágenes, auditoría de round trips | Todos los presupuestos de la estrategia de testing §7 cumplidos y registrados con el nombre del dispositivo |
 | **18. Pulido de UX** ✅ | Pasada de copy en `es-AR`, barrido de callejones sin salida, tipografía dinámica, pasada de VoiceOver/TalkBack, ambos temas | Ninguna pantalla sin acción hacia adelante; el lector de pantalla completa el flujo 1; el tamaño de tipografía accesible más grande no recorta |
-| **19. Listo para publicar** | Assets de tienda, declaraciones de privacidad, recorrida con los artistas, plan de rollback | Los artistas vieron y aprobaron sus propios perfiles; el procedimiento de retiro fue probado; release check completo |
+| **19. Listo para publicar** ⚠️ | Assets de tienda, declaraciones de privacidad, recorrida con los artistas, plan de rollback | Los artistas vieron y aprobaron sus propios perfiles; el procedimiento de retiro fue probado; release check completo |
 
 ---
 
@@ -562,3 +562,43 @@ nuestras, no suyas), y sin prometer un resultado que no podemos sostener.
 verifica que los nombres existan y que los tamaños alcancen; que el recorrido
 del lector tenga sentido —el orden, las agrupaciones, si "Me gusta" se entiende
 sin ver la obra— solo se sabe escuchándolo.
+
+## Estado de la Fase 19
+
+Cerrada el 2026-08-18, **con dos bloqueantes de publicación que no dependen del
+repositorio**.
+
+**Lo que quedó escrito**, en `docs/launch/`:
+
+- `privacy-declarations.md` — las respuestas de los formularios de App Store y
+  Play, **derivadas del código**: cada una remite a la tabla o al evento que la
+  justifica. Si mañana se agrega un dato, este documento cambia en el mismo
+  commit, porque una declaración desactualizada es una declaración falsa y en
+  las tiendas eso tiene consecuencias.
+- `privacy-policy.md` — escrita para que se entienda, no para protegernos.
+- `rollback.md` — qué hacer cuando algo sale mal, escrito antes de necesitarlo.
+  El principio: contenido y código retroceden por caminos distintos, y
+  confundirlos hace que un problema de minutos se trate como uno de días.
+- `store-listing.md` — la ficha en `es-AR`, con la sección de "lo que MESH no
+  hace" incluida a propósito.
+- `artist-walkthrough.md` — el procedimiento de recorrida, campo por campo.
+
+**Un hallazgo de la auditoría que cambió el plan de retroceso:** despublicar a
+un artista oculta sus filas al instante pero **no** sus imágenes, porque el
+bucket de portfolio es de lectura pública. Borrar los objetos es un paso
+obligatorio del retiro, no una limpieza posterior.
+
+**Una decisión de producto:** no va a haber video de vista previa en V1. Un
+video de una app que todavía no se probó con nadie promete más de lo que
+sabemos.
+
+### Los dos bloqueantes
+
+1. **La recorrida con los artistas no se puede hacer**: no hay artistas reales,
+   solo los tres fixtures sintéticos. Conseguirlos requiere hablar con personas
+   y obtener su consentimiento, que no es algo que se resuelva desde acá.
+2. **Las capturas de tienda no se pueden sacar**, y tampoco habría que
+   fabricarlas: una captura con fixtures muestra `[Fixture] Aguja Fina` sobre
+   imágenes abstractas. Se sacan con contenido real, después de la recorrida.
+
+Los dos dependen de la misma cosa, y esa cosa es tuya.
