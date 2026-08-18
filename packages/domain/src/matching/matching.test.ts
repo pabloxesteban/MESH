@@ -86,6 +86,12 @@ const VICENTE_LOPEZ = {
   slug: 'vicente-lopez',
   city: 'Vicente López',
 }
+const PALERMO = { ...CABA, id: 'loc-pal', slug: 'palermo' }
+const CHACARITA = { ...CABA, id: 'loc-cha', slug: 'chacarita' }
+/** Comuna 15, la misma que Chacarita. */
+const VILLA_CRESPO = { ...CABA, id: 'loc-vc', slug: 'villa-crespo' }
+/** Comuna 8, al otro extremo de la ciudad. */
+const VILLA_LUGANO = { ...CABA, id: 'loc-lug', slug: 'villa-lugano' }
 
 describe('componente de estilo', () => {
   it('coincidencia exacta da puntaje alto y banda fuerte', () => {
@@ -156,8 +162,62 @@ describe('componente de ubicación', () => {
       }),
     )
     expect(misma.components.location).toBe(1)
-    expect(metro.components.location).toBe(0.7)
+    expect(metro.components.location).toBe(0.55)
     expect(misma.score).toBeGreaterThan(metro.score)
+  })
+
+  it('el barrio ordena adentro de la ciudad', () => {
+    // Es el punto entero de tener barrios: en una V1 que es toda CABA, "misma
+    // ciudad" es constante y no discrimina nada.
+    //
+    // Desde Chacarita: Villa Crespo es la misma comuna (la 15), Palermo y
+    // Villa Lugano son otras comunas, y Vicente López es otro partido.
+    const escalon = (location: typeof PALERMO) =>
+      scoreProfessional(
+        ctx('chacarita'),
+        artist({ id: 'a', location, styles: styles(['fine-line', 1, true]) }),
+      ).components.location
+
+    expect(escalon(CHACARITA)).toBe(1)
+    expect(escalon(VILLA_CRESPO)).toBe(0.85)
+    expect(escalon(PALERMO)).toBe(0.7)
+    expect(escalon(VILLA_LUGANO)).toBe(0.7)
+    expect(escalon(VICENTE_LOPEZ)).toBe(0.55)
+  })
+
+  it('no castiga al que no declaró barrio', () => {
+    // Si el artista dijo "Palermo" y la persona solo "CABA", lo más preciso que
+    // se puede afirmar es "misma ciudad" — y eso no es una mala noticia sobre
+    // la distancia, es falta de dato. Bajarle el puntaje sería premiar a quien
+    // no lo da.
+    expect(
+      scoreProfessional(
+        ctx('caba'),
+        artist({
+          id: 'a',
+          location: PALERMO,
+          styles: styles(['fine-line', 1, true]),
+        }),
+      ).components.location,
+    ).toBe(1)
+  })
+
+  it('la razón nombra el barrio, no la ciudad', () => {
+    // "Trabaja en Palermo" le dice más a alguien de Buenos Aires que "trabaja
+    // en Ciudad Autónoma de Buenos Aires", y entra en una línea.
+    const contexto = ctx('palermo')
+    const profesional = artist({
+      id: 'a',
+      location: PALERMO,
+      styles: styles(['fine-line', 1, true]),
+    })
+    const razones = deriveReasons(
+      contexto,
+      profesional,
+      scoreProfessional(contexto, profesional),
+    )
+    const razon = razones.find((r) => r.component === 'location')
+    expect(razon?.terms).toEqual(['Palermo'])
   })
 
   it('otra ciudad: viajar vale más que no viajar', () => {

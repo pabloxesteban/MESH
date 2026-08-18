@@ -26,6 +26,8 @@ import {
   spacing,
   useTheme,
 } from '@/design-system/index.ts'
+import { locationLabel } from '@mesh/domain'
+
 import { ErrorView } from '@/components/ErrorView.tsx'
 import { FixtureBadge } from '@/components/FixtureBadge.tsx'
 import { mediaUrl } from '@/features/discovery/queries.ts'
@@ -112,7 +114,13 @@ export function ProfileScreen({
 
           {professional.location != null ? (
             <Text role="body" color="textSecondary">
-              {professional.location.city}
+              {/* El barrio si lo hay, si no la ciudad. "Palermo" le dice más
+                  a alguien de Buenos Aires que "Ciudad Autónoma de Buenos
+                  Aires", y entra en una línea. El nombre sale de la taxonomía
+                  y no de la fila: es dato de compilación, y `db:reference:check`
+                  garantiza que la base coincida. */}
+              {locationLabel(professional.location.slug) ??
+                professional.location.city}
               {professional.travels ? ` · ${t('profile.travels')}` : ''}
             </Text>
           ) : null}

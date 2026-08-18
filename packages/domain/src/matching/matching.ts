@@ -1,5 +1,5 @@
 /**
- * Motor de match (`match/1`).
+ * Motor de match (`match/2`).
  *
  * Determinístico, versionado y explicable. Nada de ML, nada de LLM: el puntaje
  * es una suma ponderada de cuatro componentes y cualquiera puede rehacerlo a
@@ -27,7 +27,7 @@ import type {
   Professional,
   TasteProfile,
 } from '../types/core.ts'
-import { isSameMetro } from '../taxonomy/locations.ts'
+import { locationLabel, proximity } from '../taxonomy/locations.ts'
 import { MATCHING_VERSION, TASTE_VERSION } from '../version.ts'
 import { topStyles } from '../taste/taste.ts'
 import {
@@ -153,12 +153,26 @@ export function locationComponent(
   const artistLocation = professional.location?.slug
   if (artistLocation == null) return undefined
 
-  if (artistLocation === context.locationSlug) return LOCATION_VALUE.sameCity
-  if (isSameMetro(artistLocation, context.locationSlug))
-    return LOCATION_VALUE.sameMetro
-  return professional.travels
-    ? LOCATION_VALUE.travels
-    : LOCATION_VALUE.elsewhere
+  // Los escalones finos —mismo barrio, misma comuna— solo existen cuando los
+  // dos lados declararon barrio. Si uno dijo "Palermo" y el otro "CABA", lo
+  // más preciso que se puede afirmar es "misma ciudad", y eso vale `same`: no
+  // sabemos que estén lejos, y castigar a quien tiene menos dato sería premiar
+  // a quien no lo da. Ver matching.md §4.2.
+  switch (proximity(artistLocation, context.locationSlug)) {
+    case 'same':
+      return LOCATION_VALUE.same
+    case 'group':
+      return LOCATION_VALUE.sameGroup
+    case 'city':
+      return LOCATION_VALUE.sameCity
+    case 'metro':
+      return LOCATION_VALUE.sameMetro
+    case 'far':
+    case 'unknown':
+      return professional.travels
+        ? LOCATION_VALUE.travels
+        : LOCATION_VALUE.elsewhere
+  }
 }
 
 /**
@@ -351,12 +365,18 @@ function reasonFor(
     }
 
     case 'location': {
-      const city = professional.location?.city
-      if (city == null) return null
+      // El barrio si lo hay, si no la ciudad. "Trabaja en Palermo" le dice más
+      // a alguien de Buenos Aires que "trabaja en Ciudad Autónoma de Buenos
+      // Aires", y entra en una línea.
+      const slug = professional.location?.slug
+      const label =
+        (slug != null ? locationLabel(slug) : null) ??
+        professional.location?.city
+      if (label == null) return null
       return {
         component: 'location',
         templateKey: 'match.reason.location',
-        terms: [city],
+        terms: [label],
         contribution,
       }
     }

@@ -28,8 +28,14 @@ export const AVERSION_FACTOR = 0.5
 
 /** Valores del componente de ubicación. Ver matching.md §4.1. */
 export const LOCATION_VALUE = {
-  sameCity: 1.0,
-  sameMetro: 0.7,
+  /** El mismo barrio, o la misma ciudad cuando ninguno de los dos declaró barrio. */
+  same: 1.0,
+  /** La misma comuna de CABA. Es la de al lado, y es un dato oficial. */
+  sameGroup: 0.85,
+  /** La misma ciudad, sabiendo que los barrios son distintos. */
+  sameCity: 0.7,
+  /** El mismo aglomerado. Vicente López desde CABA. */
+  sameMetro: 0.55,
   travels: 0.4,
   elsewhere: 0.0,
 } as const

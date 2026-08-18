@@ -3,6 +3,9 @@
 # Primera artista real de MESH. Todo lo de acá salió de su perfil de Instagram
 # (@bri.t4tts) y de lo que pasó Pablo el 2026-08-18.
 #
+# Palermo ya es una ubicación de primera clase: la taxonomía ahora tiene los 48
+# barrios de CABA con su comuna. Ver locations.ts.
+#
 # DOS COSAS SIN CONFIRMAR, anotadas en consent.md:
 #   · Su bio de Instagram dice "Currently in Bondi, Sydney". Acá figura en CABA.
 #   · La bio de abajo es una traducción de la suya en inglés, no sus palabras
@@ -12,7 +15,7 @@
 slug: briza-maldonado
 display_name: 'Briza Maldonado'
 category: tattoo
-location: caba
+location: palermo
 
 # De su bio de Instagram: "Vegan tattoo artist & illustrator".
 # Nada más: lo que sigue en su perfil son instrucciones de contacto y ubicación,

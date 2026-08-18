@@ -85,18 +85,16 @@ function render(): string {
     )
   }
 
-  lines.push('-- --- locations ---', '')
-  for (const location of LOCATIONS) {
-    lines.push(
-      'insert into public.locations (slug, country_code, admin_area, city, metro_key)',
-      `values (${sql(location.slug)}, ${sql(location.countryCode)}, ${sql(location.adminArea)}, ${sql(location.city)}, ${sql(location.metroKey)})`,
-      'on conflict (slug) do update set',
-      '  country_code = excluded.country_code,',
-      '  admin_area = excluded.admin_area,',
-      '  city = excluded.city,',
-      '  metro_key = excluded.metro_key;',
-      '',
-    )
+  // Las ciudades primero: un barrio referencia a su ciudad por parent_id, así
+  // que si se insertaran mezclados el orden decidiría si la carga funciona.
+  lines.push('-- --- locations: ciudades ---', '')
+  for (const location of LOCATIONS.filter((l) => l.kind === 'city')) {
+    lines.push(...locationInsert(location))
+  }
+
+  lines.push('-- --- locations: barrios ---', '')
+  for (const location of LOCATIONS.filter((l) => l.kind === 'neighborhood')) {
+    lines.push(...locationInsert(location))
   }
 
   return lines.join('\n')
@@ -130,4 +128,41 @@ if (check) {
       `  ${CATEGORIES.length} categoría(s) · ${STYLES.length} estilo(s) · ` +
       `${LOCATIONS.length} ubicación(es)`,
   )
+}
+
+/**
+ * El insert de una ubicación.
+ *
+ * `parent_id` se resuelve por subconsulta contra el slug del padre en vez de
+ * llevar el uuid: los uuid los genera la base, y el archivo de referencia tiene
+ * que poder correrse sobre cualquier instancia.
+ */
+function locationInsert(location: {
+  slug: string
+  countryCode: string
+  adminArea: string
+  city: string
+  metroKey: string
+  kind: string
+  parentSlug: string | null
+  groupKey: string | null
+}): string[] {
+  const parent =
+    location.parentSlug == null
+      ? 'null'
+      : `(select id from public.locations where slug = ${sql(location.parentSlug)})`
+
+  return [
+    'insert into public.locations (slug, country_code, admin_area, city, metro_key, kind, parent_id, group_key)',
+    `values (${sql(location.slug)}, ${sql(location.countryCode)}, ${sql(location.adminArea)}, ${sql(location.city)}, ${sql(location.metroKey)}, ${sql(location.kind)}, ${parent}, ${location.groupKey == null ? 'null' : sql(location.groupKey)})`,
+    'on conflict (slug) do update set',
+    '  country_code = excluded.country_code,',
+    '  admin_area = excluded.admin_area,',
+    '  city = excluded.city,',
+    '  metro_key = excluded.metro_key,',
+    '  kind = excluded.kind,',
+    '  parent_id = excluded.parent_id,',
+    '  group_key = excluded.group_key;',
+    '',
+  ]
 }

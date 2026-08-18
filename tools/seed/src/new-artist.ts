@@ -39,7 +39,13 @@ if (slug == null || name == null) {
   console.error(
     'Uso: npm run content:new -- --slug <slug> --name "<nombre>" [--location <slug>]\n' +
       '\n' +
-      `Ubicaciones: ${LOCATIONS.map((l) => l.slug).join(', ')}`,
+      `Ciudades: ${LOCATIONS.filter((l) => l.kind === 'city')
+        .map((l) => l.slug)
+        .join(', ')}\n` +
+      `\nBarrios de CABA — usá el barrio, no "caba", si lo sabés:\n  ` +
+      LOCATIONS.filter((l) => l.parentSlug === 'caba')
+        .map((l) => l.slug)
+        .join(', '),
   )
   process.exit(1)
 }
@@ -63,6 +69,16 @@ if (!isKnownLocation(location)) {
       `  Opciones: ${LOCATIONS.map((l) => l.slug).join(', ')}`,
   )
   process.exit(1)
+}
+
+if (location === 'caba') {
+  // No es un error: alguien puede no saber el barrio todavía. Pero en una V1
+  // que es toda CABA, "caba" a secas no distingue nada, y el barrio es
+  // justamente lo que hace útil el componente de ubicación.
+  console.warn(
+    '· Aviso: pusiste "caba" a secas. Si sabés el barrio, usalo — el matching\n' +
+      '  ordena por cercanía y "caba" no distingue a nadie de nadie.',
+  )
 }
 
 const dir = join(ARTISTS, slug)

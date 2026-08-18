@@ -12,7 +12,7 @@
 import { useState } from 'react'
 import { ScrollView } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { STYLES, MAX_PROJECT_REFERENCES } from '@mesh/domain'
+import { STYLES, MAX_PROJECT_REFERENCES, neighborhoodsOf } from '@mesh/domain'
 import type { ProjectTiming } from '@mesh/domain'
 
 import {
@@ -42,6 +42,19 @@ export interface ProjectFormScreenProps {
   onCancel: () => void
 }
 
+/**
+ * Los barrios que se ofrecen, ordenados alfabéticamente.
+ *
+ * V1 es CABA, así que son los 48 barrios de la ciudad y nada más. Cuando MESH
+ * salga de CABA esto va a necesitar un buscador en vez de una grilla — 48 chips
+ * ya es mucho, y 200 sería inusable. Se deja como grilla a propósito hasta que
+ * el problema exista: un buscador para una lista que entra en dos pantallazos es
+ * fricción sin beneficio.
+ */
+const BARRIOS = [...neighborhoodsOf('caba')].sort((a, b) =>
+  (a.neighborhood ?? '').localeCompare(b.neighborhood ?? '', 'es-AR'),
+)
+
 export function ProjectFormScreen({
   onSubmit,
   onCancel,
@@ -56,6 +69,7 @@ export function ProjectFormScreen({
   const [budgetMin, setBudgetMin] = useState('')
   const [budgetMax, setBudgetMax] = useState('')
   const [timing, setTiming] = useState<ProjectTiming | null>(null)
+  const [locationSlug, setLocationSlug] = useState<string | null>(null)
   const [isSaving, setIsSaving] = useState(false)
 
   const min = toCents(budgetMin)
@@ -130,6 +144,36 @@ export function ProjectFormScreen({
           </Text>
           {/* Se dice para qué se usa. Pedir plata sin explicar por qué es
               pedirle a alguien que se exponga a cambio de nada. */}
+          <Box gap="xs">
+            <Text role="label" color="textSecondary">
+              {t('projects.form.location')}
+            </Text>
+            {/* Se dice para qué sirve. Pedir dónde vive alguien sin explicar por
+              qué es pedirle que se exponga a cambio de nada — el mismo criterio
+              que el presupuesto. */}
+            <Text role="micro" color="textTertiary">
+              {t('projects.form.location.hint')}
+            </Text>
+            <Box direction="row" gap="xxs" wrap>
+              {BARRIOS.map((barrio) => (
+                <FilterChip
+                  key={barrio.slug}
+                  label={barrio.neighborhood ?? barrio.city}
+                  selected={locationSlug === barrio.slug}
+                  // Se puede deseleccionar: "prefiero no decir" es una respuesta
+                  // válida, y sin barrio el componente de ubicación se omite en
+                  // vez de puntuar mal. Ver matching.md §4.2.
+                  onToggle={() =>
+                    setLocationSlug((previous) =>
+                      previous === barrio.slug ? null : barrio.slug,
+                    )
+                  }
+                  testID={`project-location-${barrio.slug}`}
+                />
+              ))}
+            </Box>
+          </Box>
+
           <Text role="micro" color="textTertiary">
             {t('projects.form.budget.hint')}
           </Text>
@@ -196,6 +240,7 @@ export function ProjectFormScreen({
                 styleSlugs,
                 ...(budget != null ? { budget } : {}),
                 ...(timing != null ? { timing } : {}),
+                ...(locationSlug != null ? { locationSlug } : {}),
               }).finally(() => setIsSaving(false))
             }}
           />

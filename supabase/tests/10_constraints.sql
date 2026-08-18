@@ -5,7 +5,7 @@
 -- que no molesta. Lo que hay que verificar es que efectivamente RECHACE.
 
 begin;
-select plan(18);
+select plan(21);
 
 -- --- fixtures ----------------------------------------------------------------
 
@@ -280,6 +280,44 @@ select lives_ok(
     )
   $$,
   'Razones fundadas en componentes con aporte se aceptan'
+);
+
+-- --- barrios ------------------------------------------------------------
+--
+-- Los tres guards que hacen que "qué tan lejos me queda" tenga una respuesta
+-- confiable. Verificados también a mano rompiéndolos; están acá para que sigan
+-- rotos si alguien los saca.
+
+select throws_ok(
+  $$
+    insert into public.locations (slug, country_code, admin_area, city, metro_key, kind)
+    values ('sin-padre', 'AR', 'Buenos Aires', 'CABA', 'amba', 'neighborhood')
+  $$,
+  23514,
+  null,
+  'Un barrio sin ciudad padre se rechaza'
+);
+
+select throws_ok(
+  $$
+    insert into public.locations (slug, country_code, admin_area, city, metro_key, kind, parent_id)
+    values ('con-padre-ciudad', 'AR', 'Buenos Aires', 'CABA', 'amba', 'city',
+            (select id from public.locations where slug = 'caba'))
+  $$,
+  23514,
+  null,
+  'Una ciudad con parent_id se rechaza'
+);
+
+select throws_ok(
+  $$
+    insert into public.locations (slug, country_code, admin_area, city, metro_key, kind, parent_id)
+    values ('nieto', 'AR', 'Buenos Aires', 'CABA', 'amba', 'neighborhood',
+            (select id from public.locations where slug = 'palermo'))
+  $$,
+  'P0001',
+  null,
+  'Un barrio colgado de otro barrio se rechaza: son dos niveles, no un árbol'
 );
 
 select * from finish();

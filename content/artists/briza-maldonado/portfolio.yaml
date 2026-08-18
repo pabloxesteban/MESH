@@ -1,26 +1,46 @@
 # Portafolio de Briza Maldonado
 #
-# VACÍO A PROPÓSITO: las fotos todavía no llegaron. El validador exige al menos
-# una pieza, así que este archivo falla hasta que estén — que es lo correcto: un
-# perfil sin obra no tiene nada que mostrar en el mazo.
+# Los pesos de estilo salen de MIRAR las fotos, no de que ella los haya
+# declarado. Son una propuesta para que los corrija: es lo que define cómo se
+# reparte un me gusta, así que el que tiene que tener la última palabra sobre
+# qué es cada pieza es el artista.
 #
-# Cuando lleguen, una entrada por pieza. Los pesos de estilo de cada una tienen
-# que sumar 1 (± 0,001): es lo que hace explicable el gusto. Si una pieza es 0,7
-# traditional y 0,3 lettering, un me gusta reparte así.
+# Los epígrafes van vacíos a propósito. Un epígrafe son las palabras del
+# artista; describir yo la pieza sería ponerle palabras en la boca.
 #
-# `featured: true` en una sola: es la que abre el perfil.
-#
-# Ejemplo de la forma, para completar:
-#
-# items:
-#   - file: 01.jpg
-#     featured: true
-#     year: 2026
-#     styles:
-#       - { slug: traditional, weight: 1.0 }
-#   - file: 02.jpg
-#     styles:
-#       - { slug: japanese, weight: 0.7 }
-#       - { slug: traditional, weight: 0.3 }
+# NOTA: ninguna de estas cinco es japonés, y `japanese` figura como estilo
+# secundario suyo en artist.yaml. No es una contradicción —el portafolio es una
+# muestra, no el catálogo entero— pero conviene sumar alguna pieza japonesa, o
+# sacar el estilo. El mazo reparte por pieza; el matching, por estilo declarado.
 
-items: []
+items:
+  # Kewpie durmiendo sobre una luna. Contorno grueso, sombra en negro y gris.
+  - file: 01.jpg
+    featured: true
+    styles:
+      - { slug: traditional, weight: 0.7 }
+      - { slug: black-and-grey, weight: 0.3 }
+
+  # Dos corazones atravesados por una daga. Rojo sólido, American traditional.
+  - file: 02.jpg
+    styles:
+      - { slug: traditional, weight: 1.0 }
+
+  # Yacaré en el antebrazo. Traditional en negro y gris.
+  - file: 03.jpg
+    styles:
+      - { slug: traditional, weight: 0.7 }
+      - { slug: black-and-grey, weight: 0.3 }
+
+  # Corazón con banda y flores, con "Vegan" en cursiva. Lettering adentro de una
+  # pieza traditional: por eso el peso está repartido y no es 1,0.
+  - file: 04.jpg
+    styles:
+      - { slug: traditional, weight: 0.6 }
+      - { slug: lettering, weight: 0.4 }
+
+  # Polilla en el pecho, simétrica, en negro y gris.
+  - file: 05.jpg
+    styles:
+      - { slug: traditional, weight: 0.7 }
+      - { slug: black-and-grey, weight: 0.3 }

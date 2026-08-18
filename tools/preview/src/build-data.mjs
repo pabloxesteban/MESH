@@ -17,7 +17,13 @@
 
 import { execFileSync } from 'node:child_process'
 import { createRequire } from 'node:module'
-import { readdirSync, readFileSync, writeFileSync, mkdirSync } from 'node:fs'
+import {
+  existsSync,
+  readdirSync,
+  readFileSync,
+  writeFileSync,
+  mkdirSync,
+} from 'node:fs'
 import { join, resolve } from 'node:path'
 
 const require = createRequire(import.meta.url)
@@ -42,6 +48,16 @@ const artists = []
 
 for (const slug of readdirSync(ARTISTS).sort()) {
   const dir = join(ARTISTS, slug)
+
+  // Los borradores no entran, igual que no entran en la validación ni en la
+  // carga. Son los TRES consumidores de content/artists/, y los tres tienen que
+  // saltear lo mismo — este fue el que se olvidó, y el síntoma fue el preview
+  // reventando contra una foto que todavía no existe.
+  if (existsSync(join(dir, 'DRAFT'))) {
+    console.log(`· ${slug}: BORRADOR — no entra en el preview.`)
+    continue
+  }
+
   let artist
   try {
     artist = YAML.parse(readFileSync(join(dir, 'artist.yaml'), 'utf8'))

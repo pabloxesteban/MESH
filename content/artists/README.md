@@ -63,8 +63,14 @@ content/artists/briza-maldonado/DRAFT
 Cuando esté completo, borrá el archivo y validá.
 
 El riesgo obvio es que `DRAFT` se vuelva la forma de saltear los chequeos.
-Contra eso: los borradores se listan en cada corrida del validador y del seeder,
-verde o roja, así que no se pueden olvidar en silencio.
+Contra eso: los borradores se listan en cada corrida, verde o roja, así que no
+se pueden olvidar en silencio.
+
+**Tres cosas leen `content/artists/`, y las tres tienen que saltear los
+borradores:** el validador (`content:validate`), el seeder (`content:seed`) y el
+generador de datos del preview (`preview:data`). El tercero se olvidó la primera
+vez, y el síntoma fue el preview reventando contra una foto que todavía no
+existía. Si aparece un cuarto consumidor, este es su recordatorio.
 
 ## Verificar antes de commitear
 

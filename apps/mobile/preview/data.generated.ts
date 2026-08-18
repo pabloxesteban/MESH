@@ -60,7 +60,7 @@ export const PREVIEW_ARTISTS: readonly PreviewArtist[] = [
     displayName: 'A Mano',
     isFixture: true,
     bio: 'Sin máquina. Punto a punto, con la irregularidad a la vista.',
-    location: 'caba',
+    location: 'chacarita',
     travels: false,
     styles: [
       {
@@ -362,7 +362,7 @@ export const PREVIEW_ARTISTS: readonly PreviewArtist[] = [
     displayName: 'Aguja Fina',
     isFixture: true,
     bio: 'Línea continua y composiciones chicas. Trabaja casi siempre en negro, sin sombra.',
-    location: 'caba',
+    location: 'palermo',
     travels: false,
     styles: [
       {
@@ -777,7 +777,7 @@ export const PREVIEW_ARTISTS: readonly PreviewArtist[] = [
     displayName: 'Irezumi',
     isFixture: true,
     bio: 'Composiciones tradicionales japonesas: ondas, fondo lleno, piezas por partes.',
-    location: 'caba',
+    location: 'villa-crespo',
     travels: false,
     styles: [
       {
@@ -948,7 +948,7 @@ export const PREVIEW_ARTISTS: readonly PreviewArtist[] = [
     displayName: 'Punto y Línea',
     isFixture: true,
     bio: 'Puntillismo y geometría. Sombras hechas de densidad, nunca de relleno.',
-    location: 'caba',
+    location: 'san-telmo',
     travels: false,
     styles: [
       {
@@ -1099,7 +1099,7 @@ export const PREVIEW_ARTISTS: readonly PreviewArtist[] = [
     displayName: 'Retrato',
     isFixture: true,
     bio: 'Volumen sin contorno. Trabaja en negro y gris, con sesiones largas.',
-    location: 'caba',
+    location: 'villa-lugano',
     travels: false,
     styles: [
       {

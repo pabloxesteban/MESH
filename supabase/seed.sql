@@ -246,84 +246,644 @@ on conflict (category_id, slug) do update set
   sort_order = excluded.sort_order,
   is_active = excluded.is_active;
 
--- --- locations ---
+-- --- locations: ciudades ---
 
-insert into public.locations (slug, country_code, admin_area, city, metro_key)
-values ('caba', 'AR', 'Ciudad Autónoma de Buenos Aires', 'Buenos Aires', 'amba')
+insert into public.locations (slug, country_code, admin_area, city, metro_key, kind, parent_id, group_key)
+values ('caba', 'AR', 'Ciudad Autónoma de Buenos Aires', 'Buenos Aires', 'amba', 'city', null, null)
 on conflict (slug) do update set
   country_code = excluded.country_code,
   admin_area = excluded.admin_area,
   city = excluded.city,
-  metro_key = excluded.metro_key;
+  metro_key = excluded.metro_key,
+  kind = excluded.kind,
+  parent_id = excluded.parent_id,
+  group_key = excluded.group_key;
 
-insert into public.locations (slug, country_code, admin_area, city, metro_key)
-values ('vicente-lopez', 'AR', 'Buenos Aires', 'Vicente López', 'amba')
+insert into public.locations (slug, country_code, admin_area, city, metro_key, kind, parent_id, group_key)
+values ('vicente-lopez', 'AR', 'Buenos Aires', 'Vicente López', 'amba', 'city', null, null)
 on conflict (slug) do update set
   country_code = excluded.country_code,
   admin_area = excluded.admin_area,
   city = excluded.city,
-  metro_key = excluded.metro_key;
+  metro_key = excluded.metro_key,
+  kind = excluded.kind,
+  parent_id = excluded.parent_id,
+  group_key = excluded.group_key;
 
-insert into public.locations (slug, country_code, admin_area, city, metro_key)
-values ('san-isidro', 'AR', 'Buenos Aires', 'San Isidro', 'amba')
+insert into public.locations (slug, country_code, admin_area, city, metro_key, kind, parent_id, group_key)
+values ('san-isidro', 'AR', 'Buenos Aires', 'San Isidro', 'amba', 'city', null, null)
 on conflict (slug) do update set
   country_code = excluded.country_code,
   admin_area = excluded.admin_area,
   city = excluded.city,
-  metro_key = excluded.metro_key;
+  metro_key = excluded.metro_key,
+  kind = excluded.kind,
+  parent_id = excluded.parent_id,
+  group_key = excluded.group_key;
 
-insert into public.locations (slug, country_code, admin_area, city, metro_key)
-values ('tigre', 'AR', 'Buenos Aires', 'Tigre', 'amba')
+insert into public.locations (slug, country_code, admin_area, city, metro_key, kind, parent_id, group_key)
+values ('tigre', 'AR', 'Buenos Aires', 'Tigre', 'amba', 'city', null, null)
 on conflict (slug) do update set
   country_code = excluded.country_code,
   admin_area = excluded.admin_area,
   city = excluded.city,
-  metro_key = excluded.metro_key;
+  metro_key = excluded.metro_key,
+  kind = excluded.kind,
+  parent_id = excluded.parent_id,
+  group_key = excluded.group_key;
 
-insert into public.locations (slug, country_code, admin_area, city, metro_key)
-values ('san-martin', 'AR', 'Buenos Aires', 'San Martín', 'amba')
+insert into public.locations (slug, country_code, admin_area, city, metro_key, kind, parent_id, group_key)
+values ('san-martin', 'AR', 'Buenos Aires', 'San Martín', 'amba', 'city', null, null)
 on conflict (slug) do update set
   country_code = excluded.country_code,
   admin_area = excluded.admin_area,
   city = excluded.city,
-  metro_key = excluded.metro_key;
+  metro_key = excluded.metro_key,
+  kind = excluded.kind,
+  parent_id = excluded.parent_id,
+  group_key = excluded.group_key;
 
-insert into public.locations (slug, country_code, admin_area, city, metro_key)
-values ('moron', 'AR', 'Buenos Aires', 'Morón', 'amba')
+insert into public.locations (slug, country_code, admin_area, city, metro_key, kind, parent_id, group_key)
+values ('moron', 'AR', 'Buenos Aires', 'Morón', 'amba', 'city', null, null)
 on conflict (slug) do update set
   country_code = excluded.country_code,
   admin_area = excluded.admin_area,
   city = excluded.city,
-  metro_key = excluded.metro_key;
+  metro_key = excluded.metro_key,
+  kind = excluded.kind,
+  parent_id = excluded.parent_id,
+  group_key = excluded.group_key;
 
-insert into public.locations (slug, country_code, admin_area, city, metro_key)
-values ('avellaneda', 'AR', 'Buenos Aires', 'Avellaneda', 'amba')
+insert into public.locations (slug, country_code, admin_area, city, metro_key, kind, parent_id, group_key)
+values ('avellaneda', 'AR', 'Buenos Aires', 'Avellaneda', 'amba', 'city', null, null)
 on conflict (slug) do update set
   country_code = excluded.country_code,
   admin_area = excluded.admin_area,
   city = excluded.city,
-  metro_key = excluded.metro_key;
+  metro_key = excluded.metro_key,
+  kind = excluded.kind,
+  parent_id = excluded.parent_id,
+  group_key = excluded.group_key;
 
-insert into public.locations (slug, country_code, admin_area, city, metro_key)
-values ('lomas-de-zamora', 'AR', 'Buenos Aires', 'Lomas de Zamora', 'amba')
+insert into public.locations (slug, country_code, admin_area, city, metro_key, kind, parent_id, group_key)
+values ('lomas-de-zamora', 'AR', 'Buenos Aires', 'Lomas de Zamora', 'amba', 'city', null, null)
 on conflict (slug) do update set
   country_code = excluded.country_code,
   admin_area = excluded.admin_area,
   city = excluded.city,
-  metro_key = excluded.metro_key;
+  metro_key = excluded.metro_key,
+  kind = excluded.kind,
+  parent_id = excluded.parent_id,
+  group_key = excluded.group_key;
 
-insert into public.locations (slug, country_code, admin_area, city, metro_key)
-values ('quilmes', 'AR', 'Buenos Aires', 'Quilmes', 'amba')
+insert into public.locations (slug, country_code, admin_area, city, metro_key, kind, parent_id, group_key)
+values ('quilmes', 'AR', 'Buenos Aires', 'Quilmes', 'amba', 'city', null, null)
 on conflict (slug) do update set
   country_code = excluded.country_code,
   admin_area = excluded.admin_area,
   city = excluded.city,
-  metro_key = excluded.metro_key;
+  metro_key = excluded.metro_key,
+  kind = excluded.kind,
+  parent_id = excluded.parent_id,
+  group_key = excluded.group_key;
 
-insert into public.locations (slug, country_code, admin_area, city, metro_key)
-values ('la-plata', 'AR', 'Buenos Aires', 'La Plata', 'la-plata')
+insert into public.locations (slug, country_code, admin_area, city, metro_key, kind, parent_id, group_key)
+values ('la-plata', 'AR', 'Buenos Aires', 'La Plata', 'la-plata', 'city', null, null)
 on conflict (slug) do update set
   country_code = excluded.country_code,
   admin_area = excluded.admin_area,
   city = excluded.city,
-  metro_key = excluded.metro_key;
+  metro_key = excluded.metro_key,
+  kind = excluded.kind,
+  parent_id = excluded.parent_id,
+  group_key = excluded.group_key;
+
+-- --- locations: barrios ---
+
+insert into public.locations (slug, country_code, admin_area, city, metro_key, kind, parent_id, group_key)
+values ('retiro', 'AR', 'Buenos Aires', 'Ciudad Autónoma de Buenos Aires', 'amba', 'neighborhood', (select id from public.locations where slug = 'caba'), 'comuna-1')
+on conflict (slug) do update set
+  country_code = excluded.country_code,
+  admin_area = excluded.admin_area,
+  city = excluded.city,
+  metro_key = excluded.metro_key,
+  kind = excluded.kind,
+  parent_id = excluded.parent_id,
+  group_key = excluded.group_key;
+
+insert into public.locations (slug, country_code, admin_area, city, metro_key, kind, parent_id, group_key)
+values ('san-nicolas', 'AR', 'Buenos Aires', 'Ciudad Autónoma de Buenos Aires', 'amba', 'neighborhood', (select id from public.locations where slug = 'caba'), 'comuna-1')
+on conflict (slug) do update set
+  country_code = excluded.country_code,
+  admin_area = excluded.admin_area,
+  city = excluded.city,
+  metro_key = excluded.metro_key,
+  kind = excluded.kind,
+  parent_id = excluded.parent_id,
+  group_key = excluded.group_key;
+
+insert into public.locations (slug, country_code, admin_area, city, metro_key, kind, parent_id, group_key)
+values ('puerto-madero', 'AR', 'Buenos Aires', 'Ciudad Autónoma de Buenos Aires', 'amba', 'neighborhood', (select id from public.locations where slug = 'caba'), 'comuna-1')
+on conflict (slug) do update set
+  country_code = excluded.country_code,
+  admin_area = excluded.admin_area,
+  city = excluded.city,
+  metro_key = excluded.metro_key,
+  kind = excluded.kind,
+  parent_id = excluded.parent_id,
+  group_key = excluded.group_key;
+
+insert into public.locations (slug, country_code, admin_area, city, metro_key, kind, parent_id, group_key)
+values ('san-telmo', 'AR', 'Buenos Aires', 'Ciudad Autónoma de Buenos Aires', 'amba', 'neighborhood', (select id from public.locations where slug = 'caba'), 'comuna-1')
+on conflict (slug) do update set
+  country_code = excluded.country_code,
+  admin_area = excluded.admin_area,
+  city = excluded.city,
+  metro_key = excluded.metro_key,
+  kind = excluded.kind,
+  parent_id = excluded.parent_id,
+  group_key = excluded.group_key;
+
+insert into public.locations (slug, country_code, admin_area, city, metro_key, kind, parent_id, group_key)
+values ('montserrat', 'AR', 'Buenos Aires', 'Ciudad Autónoma de Buenos Aires', 'amba', 'neighborhood', (select id from public.locations where slug = 'caba'), 'comuna-1')
+on conflict (slug) do update set
+  country_code = excluded.country_code,
+  admin_area = excluded.admin_area,
+  city = excluded.city,
+  metro_key = excluded.metro_key,
+  kind = excluded.kind,
+  parent_id = excluded.parent_id,
+  group_key = excluded.group_key;
+
+insert into public.locations (slug, country_code, admin_area, city, metro_key, kind, parent_id, group_key)
+values ('constitucion', 'AR', 'Buenos Aires', 'Ciudad Autónoma de Buenos Aires', 'amba', 'neighborhood', (select id from public.locations where slug = 'caba'), 'comuna-1')
+on conflict (slug) do update set
+  country_code = excluded.country_code,
+  admin_area = excluded.admin_area,
+  city = excluded.city,
+  metro_key = excluded.metro_key,
+  kind = excluded.kind,
+  parent_id = excluded.parent_id,
+  group_key = excluded.group_key;
+
+insert into public.locations (slug, country_code, admin_area, city, metro_key, kind, parent_id, group_key)
+values ('recoleta', 'AR', 'Buenos Aires', 'Ciudad Autónoma de Buenos Aires', 'amba', 'neighborhood', (select id from public.locations where slug = 'caba'), 'comuna-2')
+on conflict (slug) do update set
+  country_code = excluded.country_code,
+  admin_area = excluded.admin_area,
+  city = excluded.city,
+  metro_key = excluded.metro_key,
+  kind = excluded.kind,
+  parent_id = excluded.parent_id,
+  group_key = excluded.group_key;
+
+insert into public.locations (slug, country_code, admin_area, city, metro_key, kind, parent_id, group_key)
+values ('balvanera', 'AR', 'Buenos Aires', 'Ciudad Autónoma de Buenos Aires', 'amba', 'neighborhood', (select id from public.locations where slug = 'caba'), 'comuna-3')
+on conflict (slug) do update set
+  country_code = excluded.country_code,
+  admin_area = excluded.admin_area,
+  city = excluded.city,
+  metro_key = excluded.metro_key,
+  kind = excluded.kind,
+  parent_id = excluded.parent_id,
+  group_key = excluded.group_key;
+
+insert into public.locations (slug, country_code, admin_area, city, metro_key, kind, parent_id, group_key)
+values ('san-cristobal', 'AR', 'Buenos Aires', 'Ciudad Autónoma de Buenos Aires', 'amba', 'neighborhood', (select id from public.locations where slug = 'caba'), 'comuna-3')
+on conflict (slug) do update set
+  country_code = excluded.country_code,
+  admin_area = excluded.admin_area,
+  city = excluded.city,
+  metro_key = excluded.metro_key,
+  kind = excluded.kind,
+  parent_id = excluded.parent_id,
+  group_key = excluded.group_key;
+
+insert into public.locations (slug, country_code, admin_area, city, metro_key, kind, parent_id, group_key)
+values ('la-boca', 'AR', 'Buenos Aires', 'Ciudad Autónoma de Buenos Aires', 'amba', 'neighborhood', (select id from public.locations where slug = 'caba'), 'comuna-4')
+on conflict (slug) do update set
+  country_code = excluded.country_code,
+  admin_area = excluded.admin_area,
+  city = excluded.city,
+  metro_key = excluded.metro_key,
+  kind = excluded.kind,
+  parent_id = excluded.parent_id,
+  group_key = excluded.group_key;
+
+insert into public.locations (slug, country_code, admin_area, city, metro_key, kind, parent_id, group_key)
+values ('barracas', 'AR', 'Buenos Aires', 'Ciudad Autónoma de Buenos Aires', 'amba', 'neighborhood', (select id from public.locations where slug = 'caba'), 'comuna-4')
+on conflict (slug) do update set
+  country_code = excluded.country_code,
+  admin_area = excluded.admin_area,
+  city = excluded.city,
+  metro_key = excluded.metro_key,
+  kind = excluded.kind,
+  parent_id = excluded.parent_id,
+  group_key = excluded.group_key;
+
+insert into public.locations (slug, country_code, admin_area, city, metro_key, kind, parent_id, group_key)
+values ('parque-patricios', 'AR', 'Buenos Aires', 'Ciudad Autónoma de Buenos Aires', 'amba', 'neighborhood', (select id from public.locations where slug = 'caba'), 'comuna-4')
+on conflict (slug) do update set
+  country_code = excluded.country_code,
+  admin_area = excluded.admin_area,
+  city = excluded.city,
+  metro_key = excluded.metro_key,
+  kind = excluded.kind,
+  parent_id = excluded.parent_id,
+  group_key = excluded.group_key;
+
+insert into public.locations (slug, country_code, admin_area, city, metro_key, kind, parent_id, group_key)
+values ('nueva-pompeya', 'AR', 'Buenos Aires', 'Ciudad Autónoma de Buenos Aires', 'amba', 'neighborhood', (select id from public.locations where slug = 'caba'), 'comuna-4')
+on conflict (slug) do update set
+  country_code = excluded.country_code,
+  admin_area = excluded.admin_area,
+  city = excluded.city,
+  metro_key = excluded.metro_key,
+  kind = excluded.kind,
+  parent_id = excluded.parent_id,
+  group_key = excluded.group_key;
+
+insert into public.locations (slug, country_code, admin_area, city, metro_key, kind, parent_id, group_key)
+values ('almagro', 'AR', 'Buenos Aires', 'Ciudad Autónoma de Buenos Aires', 'amba', 'neighborhood', (select id from public.locations where slug = 'caba'), 'comuna-5')
+on conflict (slug) do update set
+  country_code = excluded.country_code,
+  admin_area = excluded.admin_area,
+  city = excluded.city,
+  metro_key = excluded.metro_key,
+  kind = excluded.kind,
+  parent_id = excluded.parent_id,
+  group_key = excluded.group_key;
+
+insert into public.locations (slug, country_code, admin_area, city, metro_key, kind, parent_id, group_key)
+values ('boedo', 'AR', 'Buenos Aires', 'Ciudad Autónoma de Buenos Aires', 'amba', 'neighborhood', (select id from public.locations where slug = 'caba'), 'comuna-5')
+on conflict (slug) do update set
+  country_code = excluded.country_code,
+  admin_area = excluded.admin_area,
+  city = excluded.city,
+  metro_key = excluded.metro_key,
+  kind = excluded.kind,
+  parent_id = excluded.parent_id,
+  group_key = excluded.group_key;
+
+insert into public.locations (slug, country_code, admin_area, city, metro_key, kind, parent_id, group_key)
+values ('caballito', 'AR', 'Buenos Aires', 'Ciudad Autónoma de Buenos Aires', 'amba', 'neighborhood', (select id from public.locations where slug = 'caba'), 'comuna-6')
+on conflict (slug) do update set
+  country_code = excluded.country_code,
+  admin_area = excluded.admin_area,
+  city = excluded.city,
+  metro_key = excluded.metro_key,
+  kind = excluded.kind,
+  parent_id = excluded.parent_id,
+  group_key = excluded.group_key;
+
+insert into public.locations (slug, country_code, admin_area, city, metro_key, kind, parent_id, group_key)
+values ('flores', 'AR', 'Buenos Aires', 'Ciudad Autónoma de Buenos Aires', 'amba', 'neighborhood', (select id from public.locations where slug = 'caba'), 'comuna-7')
+on conflict (slug) do update set
+  country_code = excluded.country_code,
+  admin_area = excluded.admin_area,
+  city = excluded.city,
+  metro_key = excluded.metro_key,
+  kind = excluded.kind,
+  parent_id = excluded.parent_id,
+  group_key = excluded.group_key;
+
+insert into public.locations (slug, country_code, admin_area, city, metro_key, kind, parent_id, group_key)
+values ('parque-chacabuco', 'AR', 'Buenos Aires', 'Ciudad Autónoma de Buenos Aires', 'amba', 'neighborhood', (select id from public.locations where slug = 'caba'), 'comuna-7')
+on conflict (slug) do update set
+  country_code = excluded.country_code,
+  admin_area = excluded.admin_area,
+  city = excluded.city,
+  metro_key = excluded.metro_key,
+  kind = excluded.kind,
+  parent_id = excluded.parent_id,
+  group_key = excluded.group_key;
+
+insert into public.locations (slug, country_code, admin_area, city, metro_key, kind, parent_id, group_key)
+values ('villa-soldati', 'AR', 'Buenos Aires', 'Ciudad Autónoma de Buenos Aires', 'amba', 'neighborhood', (select id from public.locations where slug = 'caba'), 'comuna-8')
+on conflict (slug) do update set
+  country_code = excluded.country_code,
+  admin_area = excluded.admin_area,
+  city = excluded.city,
+  metro_key = excluded.metro_key,
+  kind = excluded.kind,
+  parent_id = excluded.parent_id,
+  group_key = excluded.group_key;
+
+insert into public.locations (slug, country_code, admin_area, city, metro_key, kind, parent_id, group_key)
+values ('villa-riachuelo', 'AR', 'Buenos Aires', 'Ciudad Autónoma de Buenos Aires', 'amba', 'neighborhood', (select id from public.locations where slug = 'caba'), 'comuna-8')
+on conflict (slug) do update set
+  country_code = excluded.country_code,
+  admin_area = excluded.admin_area,
+  city = excluded.city,
+  metro_key = excluded.metro_key,
+  kind = excluded.kind,
+  parent_id = excluded.parent_id,
+  group_key = excluded.group_key;
+
+insert into public.locations (slug, country_code, admin_area, city, metro_key, kind, parent_id, group_key)
+values ('villa-lugano', 'AR', 'Buenos Aires', 'Ciudad Autónoma de Buenos Aires', 'amba', 'neighborhood', (select id from public.locations where slug = 'caba'), 'comuna-8')
+on conflict (slug) do update set
+  country_code = excluded.country_code,
+  admin_area = excluded.admin_area,
+  city = excluded.city,
+  metro_key = excluded.metro_key,
+  kind = excluded.kind,
+  parent_id = excluded.parent_id,
+  group_key = excluded.group_key;
+
+insert into public.locations (slug, country_code, admin_area, city, metro_key, kind, parent_id, group_key)
+values ('liniers', 'AR', 'Buenos Aires', 'Ciudad Autónoma de Buenos Aires', 'amba', 'neighborhood', (select id from public.locations where slug = 'caba'), 'comuna-9')
+on conflict (slug) do update set
+  country_code = excluded.country_code,
+  admin_area = excluded.admin_area,
+  city = excluded.city,
+  metro_key = excluded.metro_key,
+  kind = excluded.kind,
+  parent_id = excluded.parent_id,
+  group_key = excluded.group_key;
+
+insert into public.locations (slug, country_code, admin_area, city, metro_key, kind, parent_id, group_key)
+values ('mataderos', 'AR', 'Buenos Aires', 'Ciudad Autónoma de Buenos Aires', 'amba', 'neighborhood', (select id from public.locations where slug = 'caba'), 'comuna-9')
+on conflict (slug) do update set
+  country_code = excluded.country_code,
+  admin_area = excluded.admin_area,
+  city = excluded.city,
+  metro_key = excluded.metro_key,
+  kind = excluded.kind,
+  parent_id = excluded.parent_id,
+  group_key = excluded.group_key;
+
+insert into public.locations (slug, country_code, admin_area, city, metro_key, kind, parent_id, group_key)
+values ('parque-avellaneda', 'AR', 'Buenos Aires', 'Ciudad Autónoma de Buenos Aires', 'amba', 'neighborhood', (select id from public.locations where slug = 'caba'), 'comuna-9')
+on conflict (slug) do update set
+  country_code = excluded.country_code,
+  admin_area = excluded.admin_area,
+  city = excluded.city,
+  metro_key = excluded.metro_key,
+  kind = excluded.kind,
+  parent_id = excluded.parent_id,
+  group_key = excluded.group_key;
+
+insert into public.locations (slug, country_code, admin_area, city, metro_key, kind, parent_id, group_key)
+values ('villa-luro', 'AR', 'Buenos Aires', 'Ciudad Autónoma de Buenos Aires', 'amba', 'neighborhood', (select id from public.locations where slug = 'caba'), 'comuna-10')
+on conflict (slug) do update set
+  country_code = excluded.country_code,
+  admin_area = excluded.admin_area,
+  city = excluded.city,
+  metro_key = excluded.metro_key,
+  kind = excluded.kind,
+  parent_id = excluded.parent_id,
+  group_key = excluded.group_key;
+
+insert into public.locations (slug, country_code, admin_area, city, metro_key, kind, parent_id, group_key)
+values ('velez-sarsfield', 'AR', 'Buenos Aires', 'Ciudad Autónoma de Buenos Aires', 'amba', 'neighborhood', (select id from public.locations where slug = 'caba'), 'comuna-10')
+on conflict (slug) do update set
+  country_code = excluded.country_code,
+  admin_area = excluded.admin_area,
+  city = excluded.city,
+  metro_key = excluded.metro_key,
+  kind = excluded.kind,
+  parent_id = excluded.parent_id,
+  group_key = excluded.group_key;
+
+insert into public.locations (slug, country_code, admin_area, city, metro_key, kind, parent_id, group_key)
+values ('floresta', 'AR', 'Buenos Aires', 'Ciudad Autónoma de Buenos Aires', 'amba', 'neighborhood', (select id from public.locations where slug = 'caba'), 'comuna-10')
+on conflict (slug) do update set
+  country_code = excluded.country_code,
+  admin_area = excluded.admin_area,
+  city = excluded.city,
+  metro_key = excluded.metro_key,
+  kind = excluded.kind,
+  parent_id = excluded.parent_id,
+  group_key = excluded.group_key;
+
+insert into public.locations (slug, country_code, admin_area, city, metro_key, kind, parent_id, group_key)
+values ('monte-castro', 'AR', 'Buenos Aires', 'Ciudad Autónoma de Buenos Aires', 'amba', 'neighborhood', (select id from public.locations where slug = 'caba'), 'comuna-10')
+on conflict (slug) do update set
+  country_code = excluded.country_code,
+  admin_area = excluded.admin_area,
+  city = excluded.city,
+  metro_key = excluded.metro_key,
+  kind = excluded.kind,
+  parent_id = excluded.parent_id,
+  group_key = excluded.group_key;
+
+insert into public.locations (slug, country_code, admin_area, city, metro_key, kind, parent_id, group_key)
+values ('villa-real', 'AR', 'Buenos Aires', 'Ciudad Autónoma de Buenos Aires', 'amba', 'neighborhood', (select id from public.locations where slug = 'caba'), 'comuna-10')
+on conflict (slug) do update set
+  country_code = excluded.country_code,
+  admin_area = excluded.admin_area,
+  city = excluded.city,
+  metro_key = excluded.metro_key,
+  kind = excluded.kind,
+  parent_id = excluded.parent_id,
+  group_key = excluded.group_key;
+
+insert into public.locations (slug, country_code, admin_area, city, metro_key, kind, parent_id, group_key)
+values ('versalles', 'AR', 'Buenos Aires', 'Ciudad Autónoma de Buenos Aires', 'amba', 'neighborhood', (select id from public.locations where slug = 'caba'), 'comuna-10')
+on conflict (slug) do update set
+  country_code = excluded.country_code,
+  admin_area = excluded.admin_area,
+  city = excluded.city,
+  metro_key = excluded.metro_key,
+  kind = excluded.kind,
+  parent_id = excluded.parent_id,
+  group_key = excluded.group_key;
+
+insert into public.locations (slug, country_code, admin_area, city, metro_key, kind, parent_id, group_key)
+values ('villa-general-mitre', 'AR', 'Buenos Aires', 'Ciudad Autónoma de Buenos Aires', 'amba', 'neighborhood', (select id from public.locations where slug = 'caba'), 'comuna-11')
+on conflict (slug) do update set
+  country_code = excluded.country_code,
+  admin_area = excluded.admin_area,
+  city = excluded.city,
+  metro_key = excluded.metro_key,
+  kind = excluded.kind,
+  parent_id = excluded.parent_id,
+  group_key = excluded.group_key;
+
+insert into public.locations (slug, country_code, admin_area, city, metro_key, kind, parent_id, group_key)
+values ('villa-devoto', 'AR', 'Buenos Aires', 'Ciudad Autónoma de Buenos Aires', 'amba', 'neighborhood', (select id from public.locations where slug = 'caba'), 'comuna-11')
+on conflict (slug) do update set
+  country_code = excluded.country_code,
+  admin_area = excluded.admin_area,
+  city = excluded.city,
+  metro_key = excluded.metro_key,
+  kind = excluded.kind,
+  parent_id = excluded.parent_id,
+  group_key = excluded.group_key;
+
+insert into public.locations (slug, country_code, admin_area, city, metro_key, kind, parent_id, group_key)
+values ('villa-del-parque', 'AR', 'Buenos Aires', 'Ciudad Autónoma de Buenos Aires', 'amba', 'neighborhood', (select id from public.locations where slug = 'caba'), 'comuna-11')
+on conflict (slug) do update set
+  country_code = excluded.country_code,
+  admin_area = excluded.admin_area,
+  city = excluded.city,
+  metro_key = excluded.metro_key,
+  kind = excluded.kind,
+  parent_id = excluded.parent_id,
+  group_key = excluded.group_key;
+
+insert into public.locations (slug, country_code, admin_area, city, metro_key, kind, parent_id, group_key)
+values ('villa-santa-rita', 'AR', 'Buenos Aires', 'Ciudad Autónoma de Buenos Aires', 'amba', 'neighborhood', (select id from public.locations where slug = 'caba'), 'comuna-11')
+on conflict (slug) do update set
+  country_code = excluded.country_code,
+  admin_area = excluded.admin_area,
+  city = excluded.city,
+  metro_key = excluded.metro_key,
+  kind = excluded.kind,
+  parent_id = excluded.parent_id,
+  group_key = excluded.group_key;
+
+insert into public.locations (slug, country_code, admin_area, city, metro_key, kind, parent_id, group_key)
+values ('coghlan', 'AR', 'Buenos Aires', 'Ciudad Autónoma de Buenos Aires', 'amba', 'neighborhood', (select id from public.locations where slug = 'caba'), 'comuna-12')
+on conflict (slug) do update set
+  country_code = excluded.country_code,
+  admin_area = excluded.admin_area,
+  city = excluded.city,
+  metro_key = excluded.metro_key,
+  kind = excluded.kind,
+  parent_id = excluded.parent_id,
+  group_key = excluded.group_key;
+
+insert into public.locations (slug, country_code, admin_area, city, metro_key, kind, parent_id, group_key)
+values ('saavedra', 'AR', 'Buenos Aires', 'Ciudad Autónoma de Buenos Aires', 'amba', 'neighborhood', (select id from public.locations where slug = 'caba'), 'comuna-12')
+on conflict (slug) do update set
+  country_code = excluded.country_code,
+  admin_area = excluded.admin_area,
+  city = excluded.city,
+  metro_key = excluded.metro_key,
+  kind = excluded.kind,
+  parent_id = excluded.parent_id,
+  group_key = excluded.group_key;
+
+insert into public.locations (slug, country_code, admin_area, city, metro_key, kind, parent_id, group_key)
+values ('villa-urquiza', 'AR', 'Buenos Aires', 'Ciudad Autónoma de Buenos Aires', 'amba', 'neighborhood', (select id from public.locations where slug = 'caba'), 'comuna-12')
+on conflict (slug) do update set
+  country_code = excluded.country_code,
+  admin_area = excluded.admin_area,
+  city = excluded.city,
+  metro_key = excluded.metro_key,
+  kind = excluded.kind,
+  parent_id = excluded.parent_id,
+  group_key = excluded.group_key;
+
+insert into public.locations (slug, country_code, admin_area, city, metro_key, kind, parent_id, group_key)
+values ('villa-pueyrredon', 'AR', 'Buenos Aires', 'Ciudad Autónoma de Buenos Aires', 'amba', 'neighborhood', (select id from public.locations where slug = 'caba'), 'comuna-12')
+on conflict (slug) do update set
+  country_code = excluded.country_code,
+  admin_area = excluded.admin_area,
+  city = excluded.city,
+  metro_key = excluded.metro_key,
+  kind = excluded.kind,
+  parent_id = excluded.parent_id,
+  group_key = excluded.group_key;
+
+insert into public.locations (slug, country_code, admin_area, city, metro_key, kind, parent_id, group_key)
+values ('nunez', 'AR', 'Buenos Aires', 'Ciudad Autónoma de Buenos Aires', 'amba', 'neighborhood', (select id from public.locations where slug = 'caba'), 'comuna-13')
+on conflict (slug) do update set
+  country_code = excluded.country_code,
+  admin_area = excluded.admin_area,
+  city = excluded.city,
+  metro_key = excluded.metro_key,
+  kind = excluded.kind,
+  parent_id = excluded.parent_id,
+  group_key = excluded.group_key;
+
+insert into public.locations (slug, country_code, admin_area, city, metro_key, kind, parent_id, group_key)
+values ('belgrano', 'AR', 'Buenos Aires', 'Ciudad Autónoma de Buenos Aires', 'amba', 'neighborhood', (select id from public.locations where slug = 'caba'), 'comuna-13')
+on conflict (slug) do update set
+  country_code = excluded.country_code,
+  admin_area = excluded.admin_area,
+  city = excluded.city,
+  metro_key = excluded.metro_key,
+  kind = excluded.kind,
+  parent_id = excluded.parent_id,
+  group_key = excluded.group_key;
+
+insert into public.locations (slug, country_code, admin_area, city, metro_key, kind, parent_id, group_key)
+values ('colegiales', 'AR', 'Buenos Aires', 'Ciudad Autónoma de Buenos Aires', 'amba', 'neighborhood', (select id from public.locations where slug = 'caba'), 'comuna-13')
+on conflict (slug) do update set
+  country_code = excluded.country_code,
+  admin_area = excluded.admin_area,
+  city = excluded.city,
+  metro_key = excluded.metro_key,
+  kind = excluded.kind,
+  parent_id = excluded.parent_id,
+  group_key = excluded.group_key;
+
+insert into public.locations (slug, country_code, admin_area, city, metro_key, kind, parent_id, group_key)
+values ('palermo', 'AR', 'Buenos Aires', 'Ciudad Autónoma de Buenos Aires', 'amba', 'neighborhood', (select id from public.locations where slug = 'caba'), 'comuna-14')
+on conflict (slug) do update set
+  country_code = excluded.country_code,
+  admin_area = excluded.admin_area,
+  city = excluded.city,
+  metro_key = excluded.metro_key,
+  kind = excluded.kind,
+  parent_id = excluded.parent_id,
+  group_key = excluded.group_key;
+
+insert into public.locations (slug, country_code, admin_area, city, metro_key, kind, parent_id, group_key)
+values ('chacarita', 'AR', 'Buenos Aires', 'Ciudad Autónoma de Buenos Aires', 'amba', 'neighborhood', (select id from public.locations where slug = 'caba'), 'comuna-15')
+on conflict (slug) do update set
+  country_code = excluded.country_code,
+  admin_area = excluded.admin_area,
+  city = excluded.city,
+  metro_key = excluded.metro_key,
+  kind = excluded.kind,
+  parent_id = excluded.parent_id,
+  group_key = excluded.group_key;
+
+insert into public.locations (slug, country_code, admin_area, city, metro_key, kind, parent_id, group_key)
+values ('villa-crespo', 'AR', 'Buenos Aires', 'Ciudad Autónoma de Buenos Aires', 'amba', 'neighborhood', (select id from public.locations where slug = 'caba'), 'comuna-15')
+on conflict (slug) do update set
+  country_code = excluded.country_code,
+  admin_area = excluded.admin_area,
+  city = excluded.city,
+  metro_key = excluded.metro_key,
+  kind = excluded.kind,
+  parent_id = excluded.parent_id,
+  group_key = excluded.group_key;
+
+insert into public.locations (slug, country_code, admin_area, city, metro_key, kind, parent_id, group_key)
+values ('paternal', 'AR', 'Buenos Aires', 'Ciudad Autónoma de Buenos Aires', 'amba', 'neighborhood', (select id from public.locations where slug = 'caba'), 'comuna-15')
+on conflict (slug) do update set
+  country_code = excluded.country_code,
+  admin_area = excluded.admin_area,
+  city = excluded.city,
+  metro_key = excluded.metro_key,
+  kind = excluded.kind,
+  parent_id = excluded.parent_id,
+  group_key = excluded.group_key;
+
+insert into public.locations (slug, country_code, admin_area, city, metro_key, kind, parent_id, group_key)
+values ('villa-ortuzar', 'AR', 'Buenos Aires', 'Ciudad Autónoma de Buenos Aires', 'amba', 'neighborhood', (select id from public.locations where slug = 'caba'), 'comuna-15')
+on conflict (slug) do update set
+  country_code = excluded.country_code,
+  admin_area = excluded.admin_area,
+  city = excluded.city,
+  metro_key = excluded.metro_key,
+  kind = excluded.kind,
+  parent_id = excluded.parent_id,
+  group_key = excluded.group_key;
+
+insert into public.locations (slug, country_code, admin_area, city, metro_key, kind, parent_id, group_key)
+values ('agronomia', 'AR', 'Buenos Aires', 'Ciudad Autónoma de Buenos Aires', 'amba', 'neighborhood', (select id from public.locations where slug = 'caba'), 'comuna-15')
+on conflict (slug) do update set
+  country_code = excluded.country_code,
+  admin_area = excluded.admin_area,
+  city = excluded.city,
+  metro_key = excluded.metro_key,
+  kind = excluded.kind,
+  parent_id = excluded.parent_id,
+  group_key = excluded.group_key;
+
+insert into public.locations (slug, country_code, admin_area, city, metro_key, kind, parent_id, group_key)
+values ('parque-chas', 'AR', 'Buenos Aires', 'Ciudad Autónoma de Buenos Aires', 'amba', 'neighborhood', (select id from public.locations where slug = 'caba'), 'comuna-15')
+on conflict (slug) do update set
+  country_code = excluded.country_code,
+  admin_area = excluded.admin_area,
+  city = excluded.city,
+  metro_key = excluded.metro_key,
+  kind = excluded.kind,
+  parent_id = excluded.parent_id,
+  group_key = excluded.group_key;

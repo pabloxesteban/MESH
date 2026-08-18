@@ -29,8 +29,15 @@ export {
   findLocation,
   isKnownLocation,
   isSameMetro,
+  locationLabel,
+  neighborhoodsOf,
+  proximity,
 } from './taxonomy/locations.ts'
-export type { LocationDefinition } from './taxonomy/locations.ts'
+export type {
+  LocationDefinition,
+  LocationKind,
+  Proximity,
+} from './taxonomy/locations.ts'
 
 export type {
   Availability,

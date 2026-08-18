@@ -201,10 +201,13 @@ export type Database = {
           city: string
           country_code: string
           created_at: string
+          group_key: string | null
           id: string
+          kind: string
           lat: number | null
           lng: number | null
           metro_key: string
+          parent_id: string | null
           slug: string
           updated_at: string
         }
@@ -213,10 +216,13 @@ export type Database = {
           city: string
           country_code: string
           created_at?: string
+          group_key?: string | null
           id?: string
+          kind?: string
           lat?: number | null
           lng?: number | null
           metro_key: string
+          parent_id?: string | null
           slug: string
           updated_at?: string
         }
@@ -225,14 +231,25 @@ export type Database = {
           city?: string
           country_code?: string
           created_at?: string
+          group_key?: string | null
           id?: string
+          kind?: string
           lat?: number | null
           lng?: number | null
           metro_key?: string
+          parent_id?: string | null
           slug?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "locations_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "locations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       matches: {
         Row: {

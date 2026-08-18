@@ -200,6 +200,9 @@ export const esAR = {
     'Opcional. Solo lo usamos para no mostrarte gente fuera de tu alcance.',
   'projects.form.budget.min': 'Desde',
   'projects.form.budget.max': 'Hasta',
+  'projects.form.location': 'Tu barrio',
+  'projects.form.location.hint':
+    'Para ordenar por qué tan cerca te queda cada artista. Podés no decirlo.',
   'projects.form.timing': 'Para cuándo',
   'projects.form.timing.asap': 'Lo antes posible',
   'projects.form.timing.weeks': 'En las próximas semanas',

@@ -176,6 +176,9 @@ export const en: Readonly<Record<TranslationKey, string>> = {
     'Optional. We only use it to avoid showing you people out of your reach.',
   'projects.form.budget.min': 'From',
   'projects.form.budget.max': 'To',
+  'projects.form.location': 'Your neighbourhood',
+  'projects.form.location.hint':
+    'Used to rank artists by how close they are to you. You can skip it.',
   'projects.form.timing': 'By when',
   'projects.form.timing.asap': 'As soon as possible',
   'projects.form.timing.weeks': 'In the coming weeks',

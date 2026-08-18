@@ -1,10 +1,14 @@
 Este perfil está en borrador: no se valida y no se carga.
 
-Faltan tres cosas, y las tres son de ella, no del código:
+Falta:
 
-  1. El registro de consentimiento — ver los TODO de consent.md.
-  2. Las fotos de sus piezas, en media/, y sus entradas en portfolio.yaml.
-  3. Confirmar dos datos: si está tatuando en Buenos Aires o en Sydney, y su
-     bio con sus palabras en castellano.
+  1. Las fotos. portfolio.yaml ya tiene las cinco entradas con sus pesos de
+     estilo, pero los archivos 01.jpg … 05.jpg todavía no están en media/.
+     Las fotos llegaron por chat y el chat no las deja en disco.
+  2. El registro de consentimiento — ver los TODO de consent.md.
+  3. Confirmar con ella dos cosas: si está tatuando en Buenos Aires o en
+     Sydney, y su bio con sus palabras en castellano.
+  4. Que revise los pesos de estilo: los puse mirando las fotos, no los
+     declaró ella.
 
-Cuando estén las tres, borrá este archivo y corré `npm run content:validate`.
+Cuando esté todo, borrá este archivo y corré `npm run content:validate`.

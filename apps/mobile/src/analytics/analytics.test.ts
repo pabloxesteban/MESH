@@ -1,3 +1,4 @@
+import { MATCHING_VERSION } from '@mesh/domain'
 import type { KeyValueStore } from '@/data/kv.ts'
 
 import { EVENT_NAMES, type AnalyticsEvent } from './events.ts'
@@ -211,7 +212,7 @@ describe('reglas de privacidad', () => {
           professional_id: 'a1',
           band: 'strong',
           rank: 1,
-          matching_version: 'match/1',
+          matching_version: MATCHING_VERSION,
         },
       },
       {

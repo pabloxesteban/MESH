@@ -1,6 +1,6 @@
 # MESH — Motor de gusto y matching
 
-**Estado:** Propuesto · **Responsable:** matching-engineer · **Versión de algoritmo:** `taste/1` · `match/1`
+**Estado:** Propuesto · **Responsable:** matching-engineer · **Versión de algoritmo:** `taste/1` · `match/2`
 
 Este documento es la especificación de referencia. La implementación en
 `packages/domain/src/matching/` tiene que coincidir exactamente con él, y los
@@ -135,7 +135,7 @@ determinismo y la testeabilidad. Cuando las sesiones abarquen meses, agregá
 decaimiento como `taste/2` con una vida media explícita y timestamps de
 snapshot, no antes.
 
-## 4. Motor de match (`match/1`) — basado en gusto
+## 4. Motor de match (`match/2`) — basado en gusto
 
 ### 4.1 Componentes
 
@@ -154,15 +154,38 @@ fracción cubre este artista*. El término de aversión va a la mitad porque los
 pasos son evidencia débil (§3.1) y preferimos mostrar un artista levemente
 equivocado antes que suprimir en silencio uno bueno.
 
-**Ubicación.**
+**Ubicación.** Desde `match/2` la unidad es el **barrio**, no la ciudad.
 
 | Situación | Valor |
 |---|---|
-| Misma ciudad que el usuario/proyecto | 1,0 |
-| Misma área metropolitana | 0,7 |
+| La misma ubicación, o granularidad desigual dentro de la misma ciudad | 1,0 |
+| La misma comuna de CABA | 0,85 |
+| La misma ciudad, sabiendo que los barrios son distintos | 0,7 |
+| La misma área metropolitana | 0,55 |
 | Otra ciudad, el artista viaja / hace guest | 0,4 |
 | Otra ciudad, no viaja | 0,0 |
 | Ubicación del usuario desconocida | *componente omitido* |
+
+**Por qué la comuna y no una distancia.** No hay coordenadas: la columna
+`lat`/`lng` existe y sigue vacía, porque no escribimos coordenadas que no
+verificamos y porque una distancia en línea recta miente sobre una ciudad con
+río, autopistas y subte. La comuna es la división administrativa real de CABA
+(las 15 de la Ley 1777), así que "misma comuna" es un hecho verificable y no una
+estimación nuestra. Lo que **no** afirma: que dos barrios de la misma comuna
+estén a la misma distancia entre sí que otros dos. Es una cota superior barata y
+cierta, no una métrica.
+
+**Por qué la granularidad desigual vale 1,0 y no 0,7.** Si el artista declaró
+"Palermo" y la persona solo "CABA", lo más preciso que se puede afirmar es "la
+misma ciudad" — y eso no es una mala noticia sobre la distancia, es falta de
+dato. Bajarle el puntaje al que sí declaró su barrio sería premiar a quien no lo
+da. Es el mismo principio que la regla de omisión: un dato faltante nunca puede
+parecer una mala respuesta.
+
+La contrapartida: un artista que declaró un barrio lejano puntúa por debajo de
+uno que no declaró ninguno. Se acepta porque el error alternativo es peor —
+afirmar "te queda cerca" sin saberlo— y porque MESH cura el catálogo: el barrio
+se pide al dar de alta a cada artista, así que el caso sin dato tiende a cero.
 
 **Precio.** Solapamiento del `[min, max]` publicado del artista con la banda de
 presupuesto del proyecto, como fracción de la banda de presupuesto. Sin
@@ -191,11 +214,12 @@ match, simplemente sabemos menos de él.
 puntaje = Σ_{c ∈ conocidos} ( w_c × valor_c ) / Σ_{c ∈ conocidos} w_c        ∈ [0,1]
 ```
 
-**Nota sobre Ubicación en V1.** Todos los artistas de V1 están en CABA, así que
-Ubicación es efectivamente constante y no aporta señal de ranking. Queda en el
-modelo por compatibilidad hacia adelante y porque el matching por proyecto puede
-especificar otra ubicación — pero nunca se *muestra* como razón salvo que
-efectivamente haya discriminado entre los candidatos del resultado.
+**Nota sobre Ubicación en V1.** Hasta `match/1` todos los artistas de V1 estaban
+en CABA, así que Ubicación era constante y no aportaba señal de ranking. Con los
+barrios deja de serlo: en una V1 que es toda CABA, el barrio es *exactamente* la
+dimensión que discrimina. La bandera `locationDiscriminates` se mantiene —el
+componente se sigue omitiendo cuando no separa a los candidatos del resultado, y
+nunca se *muestra* como razón salvo que efectivamente haya discriminado.
 
 ### 4.3 Orden y empates
 
@@ -236,7 +260,7 @@ este conjunto cerrado de plantillas:
 | Estilo `s` que más aporta con `t_s ≥ 0,5`, mayormente de me gusta | Marcaste varios trabajos de **{s}** |
 | Estilo `s` que más aporta, mayormente de guardados | Guardaste diseños de **{s}** |
 | El artista es primario en ≥ 2 de los estilos top del usuario | Trabaja **{s1}** y **{s2}** |
-| La ubicación discriminó dentro del resultado | En **{ciudad}** |
+| La ubicación discriminó dentro del resultado | En **{barrio}** — la ciudad solo si no hay barrio |
 | La banda de precio solapa un presupuesto declarado | Su rango entra en tu presupuesto |
 | Disponibilidad fresca y `open` | Está tomando turnos |
 
@@ -357,3 +381,22 @@ en pesos, umbrales, `K`, límites de banda o el conjunto de razones requiere:
 
 El ajuste silencioso está prohibido. Si se mueven los números, se mueve con
 ellos la razón escrita.
+
+### Historial
+
+**`match/2` — 2026-08-18 · el barrio como unidad de cercanía.**
+
+Qué cambió: el componente de ubicación pasó de dos escalones (misma ciudad,
+misma área metropolitana) a cinco, con el barrio y la comuna adentro de la
+ciudad. `sameMetro` bajó de 0,7 a 0,55 para dejarle lugar a los escalones
+nuevos sin que "otro partido" empate con "otro barrio".
+
+Por qué: MESH V1 es CABA entera. Con la ciudad como unidad, ubicación era
+constante y no discriminaba nada — el documento lo decía explícitamente. El
+barrio es la dimensión que efectivamente separa a un artista de otro para
+alguien que se tiene que tomar el subte.
+
+Qué **no** cambió: los pesos de los componentes, la regla de omisión, los
+límites de banda, el motor de gusto. `taste/1` sigue igual, así que los vectores
+de gusto persistidos no se invalidan; sí se invalidan las filas de `matches`
+con `matching_version = 'match/1'`.

@@ -12,7 +12,7 @@
  * El ajuste silencioso está prohibido. Ver docs/product/matching.md §9.
  */
 export const TASTE_VERSION = 'taste/1'
-export const MATCHING_VERSION = 'match/1'
+export const MATCHING_VERSION = 'match/2'
 
 export type TasteVersion = typeof TASTE_VERSION
 export type MatchingVersion = typeof MATCHING_VERSION

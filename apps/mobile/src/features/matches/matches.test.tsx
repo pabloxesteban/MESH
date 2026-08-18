@@ -1,6 +1,10 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { fireEvent, screen, waitFor } from '@testing-library/react-native'
-import type { Professional } from '@mesh/domain'
+import {
+  MATCHING_VERSION,
+  TASTE_VERSION,
+  type Professional,
+} from '@mesh/domain'
 
 import { renderWithProviders } from '@/design-system/test-utils.tsx'
 import { I18nProvider } from '@/i18n/I18nProvider.tsx'
@@ -185,9 +189,12 @@ describe('MatchesScreen', () => {
 
     await waitFor(() => expect(persistMatches).toHaveBeenCalled())
     const [, payload] = (persistMatches as jest.Mock).mock.calls[0] ?? []
+    // Contra las constantes y no contra una copia del string: una versión
+    // pegada a mano deja pasar la próxima subida sin que nadie mire los
+    // fixtures, que es justo lo que el versionado existe para forzar.
     expect(payload[0]).toMatchObject({
-      matchingVersion: 'match/1',
-      tasteVersion: 'taste/1',
+      matchingVersion: MATCHING_VERSION,
+      tasteVersion: TASTE_VERSION,
     })
     // Toda razón guardada nombra un componente presente en `components`. La
     // base también lo verifica con un CHECK.
