@@ -50,36 +50,47 @@ describe.each(BOTH_THEMES)('EmptyState · tema %s', (_name, theme) => {
 })
 
 describe.each(BOTH_THEMES)('ErrorState · tema %s', (_name, theme) => {
-  it('muestra la causa y reintenta', () => {
-    const onRetry = jest.fn()
-    renderWithProviders(<ErrorState cause="offline" onRetry={onRetry} />, {
-      theme,
-    })
+  const copy = { title: 'Sin conexión', body: 'Revisá el wifi.' }
+
+  it('muestra el texto que le pasan y reintenta', () => {
+    const onPress = jest.fn()
+    renderWithProviders(
+      <ErrorState
+        cause="offline"
+        {...copy}
+        retry={{ label: 'Reintentar', onPress }}
+      />,
+      { theme },
+    )
 
     expect(screen.getByText('Sin conexión')).toBeTruthy()
     fireEvent.press(screen.getByText('Reintentar'))
-    expect(onRetry).toHaveBeenCalledTimes(1)
+    expect(onPress).toHaveBeenCalledTimes(1)
   })
 
-  it('no filtra existencia: permiso y no-encontrado dicen lo mismo', () => {
-    // Decir "no tenés permiso" confirma que el recurso existe, y eso convierte
-    // un enlace en una herramienta para sondear qué hay.
-    // Ver docs/security/threat-model.md §T7.
-    const notFound = renderWithProviders(<ErrorState cause="notFound" />, {
-      theme,
-    })
-    const notFoundText = screen.getByText('No encontramos esto')
-    expect(notFoundText).toBeTruthy()
-    notFound.unmount()
-
-    renderWithProviders(<ErrorState cause="permission" />, { theme })
-    expect(screen.getByText('No encontramos esto')).toBeTruthy()
+  it('nunca es un callejón: siempre hay reintentar o volver', () => {
+    renderWithProviders(
+      <ErrorState
+        cause="notFound"
+        {...copy}
+        back={{ label: 'Volver', onPress: jest.fn() }}
+      />,
+      { theme },
+    )
+    expect(screen.getByText('Volver')).toBeTruthy()
   })
 
   it('nunca muestra un mensaje crudo de base de datos', () => {
-    renderWithProviders(<ErrorState cause="server" onRetry={jest.fn()} />, {
-      theme,
-    })
+    // El componente no puede inventar texto: todo lo que renderiza entra por
+    // props. Este test protege el otro extremo — que no agregue nada propio.
+    renderWithProviders(
+      <ErrorState
+        cause="server"
+        {...copy}
+        retry={{ label: 'Reintentar', onPress: jest.fn() }}
+      />,
+      { theme },
+    )
     for (const leak of ['relation', 'column', 'permission denied', 'PGRST']) {
       expect(screen.queryByText(new RegExp(leak, 'i'))).toBeNull()
     }

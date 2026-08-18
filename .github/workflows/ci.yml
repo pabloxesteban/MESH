@@ -125,9 +125,22 @@ jobs:
       - name: Instalar dependencias
         run: npm ci
 
-      - name: 7 · Escaneo de secretos
+      - name: 7 · Escaneo de secretos en el código
         # Última red antes de que una clave que saltea RLS se publique.
         run: npm run secrets:scan
+
+      - name: 7b · Exportar el bundle
+        env:
+          EXPO_PUBLIC_SUPABASE_URL: https://ejemplo.supabase.co
+          EXPO_PUBLIC_SUPABASE_ANON_KEY: anon-de-ci
+        run: npx expo export --platform web --output-dir "$RUNNER_TEMP/bundle"
+        working-directory: apps/mobile
+
+      - name: 7c · Escaneo de secretos en el bundle exportado
+        # El código fuente puede estar limpio y el bundler igual haber inlineado
+        # una variable mal prefijada. Lo que se publica es el bundle, así que es
+        # el bundle lo que hay que mirar.
+        run: node scripts/scan-secrets.mjs "$RUNNER_TEMP/bundle"
 
       - name: 8 · Avisos de dependencias
         # Falla ante cualquier aviso alto o crítico que no esté aceptado con

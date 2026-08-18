@@ -16,7 +16,7 @@ criterios de salida. Ninguna fase acumula código sin tests.
 | **3. Design system** ✅ | Tokens, `ThemeProvider`, `MotionProvider`, primitivos, Button/Tag/Chip/Input, componentes de estado (Skeleton/Empty/Error/Toast) | El test de contraste pasa para todo par de tokens en ambos temas; las reglas de lint bloquean un hex crudo; los tests de componentes cubren los estados |
 | **4. Base de datos** ✅ | Migraciones de todas las tablas, enums, restricciones, índices, RPCs; seed de referencia (categorías, estilos, ubicaciones) | `supabase db reset` limpio; los tipos TS generados coinciden con `packages/domain`; pasan los tests de restricciones |
 | **5. Seguridad** ✅ | Buckets y políticas de storage, triggers de cuota, limpieza de EXIF en subidas (las políticas RLS por tabla ya aterrizaron con la Fase 4) | Escritura cruzada en storage bloqueada; las cuotas rechazan del lado del servidor; una foto subida no conserva coordenadas |
-| **6. Autenticación** | Arranque de sesión anónima, upgrade de cuenta, ingreso/salida, recuperación, guardado seguro de tokens, layout raíz con sesión | Pasa el flujo 3 de la suite E2E; ningún token fuera de `expo-secure-store`; escaneo de secretos del bundle limpio |
+| **6. Autenticación** ✅ | Arranque de sesión anónima, upgrade de cuenta, ingreso/salida, recuperación, guardado seguro de tokens, layout raíz con sesión | Pasa el flujo 3 de la suite E2E; ningún token fuera de `expo-secure-store`; escaneo de secretos del bundle limpio |
 | **7. Contenido** | Esquemas de contenido, CLI de seed (validar → redimensionar → blurhash → subir → upsert), 2–3 artistas reales de punta a punta | La carga es idempotente; el contenido malformado aborta antes de insertar; la falta de consentimiento bloquea la corrida; los fixtures se rechazan en modo producción |
 | **8. Descubrimiento** | RPC del feed, mazo, `ArtworkCard`, gestos, botones, deshacer, prefetch, detalle de obra, los cuatro estados | 60fps sostenidos en un Android de gama media; camino solo-botones completo; la cola offline sobrevive al modo avión |
 | **9. Motor de gusto** | Motor de gusto en `packages/domain`, persistencia, pantalla de gusto, vista de evidencia, reset | Pasan todos los tests de gusto de `matching.md` §8; el umbral es correcto; la revelación respeta reducción de movimiento |
@@ -228,3 +228,42 @@ Dos decisiones que salieron de escribir esto:
 **Pendiente, y es de la Fase 12:** la limpieza de EXIF en las referencias que
 sube una persona. `FORBIDDEN_EXIF_TAGS` ya está declarado en el dominio; la
 recodificación y su test viven en el camino de subida, que todavía no existe.
+
+## Estado de la Fase 6
+
+Cerrada el 2026-08-18.
+
+- `data/secure-storage.ts`: adaptador de sesión sobre SecureStore que **parte el
+  valor en pedazos**. Sin eso, una sesión de Supabase supera el límite de 2048
+  bytes de Android y no se persiste — la persona vuelve a entrar en cada
+  arranque sin ninguna explicación.
+- `data/supabase.ts`: un solo cliente, que falla en el arranque si faltan las
+  variables de entorno en vez de producir un 404 sin explicación seis pantallas
+  después.
+- `data/errors.ts`: cuatro causas visibles. Lo que sale de ahí son claves de
+  i18n, así que el mensaje crudo de Postgres no puede llegar a la pantalla ni
+  por accidente.
+- `SessionProvider` + `SessionGate`: sesión anónima desde el primer frame, con
+  estados de carga y error con reintentar.
+- Pantallas: cuenta, crear cuenta, entrar, recuperar. Las tres últimas comparten
+  un solo `AuthForm`.
+- **i18n propio**, chico y tipado: `t()` solo acepta claves que existen, así que
+  un string huérfano no compila. Con tests que verifican que los dos catálogos
+  tengan las mismas claves y que el copy de `es-AR` no use tuteo, ni signos de
+  admiración, ni prometa un resultado que no podemos sostener.
+- Escaneo de secretos **sobre el bundle exportado**, no solo sobre el código:
+  el fuente puede estar limpio y el bundler igual haber inlineado una variable
+  mal prefijada. Verificado plantando una service-role key falsa en el bundle y
+  comprobando que el escaneo la encuentra.
+- **165 tests de app** (43 nuevos) y 51 de dominio.
+
+Dos cosas que cambiaron por escribir esto:
+
+1. **`ErrorState` ya no trae su propio texto.** Tenía el copy en español
+   adentro, lo que lo convertía en un segundo lugar donde vive el texto de cara
+   al usuario. Ahora recibe `title`, `body` y las etiquetas por props, y
+   `components/ErrorView.tsx` es el único que traduce.
+2. **La galería del design system se mudó a `/galeria`.** `app/index.tsx` pasa a
+   ser el inicio real. La galería sigue siendo una herramienta de desarrollo y
+   sus strings no pasan por i18n a propósito — no los lee nadie que no esté
+   construyendo MESH.

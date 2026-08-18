@@ -40,6 +40,7 @@ export { EmptyState, type EmptyStateProps } from './components/EmptyState.tsx'
 export {
   ErrorState,
   type ErrorCause,
+  type ErrorStateAction,
   type ErrorStateProps,
 } from './components/ErrorState.tsx'
 export { Skeleton, type SkeletonProps } from './components/Skeleton.tsx'

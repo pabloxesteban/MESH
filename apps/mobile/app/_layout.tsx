@@ -2,11 +2,18 @@ import { useFonts } from 'expo-font'
 import { Stack } from 'expo-router'
 import { StatusBar } from 'expo-status-bar'
 import { View } from 'react-native'
+
 import {
   MotionProvider,
   ThemeProvider,
   useTheme,
 } from '@/design-system/index.ts'
+import { ErrorView } from '@/components/ErrorView.tsx'
+import {
+  SessionProvider,
+  useSession,
+} from '@/features/auth/SessionProvider.tsx'
+import { I18nProvider } from '@/i18n/I18nProvider.tsx'
 
 /**
  * Layout raíz.
@@ -15,7 +22,9 @@ import {
  * que usa `tokens/typography.ts`. Si no coinciden, el sistema cae al tipo por
  * defecto y nadie se entera — por eso las claves están en un solo lugar.
  *
- * El arranque de sesión anónima llega en la Fase 6.
+ * El orden de los proveedores importa: `I18nProvider` envuelve a
+ * `SessionProvider` porque el error de arranque de sesión ya necesita estar
+ * traducido.
  */
 export default function RootLayout() {
   const [fontsLoaded] = useFonts({
@@ -31,14 +40,41 @@ export default function RootLayout() {
   return (
     <ThemeProvider>
       <MotionProvider>
-        <StatusBar style="auto" />
-        {/* Sin pantalla de carga con spinner: el fondo del tema pintado
-            mientras cargan las tipografías es menos ruidoso que un indicador
-            que aparece y desaparece en 200ms. */}
-        {fontsLoaded ? <Navigator /> : <ThemedBackdrop />}
+        <I18nProvider>
+          <SessionProvider>
+            <StatusBar style="auto" />
+            {/* Sin pantalla de carga con spinner: el fondo del tema pintado
+                mientras cargan las tipografías es menos ruidoso que un
+                indicador que aparece y desaparece en 200ms. */}
+            {fontsLoaded ? <SessionGate /> : <ThemedBackdrop />}
+          </SessionProvider>
+        </I18nProvider>
       </MotionProvider>
     </ThemeProvider>
   )
+}
+
+/**
+ * Nada se renderiza hasta que hay sesión.
+ *
+ * No es una pantalla de login: es esperar a que exista `auth.uid()`. Sin él,
+ * toda consulta devuelve vacío por RLS y la app mostraría estados vacíos que
+ * son mentira. Ver ADR-002.
+ */
+function SessionGate() {
+  const { isLoading, hasError, retry } = useSession()
+
+  if (hasError) {
+    return (
+      <Screen>
+        <ErrorView cause="offline" onRetry={retry} testID="session-error" />
+      </Screen>
+    )
+  }
+
+  if (isLoading) return <ThemedBackdrop />
+
+  return <Navigator />
 }
 
 function Navigator() {
@@ -50,6 +86,13 @@ function Navigator() {
         contentStyle: { backgroundColor: theme.surface },
       }}
     />
+  )
+}
+
+function Screen({ children }: { children: React.ReactNode }) {
+  const theme = useTheme()
+  return (
+    <View style={{ flex: 1, backgroundColor: theme.surface }}>{children}</View>
   )
 }
 

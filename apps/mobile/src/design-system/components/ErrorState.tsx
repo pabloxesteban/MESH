@@ -9,53 +9,50 @@ import { Button } from './Button.tsx'
  * Postgres nunca llegan a la pantalla: filtran nombres de tablas y columnas, y
  * no le dicen nada útil a nadie. `data/errors.ts` mapea lo que venga a una de
  * estas.
+ *
+ * `permission` y `notFound` son causas distintas acá pero se les pasa el MISMO
+ * texto desde arriba: decirle a alguien "no tenés permiso" confirma que el
+ * recurso existe, y eso convierte un enlace en una herramienta para sondear qué
+ * hay. RLS ya devuelve silencio; la pantalla hace lo mismo. Ver
+ * docs/security/threat-model.md §T7.
  */
 export type ErrorCause = 'offline' | 'server' | 'notFound' | 'permission'
 
-const COPY: Record<ErrorCause, { title: string; body: string }> = {
-  offline: {
-    title: 'Sin conexión',
-    body: 'Revisá tu conexión y volvé a intentar.',
-  },
-  server: {
-    title: 'Algo se rompió de nuestro lado',
-    body: 'No es tu conexión. Probá de nuevo en un momento.',
-  },
-  notFound: {
-    title: 'No encontramos esto',
-    body: 'Puede que ya no exista o que el enlace esté mal.',
-  },
-  permission: {
-    title: 'No encontramos esto',
-    body: 'Puede que ya no exista o que el enlace esté mal.',
-  },
+export interface ErrorStateAction {
+  label: string
+  onPress: () => void
 }
 
 export interface ErrorStateProps {
   cause: ErrorCause
-  /** Reintentar. Opcional solo para los casos donde no hay nada que reintentar. */
-  onRetry?: () => void
+  /**
+   * El texto entra por props y no vive acá: todo string de cara al usuario pasa
+   * por i18n con es-AR como origen, y el design system no conoce el locale.
+   * `components/ErrorView.tsx` es quien los traduce.
+   */
+  title: string
+  body: string
+  /** Reintentar. Opcional solo donde no hay nada que reintentar. */
+  retry?: ErrorStateAction
   /** Salida alternativa cuando reintentar no aplica. */
-  onBack?: () => void
+  back?: ErrorStateAction
   testID?: string
 }
 
 /**
  * Estado de error.
  *
- * `permission` y `notFound` comparten copy a propósito: decirle a alguien "no
- * tenés permiso" confirma que el recurso existe, y eso convierte un enlace en
- * una herramienta para sondear qué hay. RLS ya devuelve silencio; la pantalla
- * hace lo mismo. Ver docs/security/threat-model.md §T7.
+ * Nunca es un callejón: o hay reintentar, o hay volver. Un error sin salida
+ * deja a la persona mirando una pantalla muerta.
  */
 export function ErrorState({
   cause,
-  onRetry,
-  onBack,
+  title,
+  body,
+  retry,
+  back,
   testID,
 }: ErrorStateProps) {
-  const copy = COPY[cause]
-
   return (
     <Box
       paddingX="lg"
@@ -64,20 +61,27 @@ export function ErrorState({
       align="center"
       testID={testID}
       accessibilityRole="alert"
+      // El `cause` no cambia lo que se ve, pero sí lo que se puede afirmar en
+      // un test sin depender del texto traducido.
+      accessibilityValue={{ text: cause }}
     >
       <Text role="title" align="center">
-        {copy.title}
+        {title}
       </Text>
       <Text role="body" color="textSecondary" align="center">
-        {copy.body}
+        {body}
       </Text>
 
       <Box gap="xs" align="center" paddingTop="xs">
-        {onRetry != null ? (
-          <Button label="Reintentar" onPress={onRetry} variant="primary" />
+        {retry != null ? (
+          <Button
+            label={retry.label}
+            onPress={retry.onPress}
+            variant="primary"
+          />
         ) : null}
-        {onBack != null ? (
-          <Button label="Volver" onPress={onBack} variant="ghost" />
+        {back != null ? (
+          <Button label={back.label} onPress={back.onPress} variant="ghost" />
         ) : null}
       </Box>
     </Box>

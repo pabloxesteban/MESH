@@ -14,8 +14,16 @@ import { extname, join, relative, resolve } from 'node:path'
 
 const ROOT = resolve(import.meta.dirname, '..')
 
-/** Se escanean: el código del cliente y cualquier bundle compilado. */
-const SCAN_ROOTS = ['apps/mobile', 'packages']
+/**
+ * Se escanean: el código del cliente y cualquier bundle compilado.
+ *
+ * Se pueden pasar directorios extra por argumento — así es como CI escanea el
+ * bundle exportado, que es donde de verdad importa: el código fuente puede
+ * estar limpio y aun así el bundler puede haber inlineado una variable de
+ * entorno mal prefijada.
+ */
+const EXTRA_ROOTS = process.argv.slice(2)
+const SCAN_ROOTS = ['apps/mobile', 'packages', ...EXTRA_ROOTS]
 
 const SKIP_DIRS = new Set([
   'node_modules',
@@ -82,7 +90,7 @@ function* walk(dir) {
 const findings = []
 
 for (const scanRoot of SCAN_ROOTS) {
-  for (const path of walk(join(ROOT, scanRoot))) {
+  for (const path of walk(resolve(ROOT, scanRoot))) {
     const relativePath = relative(ROOT, path)
     if (ALLOWLIST.has(relativePath)) continue
 
@@ -108,4 +116,8 @@ if (findings.length > 0) {
   process.exit(1)
 }
 
-console.log('✓ Escaneo de secretos: nada encontrado en el código del cliente.')
+const alcance =
+  EXTRA_ROOTS.length > 0
+    ? `el código del cliente y ${EXTRA_ROOTS.join(', ')}`
+    : 'el código del cliente'
+console.log(`✓ Escaneo de secretos: nada encontrado en ${alcance}.`)

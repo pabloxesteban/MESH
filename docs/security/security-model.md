@@ -43,6 +43,26 @@ DEFINER`.
   ninguna migración de datos.
 - Los tokens de sesión se guardan en `expo-secure-store` (Keychain / Android
   Keystore), nunca en AsyncStorage ni en MMKV. El refresh lo maneja supabase-js.
+
+  **SecureStore rechaza valores de más de 2048 bytes en Android**, y una sesión
+  de Supabase los pasa. La salida fácil es volver a AsyncStorage, que es cambiar
+  seguridad por comodidad. `data/secure-storage.ts` en cambio parte el valor:
+  guarda un manifiesto con la cantidad de pedazos y los pedazos aparte, limpia
+  los sobrantes cuando la sesión nueva es más corta, y trata una sesión truncada
+  o un manifiesto corrupto como ausente — porque entregar media sesión le da a
+  supabase-js un JSON inválido, y eso es un crash en el arranque.
+- **Ningún mensaje de auth distingue "no existe ese correo" de "la contraseña
+  está mal".** Esa diferencia le confirma a cualquiera si una persona tiene
+  cuenta en MESH, y "tengo tatuajes" no es información de nadie más. Por la
+  misma razón, pedir el enlace de recuperación siempre responde lo mismo y el
+  texto es condicional: "si ese correo tiene una cuenta…".
+- El largo mínimo de contraseña se valida **al crear**, no al entrar: una cuenta
+  vieja puede tener una más corta que el mínimo de hoy, y bloquearla en el
+  cliente la dejaría afuera de su propia cuenta.
+- Cerrar sesión no deja a la app sin sesión: abre una anónima nueva. "Sin
+  sesión" no es un estado que la app sepa mostrar — sin `auth.uid()` toda
+  consulta devuelve vacío por RLS, y la pantalla mostraría estados vacíos que
+  son mentira.
 - La recuperación de contraseña usa el flujo de Supabase y vuelve a
   `mesh://auth/callback`.
 - Cerrar sesión limpia la sesión, el caché de queries y todos los namespaces de
