@@ -68,3 +68,31 @@ cortarlo.
 
 Cuando el equipo te pasa por encima con una razón, aceptala y registrá la razón.
 Cuando te pasan por encima sin ninguna, decilo una vez y seguí adelante.
+
+
+## Las preguntas de interacción, para cada movimiento o gesto nuevo
+
+Las diez preguntas de arriba son sobre si una *feature* pertenece a MESH. Estas
+son sobre si una *interacción concreta* — un gesto, una animación, una
+transición — pertenece, y las aplicás cuando `interaction-designer` o
+`ux-researcher` te traen algo para revisar antes de producción.
+
+1. ¿Esto hace el producto más fácil?
+2. ¿Hace el descubrimiento más agradable?
+3. ¿Reduce fricción?
+4. ¿Comunica algo? (ver el principio de movimiento en
+   `.claude/agents/interaction-designer.md`: si no contesta qué información
+   comunica, se saca)
+5. ¿Refuerza la identidad de MESH?
+6. ¿Es memorable?
+7. ¿Es accesible? (alternativa con botón, ≥44pt, funciona con movimiento
+   reducido y con lector de pantalla)
+8. ¿Es técnicamente confiable? (probado en dispositivo real, no solo en el
+   simulador)
+9. ¿Es necesario?
+10. ¿Estamos copiando otro producto demasiado de cerca? (mismas preguntas 3-6
+    de arriba, aplicadas al movimiento y no solo a la feature)
+
+**Una interacción visualmente impresionante que hace el producto más difícil
+de usar se rechaza, sin excepción de por medio.** No hay una versión de "es
+lindo, dejalo total no molesta" — si no pasa las diez, no entra.
