@@ -117,7 +117,10 @@ async function enqueue(event: AnalyticsEvent): Promise<void> {
  */
 export async function flushAnalytics(): Promise<number> {
   const current = config
-  if (current == null || !optedIn || userId == null) return 0
+  // Se copia a una const: `userId` es estado de módulo y TypeScript no lo
+  // estrecha después del guard, porque cualquier llamada podría cambiarlo.
+  const owner = userId
+  if (current == null || !optedIn || owner == null) return 0
 
   const store = current.store ?? kv
   const buffer = await readJson<QueuedEvent[]>(store, BUFFER_KEY, [])
@@ -125,7 +128,7 @@ export async function flushAnalytics(): Promise<number> {
 
   const { error } = await supabase.from('analytics_events').insert(
     buffer.map((event) => ({
-      user_id: userId,
+      user_id: owner,
       session_id: event.session_id,
       name: event.name,
       props: event.props as never,
