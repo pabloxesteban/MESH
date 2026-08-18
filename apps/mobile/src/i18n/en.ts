@@ -116,6 +116,43 @@ export const en: Readonly<Record<TranslationKey, string>> = {
   'match.reason.price': 'Their range fits your budget',
   'match.reason.availability': 'Taking appointments',
 
+  'profile.styles': 'Works',
+  'profile.price': 'Price range',
+  'profile.price.range': '{min} to {max}',
+  'profile.price.asOf': 'Stated on {fecha}',
+  'profile.availability': 'Schedule',
+  'profile.availability.open': 'Taking appointments',
+  'profile.availability.limited': 'Limited schedule',
+  'profile.availability.waitlist': 'Waiting list',
+  'profile.availability.closed': 'Schedule closed',
+  'profile.availability.asOf': 'Per the artist, on {fecha}',
+  'profile.availability.stale': 'No update since {fecha}',
+  'profile.travels': 'Travels',
+  'profile.portfolio': 'Work',
+  'profile.contact': 'Write to them',
+  'profile.fixture': 'Test record. Not a real person.',
+
+  'contact.title': 'Write to {nombre}',
+  'contact.body':
+    'This is the message. Read it and change whatever you want before sending — it goes from your account, not from MESH.',
+  'contact.edit': 'Message',
+  'contact.whatsapp': 'Open WhatsApp',
+  'contact.instagram': 'Open Instagram',
+  'contact.instagram.note':
+    'Instagram does not allow sending a pre-written message. We copied it so you can paste it.',
+  'contact.copied': 'Message copied',
+  'contact.noChannel.title': 'We cannot write to them from here',
+  'contact.noChannel.body':
+    'This artist did not publish any contact channel. We do not invent one.',
+  'contact.noChannel.action': 'Back to the profile',
+
+  'contact.message.greeting': 'Hi, I am writing about a tattoo.',
+  'contact.message.styles': 'Styles:',
+  'contact.message.budget': 'Budget:',
+  'contact.message.timing': 'When:',
+  'contact.message.references': 'I will send some references separately.',
+  'contact.message.closing': 'Does that work? Let me know. Thanks.',
+
   'category.tattoo': 'Tattoo',
 
   'style.tattoo.fine-line': 'Fine line',

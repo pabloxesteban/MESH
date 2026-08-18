@@ -147,3 +147,10 @@ export type {
   ScoreBreakdown,
   ScoredMatch,
 } from './matching/matching.ts'
+
+export {
+  composeContactMessage,
+  instagramUrl,
+  whatsappUrl,
+} from './contact/message.ts'
+export type { ContactLabels, ContactMessageInput } from './contact/message.ts'

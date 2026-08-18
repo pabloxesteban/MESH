@@ -81,3 +81,9 @@ jest.mock('expo-sqlite/kv-store', () => {
     },
   }
 })
+
+// Portapapeles: se verifica QUE se copie el mensaje, no que el sistema lo
+// guarde. Mock explícito para poder afirmar el contenido.
+jest.mock('expo-clipboard', () => ({
+  setStringAsync: jest.fn(() => Promise.resolve(true)),
+}))

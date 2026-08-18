@@ -135,6 +135,47 @@ export const esAR = {
   'match.reason.price': 'Su rango entra en tu presupuesto',
   'match.reason.availability': 'Está tomando turnos',
 
+  // --- perfil ----------------------------------------------------------------
+  'profile.styles': 'Trabaja',
+  'profile.price': 'Rango de precio',
+  'profile.price.range': '{min} a {max}',
+  'profile.price.asOf': 'Declarado el {fecha}',
+  'profile.availability': 'Agenda',
+  'profile.availability.open': 'Tomando turnos',
+  'profile.availability.limited': 'Agenda acotada',
+  'profile.availability.waitlist': 'Lista de espera',
+  'profile.availability.closed': 'Agenda cerrada',
+  'profile.availability.asOf': 'Según el artista, el {fecha}',
+  'profile.availability.stale': 'Sin novedades desde el {fecha}',
+  'profile.travels': 'Viaja',
+  'profile.portfolio': 'Obra',
+  'profile.contact': 'Escribirle',
+  'profile.fixture': 'Registro de prueba. No es una persona real.',
+
+  // --- contacto --------------------------------------------------------------
+  'contact.title': 'Escribirle a {nombre}',
+  'contact.body':
+    'Este es el mensaje. Leelo y cambiá lo que quieras antes de mandarlo — se manda desde tu cuenta, no desde MESH.',
+  'contact.edit': 'Mensaje',
+  'contact.whatsapp': 'Abrir WhatsApp',
+  'contact.instagram': 'Abrir Instagram',
+  'contact.instagram.note':
+    'Instagram no deja mandar el mensaje escrito de antemano. Lo copiamos para que lo pegues.',
+  'contact.copied': 'Mensaje copiado',
+  'contact.noChannel.title': 'No podemos escribirle desde acá',
+  'contact.noChannel.body':
+    'Este artista no publicó ningún canal de contacto. No inventamos uno.',
+  'contact.noChannel.action': 'Volver al perfil',
+
+  // Plantillas del mensaje. Son lo ÚNICO que aporta MESH: todo lo demás lo
+  // escribe la persona.
+  'contact.message.greeting': 'Hola, te escribo por un tatuaje.',
+  'contact.message.styles': 'Estilos:',
+  'contact.message.budget': 'Presupuesto:',
+  'contact.message.timing': 'Cuándo:',
+  'contact.message.references': 'Te mando algunas referencias aparte.',
+  'contact.message.closing': '¿Te sirve? Cualquier cosa avisame. Gracias.',
+
   // --- taxonomía -------------------------------------------------------------
   'category.tattoo': 'Tatuaje',
 

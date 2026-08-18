@@ -21,9 +21,9 @@ criterios de salida. Ninguna fase acumula código sin tests.
 | **8. Descubrimiento** ✅ | RPC del feed, mazo, `ArtworkCard`, gestos, botones, deshacer, prefetch, detalle de obra, los cuatro estados | 60fps sostenidos en un Android de gama media; camino solo-botones completo; la cola offline sobrevive al modo avión |
 | **9. Motor de gusto** ✅ | Motor de gusto en `packages/domain`, persistencia, pantalla de gusto, vista de evidencia, reset | Pasan todos los tests de gusto de `matching.md` §8; el umbral es correcto; la revelación respeta reducción de movimiento |
 | **10. Matching** ✅ | Motor de match, bandas, derivación de razones, pantalla de matches, estados vacíos honestos | Pasan todos los tests de matching, incluidos renormalización por omisión y estabilidad de orden; ninguna razón referencia un componente omitido |
-| **11. Perfiles** | Perfil profesional, grilla de portfolio, hero, pill de disponibilidad, precio, estilos, redes | Hero pintado en < 800ms en caliente; los campos faltantes no renderizan nada en vez de un placeholder; la grilla no salta |
+| **11. Perfiles** ✅ | Perfil profesional, grilla de portfolio, hero, pill de disponibilidad, precio, estilos, redes | Hero pintado en < 800ms en caliente; los campos faltantes no renderizan nada en vez de un placeholder; la grilla no salta |
 | **12. Proyectos** | Flujo de creación, subida de referencias (con EXIF removido), matching por proyecto, detalle de proyecto | Pasan los tests de matching por proyecto; cuotas impuestas del lado del servidor; borradores abandonados recuperables |
-| **13. Contacto** | Compositor de mensaje, vista previa editable, traspaso a WhatsApp/Instagram | Test golden: el mensaje compuesto no contiene nada que la persona no haya provisto; la falta de canal cambia el CTA en vez de fingir uno |
+| **13. Contacto** ✅ | Compositor de mensaje, vista previa editable, traspaso a WhatsApp/Instagram | Test golden: el mensaje compuesto no contiene nada que la persona no haya provisto; la falta de canal cambia el CTA en vez de fingir uno |
 | **14. Analytics** | `track()`, unión tipada de eventos, buffer MMKV, ajuste de opt-out | Cada evento del catálogo se dispara una vez en la corrida E2E; sin texto libre en ninguna propiedad; el opt-out no encola nada |
 | **15. QA** | Suite E2E, cobertura de estados de componentes, casos borde | Los seis flujos E2E en verde, incluidos el de solo accesibilidad y el offline |
 | **16. Auditoría de seguridad** | Revisión completa contra el checklist del modelo de seguridad; modelo de amenazas revisitado | Todos los ítems tildados; `npm audit` sin alto/crítico; ningún hallazgo abierto |
@@ -371,3 +371,41 @@ depende de en qué zona horaria corre el código. La fecha entra por parámetro,
 En V1 el componente de ubicación se **omite** en vez de darle 1,0 a todos:
 todos los artistas están en CABA, así que no discrimina, y dejarlo dentro solo
 diluiría el peso del estilo.
+
+## Estado de las Fases 11 y 13
+
+Cerradas el 2026-08-18.
+
+**Perfil.** La regla que gobierna la pantalla: un campo que falta **no renderiza
+nada**. Sin "a consultar", sin guiones, sin "disponibilidad desconocida". Un
+placeholder ocupa el lugar de un dato y enseña a leer ausencia como presencia, y
+hay un test que lo verifica campo por campo.
+
+Lo que no existe en la pantalla, y hay un test que lo persigue por regex:
+reseñas, seguidores, valoraciones, estrellas, "reservado 12 veces". Nada de eso
+es información que tengamos.
+
+La disponibilidad **siempre** viene con su fecha, y pasados 45 días se rotula
+"sin novedades desde…" en vez de presentarse como un hecho actual — la misma
+regla que el motor de match, que directamente omite el componente.
+
+La grilla usa `aspectRatio` fijo: no puede saltar mientras cargan las imágenes.
+Y cada superficie pide el derivado que le corresponde — `lg` solo en el hero,
+`sm` en la grilla, `md` en el mazo.
+
+**Contacto.** El traspaso, no la conversación. MESH no tiene mensajería y no la
+va a tener en V1: una bandeja de entrada obliga a moderar, a responder y a
+estar.
+
+El armado del mensaje vive en `packages/domain` y tiene un test golden que
+verifica, palabra por palabra, que **no contenga nada que la persona no haya
+escrito** — ni el nombre del artista, ni la palabra MESH, ni un estilo inferido.
+Lo único que MESH aporta son los conectores.
+
+Dos detalles que salieron de escribirlo:
+
+1. **Con Instagram se copia antes de abrir.** Si se abriera primero, la app pasa
+   a segundo plano y el portapapeles puede no llegar a escribirse.
+2. **El aviso de que Instagram no lleva el mensaje escrito va antes del toque, no
+   después.** Prometer que va a aparecer escrito sería mentir sobre lo que hace
+   el botón.
