@@ -1,4 +1,4 @@
-# Consentimiento — [Fixture] Aguja Fina
+# Consentimiento — [Fixture] Vieja Escuela
 
 **Este es un artista fixture.** No existe ninguna persona detrás de este
 registro, así que no hay consentimiento humano que registrar: hay una

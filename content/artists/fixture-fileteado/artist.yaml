@@ -6,8 +6,7 @@ location: la-plata
 is_fixture: true
 
 bio: >-
-  Registro sintético en otra área metropolitana, para que el componente de
-  ubicación del matching tenga un caso donde no coincide.
+  Filete porteño llevado a la piel: volutas, simetría y bandas con texto.
 
 styles:
   - { slug: fileteado-porteno, proficiency: 1.0, primary: true }

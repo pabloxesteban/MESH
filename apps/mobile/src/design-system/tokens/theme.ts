@@ -40,15 +40,22 @@ export interface Theme {
   readonly borderSubtle: string
   readonly borderStrong: string
 
-  // Acento. Aparece como máximo una vez por pantalla.
+  // Acento de marca.
   //
   // Son dos roles, no uno. `accent` es para texto e íconos sobre la superficie
-  // del tema, y sobre oscuro tiene que aclararse bastante para pasar AA — lo
-  // que le saca saturación. `accentFill` es el rojo de marca sin aclarar, que
-  // solo se usa como relleno con `accentContrast` encima. Usar el mismo valor
-  // para las dos cosas deja los botones rosados y apagados.
+  // del tema, y para pasar AA tiene que aclararse — lo que le saca saturación.
+  // `accentFill` es el color de marca al borde del gamut, que solo se usa como
+  // relleno con `accentContrast` encima. Usar el mismo valor para las dos cosas
+  // deja los botones lavados.
   readonly accent: string
   readonly accentFill: string
+  /**
+   * El segundo color de la marca. El acento dice "esto es MESH"; este dice
+   * "esto es tuyo": aparece en el gusto, en los guardados y en el degradado de
+   * los momentos de revelación.
+   */
+  readonly accentAlt: string
+  readonly accentAltFill: string
 
   // Feedback del sistema.
   readonly statePositive: string
@@ -73,7 +80,9 @@ export const darkTheme: Theme = {
   textPrimary: palette.paper100,
   textSecondary: palette.paper300,
   textTertiary: palette.paper400,
-  accentContrast: palette.paper100,
+  // Tinta sobre el rosa de marca, no papel: `brandVivid` es un color claro y
+  // saturado, y el papel encima mide 1,9:1. Tinta mide 4,7:1.
+  accentContrast: palette.ink900,
   textInverse: palette.ink900,
 
   borderSubtle: palette.ink700,
@@ -82,8 +91,10 @@ export const darkTheme: Theme = {
   // con significado. Es un error que a ojo no se ve.
   borderStrong: palette.ink400,
 
-  accent: palette.signalRaised,
-  accentFill: palette.signal,
+  accent: palette.brandOnDark,
+  accentFill: palette.brandVivid,
+  accentAlt: palette.shadeOnDark,
+  accentAltFill: palette.shadeVivid,
 
   statePositive: palette.positiveRaised,
   stateNegative: palette.negativeRaised,
@@ -105,15 +116,17 @@ export const lightTheme: Theme = {
   textPrimary: palette.ink900,
   textSecondary: palette.ink600,
   textTertiary: palette.ink500,
-  accentContrast: palette.paper100,
+  accentContrast: palette.ink900,
   textInverse: palette.paper100,
 
   borderSubtle: palette.paper300,
   // Mismo neutro medio que en oscuro: paper400 medía 1,98:1 sobre papel.
   borderStrong: palette.ink400,
 
-  accent: palette.signal,
-  accentFill: palette.signal,
+  accent: palette.brandOnLight,
+  accentFill: palette.brandVivid,
+  accentAlt: palette.shadeOnLight,
+  accentAltFill: palette.shadeVivid,
 
   statePositive: palette.positive,
   stateNegative: palette.negative,

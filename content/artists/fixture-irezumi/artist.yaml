@@ -1,0 +1,29 @@
+# Artista fixture. Ver consent.md.
+slug: fixture-irezumi
+display_name: '[Fixture] Irezumi'
+category: tattoo
+location: caba
+is_fixture: true
+
+bio: >-
+  Composiciones tradicionales japonesas: ondas, fondo lleno, piezas por partes.
+
+styles:
+  - { slug: japanese, proficiency: 1.0, primary: true }
+  - { slug: blackwork, proficiency: 0.7, primary: false }
+  - { slug: black-and-grey, proficiency: 0.5, primary: false }
+
+travels: false
+
+price:
+  min_cents: 12000000
+  max_cents: 40000000
+  currency: ARS
+  priced_at: '2026-08-02'
+
+availability:
+  status: waitlist
+  updated_at: '2026-08-11'
+
+contact:
+  whatsapp: '+5491100000008'

@@ -6,8 +6,10 @@ declaración de que el registro es sintético.
 
 - Tipo: fixture de desarrollo
 - Creado: 2026-08-18
-- Imágenes: placeholders abstractos generados por `npm run fixtures -w @mesh/seed`.
-  Ninguna es una fotografía de un tatuaje real, de nadie.
+- Imágenes: placeholders abstractos generados por `npm run content:fixtures`.
+  Ninguna es una fotografía de un tatuaje real, de nadie. Cada una se dibuja
+  según el estilo que la pieza declara, para que el mazo se pueda evaluar de
+  verdad — pero son formas geométricas, no obra.
 - Carga a producción: **rechazada**. `assertNoFixturesInProduction()` corta la
   corrida si alguna fila tiene `is_fixture: true`.
 

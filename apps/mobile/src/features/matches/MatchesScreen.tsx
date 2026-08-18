@@ -19,9 +19,9 @@ import type { MatchReason } from '@mesh/domain'
 import {
   Box,
   EmptyState,
+  HAIRLINE,
   SCREEN_GUTTER,
   Skeleton,
-  Tag,
   Text,
   radius,
   spacing,
@@ -200,14 +200,24 @@ function MatchCard({
         gap: spacing.xs,
       }}
     >
-      <Box direction="row" justify="space-between" align="center" gap="sm">
-        <Text role="title" numberOfLines={1}>
-          {professional.displayName}
-        </Text>
+      {/* La banda va ARRIBA, no al lado del nombre. Al lado, un nombre largo se
+          corta con puntos suspensivos para dejarle lugar a una etiqueta de dos
+          palabras — y el nombre del artista es lo único que la persona vino a
+          leer. */}
+      <Box direction="row" align="center" gap="xs">
         {/* La banda, nunca el puntaje. El puntaje crudo vive en la columna
-            `matches.score` para poder auditarlo, no en la pantalla. */}
-        <Tag label={t(`matches.band.${match.band}` as TranslationKey)} />
+            `matches.score` para poder auditarlo, no en la pantalla.
+
+            El color va de la marca hacia el neutro según la banda, y no de
+            verde a rojo: un encaje "posible" no es un error ni una advertencia,
+            es un encaje del que sabemos menos. Semaforizarlo convertiría una
+            escala de confianza en un juicio. */}
+        <BandTag band={match.band} />
       </Box>
+
+      <Text role="title" numberOfLines={2}>
+        {professional.displayName}
+      </Text>
 
       <Box gap="xxs">
         {match.reasons.map((reason) => (
@@ -231,6 +241,47 @@ function MatchCard({
  * plantilla es lo único que aporta idioma, y viene del catálogo de i18n. Así una
  * razón no puede decir algo que no esté escrito de antemano.
  */
+/**
+ * La banda, como etiqueta coloreada.
+ *
+ * `strong` lleva el relleno de marca, `good` el segundo acento, `possible` va
+ * neutra. La progresión es de intensidad, no de semáforo.
+ */
+function BandTag({ band }: { band: MatchWithProfessional['match']['band'] }) {
+  const t = useT()
+  const theme = useTheme()
+  const label = t(`matches.band.${band}` as TranslationKey)
+
+  const relleno =
+    band === 'strong'
+      ? theme.accentFill
+      : band === 'good'
+        ? theme.accentAltFill
+        : null
+
+  return (
+    <View
+      accessible
+      accessibilityLabel={label}
+      style={{
+        paddingHorizontal: spacing.xs,
+        paddingVertical: spacing.xxs,
+        borderRadius: radius.full,
+        borderWidth: HAIRLINE,
+        borderColor: relleno ?? theme.borderStrong,
+        backgroundColor: relleno ?? 'transparent',
+      }}
+    >
+      <Text
+        role="micro"
+        color={relleno != null ? 'accentContrast' : 'textSecondary'}
+      >
+        {label}
+      </Text>
+    </View>
+  )
+}
+
 function renderReason(
   t: (key: TranslationKey, params?: Record<string, string | number>) => string,
   reason: MatchReason,

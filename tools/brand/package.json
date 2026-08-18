@@ -9,6 +9,8 @@
     "icons": "node src/generate-icons.mjs",
     "proof": "node src/proof-sheet.mjs",
     "specimen": "node src/specimen.mjs",
+    "palette": "node src/build-palette.mjs",
+    "palette:check": "node src/build-palette.mjs --check",
     "fonts": "python3 src/build-fonts.py"
   },
   "dependencies": {

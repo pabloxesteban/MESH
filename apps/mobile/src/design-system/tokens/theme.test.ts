@@ -59,10 +59,16 @@ describe.each([
     ).toBeGreaterThanOrEqual(AA_TEXT)
   })
 
-  it('usa el rojo de marca sin aclarar para el relleno', () => {
-    // El relleno no se aclara: aclararlo es lo que dejaba los botones rosados.
-    // Quien se aclara es el acento de TEXTO, y solo sobre oscuro.
-    expect(theme.accentFill).toBe(palette.signal)
+  it('usa el color de marca al borde del gamut para el relleno', () => {
+    // El relleno no se aclara: aclararlo es lo que dejaba los botones lavados.
+    // Quien se aclara es el acento de TEXTO, y solo por contraste.
+    expect(theme.accentFill).toBe(palette.brandVivid)
+  })
+
+  it('el texto sobre el relleno del segundo acento también llega a AA', () => {
+    expect(
+      contrastRatio(theme.accentContrast, theme.accentAltFill),
+    ).toBeGreaterThanOrEqual(AA_TEXT)
   })
 
   it('el texto inverso llega a AA sobre la superficie del otro tema', () => {
@@ -74,15 +80,44 @@ describe.each([
 })
 
 describe('disciplina de la paleta', () => {
-  it('deja documentado que el acento del brief no pasa AA sobre oscuro', () => {
-    // Es la razón por la que existe `signalRaised`. Si esto alguna vez pasara,
-    // alguien cambió la paleta y hay que revisar la decisión, no el test.
-    expect(contrastRatio(palette.signal, palette.ink900)).toBeLessThan(AA_TEXT)
+  it('todo relleno lleva su texto con AA', () => {
+    // Es lo que hace legible a un chip de color. Los rellenos son dos por
+    // familia y llevan texto distinto: el claro va sobre oscuro y lleva tinta,
+    // el oscuro va sobre papel y lleva papel.
+    const claros = Object.entries(palette).filter(
+      ([key]) => key.endsWith('Vivid') && !key.endsWith('DeepVivid'),
+    )
+    const oscuros = Object.entries(palette).filter(([key]) =>
+      key.endsWith('DeepVivid'),
+    )
+    expect(claros.length).toBeGreaterThan(5)
+    expect(oscuros.length).toBe(claros.length)
+
+    const flojos = [
+      ...claros.filter(
+        ([, value]) => contrastRatio(palette.ink900, value) < AA_TEXT,
+      ),
+      ...oscuros.filter(
+        ([, value]) => contrastRatio(palette.paper100, value) < AA_TEXT,
+      ),
+    ].map(([key]) => key)
+    expect(flojos).toEqual([])
   })
 
-  it('usa el acento aclarado sobre oscuro y el original sobre claro', () => {
-    expect(darkTheme.accent).toBe(palette.signalRaised)
-    expect(lightTheme.accent).toBe(palette.signal)
+  it('el acento de texto está resuelto contra la superficie ELEVADA', () => {
+    // El fondo más exigente del tema oscuro es `ink800`, no `ink900`: es más
+    // claro, así que un texto claro tiene menos contraste contra él. Resolver
+    // contra `ink900` deja colores que pasan en el fondo de la pantalla y
+    // fallan dentro de una tarjeta, que es donde viven los chips.
+    expect(
+      contrastRatio(darkTheme.accent, palette.ink800),
+    ).toBeGreaterThanOrEqual(AA_TEXT)
+  })
+
+  it('usa el acento resuelto para cada tema, no el mismo en los dos', () => {
+    expect(darkTheme.accent).toBe(palette.brandOnDark)
+    expect(lightTheme.accent).toBe(palette.brandOnLight)
+    expect(darkTheme.accent).not.toBe(lightTheme.accent)
   })
 
   it('no usa verde ni rojo como tokens de superficie o de texto', () => {

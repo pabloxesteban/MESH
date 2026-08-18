@@ -1,0 +1,28 @@
+items:
+  - file: 01.jpg
+    featured: true
+    year: 2025
+    styles:
+      - { slug: handpoke, weight: 1.0 }
+  - file: 02.jpg
+    year: 2024
+    styles:
+      - { slug: handpoke, weight: 0.6 }
+      - { slug: dotwork, weight: 0.4 }
+  - file: 03.jpg
+    styles:
+      - { slug: handpoke, weight: 0.7 }
+      - { slug: minimalist, weight: 0.3 }
+  - file: 04.jpg
+    year: 2025
+    styles:
+      - { slug: dotwork, weight: 0.5 }
+      - { slug: handpoke, weight: 0.5 }
+  - file: 05.jpg
+    year: 2024
+    styles:
+      - { slug: handpoke, weight: 1.0 }
+  - file: 06.jpg
+    styles:
+      - { slug: handpoke, weight: 0.8 }
+      - { slug: minimalist, weight: 0.2 }

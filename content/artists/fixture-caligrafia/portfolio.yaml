@@ -1,0 +1,24 @@
+items:
+  - file: 01.jpg
+    featured: true
+    year: 2025
+    styles:
+      - { slug: lettering, weight: 1.0 }
+  - file: 02.jpg
+    year: 2024
+    styles:
+      - { slug: lettering, weight: 0.7 }
+      - { slug: fine-line, weight: 0.3 }
+  - file: 03.jpg
+    styles:
+      - { slug: lettering, weight: 0.6 }
+      - { slug: minimalist, weight: 0.4 }
+  - file: 04.jpg
+    year: 2025
+    styles:
+      - { slug: lettering, weight: 1.0 }
+  - file: 05.jpg
+    year: 2024
+    styles:
+      - { slug: fine-line, weight: 0.5 }
+      - { slug: lettering, weight: 0.5 }

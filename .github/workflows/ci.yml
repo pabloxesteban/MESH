@@ -43,6 +43,13 @@ jobs:
       - name: 2b · Formato
         run: npm run format:check
 
+      - name: 2c · La paleta coincide con su generador
+        # palette.ts está GENERADO desde OKLCH: cada hex es la luminosidad
+        # exacta a la que ese tono alcanza el contraste que necesita. Editarlo
+        # a mano vuelve a poner el color en manos del ojo, que es justo lo que
+        # ya nos metió dos veces un token de 2,6:1. Ver tools/brand/src/build-palette.mjs.
+        run: npm run brand:palette:check
+
       - name: 3 · Tests de dominio
         run: npm run test
 

@@ -33,7 +33,12 @@ async function main(): Promise<void> {
   let written = 0
   for (const dir of dirs) {
     let artist: { is_fixture?: boolean }
-    let portfolio: { items?: Array<{ file?: string }> }
+    let portfolio: {
+      items?: Array<{
+        file?: string
+        styles?: Array<{ slug?: string; weight?: number }>
+      }>
+    }
     try {
       artist = parse(readFileSync(join(root, dir, 'artist.yaml'), 'utf8'))
       portfolio = parse(readFileSync(join(root, dir, 'portfolio.yaml'), 'utf8'))
@@ -46,7 +51,17 @@ async function main(): Promise<void> {
     const items = portfolio.items ?? []
     for (const [index, item] of items.entries()) {
       if (item.file == null) continue
-      await writeFixtureImage(dir, item.file, index)
+      // Se dibuja con el estilo de MÁS PESO de la pieza: es el que la define, y
+      // dibujar una mezcla de cuatro no se parecería a ninguno.
+      const dominante = [...(item.styles ?? [])].sort(
+        (a, b) => Number(b.weight ?? 0) - Number(a.weight ?? 0),
+      )[0]
+      await writeFixtureImage(
+        dir,
+        item.file,
+        index,
+        dominante?.slug ?? 'fine-line',
+      )
       written += 1
     }
   }

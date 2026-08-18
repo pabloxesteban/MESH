@@ -6,8 +6,7 @@ location: caba
 is_fixture: true
 
 bio: >-
-  Registro sintético para construir y probar el mazo de descubrimiento antes de
-  que llegue contenido real. No representa a ninguna persona.
+  Línea continua y composiciones chicas. Trabaja casi siempre en negro, sin sombra.
 
 styles:
   - { slug: fine-line, proficiency: 1.0, primary: true }

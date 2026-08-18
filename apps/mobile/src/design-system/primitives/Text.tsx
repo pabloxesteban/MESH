@@ -33,12 +33,25 @@ export interface TextProps extends Omit<RNTextProps, 'style' | 'role'> {
   role?: TextRole
   color?: TextColor
   align?: 'left' | 'center' | 'right'
+  /**
+   * Color literal, para lo que NO es un token del tema.
+   *
+   * Existe por un solo motivo: los colores de familia de estilo
+   * (`tokens/style-colors.ts`) dependen del estilo, no del rol semántico, así
+   * que no pueden ser un `TextColor`. Pisa a `color` cuando está presente.
+   *
+   * **No es una escotilla para colores sueltos.** El lint sigue rechazando un
+   * hex en cualquier archivo fuera del design system, así que lo único que
+   * puede llegar acá es algo que ya salió de la paleta.
+   */
+  tint?: string | undefined
 }
 
 export function Text({
   role = 'body',
   color = 'textPrimary',
   align,
+  tint,
   ...rest
 }: TextProps) {
   const theme = useTheme()
@@ -52,7 +65,7 @@ export function Text({
       {...rest}
       style={[
         style,
-        { color: theme[color] },
+        { color: tint ?? theme[color] },
         align != null && { textAlign: align },
       ]}
     />

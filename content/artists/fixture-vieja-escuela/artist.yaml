@@ -1,0 +1,24 @@
+# Artista fixture. Ver consent.md.
+slug: fixture-vieja-escuela
+display_name: '[Fixture] Vieja Escuela'
+category: tattoo
+location: san-isidro
+is_fixture: true
+
+bio: >-
+  Contorno grueso, paleta corta, formas que se leen de lejos.
+
+styles:
+  - { slug: old-school, proficiency: 1.0, primary: true }
+  - { slug: traditional, proficiency: 1.0, primary: true }
+  - { slug: neo-traditional, proficiency: 0.7, primary: false }
+
+travels: false
+
+availability:
+  status: open
+  updated_at: '2026-08-14'
+
+contact:
+  instagram: fixture.vieja.escuela
+  whatsapp: '+5491100000005'

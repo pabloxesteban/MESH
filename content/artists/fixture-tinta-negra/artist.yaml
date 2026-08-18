@@ -6,8 +6,7 @@ location: vicente-lopez
 is_fixture: true
 
 bio: >-
-  Registro sintético. Existe para que el mazo tenga más de un artista y la
-  restricción de diversidad del feed tenga algo que hacer.
+  Masas negras y contraste alto. Piezas grandes que ocupan todo el brazo.
 
 styles:
   - { slug: blackwork, proficiency: 1.0, primary: true }

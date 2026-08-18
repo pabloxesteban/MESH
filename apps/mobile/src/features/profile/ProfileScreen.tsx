@@ -136,6 +136,10 @@ export function ProfileScreen({
                 <Tag
                   key={style.styleSlug}
                   label={t(`style.tattoo.${style.styleSlug}` as TranslationKey)}
+                  styleSlug={style.styleSlug}
+                  // Los primarios rellenos: es lo que define al artista, y el
+                  // orden ya viene con los primarios adelante.
+                  filled={style.isPrimary}
                 />
               ))}
             </Box>

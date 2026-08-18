@@ -1,0 +1,29 @@
+# Artista fixture. Ver consent.md.
+slug: fixture-a-mano
+display_name: '[Fixture] A Mano'
+category: tattoo
+location: caba
+is_fixture: true
+
+bio: >-
+  Sin máquina. Punto a punto, con la irregularidad a la vista.
+
+styles:
+  - { slug: handpoke, proficiency: 1.0, primary: true }
+  - { slug: dotwork, proficiency: 0.8, primary: false }
+  - { slug: minimalist, proficiency: 0.6, primary: false }
+
+travels: false
+
+price:
+  min_cents: 4500000
+  max_cents: 13000000
+  currency: ARS
+  priced_at: '2026-08-04'
+
+availability:
+  status: open
+  updated_at: '2026-08-16'
+
+contact:
+  instagram: fixture.a.mano

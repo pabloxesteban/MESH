@@ -77,6 +77,11 @@ function ArtworkCardImpl({ item, isTop = false, testID }: ArtworkCardProps) {
             <Tag
               key={style.slug}
               label={t(`style.tattoo.${style.slug}` as TranslationKey)}
+              styleSlug={style.slug}
+              // El estilo con más peso va relleno: es el que define la pieza, y
+              // rellenar todos convertiría la tarjeta en una fila de colores
+              // sin jerarquía.
+              filled={style.slug === item.styles[0]?.slug}
             />
           ))}
         </Box>

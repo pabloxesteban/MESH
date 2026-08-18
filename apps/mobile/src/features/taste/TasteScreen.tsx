@@ -19,6 +19,8 @@ import { ScrollView, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { READY_MIN_INTERACTIONS } from '@mesh/domain'
 
+import { LinearGradient } from 'expo-linear-gradient'
+
 import {
   Box,
   Button,
@@ -29,6 +31,7 @@ import {
   Text,
   radius,
   spacing,
+  styleColor,
   useTheme,
 } from '@/design-system/index.ts'
 import { useEffect } from 'react'
@@ -107,12 +110,26 @@ export function TasteScreen({ userId, onExplore }: TasteScreenProps) {
 
     return (
       <Box gap="lg" testID="taste-ready">
-        <Box gap="xxs">
-          <Text role="titleLg">{t('taste.ready.title')}</Text>
-          <Text role="body" color="textSecondary">
+        {/* El único degradado de marca de la app, y está acá porque este es el
+            único momento en que MESH le devuelve algo a la persona. Un
+            degradado en cada pantalla deja de significar nada. */}
+        <LinearGradient
+          colors={[theme.accentFill, theme.accentAltFill]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={{
+            borderRadius: radius.lg,
+            padding: spacing.md,
+            gap: spacing.xxs,
+          }}
+        >
+          <Text role="titleLg" color="accentContrast">
+            {t('taste.ready.title')}
+          </Text>
+          <Text role="body" color="accentContrast">
             {t('taste.ready.body', { n: taste.decisiveCount })}
           </Text>
-        </Box>
+        </LinearGradient>
 
         <Box gap="sm">
           {taste.visible.map((entry) => (
@@ -138,10 +155,12 @@ export function TasteScreen({ userId, onExplore }: TasteScreenProps) {
                 {/* La barra es la única representación del puntaje. No hay
                     número: "0,82" afirma una precisión que una docena de
                     decisiones no sostiene. Ver ADR-005. */}
-                <StrengthBar value={entry.score} />
+                <StrengthBar value={entry.score} styleSlug={entry.styleSlug} />
               </Box>
 
-              {/* La evidencia, en crudo. Es lo que hace auditable al perfil. */}
+              {/* La evidencia, en crudo. Es lo que hace auditable al perfil.
+                  Va neutra a propósito: el color de este bloque es el del
+                  estilo, y teñir también los conteos lo volvería ilegible. */}
               <Box direction="row" gap="xxs" wrap>
                 {entry.likes > 0 ? (
                   <Tag label={t('taste.evidence.likes', { n: entry.likes })} />
@@ -188,16 +207,27 @@ export function TasteScreen({ userId, onExplore }: TasteScreenProps) {
 }
 
 /**
- * Barra de fuerza.
+ * Barra de fuerza, con el color de su estilo.
  *
  * Se recorta a 0,95 a propósito: la función de saturación es asintótica a 1 y
  * nunca llega, así que una barra llena sería una afirmación que el modelo no
  * hace.
+ *
+ * El degradado va del color del estilo a una versión más transparente del mismo
+ * color, no a otro tono: el gradiente da textura, no información. Si los dos
+ * extremos fueran colores distintos, la barra parecería decir dos cosas.
  */
-function StrengthBar({ value }: { value: number }) {
+function StrengthBar({
+  value,
+  styleSlug,
+}: {
+  value: number
+  styleSlug: string
+}) {
   const theme = useTheme()
   const t = useT()
   const width = Math.min(0.95, value)
+  const color = styleColor(styleSlug, theme)
 
   return (
     <View
@@ -220,12 +250,11 @@ function StrengthBar({ value }: { value: number }) {
         overflow: 'hidden',
       }}
     >
-      <View
-        style={{
-          width: `${width * 100}%`,
-          height: '100%',
-          backgroundColor: theme.accentFill,
-        }}
+      <LinearGradient
+        colors={[color.vivid, color.text]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 0 }}
+        style={{ width: `${width * 100}%`, height: '100%' }}
       />
     </View>
   )

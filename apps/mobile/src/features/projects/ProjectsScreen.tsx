@@ -160,6 +160,8 @@ function ProjectCard({
             <Tag
               key={style.styleSlug}
               label={t(`style.tattoo.${style.styleSlug}` as TranslationKey)}
+              styleSlug={style.styleSlug}
+              filled
             />
           ))}
         </Box>

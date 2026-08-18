@@ -100,32 +100,72 @@ página.
 
 ## 4. Color
 
-Anclado en la paleta del brief, refinado por contraste.
+**MESH tiene color, y el color quiere decir algo.** No es una app en blanco y
+negro con un acento: es un sistema de once familias cromáticas donde cada una
+identifica una familia de estilo de tatuaje. Un chip turquesa siempre es línea
+fina. Uno violeta siempre es blackwork. Cuando alguien ya aprendió a leerlos,
+reconoce un estilo de un vistazo, antes de leer la palabra.
 
-### Base
+Lo que el color **no** hace nunca es cargar el significado solo. La etiqueta
+dice el estilo en palabras; el color acelera el reconocimiento de quien ya sabe
+leerlo. Alguien que no distingue los tonos pierde velocidad, no información.
 
-| Token | Hex | Rol |
+### La paleta está generada, no elegida
+
+`palette.ts` lo produce `tools/brand/src/build-palette.mjs`. Cada familia se
+define por su **tono en OKLCH**, y el generador busca la luminosidad exacta a la
+que ese tono alcanza el contraste que necesita contra la superficie donde va a
+vivir. El hex es una salida, no una decisión.
+
+Existe porque elegir a ojo ya nos metió dos veces un token que se veía bien y
+medía 2,6:1. `npm run brand:palette:check` corre en CI: editar `palette.ts` a
+mano rompe el build.
+
+### Tres roles por familia, y por qué son tres
+
+| Rol | Contra | Mínimo | Para qué |
+|---|---|---|---|
+| `<familia>OnDark` | `ink800` (la superficie elevada, la más exigente) | 4,5:1 | **Texto** e íconos sobre oscuro |
+| `<familia>OnLight` | `paper100` | 4,5:1 | **Texto** e íconos sobre papel |
+| `<familia>Vivid` | — | 4,5:1 con su texto encima | **Relleno**: barras, puntos, degradados, chips llenos |
+
+Los roles de texto se resuelven **buscando la luminosidad** a la que el tono
+llega a 4,5:1 contra su fondo, y para llegar ahí un tono tiene que aclararse —
+lo que le saca saturación. Es física, no gusto. El rol de relleno hace lo
+contrario: fija la luminosidad en 0,62 y **empuja la croma al borde del gamut**,
+que es donde el color realmente se ve. Después se verifica que aguante su texto
+encima con 4,5:1; si no llega, la familia usa `deepVivid`.
+
+Usar `onDark` como relleno deja la interfaz lavada; usar `vivid` como texto la
+deja ilegible.
+
+Hay un cuarto rol, `deepVivid`: el relleno para tema claro en las familias cuyo
+`vivid` es demasiado luminoso para sostener texto oscuro sobre papel. Lleva
+`paper100` encima.
+
+### Las once familias
+
+| Familia | Estilos | Tono |
 |---|---|---|
-| `ink` | `#0C0C0E` | Casi negro. Superficie principal en oscuro, texto principal sobre papel. |
-| `paper` | `#F4EFE6` | Papel cálido. Superficie principal en claro, texto principal sobre tinta. |
-| `signal` | `#9C2D40` | Rojo tinta. Acento, usado con mucha moderación. |
+| `brand` | — (el acento de MESH) | 12° rosa |
+| `line` | fine-line, minimalist | 195° turquesa |
+| `shade` | blackwork, black-and-grey | 295° violeta |
+| `dot` | dotwork, ornamental | 75° ámbar |
+| `classic` | old-school, traditional, neo-traditional | 32° bermellón |
+| `real` | realism | 255° azul |
+| `flow` | watercolor | 340° magenta |
+| `east` | japanese | 20° rojo |
+| `letter` | lettering | 130° verde |
+| `gold` | fileteado-porteno | 95° oro |
+| `hand` | handpoke | 160° esmeralda |
 
-### Por qué la paleta necesita más de tres valores
-
-`signal` sobre `ink` mide ≈ 2,7:1 — **no pasa WCAG AA para texto.** Usar el rojo
-del brief para cualquier cosa textual sobre una superficie oscura sería un
-defecto de accesibilidad. Así que el acento existe en dos valores:
-
-| Token | Hex | Uso |
-|---|---|---|
-| `signal` | `#9C2D40` | Rellenos y trazos sobre superficies claras; texto sobre papel (≈6,4:1 ✅) |
-| `signal-raised` | `#D2687A` | Texto e íconos sobre superficies oscuras (≈5,6:1 ✅) |
-| `on-signal` | `#F4EFE6` | Texto sobre un relleno `signal` (≈5,6:1 ✅) |
+Un test recorre la taxonomía en las dos direcciones: un estilo nuevo sin familia
+rompe el build, y una familia sin estilos también.
 
 ### Neutros
 
 Derivados mezclando `ink` y `paper` — no gris, así todo el sistema se mantiene
-cálido.
+cálido, y sobre un neutro cálido la fotografía de piel se ve como piel.
 
 `ink-900 #0C0C0E` · `ink-800 #1A1A1D` · `ink-700 #2C2B2E` ·
 `ink-500 #56545A` · `ink-300 #8C8A90` ·
@@ -140,37 +180,50 @@ Las pantallas usan solo estos. Se resuelven según el tema.
 surface            surface-raised     surface-sunken
 text-primary       text-secondary     text-tertiary
 border-subtle      border-strong
-accent             accent-contrast
+accent             accent-fill        accent-contrast
+accent-alt         accent-alt-fill
 overlay-scrim
 state-positive     state-negative     state-warning
 ```
 
+`accent` / `accentFill` son la familia `brand` (rosa): dicen *esto es MESH*.
+`accentAlt` / `accentAltFill` son la familia `shade` (violeta): dicen *esto es
+tuyo* — aparecen en el gusto, en los guardados y en los degradados de los
+momentos de revelación.
+
+Los colores de familia de estilo **no** son tokens del tema, porque no son roles
+semánticos: se resuelven con `styleColor(slug, theme)`, y `Text` los recibe por
+la prop `tint`, que existe solo para eso.
+
 Los valores `state-*` son para feedback del sistema (una subida fallida) y nada
 más. **Me gusta y paso nunca se colorean de verde y rojo.** Verde/rojo es una UI
 de juicio y pertenece a las apps de citas; el me gusta y el paso de MESH son
-neutros, pesados por tipografía y movimiento en lugar de por color.
-
-**El acento son dos roles, no uno.** `signal-raised` es solo para **texto e
-íconos** sobre oscuro; los **rellenos** usan siempre `signal` sin aclarar, con
-`on-signal` encima. Usar el valor aclarado también como relleno deja los
-botones rosados y apagados — se vio recién al mirar la app en un teléfono, no
-en la paleta.
+neutros, pesados por tipografía y movimiento en lugar de por color. Por la misma
+razón las bandas de encaje no son un semáforo: fuerte es rosa de marca, bueno es
+violeta, posible es neutro con borde. Un encaje posible no es un error ni una
+advertencia.
 
 ### Disciplina
 
-- `signal` aparece **como máximo una vez por pantalla**. Marca la única acción
-  más importante, o la única cosa que hay que notar. Cuando todo tiene acento,
-  nada lo tiene.
+- **El acento de marca aparece como máximo una vez por pantalla.** Marca la
+  única acción más importante, o la única cosa que hay que notar. Esta regla es
+  sobre `accent`, no sobre el color en general — los colores de estilo pueden
+  aparecer muchas veces, porque no compiten por la atención: la reparten.
+  *(Antes esta regla decía "el acento aparece como máximo una vez por pantalla"
+  a secas, escrita cuando el sistema tenía un solo color. La reemplaza esta.)*
+- Un color de estilo solo aparece **donde ese estilo está siendo nombrado**. No
+  se usa como decoración ni para dar variedad.
 - Las obras nunca se tiñen, ni se superponen con un color de marca, ni reciben
-  un borde de color.
+  un borde de color. El color vive en el cromo alrededor de la imagen, nunca
+  encima.
 - Los velos sobre imágenes son `ink` con opacidad medida, nunca coloreados.
 
 ### Tema
 
 El oscuro (superficie `ink`) es el predeterminado: es el marco correcto para la
 fotografía y es lo que hace una galería. El claro (`paper`) está soportado por
-completo y no es una ocurrencia tardía — todo token tiene los dos valores, y el
-diseño se revisa en ambos.
+completo y no es una ocurrencia tardía — todo token tiene los dos valores, todo
+color de familia tiene su par, y el diseño se revisa en ambos.
 
 ## 5. Tipografía
 

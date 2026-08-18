@@ -86,3 +86,13 @@ export {
   type HapticIntent,
 } from './tokens/haptics.ts'
 export { AA_LARGE, AA_TEXT, contrastRatio, meetsContrast } from './contrast.ts'
+
+// Color por familia de estilo. El color acá es información, no decoración: un
+// chip turquesa siempre es línea fina. Ver tokens/style-colors.ts.
+export {
+  STYLE_FAMILIES,
+  STYLE_FAMILY,
+  styleColor,
+  type StyleColor,
+  type StyleFamily,
+} from './tokens/style-colors.ts'
