@@ -94,3 +94,20 @@ export type {
   UploadCandidate,
   UploadMimeType,
 } from './storage/paths.ts'
+
+export {
+  DISPLAY_MIN_SCORE,
+  DISPLAY_MIN_SUPPORT,
+  INTERACTION_VALUE,
+  READY_MIN_INTERACTIONS,
+  READY_MIN_SCORE,
+  READY_MIN_STYLES,
+  SATURATION_K,
+} from './taste/config.ts'
+export { computeTaste, saturate, topStyles, valueOf } from './taste/taste.ts'
+export type {
+  PieceStyles,
+  TasteEvidence,
+  TasteInput,
+  TasteResult,
+} from './taste/taste.ts'

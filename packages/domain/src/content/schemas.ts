@@ -108,7 +108,10 @@ export const artistSchema = z
     // Un fixture tiene que ser inconfundible. El prefijo no es cosmético: es lo
     // que hace imposible que alguien vea una tarjeta de prueba y la lea como un
     // artista real. Ver docs/product/content-policy.md §4.
-    if (artist.is_fixture === true && !artist.display_name.startsWith(FIXTURE_PREFIX)) {
+    if (
+      artist.is_fixture === true &&
+      !artist.display_name.startsWith(FIXTURE_PREFIX)
+    ) {
       ctx.addIssue({
         code: 'custom',
         path: ['display_name'],
@@ -118,7 +121,10 @@ export const artistSchema = z
           `persona real.`,
       })
     }
-    if (artist.is_fixture !== true && artist.display_name.startsWith(FIXTURE_PREFIX)) {
+    if (
+      artist.is_fixture !== true &&
+      artist.display_name.startsWith(FIXTURE_PREFIX)
+    ) {
       ctx.addIssue({
         code: 'custom',
         path: ['is_fixture'],

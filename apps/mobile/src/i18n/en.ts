@@ -77,6 +77,26 @@ export const en: Readonly<Record<TranslationKey, string>> = {
   'discovery.saved': 'Saved',
   'discovery.passed': 'You passed on this work',
 
+  'taste.progress.title': "We're still getting to know you",
+  'taste.progress.body':
+    'With {faltan} more decisions we can build your profile. {total} in total, and that is not an arbitrary number: fewer than that is not enough to say anything honest.',
+  'taste.progress.empty.title': 'Your profile does not exist yet',
+  'taste.progress.empty.body':
+    'It is built only from what you mark. There is no questionnaire and no personality test.',
+  'taste.progress.action': 'Keep exploring',
+  'taste.ready.title': 'Your taste',
+  'taste.ready.body':
+    'This came from {n} of your decisions. Under each style is where it came from.',
+  'taste.evidence.likes': '{n} likes',
+  'taste.evidence.saves': '{n} saves',
+  'taste.strength.high': 'Very present in what you choose',
+  'taste.strength.medium': 'Present in what you choose',
+  'taste.strength.low': 'Barely present in what you choose',
+  'taste.reset.explanation':
+    'You can delete everything we learned. Your decisions and your profile go, and the deck starts over.',
+  'taste.reset.action': 'Delete my taste',
+  'taste.reset.confirm': 'Tap again to delete it',
+
   'category.tattoo': 'Tattoo',
 
   'style.tattoo.fine-line': 'Fine line',

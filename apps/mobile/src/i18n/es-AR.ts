@@ -92,6 +92,27 @@ export const esAR = {
   'discovery.saved': 'Guardado',
   'discovery.passed': 'Pasaste este trabajo',
 
+  // --- gusto -----------------------------------------------------------------
+  'taste.progress.title': 'Todavía te estamos conociendo',
+  'taste.progress.body':
+    'Con {faltan} decisiones más podemos armar tu perfil. Van {total} en total, y no es un número al azar: menos que eso no alcanza para decir nada honesto.',
+  'taste.progress.empty.title': 'Tu perfil todavía no existe',
+  'taste.progress.empty.body':
+    'Se arma solo con lo que marcás. No hay cuestionario ni test de personalidad.',
+  'taste.progress.action': 'Seguir explorando',
+  'taste.ready.title': 'Tu gusto',
+  'taste.ready.body':
+    'Esto salió de {n} decisiones tuyas. Debajo de cada estilo está de dónde salió.',
+  'taste.evidence.likes': '{n} me gusta',
+  'taste.evidence.saves': '{n} guardados',
+  'taste.strength.high': 'Muy presente en lo que elegís',
+  'taste.strength.medium': 'Presente en lo que elegís',
+  'taste.strength.low': 'Apenas presente en lo que elegís',
+  'taste.reset.explanation':
+    'Podés borrar todo lo que aprendimos. Se van tus decisiones y tu perfil, y el mazo arranca de cero.',
+  'taste.reset.action': 'Borrar mi gusto',
+  'taste.reset.confirm': 'Tocá de nuevo para borrarlo',
+
   // --- taxonomía -------------------------------------------------------------
   'category.tattoo': 'Tatuaje',
 

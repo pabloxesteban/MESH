@@ -18,8 +18,8 @@ criterios de salida. Ninguna fase acumula código sin tests.
 | **5. Seguridad** ✅ | Buckets y políticas de storage, triggers de cuota, limpieza de EXIF en subidas (las políticas RLS por tabla ya aterrizaron con la Fase 4) | Escritura cruzada en storage bloqueada; las cuotas rechazan del lado del servidor; una foto subida no conserva coordenadas |
 | **6. Autenticación** ✅ | Arranque de sesión anónima, upgrade de cuenta, ingreso/salida, recuperación, guardado seguro de tokens, layout raíz con sesión | Pasa el flujo 3 de la suite E2E; ningún token fuera de `expo-secure-store`; escaneo de secretos del bundle limpio |
 | **7. Contenido** ⚠️ | Esquemas de contenido, CLI de seed (validar → redimensionar → blurhash → subir → upsert), 2–3 artistas reales de punta a punta | La carga es idempotente; el contenido malformado aborta antes de insertar; la falta de consentimiento bloquea la corrida; los fixtures se rechazan en modo producción |
-| **8. Descubrimiento** | RPC del feed, mazo, `ArtworkCard`, gestos, botones, deshacer, prefetch, detalle de obra, los cuatro estados | 60fps sostenidos en un Android de gama media; camino solo-botones completo; la cola offline sobrevive al modo avión |
-| **9. Motor de gusto** | Motor de gusto en `packages/domain`, persistencia, pantalla de gusto, vista de evidencia, reset | Pasan todos los tests de gusto de `matching.md` §8; el umbral es correcto; la revelación respeta reducción de movimiento |
+| **8. Descubrimiento** ✅ | RPC del feed, mazo, `ArtworkCard`, gestos, botones, deshacer, prefetch, detalle de obra, los cuatro estados | 60fps sostenidos en un Android de gama media; camino solo-botones completo; la cola offline sobrevive al modo avión |
+| **9. Motor de gusto** ✅ | Motor de gusto en `packages/domain`, persistencia, pantalla de gusto, vista de evidencia, reset | Pasan todos los tests de gusto de `matching.md` §8; el umbral es correcto; la revelación respeta reducción de movimiento |
 | **10. Matching** | Motor de match, bandas, derivación de razones, pantalla de matches, estados vacíos honestos | Pasan todos los tests de matching, incluidos renormalización por omisión y estabilidad de orden; ninguna razón referencia un componente omitido |
 | **11. Perfiles** | Perfil profesional, grilla de portfolio, hero, pill de disponibilidad, precio, estilos, redes | Hero pintado en < 800ms en caliente; los campos faltantes no renderizan nada en vez de un placeholder; la grilla no salta |
 | **12. Proyectos** | Flujo de creación, subida de referencias (con EXIF removido), matching por proyecto, detalle de proyecto | Pasan los tests de matching por proyecto; cuotas impuestas del lado del servidor; borradores abandonados recuperables |
@@ -319,3 +319,28 @@ Supabase, y la carga falló recién al intentar escribir, con "permission denied
 for table categories". Ahora los grants son explícitos, con `alter default
 privileges` para las tablas que vengan, y hay un test que lo verifica: un
 privilegio heredado es un privilegio que una actualización puede sacar.
+
+## Estado de las Fases 8 y 9
+
+Cerradas el 2026-08-18.
+
+**Descubrimiento.** Mazo con los cuatro estados, gesto en el hilo de UI, tres
+botones equivalentes con etiqueta y ≥44pt, deshacer, prefetch de la página
+siguiente a cuatro tarjetas del final, y como mucho tres tarjetas montadas.
+
+La cola offline encola **antes** de intentar la red y serializa sus escrituras.
+Verificada con veinte deslizadas sin señal y cinco concurrentes.
+
+**Gusto.** El motor entero en `packages/domain`: 30 tests que cubren la lista de
+`matching.md` §8, incluidos los basados en propiedades. La pantalla muestra la
+evidencia en crudo debajo de cada estilo —de cuántos me gusta y cuántos
+guardados salió— porque un perfil que no se puede auditar es un perfil en el que
+hay que creer.
+
+Tres cosas que la pantalla NO hace, y son decisiones: no muestra aversión, no
+muestra un número de puntaje, y no felicita a nadie por deslizar. La barra se
+recorta en 0,95 porque la función de saturación es asintótica a 1 y nunca llega
+— una barra llena sería una afirmación que el modelo no hace.
+
+Borrar el gusto es un botón de dos toques, no un modal: un modal se contesta por
+reflejo, un botón que cambia de texto exige leer.
