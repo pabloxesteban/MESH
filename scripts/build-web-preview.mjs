@@ -142,8 +142,38 @@ for (const file of files) {
 const scriptEscapes = (bundle.match(/<\/script/gi) ?? []).length
 bundle = bundle.replace(/<\/script/gi, '<\\/script')
 
-const html = `<title>MESH — vista previa</title>
+const html = `<title>MESH</title>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+
+<script>
+  /*
+    El viewport, puesto también desde JS.
+
+    La etiqueta de arriba alcanza cuando el archivo se abre tal cual. No alcanza
+    cuando lo envuelve un host que arma su propio <head>: la etiqueta queda
+    adentro del <body>, el navegador móvil la ignora, y la página se maqueta a
+    980 px de ancho. En una pantalla de teléfono eso es la app entera reducida a
+    la mitad — que se ve exactamente como "no funciona".
+
+    Se verificó simulando el envoltorio: sin esto, window.innerWidth da 980 en un
+    viewport de 390.
+
+    Corre antes del bundle y es idempotente: si el host ya puso un viewport, lo
+    reusa en vez de agregar un segundo.
+  */
+  ;(function () {
+    var meta = document.querySelector('meta[name="viewport"]')
+    if (meta == null) {
+      meta = document.createElement('meta')
+      meta.setAttribute('name', 'viewport')
+      document.head.appendChild(meta)
+    }
+    meta.setAttribute(
+      'content',
+      'width=device-width, initial-scale=1, viewport-fit=cover',
+    )
+  })()
+</script>
 
 <style>
   /*
