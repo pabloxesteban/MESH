@@ -1,0 +1,44 @@
+# Briza Maldonado
+#
+# Primera artista real de MESH. Todo lo de acá salió de su perfil de Instagram
+# (@bri.t4tts) y de lo que pasó Pablo el 2026-08-18.
+#
+# DOS COSAS SIN CONFIRMAR, anotadas en consent.md:
+#   · Su bio de Instagram dice "Currently in Bondi, Sydney". Acá figura en CABA.
+#   · La bio de abajo es una traducción de la suya en inglés, no sus palabras
+#     en castellano.
+# Las dos las tiene que confirmar ella antes de publicar.
+
+slug: briza-maldonado
+display_name: 'Briza Maldonado'
+category: tattoo
+location: caba
+
+# De su bio de Instagram: "Vegan tattoo artist & illustrator".
+# Nada más: lo que sigue en su perfil son instrucciones de contacto y ubicación,
+# que en MESH son campos propios y no bio.
+bio: >-
+  Tatuadora vegana e ilustradora.
+
+styles:
+  - { slug: traditional, proficiency: 1.0, primary: true }
+  - { slug: japanese, proficiency: 0.6, primary: false }
+  - { slug: lettering, proficiency: 0.6, primary: false }
+
+travels: false
+
+# 100.000 a 500.000 ARS. Los montos van en centavos.
+price:
+  min_cents: 10000000
+  max_cents: 50000000
+  currency: ARS
+  priced_at: '2026-08-18'
+
+availability:
+  status: open
+  updated_at: '2026-08-18'
+
+# Su cuenta de trabajo. @brimaldnado, la que linkea en la bio, es su cuenta
+# personal y no va acá.
+contact:
+  instagram: bri.t4tts

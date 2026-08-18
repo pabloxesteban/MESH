@@ -47,6 +47,25 @@ las imágenes al artista, completar los YAML, validar.
 El comando **no** consigue el consentimiento. Eso es una conversación con una
 persona, y `consent.md` es el registro de esa conversación, no su reemplazo.
 
+## Borradores
+
+Conseguir contenido real lleva días: hay que hablar con la persona, esperar el
+consentimiento, esperar las fotos. Un perfil a medias tiene que poder vivir en el
+repo sin romper el build.
+
+Un archivo `DRAFT` en el directorio lo saca de la validación y de la carga.
+Escribí adentro qué falta.
+
+```
+content/artists/briza-maldonado/DRAFT
+```
+
+Cuando esté completo, borrá el archivo y validá.
+
+El riesgo obvio es que `DRAFT` se vuelva la forma de saltear los chequeos.
+Contra eso: los borradores se listan en cada corrida del validador y del seeder,
+verde o roja, así que no se pueden olvidar en silencio.
+
 ## Verificar antes de commitear
 
 ```bash

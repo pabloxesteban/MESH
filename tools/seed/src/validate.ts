@@ -7,7 +7,7 @@
  * inválido. Ver docs/product/content-policy.md §5.
  */
 
-import { readdirSync, readFileSync, statSync } from 'node:fs'
+import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs'
 import { join, resolve } from 'node:path'
 import { parse } from 'yaml'
 import {
@@ -33,18 +33,30 @@ export interface ArtistBundle {
 export interface ValidationResult {
   readonly bundles: readonly ArtistBundle[]
   readonly errors: readonly string[]
+  /**
+   * Directorios con un archivo `DRAFT`: no se validan y no se cargan.
+   *
+   * Existen porque conseguir contenido real lleva días. Un perfil que espera el
+   * consentimiento o las fotos tiene que poder vivir en el repo sin romper el
+   * build, y sin que nadie tenga que acordarse de dónde lo dejó.
+   *
+   * El riesgo obvio es que `DRAFT` se vuelva la forma de saltear los chequeos.
+   * Contra eso: se listan en cada corrida —no se pueden olvidar en silencio— y
+   * el seeder aborta si le piden cargar uno.
+   */
+  readonly drafts: readonly string[]
 }
 
-function listArtistDirs(): string[] {
+function listArtistDirs(root: string): string[] {
   let entries: string[]
   try {
-    entries = readdirSync(CONTENT_ROOT)
+    entries = readdirSync(root)
   } catch {
     return []
   }
   return entries.filter((entry) => {
     if (entry.startsWith('.') || entry.endsWith('.md')) return false
-    return statSync(join(CONTENT_ROOT, entry)).isDirectory()
+    return statSync(join(root, entry)).isDirectory()
   })
 }
 
@@ -52,12 +64,23 @@ function readYaml(path: string): unknown {
   return parse(readFileSync(path, 'utf8'))
 }
 
-export function validateAll(): ValidationResult {
+/**
+ * `root` existe solo para los tests: el guard de borradores decide si un
+ * directorio se puede publicar, y un guard sin test es una regla que alguien
+ * borra sin enterarse.
+ */
+export function validateAll(root: string = CONTENT_ROOT): ValidationResult {
   const errors: string[] = []
   const bundles: ArtistBundle[] = []
+  const drafts: string[] = []
 
-  for (const dir of listArtistDirs()) {
-    const base = join(CONTENT_ROOT, dir)
+  for (const dir of listArtistDirs(root)) {
+    const base = join(root, dir)
+
+    if (existsSync(join(base, 'DRAFT'))) {
+      drafts.push(dir)
+      continue
+    }
     const fail = (message: string) => errors.push(`${dir}: ${message}`)
 
     // El consentimiento es requisito de inclusión, no un chequeo blando.
@@ -175,11 +198,18 @@ export function validateAll(): ValidationResult {
     bundles.push({ slug: dir, artist, portfolio })
   }
 
-  return { bundles, errors }
+  return { bundles, errors, drafts }
 }
 
 function main(): void {
-  const { bundles, errors } = validateAll()
+  const { bundles, errors, drafts } = validateAll()
+
+  // Antes de los errores: un borrador no es una falla, pero tampoco puede
+  // quedar invisible. Se ve en cada corrida, verde o roja.
+  for (const draft of drafts) {
+    console.log(`· ${draft}: BORRADOR — no se valida ni se carga.`)
+  }
+  if (drafts.length > 0) console.log('')
 
   if (errors.length > 0) {
     console.error(
@@ -202,7 +232,8 @@ function main(): void {
 
   const pieces = bundles.reduce((sum, b) => sum + b.portfolio.items.length, 0)
   console.log(
-    `✓ Validación de contenido: ${bundles.length} artista(s), ${pieces} pieza(s).`,
+    `✓ Validación de contenido: ${bundles.length} artista(s), ${pieces} pieza(s)` +
+      `${drafts.length > 0 ? `, ${drafts.length} en borrador` : ''}.`,
   )
 }
 

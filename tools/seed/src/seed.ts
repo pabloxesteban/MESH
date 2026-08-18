@@ -118,7 +118,15 @@ async function main(): Promise<void> {
     process.exit(1)
   }
 
-  const { bundles, errors } = validateAll()
+  const { bundles, errors, drafts } = validateAll()
+
+  // Un borrador no se carga, ni acá ni con --publish. Que la corrida los nombre
+  // en vez de saltearlos en silencio es el punto: si alguien esperaba ver a esa
+  // persona en la app, esta línea le dice por qué no está.
+  for (const draft of drafts) {
+    console.log(`  · ${draft}: BORRADOR — salteado, no se carga.`)
+  }
+
   if (errors.length > 0) {
     console.error(
       `\n✗ La validación falló con ${errors.length} error(es). No se cargó nada.\n`,

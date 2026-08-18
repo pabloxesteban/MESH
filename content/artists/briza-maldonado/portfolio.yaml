@@ -1,0 +1,26 @@
+# Portafolio de Briza Maldonado
+#
+# VACÍO A PROPÓSITO: las fotos todavía no llegaron. El validador exige al menos
+# una pieza, así que este archivo falla hasta que estén — que es lo correcto: un
+# perfil sin obra no tiene nada que mostrar en el mazo.
+#
+# Cuando lleguen, una entrada por pieza. Los pesos de estilo de cada una tienen
+# que sumar 1 (± 0,001): es lo que hace explicable el gusto. Si una pieza es 0,7
+# traditional y 0,3 lettering, un me gusta reparte así.
+#
+# `featured: true` en una sola: es la que abre el perfil.
+#
+# Ejemplo de la forma, para completar:
+#
+# items:
+#   - file: 01.jpg
+#     featured: true
+#     year: 2026
+#     styles:
+#       - { slug: traditional, weight: 1.0 }
+#   - file: 02.jpg
+#     styles:
+#       - { slug: japanese, weight: 0.7 }
+#       - { slug: traditional, weight: 0.3 }
+
+items: []

@@ -79,6 +79,21 @@ llegue el contenido real, pero tienen que ser inconfundibles:
 6. Las imágenes fixture son placeholders abstractos, no tatuajes reales sacados
    de ningún lado, y llevan "FIXTURE" impreso.
 
+### Borradores
+
+Un directorio con un archivo `DRAFT` no se valida ni se carga. Existe porque
+conseguir contenido real lleva días —consentimiento, fotos, confirmaciones— y un
+perfil a medias tiene que poder vivir en el repo sin romper el build ni tentar a
+nadie a completarlo con datos plausibles.
+
+No es una excepción a ninguna regla de arriba: es lo contrario de una excepción.
+Un borrador **no se puede publicar**, y en el momento en que se le saca el
+marcador tiene que pasar la validación entera. El seeder lo saltea incluso con
+`--publish`.
+
+Para que no se vuelva la forma de esquivar los chequeos, tanto el validador como
+el seeder los nombran en cada corrida, verde o roja.
+
 ### Por qué la marca se movió del nombre a la superficie
 
 Hasta 2026-08-18 la regla 2 marcaba el `display_name`: los fixtures se llamaban

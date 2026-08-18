@@ -1,0 +1,10 @@
+Este perfil está en borrador: no se valida y no se carga.
+
+Faltan tres cosas, y las tres son de ella, no del código:
+
+  1. El registro de consentimiento — ver los TODO de consent.md.
+  2. Las fotos de sus piezas, en media/, y sus entradas en portfolio.yaml.
+  3. Confirmar dos datos: si está tatuando en Buenos Aires o en Sydney, y su
+     bio con sus palabras en castellano.
+
+Cuando estén las tres, borrá este archivo y corré `npm run content:validate`.
