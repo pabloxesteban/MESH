@@ -22,7 +22,7 @@ criterios de salida. Ninguna fase acumula código sin tests.
 | **9. Motor de gusto** ✅ | Motor de gusto en `packages/domain`, persistencia, pantalla de gusto, vista de evidencia, reset | Pasan todos los tests de gusto de `matching.md` §8; el umbral es correcto; la revelación respeta reducción de movimiento |
 | **10. Matching** ✅ | Motor de match, bandas, derivación de razones, pantalla de matches, estados vacíos honestos | Pasan todos los tests de matching, incluidos renormalización por omisión y estabilidad de orden; ninguna razón referencia un componente omitido |
 | **11. Perfiles** ✅ | Perfil profesional, grilla de portfolio, hero, pill de disponibilidad, precio, estilos, redes | Hero pintado en < 800ms en caliente; los campos faltantes no renderizan nada en vez de un placeholder; la grilla no salta |
-| **12. Proyectos** | Flujo de creación, subida de referencias (con EXIF removido), matching por proyecto, detalle de proyecto | Pasan los tests de matching por proyecto; cuotas impuestas del lado del servidor; borradores abandonados recuperables |
+| **12. Proyectos** ✅ | Flujo de creación, subida de referencias (con EXIF removido), matching por proyecto, detalle de proyecto | Pasan los tests de matching por proyecto; cuotas impuestas del lado del servidor; borradores abandonados recuperables |
 | **13. Contacto** ✅ | Compositor de mensaje, vista previa editable, traspaso a WhatsApp/Instagram | Test golden: el mensaje compuesto no contiene nada que la persona no haya provisto; la falta de canal cambia el CTA en vez de fingir uno |
 | **14. Analytics** | `track()`, unión tipada de eventos, buffer MMKV, ajuste de opt-out | Cada evento del catálogo se dispara una vez en la corrida E2E; sin texto libre en ninguna propiedad; el opt-out no encola nada |
 | **15. QA** | Suite E2E, cobertura de estados de componentes, casos borde | Los seis flujos E2E en verde, incluidos el de solo accesibilidad y el offline |
@@ -409,3 +409,38 @@ Dos detalles que salieron de escribirlo:
 2. **El aviso de que Instagram no lleva el mensaje escrito va antes del toque, no
    después.** Prometer que va a aparecer escrito sería mentir sobre lo que hace
    el botón.
+
+## Estado de la Fase 12
+
+Cerrada el 2026-08-18.
+
+- Formulario con **un solo campo obligatorio**: qué querés hacerte. Todo lo demás
+  es opcional, y cada campo opcional dice para qué lo usamos — pedir un
+  presupuesto sin explicar por qué es pedirle a alguien que se exponga a cambio
+  de nada.
+- La urgencia se puede **deseleccionar**: "no sé cuándo" es una respuesta válida,
+  y un grupo de opciones sin vuelta atrás obliga a afirmar algo que no es cierto.
+- El presupuesto es todo o nada: la base lo exige con un CHECK y medio
+  presupuesto no es información.
+- Matching por proyecto reutilizando la misma pantalla que el matching por
+  gusto. La diferencia está en la entrada del motor, no en cómo se presenta el
+  resultado — dos pantallas para el mismo objeto se separarían. Con proyecto no
+  hace falta umbral de gusto: alguien que llega con una idea clara no necesita
+  deslizar primero.
+- Archivar y no borrar: libera cuota, conserva lo que se escribió, y es
+  reversible.
+
+**La subida de referencias, que es lo delicado.** El orden de los pasos está
+pensado y cada uno tiene su test:
+
+    elegir → recodificar → validar → subir el objeto → escribir la fila
+
+- **Recodificar es la limpieza de EXIF, no una optimización.** Una foto sacada
+  en casa lleva las coordenadas de esa casa.
+- **Validar después de recodificar**, porque el tamaño que cuenta es el del
+  archivo que se va a subir.
+- **La ruta se deriva de un UUID generado por el cliente**, nunca del nombre del
+  archivo: sin eso, un nombre con `../` sería una ruta. Hay un test que lo
+  intenta.
+- **Si la fila no se puede escribir, el objeto se borra.** Un objeto sin fila
+  cuenta contra la cuota de la persona sin que ella pueda verlo ni borrarlo.

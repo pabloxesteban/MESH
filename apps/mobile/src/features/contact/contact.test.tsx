@@ -117,7 +117,9 @@ describe('ContactScreen', () => {
     expect(openUrl).toHaveBeenCalledWith('https://instagram.com/aguja')
     // Se espera el aviso: además de evitar el warning de act(), verifica que la
     // persona se entere de que el mensaje quedó copiado.
-    await waitFor(() => expect(screen.getByTestId('contact-copied')).toBeTruthy())
+    await waitFor(() =>
+      expect(screen.getByTestId('contact-copied')).toBeTruthy(),
+    )
     expect(copyToClipboard.mock.invocationCallOrder[0]).toBeLessThan(
       openUrl.mock.invocationCallOrder[0] as number,
     )

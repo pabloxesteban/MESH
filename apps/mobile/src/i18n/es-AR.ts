@@ -176,6 +176,40 @@ export const esAR = {
   'contact.message.references': 'Te mando algunas referencias aparte.',
   'contact.message.closing': '¿Te sirve? Cualquier cosa avisame. Gracias.',
 
+  // --- proyectos -------------------------------------------------------------
+  'projects.title': 'Tus proyectos',
+  'projects.empty.title': 'Todavía no tenés ningún proyecto',
+  'projects.empty.body':
+    'Un proyecto es una idea concreta: qué querés hacerte, más o menos cuándo, y cuánto podés gastar. Sirve para buscar con eso en la mano en vez de solo con tu gusto.',
+  'projects.empty.action': 'Crear un proyecto',
+  'projects.new': 'Nuevo proyecto',
+  'projects.form.title': 'Qué querés hacerte',
+  'projects.form.title.placeholder': 'Rama de olivo en el antebrazo',
+  'projects.form.description': 'Contalo con tus palabras',
+  'projects.form.description.hint':
+    'Opcional. Tamaño, lugar del cuerpo, lo que se te ocurra.',
+  'projects.form.styles': 'Estilos que te gustan para esto',
+  'projects.form.budget': 'Cuánto podés gastar',
+  'projects.form.budget.hint':
+    'Opcional. Solo lo usamos para no mostrarte gente fuera de tu alcance.',
+  'projects.form.budget.min': 'Desde',
+  'projects.form.budget.max': 'Hasta',
+  'projects.form.timing': 'Para cuándo',
+  'projects.form.timing.asap': 'Lo antes posible',
+  'projects.form.timing.weeks': 'En las próximas semanas',
+  'projects.form.timing.months': 'En los próximos meses',
+  'projects.form.timing.flexible': 'Sin apuro',
+  'projects.form.submit': 'Guardar proyecto',
+  'projects.references': 'Referencias',
+  'projects.references.add': 'Agregar una imagen',
+  'projects.references.hint':
+    'Las guardamos privadas y les sacamos la información de ubicación antes de subirlas.',
+  'projects.references.count': '{n} de {max}',
+  'projects.references.full': 'Llegaste al máximo de {max} imágenes',
+  'projects.archive': 'Archivar proyecto',
+  'projects.archive.confirm': 'Tocá de nuevo para archivarlo',
+  'projects.matches': 'Ver quién encaja',
+
   // --- taxonomía -------------------------------------------------------------
   'category.tattoo': 'Tatuaje',
 

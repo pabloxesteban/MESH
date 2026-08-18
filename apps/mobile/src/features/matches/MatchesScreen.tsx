@@ -31,13 +31,19 @@ import { ErrorView } from '@/components/ErrorView.tsx'
 import { useT } from '@/i18n/I18nProvider.tsx'
 import type { TranslationKey } from '@/i18n/index.ts'
 
-import { useMatches, type MatchWithProfessional } from './useMatches.ts'
+import {
+  useMatches,
+  type MatchWithProfessional,
+  type ProjectBriefInput,
+} from './useMatches.ts'
 
 export interface MatchesScreenProps {
   userId: string | null
   today: string
   onExplore: () => void
   onOpenProfile: (slug: string) => void
+  /** Con proyecto, el match corre aunque no haya perfil de gusto. */
+  project?: ProjectBriefInput | undefined
 }
 
 export function MatchesScreen({
@@ -45,11 +51,12 @@ export function MatchesScreen({
   today,
   onExplore,
   onOpenProfile,
+  project,
 }: MatchesScreenProps) {
   const t = useT()
   const theme = useTheme()
   const insets = useSafeAreaInsets()
-  const state = useMatches('tattoo', userId, today)
+  const state = useMatches('tattoo', userId, today, project)
 
   const body = (() => {
     if (state.error != null) {

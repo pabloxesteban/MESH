@@ -153,6 +153,39 @@ export const en: Readonly<Record<TranslationKey, string>> = {
   'contact.message.references': 'I will send some references separately.',
   'contact.message.closing': 'Does that work? Let me know. Thanks.',
 
+  'projects.title': 'Your projects',
+  'projects.empty.title': 'You do not have any project yet',
+  'projects.empty.body':
+    'A project is a concrete idea: what you want, roughly when, and how much you can spend. It lets you search with that in hand instead of only with your taste.',
+  'projects.empty.action': 'Create a project',
+  'projects.new': 'New project',
+  'projects.form.title': 'What do you want',
+  'projects.form.title.placeholder': 'Olive branch on the forearm',
+  'projects.form.description': 'Tell it in your own words',
+  'projects.form.description.hint':
+    'Optional. Size, body placement, whatever comes to mind.',
+  'projects.form.styles': 'Styles you like for this',
+  'projects.form.budget': 'How much you can spend',
+  'projects.form.budget.hint':
+    'Optional. We only use it to avoid showing you people out of your reach.',
+  'projects.form.budget.min': 'From',
+  'projects.form.budget.max': 'To',
+  'projects.form.timing': 'By when',
+  'projects.form.timing.asap': 'As soon as possible',
+  'projects.form.timing.weeks': 'In the coming weeks',
+  'projects.form.timing.months': 'In the coming months',
+  'projects.form.timing.flexible': 'No rush',
+  'projects.form.submit': 'Save project',
+  'projects.references': 'References',
+  'projects.references.add': 'Add an image',
+  'projects.references.hint':
+    'We keep them private and strip the location data before uploading.',
+  'projects.references.count': '{n} of {max}',
+  'projects.references.full': 'You reached the maximum of {max} images',
+  'projects.archive': 'Archive project',
+  'projects.archive.confirm': 'Tap again to archive it',
+  'projects.matches': 'See who fits',
+
   'category.tattoo': 'Tattoo',
 
   'style.tattoo.fine-line': 'Fine line',
