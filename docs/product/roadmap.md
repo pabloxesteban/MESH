@@ -17,7 +17,7 @@ criterios de salida. Ninguna fase acumula código sin tests.
 | **4. Base de datos** ✅ | Migraciones de todas las tablas, enums, restricciones, índices, RPCs; seed de referencia (categorías, estilos, ubicaciones) | `supabase db reset` limpio; los tipos TS generados coinciden con `packages/domain`; pasan los tests de restricciones |
 | **5. Seguridad** ✅ | Buckets y políticas de storage, triggers de cuota, limpieza de EXIF en subidas (las políticas RLS por tabla ya aterrizaron con la Fase 4) | Escritura cruzada en storage bloqueada; las cuotas rechazan del lado del servidor; una foto subida no conserva coordenadas |
 | **6. Autenticación** ✅ | Arranque de sesión anónima, upgrade de cuenta, ingreso/salida, recuperación, guardado seguro de tokens, layout raíz con sesión | Pasa el flujo 3 de la suite E2E; ningún token fuera de `expo-secure-store`; escaneo de secretos del bundle limpio |
-| **7. Contenido** | Esquemas de contenido, CLI de seed (validar → redimensionar → blurhash → subir → upsert), 2–3 artistas reales de punta a punta | La carga es idempotente; el contenido malformado aborta antes de insertar; la falta de consentimiento bloquea la corrida; los fixtures se rechazan en modo producción |
+| **7. Contenido** ⚠️ | Esquemas de contenido, CLI de seed (validar → redimensionar → blurhash → subir → upsert), 2–3 artistas reales de punta a punta | La carga es idempotente; el contenido malformado aborta antes de insertar; la falta de consentimiento bloquea la corrida; los fixtures se rechazan en modo producción |
 | **8. Descubrimiento** | RPC del feed, mazo, `ArtworkCard`, gestos, botones, deshacer, prefetch, detalle de obra, los cuatro estados | 60fps sostenidos en un Android de gama media; camino solo-botones completo; la cola offline sobrevive al modo avión |
 | **9. Motor de gusto** | Motor de gusto en `packages/domain`, persistencia, pantalla de gusto, vista de evidencia, reset | Pasan todos los tests de gusto de `matching.md` §8; el umbral es correcto; la revelación respeta reducción de movimiento |
 | **10. Matching** | Motor de match, bandas, derivación de razones, pantalla de matches, estados vacíos honestos | Pasan todos los tests de matching, incluidos renormalización por omisión y estabilidad de orden; ninguna razón referencia un componente omitido |
@@ -267,3 +267,55 @@ Dos cosas que cambiaron por escribir esto:
    ser el inicio real. La galería sigue siendo una herramienta de desarrollo y
    sus strings no pasan por i18n a propósito — no los lee nadie que no esté
    construyendo MESH.
+
+## Estado de la Fase 7
+
+Cerrada el 2026-08-18, **con una parte deliberadamente sin hacer**. Ver abajo.
+
+El pipeline completo, funcionando de punta a punta contra la base local:
+
+- `media.ts`: tres derivados WebP (sm 400 / md 900 / lg 1600) sin agrandar el
+  original, blurhash de 4×3 componentes, y **limpieza de metadatos**.
+- `upsert.ts`: la única parte del repo que usa la service-role key. Upsert sobre
+  la clave natural de cada tabla, así que volver a correr la carga produce
+  exactamente el mismo resultado — verificado corriéndola dos veces y contando
+  filas y objetos.
+- `seed.ts`: valida TODO antes de la primera escritura. Un seeder que valida
+  mientras carga deja media base escrita cuando encuentra el error, y "media
+  cargado" es peor que "no cargado" porque nadie sabe qué falta.
+- Publicar es una decisión aparte de cargar (`--publish`) y queda en
+  `audit_events`.
+- `fixtures.ts` + `make-fixtures.ts`: las imágenes fixture se **generan**, no se
+  commitean, porque los `media/` del contenido están en .gitignore.
+- 6 tests del pipeline con el runner de Node.
+
+Verificado end-to-end: 3 artistas, 15 piezas, 45 objetos en storage, y el RPC
+del feed devolviendo piezas con su media, su blurhash y sus estilos.
+
+### Lo que NO se hizo, y por qué
+
+**No hay artistas reales.** El criterio de salida pedía "2–3 artistas reales de
+punta a punta" y lo que hay son tres fixtures. No es un atajo: cargar un artista
+real requiere el consentimiento de una persona real, y ese consentimiento no se
+puede fabricar desde acá. Inventar tres tatuadores porteños con bio, precios y
+handles de Instagram sería exactamente el innegociable #2 —"nunca inventar"— con
+otro nombre.
+
+Lo que sí está listo es todo lo demás: agregar un artista real es crear un
+directorio con `artist.yaml`, `portfolio.yaml`, `consent.md` fechado y las
+imágenes que el artista provea, y correr `npm run content:seed`. **Esa parte es
+tuya, no mía.**
+
+Los fixtures son inconfundibles: `is_fixture: true`, nombre con prefijo
+`[Fixture] ` impuesto por el esquema de validación, imágenes abstractas con la
+palabra FIXTURE impresa, y la carga a producción **falla** si encuentra alguno
+— verificado corriendo `--target production` y viendo el rechazo.
+
+### Un defecto real que encontró correr el seeder
+
+`service_role` no tenía INSERT sobre las tablas nuevas. Los privilegios por
+defecto del esquema `public` vienen recortados en las versiones recientes de
+Supabase, y la carga falló recién al intentar escribir, con "permission denied
+for table categories". Ahora los grants son explícitos, con `alter default
+privileges` para las tablas que vengan, y hay un test que lo verifica: un
+privilegio heredado es un privilegio que una actualización puede sacar.

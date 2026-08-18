@@ -9,10 +9,15 @@
     "validate": "node --experimental-strip-types src/validate.ts",
     "seed": "node --experimental-strip-types src/seed.ts",
     "reference": "node --experimental-strip-types src/reference.ts",
-    "reference:check": "node --experimental-strip-types src/reference.ts --check"
+    "reference:check": "node --experimental-strip-types src/reference.ts --check",
+    "test": "node --experimental-strip-types --test src/*.test.ts",
+    "fixtures": "node --experimental-strip-types src/fixtures.ts"
   },
   "dependencies": {
     "@mesh/domain": "*",
+    "@supabase/supabase-js": "^2.112.3",
+    "blurhash": "^2.0.5",
+    "sharp": "^0.35.3",
     "yaml": "^2.9.0"
   },
   "devDependencies": {

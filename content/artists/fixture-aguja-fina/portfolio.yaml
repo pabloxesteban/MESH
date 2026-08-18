@@ -1,0 +1,26 @@
+items:
+  - file: 01.jpg
+    caption: Pieza sintética de prueba
+    year: 2026
+    featured: true
+    styles:
+      - { slug: fine-line, weight: 0.7 }
+      - { slug: minimalist, weight: 0.3 }
+  - file: 02.jpg
+    year: 2026
+    styles:
+      - { slug: fine-line, weight: 1.0 }
+  - file: 03.jpg
+    year: 2025
+    styles:
+      - { slug: minimalist, weight: 0.6 }
+      - { slug: fine-line, weight: 0.4 }
+  - file: 04.jpg
+    year: 2025
+    styles:
+      - { slug: dotwork, weight: 0.5 }
+      - { slug: ornamental, weight: 0.5 }
+  - file: 05.jpg
+    styles:
+      - { slug: fine-line, weight: 0.5 }
+      - { slug: ornamental, weight: 0.5 }

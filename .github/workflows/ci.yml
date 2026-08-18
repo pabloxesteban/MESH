@@ -46,10 +46,21 @@ jobs:
       - name: 3 · Tests de dominio
         run: npm run test
 
-      - name: 4 · Validación de contenido
+      - name: 4a · Generar las imágenes fixture
+        # Los `media/` del contenido están en .gitignore: los originales quedan
+        # con el artista. Sin este paso, la validación falla en CI por archivos
+        # que nunca deberían estar versionados.
+        run: npm run content:fixtures
+
+      - name: 4b · Validación de contenido
         # Falla si a un artista le falta el consentimiento, si un slug de estilo
-        # no está en la taxonomía, o si los pesos de una pieza no suman 1.
+        # no está en la taxonomía, si los pesos de una pieza no suman 1, o si un
+        # fixture tiene un nombre humano verosímil.
         run: npm run content:validate
+
+      - name: 4c · Tests del pipeline de contenido
+        # Incluye la verificación de que los derivados no conservan EXIF ni GPS.
+        run: npm run test -w @mesh/seed
 
       - name: 6 · Tests de componentes
         # Fase 3. Sin componentes todavía, el script no existe y --if-present

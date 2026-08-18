@@ -16,6 +16,9 @@ import { isKnownStyle, type CategorySlug } from '../taxonomy/taxonomy.ts'
 /** Suma de pesos tolerada al validar los estilos de una pieza. */
 export const STYLE_WEIGHT_TOLERANCE = 0.001
 
+/** Prefijo reservado de los nombres fixture. Ver content-policy §4. */
+export const FIXTURE_PREFIX = '[Fixture] '
+
 const slug = z
   .string()
   .regex(
@@ -102,6 +105,29 @@ export const artistSchema = z
     is_fixture: z.boolean().optional(),
   })
   .superRefine((artist, ctx) => {
+    // Un fixture tiene que ser inconfundible. El prefijo no es cosmético: es lo
+    // que hace imposible que alguien vea una tarjeta de prueba y la lea como un
+    // artista real. Ver docs/product/content-policy.md §4.
+    if (artist.is_fixture === true && !artist.display_name.startsWith(FIXTURE_PREFIX)) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['display_name'],
+        message:
+          `Un fixture tiene que llamarse "${FIXTURE_PREFIX}…". Un nombre ` +
+          `humano verosímil en un registro de prueba es indistinguible de una ` +
+          `persona real.`,
+      })
+    }
+    if (artist.is_fixture !== true && artist.display_name.startsWith(FIXTURE_PREFIX)) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['is_fixture'],
+        message:
+          `El nombre empieza con "${FIXTURE_PREFIX}" pero is_fixture no es ` +
+          `true. La carga a producción rechaza fixtures, y esta fila pasaría.`,
+      })
+    }
+
     if (!isKnownLocation(artist.location)) {
       ctx.addIssue({
         code: 'custom',

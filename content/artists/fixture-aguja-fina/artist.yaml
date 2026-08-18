@@ -1,0 +1,31 @@
+# Artista fixture. Ver consent.md.
+slug: fixture-aguja-fina
+display_name: '[Fixture] Aguja Fina'
+category: tattoo
+location: caba
+is_fixture: true
+
+bio: >-
+  Registro sintético para construir y probar el mazo de descubrimiento antes de
+  que llegue contenido real. No representa a ninguna persona.
+
+styles:
+  - { slug: fine-line, proficiency: 1.0, primary: true }
+  - { slug: minimalist, proficiency: 1.0, primary: true }
+  - { slug: dotwork, proficiency: 0.6, primary: false }
+  - { slug: ornamental, proficiency: 0.5, primary: false }
+
+travels: false
+
+price:
+  min_cents: 6000000
+  max_cents: 18000000
+  currency: ARS
+  priced_at: '2026-08-01'
+
+availability:
+  status: limited
+  updated_at: '2026-08-10'
+
+contact:
+  instagram: fixture.aguja.fina

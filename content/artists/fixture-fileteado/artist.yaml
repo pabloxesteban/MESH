@@ -1,0 +1,26 @@
+# Artista fixture. Ver consent.md.
+slug: fixture-fileteado
+display_name: '[Fixture] Fileteado'
+category: tattoo
+location: la-plata
+is_fixture: true
+
+bio: >-
+  Registro sintético en otra área metropolitana, para que el componente de
+  ubicación del matching tenga un caso donde no coincide.
+
+styles:
+  - { slug: fileteado-porteno, proficiency: 1.0, primary: true }
+  - { slug: lettering, proficiency: 0.8, primary: false }
+  - { slug: traditional, proficiency: 0.6, primary: false }
+
+travels: false
+
+price:
+  min_cents: 4000000
+  max_cents: 9000000
+  currency: ARS
+  priced_at: '2026-07-20'
+
+contact:
+  whatsapp: '+5492210000003'

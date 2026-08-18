@@ -1,0 +1,26 @@
+# Artista fixture. Ver consent.md.
+slug: fixture-tinta-negra
+display_name: '[Fixture] Tinta Negra'
+category: tattoo
+location: vicente-lopez
+is_fixture: true
+
+bio: >-
+  Registro sintético. Existe para que el mazo tenga más de un artista y la
+  restricción de diversidad del feed tenga algo que hacer.
+
+styles:
+  - { slug: blackwork, proficiency: 1.0, primary: true }
+  - { slug: black-and-grey, proficiency: 1.0, primary: true }
+  - { slug: realism, proficiency: 0.7, primary: false }
+  - { slug: japanese, proficiency: 0.5, primary: false }
+
+travels: true
+
+availability:
+  status: open
+  updated_at: '2026-08-15'
+
+contact:
+  instagram: fixture.tinta.negra
+  whatsapp: '+5491100000002'

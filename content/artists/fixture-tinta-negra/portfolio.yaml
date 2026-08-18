@@ -1,0 +1,27 @@
+items:
+  - file: 01.jpg
+    featured: true
+    year: 2026
+    styles:
+      - { slug: blackwork, weight: 1.0 }
+  - file: 02.jpg
+    year: 2026
+    styles:
+      - { slug: black-and-grey, weight: 0.7 }
+      - { slug: realism, weight: 0.3 }
+  - file: 03.jpg
+    styles:
+      - { slug: blackwork, weight: 0.5 }
+      - { slug: japanese, weight: 0.5 }
+  - file: 04.jpg
+    year: 2024
+    styles:
+      - { slug: black-and-grey, weight: 1.0 }
+  - file: 05.jpg
+    styles:
+      - { slug: realism, weight: 0.6 }
+      - { slug: black-and-grey, weight: 0.4 }
+  - file: 06.jpg
+    styles:
+      - { slug: blackwork, weight: 0.8 }
+      - { slug: dotwork, weight: 0.2 }

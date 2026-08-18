@@ -7,7 +7,7 @@
 -- Ver .claude/workflows/database-change.md §4.
 
 begin;
-select plan(8);
+select plan(9);
 
 -- 1. RLS habilitado en toda tabla de `public`.
 select is_empty(
@@ -124,6 +124,24 @@ select is_empty(
       )
   $$,
   'Toda función security definer fija search_path'
+);
+
+-- 9. `service_role` puede escribir en todas las tablas.
+--
+-- No es una garantía de seguridad sino de que el seeder funciona. Está acá
+-- porque ya se rompió una vez: los privilegios por defecto del esquema `public`
+-- vienen recortados en las versiones recientes de Supabase, `service_role`
+-- quedó sin INSERT, y la carga falló recién al intentar escribir. Un privilegio
+-- que se hereda es un privilegio que una actualización puede sacar.
+select is_empty(
+  $$
+    select c.relname
+    from pg_class c
+    join pg_namespace n on n.oid = c.relnamespace
+    where n.nspname = 'public' and c.relkind = 'r'
+      and not has_table_privilege('service_role', c.oid, 'select, insert, update, delete')
+  $$,
+  'service_role puede escribir en todas las tablas de public'
 );
 
 select * from finish();

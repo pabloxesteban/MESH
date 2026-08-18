@@ -44,6 +44,12 @@ coverage/
 content/media/
 !content/media/.gitkeep
 
+# Originales de artistas. Quedan con el artista, no en el repositorio: un
+# repositorio no es el lugar donde se custodia la obra de otra persona, y un
+# retiro tiene que poder cumplirse sin reescribir la historia de git.
+# Las de los fixtures se regeneran con `npm run content:fixtures`.
+content/artists/*/media/
+
 # herramientas
 .DS_Store
 Thumbs.db
