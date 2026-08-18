@@ -29,6 +29,24 @@ slugs de estilo son estables y nunca se traducen.
 
 Detalle completo: [`docs/product/content-policy.md`](../../docs/product/content-policy.md).
 
+## Dar de alta un artista
+
+```bash
+npm run content:new -- --slug ana-perez --name "Ana Pérez" --location caba
+```
+
+Crea el directorio con los tres archivos y todos los campos presentes pero
+**vacíos**, marcados con `TODO`. Vacío y no inventado es a propósito: un
+placeholder verosímil —un precio de ejemplo, una bio "por ahora"— es exactamente
+cómo un dato inventado llega a producción sin que nadie lo note. Un `TODO` no se
+publica por accidente: `content:validate` lo rechaza.
+
+Después, en orden: conseguir el consentimiento y completar `consent.md`, pedirle
+las imágenes al artista, completar los YAML, validar.
+
+El comando **no** consigue el consentimiento. Eso es una conversación con una
+persona, y `consent.md` es el registro de esa conversación, no su reemplazo.
+
 ## Verificar antes de commitear
 
 ```bash

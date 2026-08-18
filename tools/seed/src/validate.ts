@@ -76,6 +76,32 @@ export function validateAll(): ValidationResult {
       fail('consent.md no tiene una fecha ISO (AAAA-MM-DD)')
     }
 
+    // Un directorio recién creado por `content:new` viene lleno de TODO. La
+    // mayoría los agarra el esquema —un slug de estilo "TODO" no existe en la
+    // taxonomía—, pero no todos: `bio: TODO` es un string válido, y un
+    // consent.md con los campos sin completar tiene fecha y pasa.
+    //
+    // Publicar una bio que dice TODO es un error tonto; publicar un registro de
+    // consentimiento sin completar es afirmar que hubo una conversación que no
+    // hubo. Por eso el marcador es una falla dura y no un aviso.
+    for (const archivo of ['consent.md', 'artist.yaml', 'portfolio.yaml']) {
+      let contenido: string
+      try {
+        contenido = readFileSync(join(base, archivo), 'utf8')
+      } catch {
+        continue
+      }
+      // Solo lo que queda fuera de un comentario de YAML: las plantillas
+      // explican los campos en comentarios, y ahí la palabra es documentación.
+      const vivas = contenido
+        .split('\n')
+        .filter((linea) => !/^\s*#/.test(linea))
+        .join('\n')
+      if (/\bTODO\b/.test(vivas)) {
+        fail(`${archivo} todavía tiene un TODO sin completar`)
+      }
+    }
+
     let artist: ArtistContent
     try {
       const parsed = artistSchema.safeParse(readYaml(join(base, 'artist.yaml')))

@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "CLI de carga de contenido de MESH. Usa la service-role key — nunca se empaqueta en la app.",
+  "description": "CLI de carga de contenido de MESH. Usa la service-role key \u2014 nunca se empaqueta en la app.",
   "scripts": {
     "typecheck": "tsc --noEmit",
     "validate": "node --experimental-strip-types src/validate.ts",
@@ -11,7 +11,8 @@
     "reference": "node --experimental-strip-types src/reference.ts",
     "reference:check": "node --experimental-strip-types src/reference.ts --check",
     "test": "node --experimental-strip-types --test src/*.test.ts",
-    "fixtures": "node --experimental-strip-types src/fixtures.ts"
+    "fixtures": "node --experimental-strip-types src/fixtures.ts",
+    "new": "node --experimental-strip-types src/new-artist.ts"
   },
   "dependencies": {
     "@mesh/domain": "*",
