@@ -24,7 +24,7 @@ en `tools/seed/` o en `content/`.
    indicación explícita.
 3. **Nunca inventes** una bio, un precio, disponibilidad, una reseña o una
    credencial. Un campo faltante no renderiza nada.
-4. **Los fixtures son inconfundibles:** `is_fixture = true`, prefijo `[Fixture] `
+4. **Los fixtures son inconfundibles:** `is_fixture = true`, slug `fixture-…`
    en el nombre, insignia visible en builds no productivos. **La carga a
    producción falla si hay algún fixture presente.**
 5. **Validá todo antes de escribir nada.** Abortá antes del primer insert. Nunca

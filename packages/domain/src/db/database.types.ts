@@ -906,6 +906,7 @@ export type Database = {
           portfolio_item_id: string
           professional_display_name: string
           professional_id: string
+          professional_is_fixture: boolean
           professional_slug: string
           styles: Json
           year: number

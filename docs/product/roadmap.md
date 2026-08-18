@@ -317,10 +317,12 @@ directorio con `artist.yaml`, `portfolio.yaml`, `consent.md` fechado y las
 imágenes que el artista provea, y correr `npm run content:seed`. **Esa parte es
 tuya, no mía.**
 
-Los fixtures son inconfundibles: `is_fixture: true`, nombre con prefijo
-`[Fixture] ` impuesto por el esquema de validación, imágenes abstractas con la
-palabra FIXTURE impresa, y la carga a producción **falla** si encuentra alguno
-— verificado corriendo `--target production` y viendo el rechazo.
+Los fixtures son inconfundibles: `is_fixture: true`, slug con prefijo
+`fixture-` y nombre que no puede leerse como el de una persona —las dos cosas
+impuestas por el esquema de validación—, insignia visible en toda pantalla que
+los muestre, contacto bloqueado, imágenes abstractas con la palabra FIXTURE
+impresa, y la carga a producción **falla** si encuentra alguno — verificado
+corriendo `--target production` y viendo el rechazo.
 
 ### Un defecto real que encontró correr el seeder
 
@@ -609,7 +611,7 @@ sabemos.
    solo los tres fixtures sintéticos. Conseguirlos requiere hablar con personas
    y obtener su consentimiento, que no es algo que se resuelva desde acá.
 2. **Las capturas de tienda no se pueden sacar**, y tampoco habría que
-   fabricarlas: una captura con fixtures muestra `[Fixture] Aguja Fina` sobre
+   fabricarlas: una captura con fixtures muestra una insignia de prueba sobre
    imágenes abstractas. Se sacan con contenido real, después de la recorrida.
 
 Los dos dependen de la misma cosa, y esa cosa es tuya.

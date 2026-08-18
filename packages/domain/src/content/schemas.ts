@@ -16,8 +16,21 @@ import { isKnownStyle, type CategorySlug } from '../taxonomy/taxonomy.ts'
 /** Suma de pesos tolerada al validar los estilos de una pieza. */
 export const STYLE_WEIGHT_TOLERANCE = 0.001
 
-/** Prefijo reservado de los nombres fixture. Ver content-policy §4. */
-export const FIXTURE_PREFIX = '[Fixture] '
+/**
+ * Prefijo reservado de los SLUGS fixture. Ver content-policy §4.
+ *
+ * Antes esto marcaba el `display_name` (`[Fixture] Irezumi`). Se movió al slug
+ * porque el nombre es lo que se ve y el slug es lo que se verifica: un prefijo
+ * en el nombre ensucia cada captura, cada mensaje de contacto y cada evento de
+ * analytics, mientras que el slug no se muestra nunca, no se traduce nunca y no
+ * lo puede "arreglar" alguien que quiere que la demo se vea linda.
+ *
+ * La garantía de que un fixture no se confunde con una persona real no la da
+ * este prefijo sola: la dan las tres cosas juntas de content-policy §4 — el
+ * slug, la insignia visible en TODA superficie que renderiza un fixture, y el
+ * bloqueo del contacto.
+ */
+export const FIXTURE_SLUG_PREFIX = 'fixture-'
 
 const slug = z
   .string()
@@ -25,6 +38,51 @@ const slug = z
     /^[a-z0-9]+(?:-[a-z0-9]+)*$/,
     'Debe ser un slug en minúscula con guiones',
   )
+
+/**
+ * ¿Este nombre se lee como "Nombre Apellido"?
+ *
+ * Dos o más palabras capitalizadas seguidas, sin nexos. "Tinta Negra" y "Vieja
+ * Escuela" pasarían, así que además se exige que ninguna palabra sea una
+ * palabra común del vocabulario de tatuaje que usan los fixtures. La lista es
+ * corta a propósito: no intenta ser un detector de nombres, intenta que nadie
+ * llame "Sofía Ramírez" a un registro de prueba sin que el build lo note.
+ */
+const FIXTURE_VOCABULARY = new Set([
+  'tinta',
+  'negra',
+  'negro',
+  'aguja',
+  'fina',
+  'fino',
+  'punto',
+  'linea',
+  'línea',
+  'acuarela',
+  'irezumi',
+  'retrato',
+  'vieja',
+  'escuela',
+  'caligrafia',
+  'caligrafía',
+  'fileteado',
+  'mano',
+  'sombra',
+  'trazo',
+  'color',
+  'prueba',
+  'demo',
+  'fixture',
+])
+
+function looksLikeAPersonName(displayName: string): boolean {
+  const words = displayName.split(/\s+/u).filter((word) => word.length > 0)
+  const capitalized = words.filter((word) => /^\p{Lu}\p{L}+$/u.test(word))
+  if (capitalized.length < 2) return false
+  return capitalized.every(
+    (word) => !FIXTURE_VOCABULARY.has(word.toLocaleLowerCase('es-AR')),
+  )
+}
 
 const categorySlug = z.literal('tattoo')
 
@@ -105,32 +163,49 @@ export const artistSchema = z
     is_fixture: z.boolean().optional(),
   })
   .superRefine((artist, ctx) => {
-    // Un fixture tiene que ser inconfundible. El prefijo no es cosmético: es lo
-    // que hace imposible que alguien vea una tarjeta de prueba y la lea como un
-    // artista real. Ver docs/product/content-policy.md §4.
+    // Un fixture tiene que ser inconfundible, y el slug es donde se verifica.
+    // Ver docs/product/content-policy.md §4.
     if (
       artist.is_fixture === true &&
-      !artist.display_name.startsWith(FIXTURE_PREFIX)
+      !artist.slug.startsWith(FIXTURE_SLUG_PREFIX)
     ) {
       ctx.addIssue({
         code: 'custom',
-        path: ['display_name'],
+        path: ['slug'],
         message:
-          `Un fixture tiene que llamarse "${FIXTURE_PREFIX}…". Un nombre ` +
-          `humano verosímil en un registro de prueba es indistinguible de una ` +
-          `persona real.`,
+          `El slug de un fixture tiene que empezar con ` +
+          `"${FIXTURE_SLUG_PREFIX}". Es lo que hace que un registro de prueba ` +
+          `sea reconocible por una máquina y no solo a ojo.`,
       })
     }
     if (
       artist.is_fixture !== true &&
-      artist.display_name.startsWith(FIXTURE_PREFIX)
+      artist.slug.startsWith(FIXTURE_SLUG_PREFIX)
     ) {
       ctx.addIssue({
         code: 'custom',
         path: ['is_fixture'],
         message:
-          `El nombre empieza con "${FIXTURE_PREFIX}" pero is_fixture no es ` +
+          `El slug empieza con "${FIXTURE_SLUG_PREFIX}" pero is_fixture no es ` +
           `true. La carga a producción rechaza fixtures, y esta fila pasaría.`,
+      })
+    }
+    // El nombre de un fixture no puede parecer el de una persona. La heurística
+    // es deliberadamente tosca — dos o más palabras capitalizadas seguidas es
+    // la forma de "Nombre Apellido" — y por eso solo se aplica a fixtures,
+    // donde un falso positivo cuesta renombrar un archivo de prueba y un falso
+    // negativo cuesta que alguien le escriba a una persona que no existe.
+    if (
+      artist.is_fixture === true &&
+      looksLikeAPersonName(artist.display_name)
+    ) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['display_name'],
+        message:
+          `"${artist.display_name}" se lee como el nombre de una persona. Un ` +
+          `fixture tiene que llamarse por lo que muestra ("Irezumi", "Tinta ` +
+          `Negra"), no como alguien a quien se le podría escribir.`,
       })
     }
 

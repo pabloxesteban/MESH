@@ -1,6 +1,6 @@
 # Artista fixture. Ver consent.md.
 slug: fixture-a-mano
-display_name: '[Fixture] A Mano'
+display_name: 'A Mano'
 category: tattoo
 location: caba
 is_fixture: true

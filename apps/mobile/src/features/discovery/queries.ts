@@ -21,6 +21,8 @@ export interface FeedItem {
   readonly professionalId: string
   readonly professionalSlug: string
   readonly professionalName: string
+  /** Registro de prueba. Toda superficie que lo muestre tiene que decirlo. */
+  readonly isFixture: boolean
   readonly caption: string | null
   readonly year: number | null
   readonly mediaBucket: string
@@ -90,6 +92,7 @@ function toFeedItem(row: FeedRow): FeedItem {
     professionalId: String(row['professional_id']),
     professionalSlug: String(row['professional_slug']),
     professionalName: String(row['professional_display_name']),
+    isFixture: row['professional_is_fixture'] === true,
     caption: (row['caption'] as string | null) ?? null,
     year: (row['year'] as number | null) ?? null,
     mediaBucket: String(row['media_bucket']),

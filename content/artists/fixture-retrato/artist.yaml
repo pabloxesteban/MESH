@@ -1,6 +1,6 @@
 # Artista fixture. Ver consent.md.
 slug: fixture-retrato
-display_name: '[Fixture] Retrato'
+display_name: 'Retrato'
 category: tattoo
 location: caba
 is_fixture: true

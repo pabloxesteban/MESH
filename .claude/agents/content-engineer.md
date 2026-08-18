@@ -21,7 +21,8 @@ Sos dueño de `content/`, `tools/seed/`, y la taxonomía en `packages/domain`.
 3. **Nunca inventar.** Ni bios, ni precios, ni disponibilidad, ni reseñas, ni
    credenciales. Un campo faltante no renderiza nada.
 4. **Los fixtures son inconfundibles:** `is_fixture = true`, prefijo de nombre
-   `[Fixture] `, insignia visible en builds no productivos, y **la carga a
+   de slug `fixture-`, insignia visible en toda superficie que los muestre,
+   contacto bloqueado, y **la carga a
    producción falla si hay alguna fila fixture**.
 5. **Validá todo antes de escribir nada.** Abortá antes del primer insert. Nunca
    apliques parcialmente; nunca saltees en silencio un registro inválido.

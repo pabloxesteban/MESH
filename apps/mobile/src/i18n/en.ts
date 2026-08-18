@@ -131,6 +131,7 @@ export const en: Readonly<Record<TranslationKey, string>> = {
   'profile.portfolio': 'Work',
   'profile.contact': 'Write to them',
   'profile.fixture': 'Test record. Not a real person.',
+  'common.fixture': 'Test',
 
   'contact.title': 'Write to {nombre}',
   'contact.body':
@@ -141,6 +142,11 @@ export const en: Readonly<Record<TranslationKey, string>> = {
   'contact.instagram.note':
     'Instagram does not allow sending a pre-written message. We copied it so you can paste it.',
   'contact.copied': 'Message copied',
+  'contact.fixture.title': 'This is a test record',
+  'contact.fixture.body':
+    'Not a real person, and the contact number does not exist. It is here so ' +
+    'the app can be built and shown before the real content arrives.',
+  'contact.fixture.action': 'Back to profile',
   'contact.noChannel.title': 'We cannot write to them from here',
   'contact.noChannel.body':
     'This artist did not publish any contact channel. We do not invent one.',

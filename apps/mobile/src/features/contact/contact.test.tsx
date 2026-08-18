@@ -17,7 +17,7 @@ function professional(overrides: Partial<Professional> = {}): Professional {
     id: 'p1',
     slug: 'aguja-fina',
     categorySlug: 'tattoo',
-    displayName: '[Fixture] Aguja Fina',
+    displayName: 'Aguja Fina',
     bio: null,
     location: null,
     travels: false,
@@ -26,7 +26,9 @@ function professional(overrides: Partial<Professional> = {}): Professional {
     availability: null,
     instagramHandle: null,
     whatsappE164: null,
-    isFixture: true,
+    // No es fixture: un fixture no llega a la pantalla de contacto
+    // (content-policy §4.4), y hay un test propio para ese corte.
+    isFixture: false,
     ...overrides,
   }
 }
@@ -144,5 +146,17 @@ describe('ContactScreen', () => {
     const value = screen.getByTestId('contact-message').props.value as string
     expect(value).not.toContain('MESH')
     expect(value).not.toContain('Aguja Fina')
+  })
+
+  it('no deja contactar a un registro ficticio', async () => {
+    // El número de un fixture es inventado. Antes esto lo cubría de casualidad
+    // el prefijo en el nombre —el mensaje decía "Hola [Fixture] …" y nadie lo
+    // mandaba en serio—; con el nombre limpio hace falta el corte explícito.
+    render({ whatsappE164: '+5491100000001', isFixture: true })
+    await waitFor(() =>
+      expect(screen.getByTestId('contact-fixture-blocked')).toBeTruthy(),
+    )
+    expect(screen.queryByTestId('contact-content')).toBeNull()
+    expect(screen.queryByTestId('contact-whatsapp')).toBeNull()
   })
 })

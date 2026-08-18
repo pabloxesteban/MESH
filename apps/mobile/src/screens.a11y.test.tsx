@@ -289,7 +289,9 @@ describe('barrido de accesibilidad y callejones', () => {
         availability: null,
         instagramHandle: null,
         whatsappE164: null,
-        isFixture: true,
+        // NO es fixture a propósito: un fixture se corta antes de llegar acá
+        // (content-policy §4.4), así que este caso nunca se alcanzaría.
+        isFixture: false,
       },
       pieces: [],
     })
@@ -298,6 +300,32 @@ describe('barrido de accesibilidad y callejones', () => {
       expect(screen.getByTestId('contact-no-channel')).toBeTruthy(),
     )
     sweep('contacto · sin canal')
+  })
+
+  it('contacto, registro ficticio', async () => {
+    ;(fetchProfile as jest.Mock).mockResolvedValue({
+      professional: {
+        id: 'p1',
+        slug: 'fixture-x',
+        categorySlug: 'tattoo',
+        displayName: 'Tinta Negra',
+        bio: null,
+        location: null,
+        travels: false,
+        styles: [],
+        price: null,
+        availability: null,
+        instagramHandle: 'x',
+        whatsappE164: '+5491100000001',
+        isFixture: true,
+      },
+      pieces: [],
+    })
+    render(<ContactScreen slug="fixture-x" onBack={jest.fn()} />)
+    await waitFor(() =>
+      expect(screen.getByTestId('contact-fixture-blocked')).toBeTruthy(),
+    )
+    sweep('contacto · ficticio')
   })
 
   it('formulario de proyecto', () => {

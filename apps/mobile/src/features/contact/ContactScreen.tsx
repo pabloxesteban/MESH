@@ -122,6 +122,26 @@ export function ContactScreen({
       )
     }
 
+    if (professional.isFixture) {
+      // Un fixture no se contacta. El número es inventado, así que el botón no
+      // podría llevar a ninguna parte, y un mensaje precargado con el nombre de
+      // un artista que no existe es exactamente la confusión que la política de
+      // contenido trata de evitar. Ver content-policy §4.
+      //
+      // Esto lo cubría antes, de casualidad, el prefijo en el nombre: el
+      // mensaje decía "Hola [Fixture] Irezumi" y era imposible mandarlo en
+      // serio. Al limpiar el nombre esa protección desapareció, así que ahora
+      // es explícita.
+      return (
+        <EmptyState
+          title={t('contact.fixture.title')}
+          body={t('contact.fixture.body')}
+          action={{ label: t('contact.fixture.action'), onPress: onBack }}
+          testID="contact-fixture-blocked"
+        />
+      )
+    }
+
     const hasWhatsapp = professional.whatsappE164 != null
     const hasInstagram = professional.instagramHandle != null
 

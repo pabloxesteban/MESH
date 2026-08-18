@@ -11,6 +11,7 @@ import { memo } from 'react'
 import { View } from 'react-native'
 
 import { Box, Tag, Text, radius, useTheme } from '@/design-system/index.ts'
+import { FixtureBadge } from '@/components/FixtureBadge.tsx'
 import { useT } from '@/i18n/I18nProvider.tsx'
 import type { TranslationKey } from '@/i18n/index.ts'
 
@@ -41,7 +42,7 @@ function ArtworkCardImpl({ item, isTop = false, testID }: ArtworkCardProps) {
       // los botones de decisión tengan sentido.
       accessibilityLabel={`${item.professionalName}. ${item.styles
         .map((style) => t(`style.tattoo.${style.slug}` as TranslationKey))
-        .join(', ')}`}
+        .join(', ')}${item.isFixture ? `. ${t('profile.fixture')}` : ''}`}
       style={{
         flex: 1,
         borderRadius: radius.lg,
@@ -68,6 +69,12 @@ function ArtworkCardImpl({ item, isTop = false, testID }: ArtworkCardProps) {
       />
 
       <Box padding="sm" gap="xs" background="surfaceRaised">
+        {/* Arriba del nombre, no al lado: al lado compite con lo único que la
+            persona vino a leer, y abajo se lo puede tapar el pie de la tarjeta. */}
+        {item.isFixture ? (
+          <FixtureBadge testID="artwork-fixture-badge" />
+        ) : null}
+
         <Text role="title" numberOfLines={1}>
           {item.professionalName}
         </Text>

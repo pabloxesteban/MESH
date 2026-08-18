@@ -1,6 +1,6 @@
 # Artista fixture. Ver consent.md.
 slug: fixture-tinta-negra
-display_name: '[Fixture] Tinta Negra'
+display_name: 'Tinta Negra'
 category: tattoo
 location: vicente-lopez
 is_fixture: true

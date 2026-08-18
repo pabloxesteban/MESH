@@ -62,7 +62,8 @@ function feedRow(index: number, professional: string) {
     portfolio_item_id: `pieza-${index}`,
     professional_id: `prof-${professional}`,
     professional_slug: professional,
-    professional_display_name: `[Fixture] ${professional}`,
+    professional_display_name: `${professional}`,
+    professional_is_fixture: false,
     caption: null,
     year: 2026,
     media_bucket: 'portfolio',
@@ -234,7 +235,28 @@ describe('DeckScreen', () => {
     await waitFor(() => expect(screen.getByTestId('deck-cards')).toBeTruthy())
     // El presupuesto de performance dice 3 montadas. Más tarjetas montadas es
     // más memoria de imagen sin nada que nadie vea.
-    expect(screen.getAllByLabelText(/Fixture/).length).toBeLessThanOrEqual(3)
+    expect(screen.getAllByLabelText(/Línea fina/).length).toBeLessThanOrEqual(3)
+  })
+
+  it('marca los registros ficticios en la tarjeta, no solo en el perfil', async () => {
+    // El nombre de un fixture ya no lleva prefijo, así que la ÚNICA cosa que
+    // impide leer una tarjeta de prueba como un artista real es esta insignia.
+    // Ver content-policy §4.3.
+    mockRpc.mockResolvedValue({
+      data: [{ ...feedRow(1, 'uno'), professional_is_fixture: true }],
+      error: null,
+    })
+    renderDeck()
+    await waitFor(() => expect(screen.getByTestId('deck-cards')).toBeTruthy())
+    expect(
+      screen.getAllByTestId('artwork-fixture-badge').length,
+    ).toBeGreaterThan(0)
+  })
+
+  it('no marca a un profesional real', async () => {
+    renderDeck()
+    await waitFor(() => expect(screen.getByTestId('deck-cards')).toBeTruthy())
+    expect(screen.queryByTestId('artwork-fixture-badge')).toBeNull()
   })
 
   it('tiene un botón con etiqueta por cada gesto', async () => {

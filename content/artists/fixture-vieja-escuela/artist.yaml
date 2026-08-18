@@ -1,6 +1,6 @@
 # Artista fixture. Ver consent.md.
 slug: fixture-vieja-escuela
-display_name: '[Fixture] Vieja Escuela'
+display_name: 'Vieja Escuela'
 category: tattoo
 location: san-isidro
 is_fixture: true

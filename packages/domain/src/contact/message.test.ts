@@ -27,7 +27,7 @@ const labels: ContactLabels = {
 describe('composeContactMessage', () => {
   it('con todos los datos arma una línea por dato', () => {
     const message = composeContactMessage({
-      professionalName: '[Fixture] Aguja Fina',
+      professionalName: 'Aguja Fina',
       projectTitle: 'Rama de olivo en el antebrazo',
       projectDescription: 'Chiquita, línea fina, lado interno.',
       styleNames: ['Línea fina', 'Minimalista'],
@@ -111,7 +111,7 @@ describe('composeContactMessage', () => {
     // que nada más se haya colado — ni el nombre del artista, ni MESH, ni un
     // estilo inferido, ni una cortesía que la persona no eligió.
     const message = composeContactMessage({
-      professionalName: '[Fixture] Aguja Fina',
+      professionalName: 'Aguja Fina',
       projectTitle: 'Rama de olivo',
       labels,
     })

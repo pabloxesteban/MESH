@@ -131,6 +131,62 @@ describe('artistSchema', () => {
   })
 })
 
+describe('artistSchema · reglas de fixture', () => {
+  // La garantía es que nadie confunda un registro de prueba con una persona.
+  // Hasta 2026-08-18 la daba un prefijo en el nombre; ahora la dan el slug, el
+  // nombre, la insignia de la UI y el bloqueo del contacto. Estos tests cubren
+  // las dos primeras. Ver content-policy §4.
+
+  const fixture = {
+    ...validArtist,
+    slug: 'fixture-tinta-negra',
+    display_name: 'Tinta Negra',
+    is_fixture: true,
+  }
+
+  it('acepta un fixture con slug prefijado y nombre no humano', () => {
+    expect(artistSchema.safeParse(fixture).success).toBe(true)
+  })
+
+  it('rechaza un fixture cuyo slug no empieza con fixture-', () => {
+    const result = artistSchema.safeParse({ ...fixture, slug: 'tinta-negra' })
+    expect(result.success).toBe(false)
+    expect(JSON.stringify(result.error?.issues)).toContain('fixture-')
+  })
+
+  it('rechaza un slug fixture- sin is_fixture — la carga a producción lo dejaría pasar', () => {
+    const { is_fixture: _omitido, ...sinBandera } = fixture
+    const result = artistSchema.safeParse(sinBandera)
+    expect(result.success).toBe(false)
+    expect(JSON.stringify(result.error?.issues)).toContain('is_fixture')
+  })
+
+  it('rechaza un fixture con nombre de persona', () => {
+    const result = artistSchema.safeParse({
+      ...fixture,
+      display_name: 'Sofía Ramírez',
+    })
+    expect(result.success).toBe(false)
+    expect(JSON.stringify(result.error?.issues)).toContain('Sofía Ramírez')
+  })
+
+  it('deja pasar nombres de dos palabras del vocabulario de tatuaje', () => {
+    for (const nombre of ['Vieja Escuela', 'Aguja Fina', 'Punto y Línea']) {
+      const result = artistSchema.safeParse({
+        ...fixture,
+        display_name: nombre,
+      })
+      expect(result.success, nombre).toBe(true)
+    }
+  })
+
+  it('no le aplica la heurística de nombre a un artista real', () => {
+    // `validArtist` se llama "Luna Vera", que es exactamente el patrón que la
+    // heurística rechaza en un fixture. En una persona real es lo esperable.
+    expect(artistSchema.safeParse(validArtist).success).toBe(true)
+  })
+})
+
 describe('portfolioItemSchema', () => {
   it('acepta pesos de estilo que suman 1', () => {
     const result = portfolioItemSchema.safeParse({

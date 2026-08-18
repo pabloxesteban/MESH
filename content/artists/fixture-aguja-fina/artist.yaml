@@ -1,6 +1,6 @@
 # Artista fixture. Ver consent.md.
 slug: fixture-aguja-fina
-display_name: '[Fixture] Aguja Fina'
+display_name: 'Aguja Fina'
 category: tattoo
 location: caba
 is_fixture: true

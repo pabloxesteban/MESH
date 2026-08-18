@@ -24,7 +24,7 @@ function professional(overrides: Partial<Professional> = {}): Professional {
     id: 'p1',
     slug: 'aguja-fina',
     categorySlug: 'tattoo',
-    displayName: '[Fixture] Aguja Fina',
+    displayName: 'Aguja Fina',
     bio: null,
     location: null,
     travels: false,

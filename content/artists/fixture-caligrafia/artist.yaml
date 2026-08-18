@@ -1,6 +1,6 @@
 # Artista fixture. Ver consent.md.
 slug: fixture-caligrafia
-display_name: '[Fixture] Caligrafía'
+display_name: 'Caligrafía'
 category: tattoo
 location: moron
 is_fixture: true

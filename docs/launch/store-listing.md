@@ -54,7 +54,7 @@ Título corto (Android, 30): `MESH · Tatuadores en CABA`
 | Video de vista previa | ⬜ no se va a hacer en V1 | Un video de una app que todavía no se probó con nadie promete más de lo que sabemos |
 
 **Las capturas no se pueden fabricar desde acá**, y tampoco habría que
-fabricarlas: una captura hecha con fixtures muestra `[Fixture] Aguja Fina` con
+fabricarlas: una captura hecha con fixtures muestra una insignia de prueba con
 imágenes abstractas. Las capturas se sacan con contenido real, después de la
 recorrida con los artistas.
 

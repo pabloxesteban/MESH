@@ -64,14 +64,36 @@ Pueden existir fixtures de desarrollo para poder construir la app antes de que
 llegue el contenido real, pero tienen que ser inconfundibles:
 
 1. `is_fixture = true` en `professionals` y `portfolio_items`.
-2. Los nombres usan un prefijo reservado y evidente — `[Fixture] …` — nunca un
-   nombre humano verosímil.
-3. Los builds no productivos muestran una insignia visible de fixture en
-   cualquier registro fixture.
-4. La carga en producción **falla** si alguna fila tiene `is_fixture = true`.
+2. **El slug** usa un prefijo reservado — `fixture-…` — y el `display_name`
+   nunca puede leerse como el nombre de una persona. El validador rechaza las
+   dos cosas.
+3. **Toda superficie que renderiza un fixture monta una insignia visible.** No
+   solo el perfil: la tarjeta del mazo y la de encajes también. Esto es una
+   garantía de renderizado, no una recomendación — una pantalla nueva que
+   muestre profesionales y no la monte está incompleta.
+4. **Un fixture no se puede contactar.** La pantalla de contacto lo corta antes
+   de armar el mensaje. Los números de contacto de los fixtures son además
+   reservados y no ruteables.
+5. La carga en producción **falla** si alguna fila tiene `is_fixture = true`.
    Impuesto en el CLI del seed y verificado por un test.
-5. Las imágenes fixture son placeholders abstractos, no tatuajes reales sacados
-   de ningún lado.
+6. Las imágenes fixture son placeholders abstractos, no tatuajes reales sacados
+   de ningún lado, y llevan "FIXTURE" impreso.
+
+### Por qué la marca se movió del nombre a la superficie
+
+Hasta 2026-08-18 la regla 2 marcaba el `display_name`: los fixtures se llamaban
+`[Fixture] Irezumi`. Era efectivo y tenía un costo que se hizo visible al usar
+la app de verdad: el prefijo viaja con el string, así que aparecía en cada
+captura, en cada evento de analytics y —lo peor— dentro del mensaje de contacto
+precargado.
+
+La marca se movió al slug, que no se muestra nunca y no se traduce nunca, y la
+protección de cara al usuario pasó a ser el renderizado. El saldo es **más**
+estricto que antes: el prefijo lo podía borrar cualquiera editando un YAML,
+mientras que `is_fixture` viene de la base y la carga a producción lo rechaza.
+Y la regla 4 tapa una brecha que el prefijo cubría solo de casualidad — antes el
+mensaje decía "Hola [Fixture] Irezumi" y era impensable mandarlo; ahora el
+contacto está cortado explícitamente.
 
 Reemplazar un fixture con contenido real tiene que ser la edición de un solo
 archivo más una nueva corrida del seeder — nada en la app puede hardcodear un id

@@ -151,6 +151,7 @@ export const esAR = {
   'profile.portfolio': 'Obra',
   'profile.contact': 'Escribirle',
   'profile.fixture': 'Registro de prueba. No es una persona real.',
+  'common.fixture': 'Ficticio',
 
   // --- contacto --------------------------------------------------------------
   'contact.title': 'Escribirle a {nombre}',
@@ -162,6 +163,11 @@ export const esAR = {
   'contact.instagram.note':
     'Instagram no deja mandar el mensaje escrito de antemano. Lo copiamos para que lo pegues.',
   'contact.copied': 'Mensaje copiado',
+  'contact.fixture.title': 'Este es un registro de prueba',
+  'contact.fixture.body':
+    'No es una persona real y el número de contacto no existe. Está acá para ' +
+    'poder construir y mostrar la app antes de que llegue el contenido real.',
+  'contact.fixture.action': 'Volver al perfil',
   'contact.noChannel.title': 'No podemos escribirle desde acá',
   'contact.noChannel.body':
     'Este artista no publicó ningún canal de contacto. No inventamos uno.',

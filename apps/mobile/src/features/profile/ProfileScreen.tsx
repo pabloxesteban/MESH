@@ -27,6 +27,7 @@ import {
   useTheme,
 } from '@/design-system/index.ts'
 import { ErrorView } from '@/components/ErrorView.tsx'
+import { FixtureBadge } from '@/components/FixtureBadge.tsx'
 import { mediaUrl } from '@/features/discovery/queries.ts'
 import { useI18n } from '@/i18n/I18nProvider.tsx'
 import type { TranslationKey } from '@/i18n/index.ts'
@@ -106,13 +107,7 @@ export function ProfileScreen({
           {professional.isFixture ? (
             // Los fixtures son inconfundibles también en pantalla, no solo en
             // la base. Ver content-policy §4.3.
-            <Text
-              role="micro"
-              color="stateNegative"
-              testID="profile-fixture-badge"
-            >
-              {t('profile.fixture')}
-            </Text>
+            <FixtureBadge variant="full" testID="profile-fixture-badge" />
           ) : null}
 
           {professional.location != null ? (

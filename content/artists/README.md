@@ -23,7 +23,9 @@ slugs de estilo son estables y nunca se traducen.
 3. **Nunca inventar** una bio, un precio, disponibilidad, una reseña o una
    credencial. Un campo que falta no renderiza nada.
 4. **Los fixtures son inconfundibles:** `is_fixture: true` y el nombre con
-   prefijo `[Fixture] `. La carga a producción falla si hay alguno.
+   prefijo de slug `fixture-`, un nombre que no se lea como el de una persona,
+   una insignia visible en toda pantalla que los muestre, y el contacto
+   bloqueado. La carga a producción falla si hay alguno.
 
 Detalle completo: [`docs/product/content-policy.md`](../../docs/product/content-policy.md).
 

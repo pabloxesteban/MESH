@@ -56,7 +56,7 @@ export type {
 } from './types/core.ts'
 
 export {
-  FIXTURE_PREFIX,
+  FIXTURE_SLUG_PREFIX,
   STYLE_WEIGHT_TOLERANCE,
   artistSchema,
   availabilitySchema,

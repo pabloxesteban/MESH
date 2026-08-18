@@ -1,6 +1,6 @@
 # Artista fixture. Ver consent.md.
 slug: fixture-acuarela
-display_name: '[Fixture] Acuarela'
+display_name: 'Acuarela'
 category: tattoo
 location: quilmes
 is_fixture: true

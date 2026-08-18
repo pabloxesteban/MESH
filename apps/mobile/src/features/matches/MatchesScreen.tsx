@@ -31,6 +31,7 @@ import { useEffect } from 'react'
 
 import { track } from '@/analytics/track.ts'
 import { ErrorView } from '@/components/ErrorView.tsx'
+import { FixtureBadge } from '@/components/FixtureBadge.tsx'
 import { useT } from '@/i18n/I18nProvider.tsx'
 import type { TranslationKey } from '@/i18n/index.ts'
 
@@ -191,7 +192,7 @@ function MatchCard({
       accessibilityRole="button"
       accessibilityLabel={`${professional.displayName}. ${t(
         `matches.band.${match.band}` as TranslationKey,
-      )}`}
+      )}${professional.isFixture ? `. ${t('profile.fixture')}` : ''}`}
       onTouchEnd={onPress}
       style={{
         borderRadius: radius.md,
@@ -213,6 +214,9 @@ function MatchCard({
             es un encaje del que sabemos menos. Semaforizarlo convertiría una
             escala de confianza en un juicio. */}
         <BandTag band={match.band} />
+        {professional.isFixture ? (
+          <FixtureBadge testID="match-fixture-badge" />
+        ) : null}
       </Box>
 
       <Text role="title" numberOfLines={2}>

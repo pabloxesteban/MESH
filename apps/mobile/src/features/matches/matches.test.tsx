@@ -34,7 +34,7 @@ function artist(id: string, styleSlugs: readonly string[]): Professional {
     id,
     slug: id,
     categorySlug: 'tattoo',
-    displayName: `[Fixture] ${id}`,
+    displayName: `${id}`,
     bio: null,
     location: null,
     travels: false,
@@ -208,6 +208,22 @@ describe('MatchesScreen', () => {
     await waitFor(() => expect(screen.getByTestId('matches-list')).toBeTruthy())
     fireEvent(screen.getByTestId('match-a'), 'touchEnd')
     expect(onOpenProfile).toHaveBeenCalledWith('a')
+  })
+
+  it('marca los registros ficticios en la tarjeta de encaje', async () => {
+    // Con el nombre ya sin prefijo, la insignia es lo único que distingue un
+    // encaje de prueba de uno real. Ver content-policy §4.3.
+    tasteMock.mockResolvedValue(
+      tasteSource(15, ['fine-line', 'dotwork', 'blackwork']),
+    )
+    catalogMock.mockResolvedValue([
+      artist('a', ['fine-line', 'dotwork', 'blackwork']),
+    ])
+    render()
+    await waitFor(() => expect(screen.getByTestId('matches-list')).toBeTruthy())
+    expect(screen.getAllByTestId('match-fixture-badge').length).toBeGreaterThan(
+      0,
+    )
   })
 
   it('muestra error con reintentar y sin el mensaje crudo', async () => {
