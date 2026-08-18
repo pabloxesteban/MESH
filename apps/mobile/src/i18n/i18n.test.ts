@@ -46,6 +46,44 @@ describe('catálogos', () => {
     expect(offenders(esAR, (value) => tuteo.test(value))).toEqual([])
   })
 
+  it('no le pide a nadie que haga clic en un teléfono', () => {
+    expect(offenders(esAR, (value) => /\bclic\w*\b/i.test(value))).toEqual([])
+  })
+
+  it('no se disculpa: dice qué pasó y qué hacer', () => {
+    // "Lo sentimos" no le devuelve a nadie lo que estaba haciendo. Los errores
+    // dicen qué pasó y qué hacer, en ese orden.
+    const disculpas = /\b(lo sentimos|perdón|disculp\w+|ups)\b/i
+    expect(offenders(esAR, (value) => disculpas.test(value))).toEqual([])
+  })
+
+  it('no deja inglés suelto en el catálogo de origen', () => {
+    // Salvo los nombres propios de estilo, que son términos del oficio y se
+    // dicen en inglés también acá.
+    const permitidos = new Set([
+      'style.tattoo.blackwork',
+      'style.tattoo.old-school',
+      'style.tattoo.lettering',
+      'style.tattoo.handpoke',
+      'style.tattoo.fine-line',
+      'style.tattoo.dotwork',
+    ])
+    const ingles =
+      /\b(cancel|retry|back|close|continue|save|loading|error|search|settings|profile|match(es)?|tap|swipe)\b/i
+    expect(
+      Object.entries(esAR)
+        .filter(([key]) => !permitidos.has(key))
+        .filter(([, value]) => ingles.test(value))
+        .map(([key, value]) => `${key}: ${value}`),
+    ).toEqual([])
+  })
+
+  it('no usa jerga de producto con la persona', () => {
+    // "Onboarding", "feed", "match score" son palabras nuestras, no suyas.
+    const jerga = /\b(onboarding|feed|score|engagement|churn|matchear)\b/i
+    expect(offenders(esAR, (value) => jerga.test(value))).toEqual([])
+  })
+
   it('no promete un resultado que no podemos sostener', () => {
     const prohibidos =
       /\b(perfecto|perfecta|ideal|garantiz\w*|el mejor|la mejor)\b/i

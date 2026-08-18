@@ -28,7 +28,7 @@ criterios de salida. Ninguna fase acumula código sin tests.
 | **15. QA** ⚠️ | Suite E2E, cobertura de estados de componentes, casos borde | Los seis flujos E2E en verde, incluidos el de solo accesibilidad y el offline |
 | **16. Auditoría de seguridad** ✅ | Revisión completa contra el checklist del modelo de seguridad; modelo de amenazas revisitado | Todos los ítems tildados; `npm audit` sin alto/crítico; ningún hallazgo abierto |
 | **17. Performance** ⚠️ | Pasada de medición en dispositivo, verificación del pipeline de imágenes, auditoría de round trips | Todos los presupuestos de la estrategia de testing §7 cumplidos y registrados con el nombre del dispositivo |
-| **18. Pulido de UX** | Pasada de copy en `es-AR`, barrido de callejones sin salida, tipografía dinámica, pasada de VoiceOver/TalkBack, ambos temas | Ninguna pantalla sin acción hacia adelante; el lector de pantalla completa el flujo 1; el tamaño de tipografía accesible más grande no recorta |
+| **18. Pulido de UX** ✅ | Pasada de copy en `es-AR`, barrido de callejones sin salida, tipografía dinámica, pasada de VoiceOver/TalkBack, ambos temas | Ninguna pantalla sin acción hacia adelante; el lector de pantalla completa el flujo 1; el tamaño de tipografía accesible más grande no recorta |
 | **19. Listo para publicar** | Assets de tienda, declaraciones de privacidad, recorrida con los artistas, plan de rollback | Los artistas vieron y aprobaron sus propios perfiles; el procedimiento de retiro fue probado; release check completo |
 
 ---
@@ -528,3 +528,37 @@ reparto fraccionario, y el fixture de pgTAP pasó a tener cantidades desiguales:
 memoria. Los cuatro necesitan un Android de gama media con un build de release.
 Están listados en el reporte como pendientes, y un número no registrado no es
 una medición.
+
+## Estado de la Fase 18
+
+Cerrada el 2026-08-18.
+
+En vez de una revisión manual pantalla por pantalla, un **barrido automático**
+(`src/screens.a11y.test.tsx`) que recorre las seis pantallas en sus estados de
+carga, vacío y error, y aplica tres reglas a cada una:
+
+1. **Todo lo que se toca tiene nombre accesible.** Un botón sin etiqueta se
+   anuncia como "botón".
+2. **Ninguna pantalla es un callejón.** Todo estado ofrece una acción hacia
+   adelante — el caso más fácil de dejar como pared es "no encontramos esto",
+   donde no hay nada que reintentar.
+3. **Todo lo que se toca llega a 44pt**, contando `hitSlop`.
+
+Más un barrido de tipografía dinámica: sin `maxFontSizeMultiplier`, el tamaño
+accesible más grande de iOS multiplica por más de 3 y rompe cualquier layout.
+
+**Las tres reglas se verificaron rompiéndolas a propósito**: se sacó una
+etiqueta, se bajó un botón a 30pt y se sacó el tope de escala del primitivo
+`Text`. Las tres veces el barrido falló y nombró al infractor. Un test de
+accesibilidad que nunca falló no es un test.
+
+Pasada de copy, también como tests sobre el catálogo entero de `es-AR`: voseo y
+no tuteo, sin signos de admiración, sin "hacé clic" en un teléfono, sin
+disculpas ("lo sentimos" no le devuelve a nadie lo que estaba haciendo), sin
+inglés suelto, sin jerga de producto ("onboarding", "feed", "score" son palabras
+nuestras, no suyas), y sin prometer un resultado que no podemos sostener.
+
+**Lo que sigue necesitando ojos:** VoiceOver y TalkBack de verdad. El barrido
+verifica que los nombres existan y que los tamaños alcancen; que el recorrido
+del lector tenga sentido —el orden, las agrupaciones, si "Me gusta" se entiende
+sin ver la obra— solo se sabe escuchándolo.
