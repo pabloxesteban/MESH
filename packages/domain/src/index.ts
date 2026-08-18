@@ -111,3 +111,39 @@ export type {
   TasteInput,
   TasteResult,
 } from './taste/taste.ts'
+
+export {
+  AMBIENT_TASTE_WEIGHT,
+  AVAILABILITY_STALE_DAYS,
+  AVAILABILITY_VALUE,
+  AVERSION_FACTOR,
+  BAND_GOOD,
+  BAND_STRONG,
+  COMPONENT_WEIGHTS,
+  LOCATION_VALUE,
+  MAX_REASONS,
+  PROJECT_WEIGHT,
+  REASON_MIN_CONTRIBUTION,
+  SCORE_FLOOR,
+  TOP_STYLES,
+  type ComponentName,
+} from './matching/config.ts'
+export {
+  availabilityComponent,
+  bandFor,
+  blendProjectStyles,
+  daysBetween,
+  deriveReasons,
+  locationComponent,
+  matchProfessionals,
+  priceComponent,
+  scoreProfessional,
+  styleComponent,
+} from './matching/matching.ts'
+export type {
+  Candidate,
+  MatchContext,
+  MatchOptions,
+  ScoreBreakdown,
+  ScoredMatch,
+} from './matching/matching.ts'

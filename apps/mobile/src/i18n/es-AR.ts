@@ -113,6 +113,28 @@ export const esAR = {
   'taste.reset.action': 'Borrar mi gusto',
   'taste.reset.confirm': 'Tocá de nuevo para borrarlo',
 
+  // --- matches ---------------------------------------------------------------
+  'matches.title': 'Para vos',
+  'matches.band.strong': 'Encaje fuerte',
+  'matches.band.good': 'Buen encaje',
+  'matches.band.possible': 'Posible encaje',
+  'matches.notReady.title': 'Todavía no',
+  'matches.notReady.body':
+    'Nos faltan {faltan} decisiones tuyas para poder decir algo que valga. Antes de eso sería adivinar.',
+  'matches.notReady.action': 'Ir al mazo',
+  'matches.empty.title': 'Todavía no encontramos a alguien que encaje',
+  'matches.empty.body':
+    'Seguí explorando y vamos a ir entendiendo mejor tu gusto. Preferimos una lista corta y honesta a una rellenada.',
+  'matches.empty.action': 'Seguir explorando',
+
+  // Plantillas de razón. Conjunto cerrado: una razón solo existe si el
+  // componente que la respalda efectivamente aportó al puntaje.
+  'match.reason.markedStyle': 'Marcaste varios trabajos de {termino}',
+  'match.reason.worksBoth': 'Trabaja {termino} y {termino2}',
+  'match.reason.location': 'En {termino}',
+  'match.reason.price': 'Su rango entra en tu presupuesto',
+  'match.reason.availability': 'Está tomando turnos',
+
   // --- taxonomía -------------------------------------------------------------
   'category.tattoo': 'Tatuaje',
 

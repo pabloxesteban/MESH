@@ -20,7 +20,7 @@ criterios de salida. Ninguna fase acumula código sin tests.
 | **7. Contenido** ⚠️ | Esquemas de contenido, CLI de seed (validar → redimensionar → blurhash → subir → upsert), 2–3 artistas reales de punta a punta | La carga es idempotente; el contenido malformado aborta antes de insertar; la falta de consentimiento bloquea la corrida; los fixtures se rechazan en modo producción |
 | **8. Descubrimiento** ✅ | RPC del feed, mazo, `ArtworkCard`, gestos, botones, deshacer, prefetch, detalle de obra, los cuatro estados | 60fps sostenidos en un Android de gama media; camino solo-botones completo; la cola offline sobrevive al modo avión |
 | **9. Motor de gusto** ✅ | Motor de gusto en `packages/domain`, persistencia, pantalla de gusto, vista de evidencia, reset | Pasan todos los tests de gusto de `matching.md` §8; el umbral es correcto; la revelación respeta reducción de movimiento |
-| **10. Matching** | Motor de match, bandas, derivación de razones, pantalla de matches, estados vacíos honestos | Pasan todos los tests de matching, incluidos renormalización por omisión y estabilidad de orden; ninguna razón referencia un componente omitido |
+| **10. Matching** ✅ | Motor de match, bandas, derivación de razones, pantalla de matches, estados vacíos honestos | Pasan todos los tests de matching, incluidos renormalización por omisión y estabilidad de orden; ninguna razón referencia un componente omitido |
 | **11. Perfiles** | Perfil profesional, grilla de portfolio, hero, pill de disponibilidad, precio, estilos, redes | Hero pintado en < 800ms en caliente; los campos faltantes no renderizan nada en vez de un placeholder; la grilla no salta |
 | **12. Proyectos** | Flujo de creación, subida de referencias (con EXIF removido), matching por proyecto, detalle de proyecto | Pasan los tests de matching por proyecto; cuotas impuestas del lado del servidor; borradores abandonados recuperables |
 | **13. Contacto** | Compositor de mensaje, vista previa editable, traspaso a WhatsApp/Instagram | Test golden: el mensaje compuesto no contiene nada que la persona no haya provisto; la falta de canal cambia el CTA en vez de fingir uno |
@@ -344,3 +344,30 @@ recorta en 0,95 porque la función de saturación es asintótica a 1 y nunca lle
 
 Borrar el gusto es un botón de dos toques, no un modal: un modal se contesta por
 reflejo, un botón que cambia de texto exige leer.
+
+## Estado de la Fase 10
+
+Cerrada el 2026-08-18. El motor entero en `packages/domain`, con 37 tests que
+cubren la lista de `matching.md` §8.
+
+Los dos invariantes que definen el motor, cada uno con su test:
+
+1. **Los componentes omitidos se renormalizan, no puntúan cero.** Un artista sin
+   precio publicado puntúa idéntico a uno cuyo único componente conocido es
+   estilo. Un dato faltante nunca puede parecer una mala respuesta.
+2. **Un candidato sin ninguna razón por encima del umbral no se devuelve.** Si
+   no podemos decir por qué, no lo recomendamos — y eso puede dejar la lista
+   vacía, que está bien.
+
+Una disponibilidad de hace tres meses se **omite** y no penaliza: de un artista
+con disponibilidad vieja y uno que nunca la declaró sabemos lo mismo, que es
+nada.
+
+Nada del motor lee el reloj. `daysBetween` hace aritmética sobre los componentes
+de la fecha en vez de usar `Date`, así que la antigüedad de una disponibilidad no
+depende de en qué zona horaria corre el código. La fecha entra por parámetro, y
+`data/today.ts` es el único borde donde el reloj real se convierte en dato.
+
+En V1 el componente de ubicación se **omite** en vez de darle 1,0 a todos:
+todos los artistas están en CABA, así que no discrimina, y dejarlo dentro solo
+diluiría el peso del estilo.

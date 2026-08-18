@@ -97,6 +97,25 @@ export const en: Readonly<Record<TranslationKey, string>> = {
   'taste.reset.action': 'Delete my taste',
   'taste.reset.confirm': 'Tap again to delete it',
 
+  'matches.title': 'For you',
+  'matches.band.strong': 'Strong fit',
+  'matches.band.good': 'Good fit',
+  'matches.band.possible': 'Possible fit',
+  'matches.notReady.title': 'Not yet',
+  'matches.notReady.body':
+    'We need {faltan} more decisions from you before we can say anything worth saying. Before that it would be guessing.',
+  'matches.notReady.action': 'Go to the deck',
+  'matches.empty.title': "We haven't found anyone who fits yet",
+  'matches.empty.body':
+    'Keep exploring and we will understand your taste better. We would rather have a short honest list than a padded one.',
+  'matches.empty.action': 'Keep exploring',
+
+  'match.reason.markedStyle': 'You marked several {termino} pieces',
+  'match.reason.worksBoth': 'Works {termino} and {termino2}',
+  'match.reason.location': 'In {termino}',
+  'match.reason.price': 'Their range fits your budget',
+  'match.reason.availability': 'Taking appointments',
+
   'category.tattoo': 'Tattoo',
 
   'style.tattoo.fine-line': 'Fine line',
