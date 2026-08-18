@@ -159,6 +159,9 @@ export async function persistMatches(
       taste_version: match.tasteVersion,
       computed_at: new Date().toISOString(),
     })) as never,
-    { onConflict: 'user_id,professional_id,project_id' },
+    // `project_key` y no `project_id`: es la columna generada sobre la que está
+    // el índice único. Nombrar `project_id` acá falla con 42P10, porque el
+    // índice no está sobre esa columna.
+    { onConflict: 'user_id,professional_id,project_key' },
   )
 }

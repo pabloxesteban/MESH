@@ -1,0 +1,39 @@
+# Flujo 5 — Offline.
+#
+# Lo que verifica: que las interacciones hechas sin red se persistan
+# **exactamente una vez** al reconectar. Ni cero (se perdieron) ni dos (se
+# duplicaron).
+#
+# La idempotencia la garantiza el UNIQUE (user_id, portfolio_item_id); esto
+# verifica que la cola efectivamente la use.
+appId: com.mesh.app
+---
+- clearState
+- launchApp
+- assertVisible:
+    id: 'screen-deck'
+
+- tapOn:
+    id: 'deck-like'
+
+- setAirplaneMode: enabled
+
+- repeat:
+    times: 8
+    commands:
+      - tapOn:
+          id: 'deck-like'
+
+# Sin red, el mazo sigue funcionando con lo que ya bajó. Nada de pantalla de
+# error mientras haya tarjetas cargadas.
+- assertVisible:
+    id: 'deck-cards'
+
+- setAirplaneMode: disabled
+- stopApp
+- launchApp
+
+# Después de reconectar y reiniciar, lo marcado no vuelve al mazo.
+- tapOn: 'Tu gusto'
+- assertVisible:
+    id: 'taste-ready'

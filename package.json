@@ -7,7 +7,8 @@
     "apps/mobile",
     "packages/domain",
     "tools/seed",
-    "tools/brand"
+    "tools/brand",
+    "tests/integration"
   ],
   "engines": {
     "node": ">=20.19.0"
@@ -32,6 +33,7 @@
     "db:types": "node scripts/generate-db-types.mjs",
     "db:types:check": "node scripts/generate-db-types.mjs --check",
     "db:test": "supabase test db",
+    "test:integration": "npm run test -w @mesh/integration-tests",
     "db:stop": "supabase stop",
     "secrets:scan": "node scripts/scan-secrets.mjs",
     "brand:icons": "npm run icons -w @mesh/brand",

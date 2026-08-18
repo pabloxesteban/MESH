@@ -9,6 +9,12 @@ select plan(10);
 
 -- --- fixtures: 3 profesionales × 4 piezas ------------------------------------
 
+-- El catálogo se vacía antes de empezar. Todo esto corre dentro de una
+-- transacción que se revierte, así que no destruye nada — pero sí hace que el
+-- test no dependa de si alguien corrió el seeder antes. Un test cuyo resultado
+-- cambia según qué contenido haya cargado no prueba lo que dice probar.
+delete from public.professionals;
+
 insert into auth.users (id, email) values
   ('aaaaaaaa-0000-0000-0000-00000000000a', 'a@example.test'),
   ('aaaaaaaa-0000-0000-0000-00000000000b', 'b@example.test');

@@ -1,0 +1,34 @@
+# Flujo 4 — Camino de accesibilidad.
+#
+# El mismo recorrido del flujo 1 **sin deslizar ni una vez**. Es el innegociable
+# #6 puesto a prueba de punta a punta: si este flujo se traba en algún lado, hay
+# un gesto que no tiene equivalente.
+appId: com.mesh.app
+---
+- clearState
+- launchApp
+
+- repeat:
+    times: 12
+    commands:
+      # Solo botones con etiqueta accesible. Ningún `swipe` en todo el archivo.
+      - tapOn:
+          text: 'Me gusta'
+
+# Deshacer también tiene que ser alcanzable sin gesto.
+- tapOn:
+    text: 'Deshacer'
+- tapOn:
+    text: 'Me gusta'
+
+- tapOn: 'Para vos'
+- assertVisible:
+    id: 'matches-list'
+- tapOn:
+    id: 'match-.*'
+- assertVisible:
+    id: 'screen-profile'
+- tapOn:
+    text: 'Escribirle'
+- assertVisible:
+    id: 'contact-content'

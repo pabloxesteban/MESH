@@ -150,6 +150,22 @@ Además:
   produce exactamente el string esperado y **nada más** — un test golden contra
   la fabricación.
 
+## 5b. Tests de integración
+
+`tests/integration/`, con el runner de Node, contra `supabase start` y usando la
+**anon key** — exactamente las credenciales que la app lleva en el bundle.
+
+Es la capa que ni pgTAP ni los tests de componentes cubren: **un `grant`
+correcto y un PostgREST mal configurado se ven igual desde adentro de
+Postgres.** Cubren sesión anónima, feed con su paginación y su diversidad,
+interacciones idempotentes, cálculo de gusto sobre filas reales, aislamiento
+entre dos usuarios distintos, matching de punta a punta y cuotas.
+
+Encontraron un bug que ninguna otra capa podía encontrar: el índice único de
+`matches` estaba sobre una expresión coalescida, y un índice sobre expresión no
+sirve como destino de `ON CONFLICT` desde PostgREST. El upsert del cliente
+fallaba con 42P10 mientras el SQL estaba impecable.
+
 ## 6. Flujos E2E (Maestro)
 
 1. **Primer arranque → contacto.** Instalación limpia → intro → mazo → 12
@@ -168,6 +184,17 @@ Además:
    una falla de red forzada muestra error + reintento, y el reintento recupera.
 
 El E2E cubre flujos, nunca corrección de algoritmos — de eso se ocupa §3.
+
+**Estado: escritos, no ejecutados.** Los seis flujos están en `.maestro/`, pero
+necesitan un simulador o un emulador con la app instalada y el entorno donde se
+construyó MESH no tiene ninguno. Escribirlos obligó a decidir qué significa que
+cada flujo esté bien, y esa decisión es la mitad del valor — pero **un flujo que
+no corrió no es una garantía, es una intención**, y así está rotulado en
+`.maestro/README.md`.
+
+Lo que solo el E2E puede cubrir, y por eso sigue pendiente: que los gestos
+funcionen con un dedo real, que el modo avión encole de verdad, que el traspaso
+a WhatsApp abra la app, y que la navegación entre pantallas no pierda estado.
 
 ## 7. Tests de performance
 

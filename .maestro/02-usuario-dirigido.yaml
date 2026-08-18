@@ -1,0 +1,33 @@
+# Flujo 2 — Usuario dirigido.
+#
+# Alguien que llega con una idea clara no necesita deslizar primero. Este flujo
+# verifica que el matching por proyecto corra sin perfil de gusto.
+appId: com.mesh.app
+---
+- clearState
+- launchApp
+- assertVisible:
+    id: 'screen-deck'
+
+- tapOn: 'Tus proyectos'
+- assertVisible:
+    id: 'projects-empty'
+- tapOn: 'Crear un proyecto'
+
+- tapOn:
+    id: 'project-title'
+- inputText: 'Rama de olivo en el antebrazo'
+- tapOn:
+    id: 'project-style-fine-line'
+- tapOn:
+    id: 'project-submit'
+
+- assertVisible:
+    id: 'projects-list'
+- tapOn:
+    id: 'project-matches-.*'
+
+# Sin ninguna interacción previa. Si esto mostrara "todavía no", el matching por
+# proyecto estaría esperando el umbral de gusto, que no corresponde.
+- assertVisible:
+    id: 'matches-list'

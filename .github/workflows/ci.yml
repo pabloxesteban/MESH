@@ -90,6 +90,14 @@ jobs:
       - name: Levantar Supabase y aplicar migraciones
         run: supabase start
 
+      - name: Exportar las claves locales
+        # Son las claves de demo del stack local de Supabase, iguales en toda
+        # instalación. No son secretos: sin ellas no se puede hablar con la base
+        # local, y con ellas no se puede hablar con ninguna otra.
+        run: |
+          echo "SUPABASE_ANON_KEY=$(supabase status -o env | grep '^ANON_KEY=' | cut -d= -f2- | tr -d '\"')" >> "$GITHUB_ENV"
+          echo "SUPABASE_SERVICE_ROLE_KEY=$(supabase status -o env | grep '^SERVICE_ROLE_KEY=' | cut -d= -f2- | tr -d '\"')" >> "$GITHUB_ENV"
+
       - name: 5a · Reset limpio desde cero
         # Verifica que las migraciones se apliquen en orden sobre una base
         # vacía. Una migración que solo funciona sobre la base de alguien no
@@ -116,6 +124,25 @@ jobs:
         # Si alguien cambió una migración y no regeneró los tipos, falla acá y
         # no seis pantallas después con un error de runtime.
         run: npm run db:types:check
+
+      - name: 5e · Cargar el contenido fixture
+        run: |
+          npm run content:fixtures
+          npm run seed -w @mesh/seed -- --publish
+        env:
+          SUPABASE_URL: http://127.0.0.1:54321
+          SUPABASE_SERVICE_ROLE_KEY: ${{ env.SUPABASE_SERVICE_ROLE_KEY }}
+
+      - name: 5f · Tests de integración con la anon key
+        # Lo que estos cubren y los de pgTAP no: que la app, con exactamente las
+        # credenciales que lleva en el bundle, pueda hacer lo que tiene que
+        # hacer y no pueda hacer lo que no. Un grant correcto y un PostgREST mal
+        # configurado se ven igual desde adentro de Postgres.
+        run: npm run test:integration
+        env:
+          SUPABASE_URL: http://127.0.0.1:54321
+          SUPABASE_ANON_KEY: ${{ env.SUPABASE_ANON_KEY }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ env.SUPABASE_SERVICE_ROLE_KEY }}
 
       - name: Bajar Supabase
         if: always()

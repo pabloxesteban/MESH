@@ -25,7 +25,7 @@ criterios de salida. Ninguna fase acumula código sin tests.
 | **12. Proyectos** ✅ | Flujo de creación, subida de referencias (con EXIF removido), matching por proyecto, detalle de proyecto | Pasan los tests de matching por proyecto; cuotas impuestas del lado del servidor; borradores abandonados recuperables |
 | **13. Contacto** ✅ | Compositor de mensaje, vista previa editable, traspaso a WhatsApp/Instagram | Test golden: el mensaje compuesto no contiene nada que la persona no haya provisto; la falta de canal cambia el CTA en vez de fingir uno |
 | **14. Analytics** ✅ | `track()`, unión tipada de eventos, buffer MMKV, ajuste de opt-out | Cada evento del catálogo se dispara una vez en la corrida E2E; sin texto libre en ninguna propiedad; el opt-out no encola nada |
-| **15. QA** | Suite E2E, cobertura de estados de componentes, casos borde | Los seis flujos E2E en verde, incluidos el de solo accesibilidad y el offline |
+| **15. QA** ⚠️ | Suite E2E, cobertura de estados de componentes, casos borde | Los seis flujos E2E en verde, incluidos el de solo accesibilidad y el offline |
 | **16. Auditoría de seguridad** | Revisión completa contra el checklist del modelo de seguridad; modelo de amenazas revisitado | Todos los ítems tildados; `npm audit` sin alto/crítico; ningún hallazgo abierto |
 | **17. Performance** | Pasada de medición en dispositivo, verificación del pipeline de imágenes, auditoría de round trips | Todos los presupuestos de la estrategia de testing §7 cumplidos y registrados con el nombre del dispositivo |
 | **18. Pulido de UX** | Pasada de copy en `es-AR`, barrido de callejones sin salida, tipografía dinámica, pasada de VoiceOver/TalkBack, ambos temas | Ninguna pantalla sin acción hacia adelante; el lector de pantalla completa el flujo 1; el tamaño de tipografía accesible más grande no recorta |
@@ -474,3 +474,30 @@ Un cambio de esquema que salió de escribir esto: `analytics_events.user_id`
 pasó de `ON DELETE SET NULL` a `ON DELETE CASCADE`. La migración conservaba los
 eventos desasociados para poder medir después de que alguien se fuera, y
 `metrics.md` §5.6 promete lo contrario. Vale más la promesa que la métrica.
+
+## Estado de la Fase 15
+
+Cerrada el 2026-08-18, **con la parte de dispositivo pendiente**.
+
+**Lo que sí corre.** `tests/integration/`: 17 tests contra la base local usando
+la anon key, o sea exactamente las credenciales que la app lleva en el bundle.
+Cubren sesión anónima, feed con paginación y diversidad, interacciones
+idempotentes, gusto sobre filas reales, aislamiento entre dos usuarios,
+matching de punta a punta y cuotas.
+
+**Encontraron un bug que ninguna otra capa podía encontrar.** El índice único de
+`matches` estaba sobre una expresión coalescida, y un índice sobre expresión no
+sirve como destino de `ON CONFLICT` desde PostgREST: el upsert del cliente
+fallaba con 42P10 mientras el SQL se veía impecable desde adentro de Postgres.
+Se resolvió con una columna generada `project_key`.
+
+Y encontraron una fragilidad en los propios tests de pgTAP: asumían un catálogo
+vacío, así que pasaban o fallaban según si alguien había corrido el seeder
+antes. Ahora vacían el catálogo dentro de su transacción — que se revierte —
+para que el resultado no dependa de qué contenido haya cargado.
+
+**Lo que no corrió: los seis flujos E2E.** Están escritos en `.maestro/` y
+necesitan un simulador o un emulador con la app instalada, que este entorno no
+tiene. Están rotulados como lo que son en `.maestro/README.md`: un flujo que no
+corrió es una intención, no una garantía. **Correrlos es tuyo, y hay que hacerlo
+antes de publicar.**

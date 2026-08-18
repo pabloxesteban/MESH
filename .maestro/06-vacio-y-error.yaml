@@ -1,0 +1,36 @@
+# Flujo 6 — Vacío y error.
+#
+# Los dos estados que un producto honesto tiene que saber mostrar. El vacío no
+# se rellena y el error se puede reintentar.
+appId: com.mesh.app
+---
+- clearState
+- launchApp
+
+# Antes del umbral, matches muestra el vacío honesto: dice cuántas faltan y no
+# muestra una lista de "populares" disfrazada de recomendación.
+- tapOn: 'Para vos'
+- assertVisible:
+    id: 'matches-not-ready'
+- assertNotVisible:
+    id: 'matches-list'
+
+# Una acción hacia adelante desde el vacío. Ninguna pantalla es un callejón.
+- tapOn: 'Ir al mazo'
+- assertVisible:
+    id: 'screen-deck'
+
+# Error de red forzado: se muestra el error con reintentar, y nunca el mensaje
+# crudo de Postgres.
+- setAirplaneMode: enabled
+- stopApp
+- launchApp
+- assertVisible:
+    id: 'deck-error'
+- assertNotVisible: '.*permission denied.*'
+- assertNotVisible: '.*relation.*'
+
+- setAirplaneMode: disabled
+- tapOn: 'Reintentar'
+- assertVisible:
+    id: 'deck-cards'

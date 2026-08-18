@@ -1,0 +1,50 @@
+# Flujo 3 — Upgrade de cuenta.
+#
+# Lo que verifica es la razón de ser de ADR-002: el `auth.uid()` no cambia al
+# crear la cuenta, así que el gusto y los guardados siguen ahí sin ninguna
+# migración de datos.
+appId: com.mesh.app
+---
+- clearState
+- launchApp
+
+- repeat:
+    times: 12
+    commands:
+      - tapOn:
+          id: 'deck-like'
+
+- tapOn: 'Tu gusto'
+- assertVisible:
+    id: 'taste-ready'
+- copyTextFrom:
+    id: 'taste-style-.*'
+
+- tapOn: 'Tu cuenta'
+- tapOn: 'Crear cuenta'
+- tapOn:
+    id: 'auth-email'
+- inputText: 'prueba@ejemplo.test'
+- tapOn:
+    id: 'auth-password'
+- inputText: 'contrasena-larga-1'
+- tapOn:
+    id: 'auth-submit'
+
+- assertVisible:
+    id: 'screen-account'
+- tapOn: 'Cerrar sesión'
+
+- tapOn: 'Entrar'
+- tapOn:
+    id: 'auth-email'
+- inputText: 'prueba@ejemplo.test'
+- tapOn:
+    id: 'auth-password'
+- inputText: 'contrasena-larga-1'
+- tapOn:
+    id: 'auth-submit'
+
+- tapOn: 'Tu gusto'
+# El mismo estilo que antes de crear la cuenta.
+- assertVisible: ${maestro.copiedText}

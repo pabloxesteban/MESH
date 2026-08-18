@@ -1,0 +1,50 @@
+# Flujo 1 — Primer arranque → contacto.
+#
+# El recorrido completo del producto. Si este pasa, MESH hace lo que dice que
+# hace: alguien que nunca lo abrió termina escribiéndole a una persona.
+#
+# La URL de WhatsApp se VERIFICA, no se abre: abrirla sacaría el test de la app
+# y dejaría el resultado en manos de otra aplicación.
+appId: com.mesh.app
+---
+- clearState
+- launchApp
+
+# Sesión anónima desde el primer frame: sin login, sin muro.
+- assertVisible:
+    id: 'screen-deck'
+
+# Doce decisiones, que es el umbral de gusto. Se usan los botones para que este
+# flujo no dependa de la simulación de gestos; el flujo 4 cubre lo mismo al
+# revés.
+- repeat:
+    times: 12
+    commands:
+      - tapOn:
+          id: 'deck-like'
+
+- tapOn: 'Para vos'
+- assertVisible:
+    id: 'matches-list'
+
+# La banda, nunca un porcentaje.
+- assertNotVisible: '.*[0-9]+%.*'
+
+- tapOn:
+    id: 'matches-list'
+    childOf:
+      id: 'screen-matches'
+- assertVisible:
+    id: 'screen-profile'
+
+- tapOn:
+    id: 'profile-contact'
+- assertVisible:
+    id: 'contact-content'
+
+# El mensaje está a la vista y se puede editar antes de mandarlo.
+- assertVisible:
+    id: 'contact-message'
+- inputText: ' Gracias.'
+- assertVisible:
+    id: 'contact-whatsapp'

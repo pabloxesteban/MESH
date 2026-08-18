@@ -32,12 +32,25 @@ comment on table public.matches is
 
 -- Un match por (usuario, profesional, proyecto). `project_id` es nullable y en
 -- Postgres NULL nunca es igual a NULL, así que un UNIQUE común dejaría entrar
--- infinitos matches sin proyecto. El índice va sobre la expresión coalescida.
-create unique index matches_identity_idx on public.matches (
-  user_id,
-  professional_id,
-  coalesce(project_id, '00000000-0000-0000-0000-000000000000'::uuid)
-);
+-- infinitos matches sin proyecto.
+--
+-- La coalescencia vive en una COLUMNA GENERADA y no en el índice, y eso no es
+-- cosmético: un índice único sobre una expresión no sirve como destino de
+-- `ON CONFLICT` desde PostgREST, que solo sabe nombrar columnas. Con el índice
+-- sobre la expresión, el upsert del cliente falla con 42P10 — lo encontró el
+-- test de integración, no el de SQL, porque desde adentro de Postgres el índice
+-- está perfecto.
+alter table public.matches
+  add column project_key uuid not null
+  generated always as (
+    coalesce(project_id, '00000000-0000-0000-0000-000000000000'::uuid)
+  ) stored;
+
+comment on column public.matches.project_key is
+  'project_id con los NULL coalescidos. Existe para poder usarla en ON CONFLICT.';
+
+create unique index matches_identity_idx
+  on public.matches (user_id, professional_id, project_key);
 
 -- Consulta detrás del índice: mi lista de matches, mejor primero.
 create index matches_user_score_idx on public.matches (user_id, score desc);
