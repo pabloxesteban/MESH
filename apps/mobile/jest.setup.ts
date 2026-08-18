@@ -47,3 +47,37 @@ jest.mock('expo-secure-store', () => {
 // `data/supabase.ts` no falle al importarse. No apuntan a nada real.
 process.env.EXPO_PUBLIC_SUPABASE_URL ??= 'http://127.0.0.1:54321'
 process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY ??= 'anon-de-test'
+
+// Safe area: en el simulador de test no hay pantalla, así que no hay muescas.
+// Se devuelven ceros para que las pantallas puedan usar `useSafeAreaInsets()`
+// sin que cada test tenga que envolverse en un provider.
+jest.mock('react-native-safe-area-context', () => {
+  const insets = { top: 0, right: 0, bottom: 0, left: 0 }
+  return {
+    SafeAreaProvider: ({ children }: { children: unknown }) => children,
+    SafeAreaView: ({ children }: { children: unknown }) => children,
+    useSafeAreaInsets: () => insets,
+    useSafeAreaFrame: () => ({ x: 0, y: 0, width: 390, height: 844 }),
+  }
+})
+
+// El almacenamiento clave-valor está respaldado por SQLite, que es nativo. Se
+// mockea con un Map: lo que los tests verifican es el comportamiento de la cola
+// —no perder eventos, no duplicar filas, tolerar JSON corrupto—, no que SQLite
+// funcione. Ver ADR-009.
+jest.mock('expo-sqlite/kv-store', () => {
+  const store = new Map<string, string>()
+  return {
+    __esModule: true,
+    default: {
+      getItem: async (key: string) => store.get(key) ?? null,
+      setItem: async (key: string, value: string) => {
+        store.set(key, value)
+      },
+      removeItem: async (key: string) => {
+        store.delete(key)
+      },
+      getAllKeys: async () => [...store.keys()],
+    },
+  }
+})

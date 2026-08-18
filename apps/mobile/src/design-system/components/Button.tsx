@@ -97,9 +97,14 @@ export function Button({
       }}
     >
       {/* El indicador reemplaza a la etiqueta sin cambiar el alto, así el
-          layout no salta cuando arranca la carga. */}
+          layout no salta cuando arranca la carga.
+
+          Sin etiqueta propia: `accessibilityState.busy` ya hace que el lector
+          de pantalla anuncie "ocupado" en el idioma del sistema. Un string acá
+          sería texto de cara al usuario fuera de i18n, y encima en un solo
+          idioma. */}
       {loading ? (
-        <View accessible accessibilityLabel="Cargando">
+        <View accessible={false}>
           <ActivityIndicator color={theme[style.text]} />
         </View>
       ) : (

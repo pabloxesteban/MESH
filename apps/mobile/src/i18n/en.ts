@@ -65,6 +65,18 @@ export const en: Readonly<Record<TranslationKey, string>> = {
   'auth.error.emailTaken': 'That email already has an account. Try signing in.',
   'auth.error.rateLimited': 'Too many attempts. Wait a minute.',
 
+  'discovery.title': 'Discover',
+  'discovery.empty.title': "You've seen everything there is",
+  'discovery.empty.body':
+    'There is no new work right now. We add artists slowly, and we would rather have few and good ones.',
+  'discovery.empty.action': 'Look again',
+  'discovery.action.like': 'Like',
+  'discovery.action.save': 'Save',
+  'discovery.action.pass': 'Pass',
+  'discovery.action.undo': 'Undo',
+  'discovery.saved': 'Saved',
+  'discovery.passed': 'You passed on this work',
+
   'category.tattoo': 'Tattoo',
 
   'style.tattoo.fine-line': 'Fine line',

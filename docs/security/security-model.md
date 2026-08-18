@@ -42,7 +42,8 @@ DEFINER`.
   la misma fila de `auth.users` — gusto, guardados y proyectos se conservan sin
   ninguna migración de datos.
 - Los tokens de sesión se guardan en `expo-secure-store` (Keychain / Android
-  Keystore), nunca en AsyncStorage ni en MMKV. El refresh lo maneja supabase-js.
+  Keystore), nunca en el almacenamiento clave-valor común. El refresh lo maneja
+  supabase-js.
 
   **SecureStore rechaza valores de más de 2048 bytes en Android**, y una sesión
   de Supabase los pasa. La salida fácil es volver a AsyncStorage, que es cambiar
@@ -66,8 +67,8 @@ DEFINER`.
 - La recuperación de contraseña usa el flujo de Supabase y vuelve a
   `mesh://auth/callback`.
 - Cerrar sesión limpia la sesión, el caché de queries y todos los namespaces de
-  MMKV con datos de usuario — caché de gusto, cola de interacciones, buffer de
-  analytics.
+  almacenamiento local con datos de usuario — caché de gusto, cola de
+  interacciones, buffer de analytics.
 
 **Contrapartidas de la auth anónima, aceptadas con conocimiento:** abarata la
 creación de cuentas para un atacante, así que los ingresos anónimos están

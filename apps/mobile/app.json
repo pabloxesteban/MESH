@@ -22,7 +22,13 @@
       },
       "predictiveBackGestureEnabled": false
     },
-    "plugins": ["expo-router", "expo-font", "expo-secure-store"],
+    "plugins": [
+      "expo-router",
+      "expo-font",
+      "expo-secure-store",
+      "expo-image",
+      "expo-sqlite"
+    ],
     "experiments": {
       "typedRoutes": true
     }

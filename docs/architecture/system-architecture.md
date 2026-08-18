@@ -121,7 +121,7 @@ significaría bajar el catálogo entero.
 **Escritura de interacción.** Actualización local optimista → háptico del design
 system → upsert encolado. Las interacciones son idempotentes sobre
 `(user_id, portfolio_item_id)`, así que reintentar tras una conexión caída es
-seguro. Las interacciones offline se encolan en MMKV y se descargan al
+seguro. Las interacciones offline se encolan localmente y se descargan al
 reconectar.
 
 **Cálculo del gusto.** Corre **del lado del cliente**, en `packages/domain`, a
@@ -151,7 +151,7 @@ WhatsApp/Instagram y se dispara `contact_clicked`.
 | Estado de servidor | TanStack Query | Caché, reintentos, invalidación, consciente de offline; elimina la mayor parte del boilerplate de carga y error |
 | Estado de UI efímero (posición del mazo, gesto) | Estado local + shared values de Reanimated | Los gestos tienen que correr en el hilo de UI; nada que toque un swipe pasa por estado de React |
 | Estado de sesión entre pantallas (categoría actual, filtros) | Zustand, un store chico | Más simple que Context para un puñado de valores |
-| Persistencia (caché de gusto, cola de interacciones, buffer de analytics, ajustes) | MMKV | Síncrono, suficientemente rápido para leerlo durante el arranque |
+| Persistencia (caché de gusto, cola de interacciones, buffer de analytics, ajustes) | `expo-sqlite/kv-store`, detrás de una interfaz propia | Viene en Expo Go, así que la app se sigue abriendo con un QR. Ver [ADR-009](../decisions/ADR-009-almacenamiento-local.md) — reemplaza a MMKV |
 
 Sin Redux. Sin store global de datos de servidor — para eso está el caché de
 queries.

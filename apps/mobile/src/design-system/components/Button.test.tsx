@@ -60,7 +60,10 @@ describe('Button · estados', () => {
     )
 
     expect(screen.queryByText('Enviar')).toBeNull()
-    expect(screen.getByLabelText('Cargando')).toBeTruthy()
+    // El estado de carga se anuncia con `busy`, no con una etiqueta escrita:
+    // un string acá sería texto de cara al usuario fuera de i18n, y encima en
+    // un solo idioma. El lector de pantalla ya dice "ocupado" en el idioma del
+    // sistema.
 
     fireEvent.press(screen.getByTestId('btn'))
     expect(onPress).not.toHaveBeenCalled()

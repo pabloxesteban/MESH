@@ -79,6 +79,19 @@ export const esAR = {
   'auth.error.emailTaken': 'Ese correo ya tiene una cuenta. Probá entrar.',
   'auth.error.rateLimited': 'Demasiados intentos. Esperá un minuto.',
 
+  // --- descubrimiento --------------------------------------------------------
+  'discovery.title': 'Descubrí',
+  'discovery.empty.title': 'Viste todo lo que hay',
+  'discovery.empty.body':
+    'Por ahora no queda obra nueva. Vamos sumando artistas de a poco, y preferimos pocos y buenos.',
+  'discovery.empty.action': 'Buscar de nuevo',
+  'discovery.action.like': 'Me gusta',
+  'discovery.action.save': 'Guardar',
+  'discovery.action.pass': 'Paso',
+  'discovery.action.undo': 'Deshacer',
+  'discovery.saved': 'Guardado',
+  'discovery.passed': 'Pasaste este trabajo',
+
   // --- taxonomía -------------------------------------------------------------
   'category.tattoo': 'Tatuaje',
 

@@ -1,7 +1,11 @@
+import { QueryClientProvider } from '@tanstack/react-query'
 import { useFonts } from 'expo-font'
 import { Stack } from 'expo-router'
 import { StatusBar } from 'expo-status-bar'
 import { View } from 'react-native'
+import { GestureHandlerRootView } from 'react-native-gesture-handler'
+import { SafeAreaProvider } from 'react-native-safe-area-context'
+import { useState } from 'react'
 
 import {
   MotionProvider,
@@ -14,6 +18,7 @@ import {
   useSession,
 } from '@/features/auth/SessionProvider.tsx'
 import { I18nProvider } from '@/i18n/I18nProvider.tsx'
+import { createQueryClient } from '@/data/queryClient.ts'
 
 /**
  * Layout raíz.
@@ -37,20 +42,32 @@ export default function RootLayout() {
     /* eslint-enable @typescript-eslint/no-require-imports */
   })
 
+  // Se crea una sola vez. Un cliente nuevo por render tira el caché entero en
+  // cada re-render del layout raíz.
+  const [queryClient] = useState(createQueryClient)
+
   return (
-    <ThemeProvider>
-      <MotionProvider>
-        <I18nProvider>
-          <SessionProvider>
-            <StatusBar style="auto" />
-            {/* Sin pantalla de carga con spinner: el fondo del tema pintado
+    // GestureHandlerRootView tiene que envolver TODO: sin él los gestos del
+    // mazo no llegan nunca, y falla en silencio.
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <SafeAreaProvider>
+        <QueryClientProvider client={queryClient}>
+          <ThemeProvider>
+            <MotionProvider>
+              <I18nProvider>
+                <SessionProvider>
+                  <StatusBar style="auto" />
+                  {/* Sin pantalla de carga con spinner: el fondo del tema pintado
                 mientras cargan las tipografías es menos ruidoso que un
                 indicador que aparece y desaparece en 200ms. */}
-            {fontsLoaded ? <SessionGate /> : <ThemedBackdrop />}
-          </SessionProvider>
-        </I18nProvider>
-      </MotionProvider>
-    </ThemeProvider>
+                  {fontsLoaded ? <SessionGate /> : <ThemedBackdrop />}
+                </SessionProvider>
+              </I18nProvider>
+            </MotionProvider>
+          </ThemeProvider>
+        </QueryClientProvider>
+      </SafeAreaProvider>
+    </GestureHandlerRootView>
   )
 }
 
