@@ -14,6 +14,7 @@ import type { ComponentType } from 'react'
 
 import { SwipePhysicsLab } from './prototypes/SwipePhysicsLab.tsx'
 import { BottomSheetLab } from './prototypes/BottomSheetLab.tsx'
+import { SharedGrowLab } from './prototypes/SharedGrowLab.tsx'
 import { TasteMapLab } from './prototypes/TasteMapLab.tsx'
 import { EditorialDark } from './directions/EditorialDark.tsx'
 import { WarmGallery } from './directions/WarmGallery.tsx'
@@ -125,6 +126,20 @@ export const PLAYGROUND_ENTRIES: readonly PlaygroundEntry[] = [
     notes:
       'No modifica apps/mobile/src/features/discovery/SwipeCard.tsx. Reimplementa la misma lógica con los parámetros expuestos como estado, para no ensuciar el componente de producción con controles de depuración.',
     component: SwipePhysicsLab,
+  },
+  {
+    id: 'shared-grow',
+    name: 'Obra que crece',
+    category: 'motion',
+    purpose:
+      'Ajustar y verificar la transición obra → artista con la mano antes de que llegue a Explorar y a Inicio. Es la interacción firma de MESH.',
+    interaction:
+      'Tocar una obra de la grilla de juguete. La copia crece desde donde estaba hasta donde va el hero del perfil.',
+    accessibility:
+      'Con movimiento reducido la obra aparece en su lugar final, sin recorrido. La transición nunca es la única forma de llegar: la navegación funciona igual si no anima.',
+    notes:
+      'A diferencia de SwipePhysicsLab, usa el componente real (GrowingArtwork) y la geometría real. Lo único de juguete es de dónde salen los rectángulos. Ver D-007 y D-011.',
+    component: SharedGrowLab,
   },
   {
     id: 'bottom-sheet',
@@ -243,7 +258,7 @@ export const PLAYGROUND_ENTRIES: readonly PlaygroundEntry[] = [
     name: 'Revelación de match',
     category: 'matching',
     purpose:
-      'Sin construir: ya resuelto en producción sin necesitar un reveal — ver MatchesScreen, sin semáforo.',
+      'Sin construir, y ahora sin objeto: los encajes salieron de la app (ver D-010). Queda como registro.',
     interaction: '—',
     accessibility: '—',
     notes: 'Ver docs/research/interaction-research.md.',

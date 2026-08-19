@@ -91,8 +91,9 @@ Justificación y contrapartidas:
 | De → A | Transición |
 |---|---|
 | Pestaña → pestaña | Instantáneo, sin animación |
-| Obra de Explorar → perfil de artista | Hoy push común. La transición de elemento compartido sigue pendiente (D-007) |
-| Tarjeta de Inicio → perfil de artista | Push, slide nativo de iOS |
+| Obra → perfil de artista | La obra crece desde donde estaba hasta ser el hero del perfil, 280ms, mientras la pantalla se funde. Ver [D-011](../design/MESH-DESIGN-DECISIONS.md) |
+| Fila del nombre en Inicio → perfil | Fundido. No hay obra que crecer, así que no hay nada que seguir con la vista |
+| Perfil → atrás | Navegación de siempre. La transición no se invierte todavía (D-011) |
 | Cualquiera → modal | Hoja, con manija; se cierra arrastrando y con un Cerrar explícito |
 
 Las duraciones, los easings y el comportamiento con reducción de movimiento son
@@ -147,8 +148,10 @@ Ver [`threat-model.md`](../security/threat-model.md) §T7.
   del artista conserva sus botones equivalentes.
 - Los lectores de pantalla reciben un orden lineal por tarjeta: obra, artista,
   estilos.
-- La reducción de movimiento colapsa las transiciones de elemento compartido y
-  de revelación a un fundido.
+- La reducción de movimiento colapsa las transiciones: la obra aparece en su
+  lugar final, sin recorrido. No se anima más rápido — no se anima. Y la
+  navegación nunca depende de que la transición salga bien: si la obra no se
+  puede medir, el perfil se abre igual, sin animación.
 - Se respeta la tipografía dinámica hasta el tamaño accesible más grande; los
   layouts usan flujo, no alturas fijas, y las tarjetas ajustan su texto en vez
   de recortarlo.

@@ -8,11 +8,17 @@
  * Y lo que directamente no existe: reseñas, cantidad de seguidores, "reservado
  * 12 veces esta semana", ranking. Nada de eso es información que tengamos, y
  * fabricarla sería inventar credibilidad ajena.
+ *
+ * **La entrada desde una obra.** Cuando se llega tocando una obra —de Explorar
+ * o del carrusel de Inicio— esa obra crece hasta ocupar el hero, y el hero es
+ * ella y no la destacada por el artista. Si creciera una y arriba apareciera
+ * otra, la transición habría contado una mentira sobre qué se estaba abriendo.
+ * Ver features/transitions y D-011.
  */
 
 import { Image } from 'expo-image'
 import { useQuery } from '@tanstack/react-query'
-import { ScrollView, useWindowDimensions } from 'react-native'
+import { ScrollView, View, useWindowDimensions } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import {
@@ -24,6 +30,7 @@ import {
   Text,
   radius,
   spacing,
+  useMotion,
   useTheme,
 } from '@/design-system/index.ts'
 import { locationLabel } from '@mesh/domain'
@@ -31,6 +38,9 @@ import { locationLabel } from '@mesh/domain'
 import { ErrorView } from '@/components/ErrorView.tsx'
 import { FixtureBadge } from '@/components/FixtureBadge.tsx'
 import { mediaUrl } from '@/features/discovery/queries.ts'
+import { GrowingArtwork } from '@/features/transitions/GrowingArtwork.tsx'
+import { ratioOf } from '@/features/transitions/geometry.ts'
+import { useArtworkEntrance } from '@/features/transitions/useArtworkEntrance.ts'
 import { useI18n } from '@/i18n/I18nProvider.tsx'
 import type { TranslationKey } from '@/i18n/index.ts'
 
@@ -56,6 +66,8 @@ export function ProfileScreen({
   const { t, locale } = useI18n()
   const theme = useTheme()
   const insets = useSafeAreaInsets()
+  const { durationOf } = useMotion()
+  const entrance = useArtworkEntrance(slug)
 
   const query = useQuery({
     queryKey: ['profile', slug],
@@ -97,12 +109,24 @@ export function ProfileScreen({
     }
 
     const { professional, pieces, canChat } = query.data
-    const hero = pieces.find((piece) => piece.isFeatured) ?? pieces[0]
+    // La obra que se tocó manda sobre la destacada. Solo si sigue estando
+    // publicada: si el artista la bajó entre la grilla y el perfil, vale la
+    // regla de siempre.
+    const tocada =
+      entrance.heroPieceId == null
+        ? undefined
+        : pieces.find((piece) => piece.id === entrance.heroPieceId)
+    const hero =
+      tocada ?? pieces.find((piece) => piece.isFeatured) ?? pieces[0]
     const rest = pieces.filter((piece) => piece.id !== hero?.id)
 
     return (
       <Box gap="lg" testID="profile-content">
-        {hero != null ? <Hero piece={hero} /> : null}
+        {/* Invisible mientras la copia viaja: si los dos se vieran a la vez,
+            la transición mostraría el truco. */}
+        {hero != null ? (
+          <Hero piece={hero} hidden={entrance.growing != null} />
+        ) : null}
 
         <Box gap="xs">
           <Text role="display" numberOfLines={2}>
@@ -237,17 +261,38 @@ export function ProfileScreen({
   })()
 
   return (
-    <ScrollView
-      style={{ flex: 1, backgroundColor: theme.surface }}
-      contentContainerStyle={{
-        padding: SCREEN_GUTTER,
-        paddingTop: insets.top + spacing.md,
-        paddingBottom: insets.bottom + spacing.xxl,
-      }}
-      testID="screen-profile"
-    >
-      {body}
-    </ScrollView>
+    // La raíz existe por la transición: `GrowingArtwork` se posiciona en
+    // coordenadas de ventana, y para eso su padre tiene que estar en el origen
+    // de la ventana. Adentro del ScrollView quedaría atado al scroll y la obra
+    // aterrizaría corrida en cuanto alguien tocara una obra de más abajo.
+    <View style={{ flex: 1, backgroundColor: theme.surface }}>
+      <ScrollView
+        style={{ flex: 1 }}
+        contentContainerStyle={{
+          padding: SCREEN_GUTTER,
+          paddingTop: insets.top + spacing.md,
+          paddingBottom: insets.bottom + spacing.xxl,
+        }}
+        testID="screen-profile"
+      >
+        {body}
+      </ScrollView>
+
+      {entrance.growing != null ? (
+        <GrowingArtwork
+          from={entrance.growing.from}
+          to={entrance.growing.to}
+          // `md` y no `lg`: es el mismo archivo que la grilla ya bajó y tiene
+          // en caché. Pedir el grande acá pondría una descarga en el camino de
+          // la animación, que es justo lo que no puede tener.
+          source={mediaUrl(entrance.growing.mediaPath, 'md')}
+          blurhash={entrance.growing.blurhash}
+          durationMs={durationOf('standard')}
+          onArrived={entrance.onArrived}
+          testID="profile-growing-artwork"
+        />
+      ) : null}
+    </View>
   )
 }
 
@@ -268,12 +313,15 @@ function Section({
   )
 }
 
-function Hero({ piece }: { piece: PortfolioPiece }) {
+function Hero({
+  piece,
+  hidden,
+}: {
+  piece: PortfolioPiece
+  hidden: boolean
+}) {
   const theme = useTheme()
-  const aspectRatio =
-    piece.width != null && piece.height != null && piece.height > 0
-      ? piece.width / piece.height
-      : 4 / 5
+  const aspectRatio = ratioOf(piece.width, piece.height)
 
   return (
     <Image
@@ -289,6 +337,7 @@ function Hero({ piece }: { piece: PortfolioPiece }) {
         aspectRatio,
         borderRadius: radius.lg,
         backgroundColor: theme.surfaceRaised,
+        opacity: hidden ? 0 : 1,
       }}
     />
   )

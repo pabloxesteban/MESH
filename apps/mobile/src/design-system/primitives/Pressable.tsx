@@ -1,7 +1,8 @@
-import { useMemo } from 'react'
+import { useMemo, type Ref } from 'react'
 import {
   Pressable as RNPressable,
   type PressableProps as RNPressableProps,
+  type View,
   type ViewStyle,
 } from 'react-native'
 import { useTheme } from '../providers/ThemeProvider.tsx'
@@ -24,6 +25,15 @@ export interface PressableProps extends Omit<
    * `hitSlop` se calcula para llegar a 44pt sin cambiar cómo se ve.
    */
   visualSize?: { width: number; height: number }
+  /**
+   * Referencia a la vista, para poder medirla con `measureInWindow`.
+   *
+   * Existe por la transición obra → artista: la obra tiene que crecer desde
+   * donde estaba, y "donde estaba" solo lo sabe la vista que la mostraba. Un
+   * componente tocable que no se puede medir obliga a envolverlo en otra vista
+   * solo para eso, y esa vista de más termina apareciendo en cada grilla.
+   */
+  ref?: Ref<View>
 }
 
 /**
@@ -43,6 +53,7 @@ export function Pressable({
   visualSize,
   onPress,
   disabled,
+  ref,
   ...rest
 }: PressableProps) {
   const theme = useTheme()
@@ -59,6 +70,7 @@ export function Pressable({
 
   return (
     <RNPressable
+      ref={ref}
       accessibilityRole="button"
       accessibilityState={{ disabled: disabled === true }}
       disabled={disabled}

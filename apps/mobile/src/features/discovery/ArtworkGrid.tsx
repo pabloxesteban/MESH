@@ -21,13 +21,13 @@ import { View } from 'react-native'
 
 import { Box, SCREEN_GUTTER, spacing } from '@/design-system/index.ts'
 
+import { ratioOf } from '@/features/transitions/geometry.ts'
+
 import { ArtworkTile } from './ArtworkTile.tsx'
 import type { FeedItem } from './queries.ts'
 
 /** Separación entre obras. Chica: la grilla es densa a propósito. */
 const GAP = spacing.xxs
-
-const DEFAULT_RATIO = 4 / 5
 
 export interface ArtworkGridProps {
   items: readonly FeedItem[]
@@ -50,10 +50,10 @@ export function splitIntoColumns(
   let altoDerecha = 0
 
   for (const item of items) {
-    const ratio =
-      item.mediaWidth != null && item.mediaHeight != null && item.mediaWidth > 0
-        ? item.mediaHeight / item.mediaWidth
-        : 1 / DEFAULT_RATIO
+    // El inverso de la relación de aspecto: acá se acumulan altos, no anchos.
+    // El default sale del mismo lugar que el de la tarjeta y el del hero, para
+    // que las tres pantallas coincidan sobre la forma de una obra sin medidas.
+    const ratio = 1 / ratioOf(item.mediaWidth, item.mediaHeight)
 
     if (altoIzquierda <= altoDerecha) {
       left.push(item)

@@ -393,6 +393,84 @@ crezca, filtrar por radio es una decisión nueva y hay que tomarla mirando datos
 
 ---
 
+## D-011 · La obra crece hasta ser el perfil, y el hero es la obra que tocaste
+
+**Fecha:** 2026-08-19 · **Implementa [D-007].** · **Código:**
+`apps/mobile/src/features/transitions/`
+
+D-007 decidió construir a mano la transición obra → artista y prototiparla en
+el playground antes de tocar producción. Esto es eso, hecho, más tres
+decisiones que solo aparecieron al construirla.
+
+**Decidido: el destino se calcula, no se mide.** El rectángulo donde va el hero
+sale de `heroRect()`, con las mismas constantes con las que `ProfileScreen`
+dibuja el suyo. Medirlo habría sido lo obvio, pero el perfil llega por red y el
+hero no existe durante los primeros fotogramas: la obra se quedaría quieta en
+su lugar viejo esperando el JSON, que es exactamente la sensación de "se colgó"
+que la transición viene a evitar. El precio es un acoplamiento entre dos
+archivos, y está pagado con un test que compara las constantes: si el hero
+cambia de posición, falla ahí y no en la pantalla.
+
+**Decidido: la obra que se tocó es el hero del perfil, aunque el artista haya
+destacado otra.** Es la única forma de que la transición no mienta. Si crece una
+obra y arriba aparece otra, la animación dijo "esto es lo que estás abriendo" y
+era falso. La obra destacada sigue mandando cuando se llega de cualquier otro
+lado —de un chat, de un enlace— y también cuando la obra tocada dejó de estar
+publicada entre la grilla y el perfil.
+
+**Decidido: abrir el perfil nunca depende de que la medición salga bien.** Esto
+se aprendió rompiéndolo. La primera versión medía con `measureInWindow` y
+navegaba adentro de su callback; en el renderer de los tests ese callback no
+llega nunca, así que **tocar una obra no hacía nada**. Lo encontró de casualidad
+un test de la grilla que ya existía. La versión que quedó mide
+sincrónicamente con `getBoundingClientRect` —que existe en la arquitectura nueva
+de React Native y en react-native-web, las dos plataformas donde la app corre— y
+si no puede medir, abre igual sin animación. La animación es un lujo; llegar al
+perfil no. Hay un test que busca ese defecto a propósito.
+
+**El perfil entra con un fundido y no con el deslizamiento nativo.** Un
+deslizamiento lateral empujaría la pantalla en una dirección mientras la obra
+viaja en otra. Con el fundido, la grilla se disuelve y lo único que se mueve es
+la obra.
+
+**Rechazado: la transición de zoom nativa de expo-router.** Ya estaba rechazada
+en D-007 —alpha, solo iOS, ~1s de demora declarada en la documentación de
+Expo— y nada de lo que apareció al construir cambió eso.
+
+**Rechazado: un elemento compartido de verdad.** Lo que viaja es una **copia**
+de la obra dibujada por encima de todo; el original queda tapado por la pantalla
+nueva y el hero real aparece recién cuando la copia termina, así que nunca se
+ven los dos. La diferencia con un elemento compartido nativo no se puede ver;
+la diferencia en fragilidad, sí.
+
+**Rechazado: animar con `transform`.** Sería más barato que animar
+`left/top/width/height`, pero con escala no uniforme deforma la imagen y el
+radio de las esquinas — y la escala es no uniforme cuando el origen y el destino
+no comparten relación de aspecto, que es el caso del carrusel de Inicio. Es una
+sola vista durante 280ms: el costo se paga, la deformación no.
+
+**Movimiento reducido:** la obra aparece en su lugar final, sin recorrido. No es
+"animar más rápido", es no animar, que es lo que pidió quien configuró el
+sistema así.
+
+**Lo que no hace, y hay que decirlo.**
+
+- **No hay transición al volver.** Salir del perfil es la navegación de siempre.
+  Invertirla necesita que la obra de origen siga montada y en el mismo lugar, y
+  con la grilla scrolleada eso no se puede garantizar sin registrar cada tarjeta
+  visible. Se puede hacer; no está hecho.
+- **Desde el carrusel de Inicio la obra cambia de forma en el camino.** El
+  carrusel recorta todo a 4:5 para que la fila quede pareja y el hero respeta la
+  forma real. Se ve como que la obra se "desrecorta", que es honesto —está
+  mostrando lo que el carrusel tapaba— pero no es continuidad pura.
+- **La copia usa el archivo mediano, el hero el grande.** Es a propósito: el
+  mediano ya está en caché desde la grilla, y pedir el grande pondría una
+  descarga en el camino de la animación. Al terminar hay un cambio de nitidez.
+
+[D-007]: #d-007--la-transición-obra--artista-se-construye-a-mano-no-con-la-api-nativa
+
+---
+
 ## Pendiente, y dicho como pendiente
 
 Nada de esto está implementado en las pantallas de producción todavía. Lo que
@@ -406,11 +484,10 @@ Lo que falta, en orden:
    variantes de tarjeta, variantes de hoja, tratamiento de imagen, elevación.
 2. Sistema de tarjetas semánticas (§13 del brief): hero, editorial, compacta,
    horizontal, match, perfil, portafolio.
-3. Transición obra → artista con elemento compartido, prototipada en el
-   playground antes de tocar producción.
+3. ~~Transición obra → artista con elemento compartido, prototipada en el
+   playground antes de tocar producción.~~ **Hecha** — D-011.
 4. ~~Rehacer Descubrir con la grilla de D.~~ **Hecho** — hoy es la pestaña
-   Explorar (D-010). Falta la transición desde la grilla, que sigue siendo una
-   navegación común.
+   Explorar (D-010), con la transición obra → artista (D-011).
 5. Rehacer Perfil con la hoja de C.
 6. ~~Reemplazar la explicación de gusto por la cartela de B.~~ **Sin objeto por
    ahora:** no hay pantalla de gusto (D-010).
@@ -430,10 +507,9 @@ pestaña, porque Inicio dejó de ser una grilla de obra.
 
 ### Lo que la implementación dejó pendiente
 
-- **La transición obra → artista sigue siendo una navegación común.** Tocar una
-  obra en la grilla abre el perfil, pero no crece desde donde estaba. Es la
-  interacción firma y todavía no existe; se prototipa en el playground antes de
-  tocar producción (D-007).
+- ~~**La transición obra → artista sigue siendo una navegación común.**~~
+  **Hecha** — ver D-011. Queda sin hacer la vuelta: salir del perfil sigue
+  siendo la navegación de siempre.
 - **El masonry todavía no se ve escalonado**, y no es un bug: las fotos fixture
   tienen todas la misma relación de aspecto, así que las dos columnas quedan
   alineadas. Con obra real se escalona solo. El reparto por altura acumulada sí

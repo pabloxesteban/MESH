@@ -10,6 +10,7 @@ import { useState } from 'react'
 import {
   MotionProvider,
   ThemeProvider,
+  duration,
   useTheme,
 } from '@/design-system/index.ts'
 import { AnalyticsProvider } from '@/analytics/AnalyticsProvider.tsx'
@@ -116,7 +117,24 @@ function Navigator() {
         headerShown: false,
         contentStyle: { backgroundColor: theme.surface },
       }}
-    />
+    >
+      {/*
+        El perfil entra con un fundido y no con el deslizamiento nativo.
+
+        Es por la transición obra → artista: la obra que se tocó crece hasta
+        ser el hero, y un deslizamiento lateral al mismo tiempo empujaría la
+        pantalla en una dirección mientras la obra viaja en otra. Con el
+        fundido, la grilla se disuelve y lo único que se mueve es la obra —
+        que es exactamente lo que la transición promete.
+
+        La duración es la misma que la de la obra: un token, no un número.
+        Ver features/transitions y D-011.
+      */}
+      <Stack.Screen
+        name="artista/[slug]"
+        options={{ animation: 'fade', animationDuration: duration.standard }}
+      />
+    </Stack>
   )
 }
 

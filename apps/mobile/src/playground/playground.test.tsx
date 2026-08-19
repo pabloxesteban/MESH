@@ -21,6 +21,9 @@ const BUILT_IDS = [
   'swipe-physics',
   'bottom-sheet',
   'taste-map',
+  // La transición obra → artista. Ver D-007, que decidió construirla a mano, y
+  // D-011, que la implementó.
+  'shared-grow',
 ]
 
 describe('PLAYGROUND_ENTRIES', () => {

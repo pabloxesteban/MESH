@@ -5,8 +5,13 @@ import type { Professional } from '@mesh/domain'
 import { renderWithProviders } from '@/design-system/test-utils.tsx'
 import { I18nProvider } from '@/i18n/I18nProvider.tsx'
 
+import {
+  __resetArtworkHandoff,
+  offerArtwork,
+} from '@/features/transitions/sharedArtwork.ts'
+
 import { ProfileScreen } from './ProfileScreen.tsx'
-import type { ProfileData } from './queries.ts'
+import type { PortfolioPiece, ProfileData } from './queries.ts'
 
 jest.mock('./queries.ts', () => ({ fetchProfile: jest.fn() }))
 jest.mock('@/features/discovery/queries.ts', () => ({
@@ -66,7 +71,28 @@ function render() {
   return { onContact }
 }
 
-beforeEach(() => jest.clearAllMocks())
+function pieza(
+  id: string,
+  overrides: Partial<PortfolioPiece> = {},
+): PortfolioPiece {
+  return {
+    id,
+    mediaPath: `aguja-fina/${id}/lg.webp`,
+    blurhash: null,
+    width: 800,
+    height: 1000,
+    caption: null,
+    year: null,
+    isFeatured: false,
+    styles: [],
+    ...overrides,
+  }
+}
+
+beforeEach(() => {
+  jest.clearAllMocks()
+  __resetArtworkHandoff()
+})
 
 describe('ProfileScreen', () => {
   it('no renderiza nada donde falta un dato', async () => {
@@ -175,5 +201,82 @@ describe('ProfileScreen', () => {
     )
     expect(screen.queryByText(/permission denied/i)).toBeNull()
     expect(screen.getByText('Volver')).toBeTruthy()
+  })
+})
+
+describe('la entrada desde una obra', () => {
+  const DESTACADA = pieza('destacada', { isFeatured: true })
+  const TOCADA = pieza('tocada')
+
+  function llegarTocando(portfolioItemId: string) {
+    offerArtwork({
+      portfolioItemId,
+      professionalSlug: 'aguja-fina',
+      mediaPath: `aguja-fina/${portfolioItemId}/lg.webp`,
+      blurhash: null,
+      aspectRatio: 0.8,
+      from: { x: 20, y: 500, width: 175, height: 219 },
+      at: Date.now(),
+    })
+  }
+
+  it('la obra que se tocó es la que queda de hero, no la destacada', async () => {
+    // Es la promesa de la transición: si crece una obra y arriba aparece otra,
+    // la animación contó una mentira sobre qué se estaba abriendo.
+    fetchMock.mockResolvedValue(data({}, [DESTACADA, TOCADA]))
+    llegarTocando('tocada')
+    render()
+
+    await waitFor(() => expect(screen.getByTestId('profile-content')).toBeTruthy())
+
+    const hero = screen.UNSAFE_getAllByProps({ contentFit: 'cover' })[0]
+    expect(hero?.props.source).toContain('tocada')
+  })
+
+  it('llegando de otro lado manda la destacada, como siempre', async () => {
+    fetchMock.mockResolvedValue(data({}, [TOCADA, DESTACADA]))
+    render()
+
+    await waitFor(() => expect(screen.getByTestId('profile-content')).toBeTruthy())
+
+    const hero = screen.UNSAFE_getAllByProps({ contentFit: 'cover' })[0]
+    expect(hero?.props.source).toContain('destacada')
+  })
+
+  it('si la obra tocada ya no está publicada, manda la destacada', async () => {
+    // El artista pudo bajarla entre la grilla y el perfil. Mejor la regla de
+    // siempre que un hero vacío.
+    fetchMock.mockResolvedValue(data({}, [DESTACADA]))
+    llegarTocando('una-que-ya-no-esta')
+    render()
+
+    await waitFor(() => expect(screen.getByTestId('profile-content')).toBeTruthy())
+
+    const hero = screen.UNSAFE_getAllByProps({ contentFit: 'cover' })[0]
+    expect(hero?.props.source).toContain('destacada')
+  })
+
+  it('el pasamanos de otro artista no se hereda', async () => {
+    offerArtwork({
+      portfolioItemId: 'tocada',
+      professionalSlug: 'otro-artista',
+      mediaPath: 'otro-artista/tocada/lg.webp',
+      blurhash: null,
+      aspectRatio: 0.8,
+      from: { x: 20, y: 500, width: 175, height: 219 },
+      at: Date.now(),
+    })
+    fetchMock.mockResolvedValue(data({}, [DESTACADA, TOCADA]))
+    render()
+
+    await waitFor(() => expect(screen.getByTestId('profile-content')).toBeTruthy())
+
+    const hero = screen.UNSAFE_getAllByProps({ contentFit: 'cover' })[0]
+    expect(hero?.props.source).toContain('destacada')
+    expect(
+      screen.queryByTestId('profile-growing-artwork', {
+        includeHiddenElements: true,
+      }),
+    ).toBeNull()
   })
 })

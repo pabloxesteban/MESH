@@ -21,7 +21,7 @@
  */
 
 import { Image } from 'expo-image'
-import { memo } from 'react'
+import { memo, useRef } from 'react'
 import { ScrollView, View } from 'react-native'
 
 import { findLocation, roundDistanceKm } from '@mesh/domain'
@@ -37,6 +37,8 @@ import {
   useTheme,
 } from '@/design-system/index.ts'
 import { FixtureBadge } from '@/components/FixtureBadge.tsx'
+import { ratioOf } from '@/features/transitions/geometry.ts'
+import { openArtwork } from '@/features/transitions/openArtwork.ts'
 import { useT } from '@/i18n/I18nProvider.tsx'
 import type { TranslationKey } from '@/i18n/index.ts'
 
@@ -91,32 +93,12 @@ function ArtistCardImpl({
         testID={`${testID ?? 'artist'}-carousel`}
       >
         {artist.pieces.map((piece) => (
-          <Pressable
+          <CarouselPiece
             key={piece.id}
+            piece={piece}
+            artist={artist}
             onPress={onPress}
-            accessibilityRole="button"
-            accessibilityLabel={t('artists.card.open', {
-              nombre: artist.displayName,
-            })}
-            style={{
-              width: PIECE_WIDTH,
-              aspectRatio: 4 / 5,
-              borderRadius: radius.md,
-              overflow: 'hidden',
-              backgroundColor: theme.surfaceRaised,
-            }}
-          >
-            <Image
-              source={mediaUrl(piece.mediaPath, 'md')}
-              style={{ width: '100%', height: '100%' }}
-              contentFit="cover"
-              {...(piece.blurhash != null
-                ? { placeholder: { blurhash: piece.blurhash } }
-                : {})}
-              transition={200}
-              accessible={false}
-            />
-          </Pressable>
+          />
         ))}
       </ScrollView>
 
@@ -155,6 +137,75 @@ function ArtistCardImpl({
       </Pressable>
 
     </View>
+  )
+}
+
+/**
+ * Una obra del carrusel.
+ *
+ * Componente propio y no un `map` inline porque cada obra necesita su propia
+ * referencia para poder medirse: la transición obra → artista crece desde el
+ * rectángulo exacto de la obra que se tocó, y un `useRef` por iteración no se
+ * puede escribir adentro de un `map`.
+ *
+ * El recorte es el que delata la única diferencia con Explorar: acá el
+ * carrusel muestra todas las obras en 4:5 para que la fila quede pareja,
+ * mientras que el hero del perfil respeta la forma real de la obra. La copia
+ * que crece va cambiando de forma en el camino, que es lo correcto — está
+ * mostrando la obra entera que el carrusel recortaba.
+ */
+function CarouselPiece({
+  piece,
+  artist,
+  onPress,
+}: {
+  piece: ArtistCardData['pieces'][number]
+  artist: ArtistCardData
+  onPress: () => void
+}) {
+  const t = useT()
+  const theme = useTheme()
+  const view = useRef<View | null>(null)
+
+  return (
+    <Pressable
+      ref={view}
+      onPress={() => {
+        openArtwork({
+          view: view.current,
+          artwork: {
+            portfolioItemId: piece.id,
+            professionalSlug: artist.slug,
+            mediaPath: piece.mediaPath,
+            blurhash: piece.blurhash,
+            aspectRatio: ratioOf(piece.width, piece.height),
+          },
+          open: onPress,
+        })
+      }}
+      accessibilityRole="button"
+      accessibilityLabel={t('artists.card.open', {
+        nombre: artist.displayName,
+      })}
+      style={{
+        width: PIECE_WIDTH,
+        aspectRatio: 4 / 5,
+        borderRadius: radius.md,
+        overflow: 'hidden',
+        backgroundColor: theme.surfaceRaised,
+      }}
+    >
+      <Image
+        source={mediaUrl(piece.mediaPath, 'md')}
+        style={{ width: '100%', height: '100%' }}
+        contentFit="cover"
+        {...(piece.blurhash != null
+          ? { placeholder: { blurhash: piece.blurhash } }
+          : {})}
+        transition={200}
+        accessible={false}
+      />
+    </Pressable>
   )
 }
 

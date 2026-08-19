@@ -16,7 +16,7 @@
  */
 
 import { Image } from 'expo-image'
-import { memo } from 'react'
+import { memo, useRef } from 'react'
 import { View } from 'react-native'
 
 import {
@@ -29,16 +29,10 @@ import {
 import { FixtureBadge } from '@/components/FixtureBadge.tsx'
 import { useT } from '@/i18n/I18nProvider.tsx'
 
-import { mediaUrl, type FeedItem } from './queries.ts'
+import { ratioOf } from '@/features/transitions/geometry.ts'
+import { openArtwork } from '@/features/transitions/openArtwork.ts'
 
-/**
- * Relación de aspecto cuando la pieza no declara medidas.
- *
- * 4:5 y no 1:1: el retrato es la forma más común de una foto de tatuaje, y un
- * cuadrado por defecto recortaría de más justo en las piezas de las que menos
- * sabemos.
- */
-const DEFAULT_RATIO = 4 / 5
+import { mediaUrl, type FeedItem } from './queries.ts'
 
 export interface ArtworkTileProps {
   item: FeedItem
@@ -49,15 +43,29 @@ export interface ArtworkTileProps {
 function ArtworkTileImpl({ item, onPress, testID }: ArtworkTileProps) {
   const theme = useTheme()
   const t = useT()
+  const view = useRef<View | null>(null)
 
-  const aspectRatio =
-    item.mediaWidth != null && item.mediaHeight != null && item.mediaHeight > 0
-      ? item.mediaWidth / item.mediaHeight
-      : DEFAULT_RATIO
+  const aspectRatio = ratioOf(item.mediaWidth, item.mediaHeight)
 
   return (
     <Pressable
-      onPress={onPress}
+      ref={view}
+      // Se mide antes de navegar: la obra tiene que crecer desde donde estaba,
+      // y "donde estaba" deja de existir apenas se abre el perfil. Ver
+      // features/transitions.
+      onPress={() => {
+        openArtwork({
+          view: view.current,
+          artwork: {
+            portfolioItemId: item.portfolioItemId,
+            professionalSlug: item.professionalSlug,
+            mediaPath: item.mediaPath,
+            blurhash: item.blurhash,
+            aspectRatio,
+          },
+          open: onPress,
+        })
+      }}
       accessibilityRole="button"
       // La etiqueta sí nombra al artista, aunque la tarjeta no lo muestre: un
       // lector de pantalla no puede "tocar para ver". Sin esto, la grilla se
