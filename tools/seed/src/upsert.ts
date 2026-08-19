@@ -28,6 +28,10 @@ import type { ProcessedImage } from './media.ts'
 
 export type Client = SupabaseClient<Database>
 
+/** La forma exacta que espera la tabla, tomada del esquema generado. */
+export type ProfessionalRow =
+  Database['public']['Tables']['professionals']['Insert']
+
 export function createServiceClient(url: string): Client {
   return createClient<Database>(url, readServiceRoleKey(), {
     auth: { persistSession: false, autoRefreshToken: false },
@@ -121,6 +125,47 @@ export interface UpsertArtistResult {
   readonly pieces: number
 }
 
+/**
+ * La fila de `professionals`, armada aparte para poder testearla.
+ *
+ * Es puro mapeo de YAML a columnas, que suena trivial hasta que un campo se
+ * escribe mal y nadie se entera porque los fixtures no lo usan — los precios y
+ * las fechas de disponibilidad son de los que solo aparecen con contenido real.
+ *
+ * **`is_published` solo se escribe en el alta**, y esa es la regla que este
+ * archivo existe para hacer visible. Ver el comentario en `upsertArtist`.
+ */
+export function artistRow(
+  artist: ArtistContent,
+  {
+    categoryId,
+    locationId,
+    isNew,
+  }: { categoryId: string; locationId: string | null; isNew: boolean },
+): ProfessionalRow {
+  return {
+    category_id: categoryId,
+    slug: artist.slug,
+    display_name: artist.display_name,
+    bio: artist.bio ?? null,
+    location_id: locationId,
+    travels: artist.travels ?? false,
+    price_min_cents: artist.price?.min_cents ?? null,
+    price_max_cents: artist.price?.max_cents ?? null,
+    price_currency: artist.price?.currency ?? null,
+    priced_at: artist.price?.priced_at ?? null,
+    availability_status: artist.availability?.status ?? null,
+    availability_updated_at: artist.availability?.updated_at ?? null,
+    instagram_handle: artist.contact.instagram ?? null,
+    whatsapp_e164: artist.contact.whatsapp ?? null,
+    is_fixture: artist.is_fixture ?? false,
+    // Publicar es una decisión aparte de cargar (content-policy §7), y
+    // despublicar también: una actualización no toca este campo ni para arriba
+    // ni para abajo.
+    ...(isNew ? { is_published: false } : {}),
+  }
+}
+
 export async function upsertArtist(
   client: Client,
   artist: ArtistContent,
@@ -130,29 +175,39 @@ export async function upsertArtist(
   const locationId =
     location == null ? null : (refs.locationIdBySlug.get(location.slug) ?? null)
 
+  // ¿Ya existía? Decide una sola cosa, y es la que más duele equivocar: si esta
+  // carga toca `is_published`.
+  //
+  // La versión anterior escribía `is_published: false` siempre, con el
+  // razonamiento correcto —publicar es una decisión aparte de cargar— aplicado
+  // al caso equivocado. En un alta es cierto; en una actualización significa
+  // que **corregir una bio saca a la persona de la app**, en silencio, hasta
+  // que alguien se acuerde de volver a correr con `--publish`. Y ese es
+  // exactamente el procedimiento que documenta rollback.md caso 2 para arreglar
+  // un dato en una hora.
+  //
+  // Se descubrió cargando de a un artista: quedaron nueve publicados de diez.
+  const previo = await client
+    .from('professionals')
+    .select('id')
+    .eq('slug', artist.slug)
+    .maybeSingle()
+  if (previo.error != null) {
+    throw new Error(
+      `no se pudo leer el profesional "${artist.slug}": ${previo.error.message}`,
+    )
+  }
+  const esAlta = previo.data == null
+
   const professional = must(
     await client
       .from('professionals')
       .upsert(
-        {
-          category_id: refs.categoryId,
-          slug: artist.slug,
-          display_name: artist.display_name,
-          bio: artist.bio ?? null,
-          location_id: locationId,
-          travels: artist.travels ?? false,
-          price_min_cents: artist.price?.min_cents ?? null,
-          price_max_cents: artist.price?.max_cents ?? null,
-          price_currency: artist.price?.currency ?? null,
-          priced_at: artist.price?.priced_at ?? null,
-          availability_status: artist.availability?.status ?? null,
-          availability_updated_at: artist.availability?.updated_at ?? null,
-          instagram_handle: artist.contact.instagram ?? null,
-          whatsapp_e164: artist.contact.whatsapp ?? null,
-          is_fixture: artist.is_fixture ?? false,
-          // Publicar es una decisión aparte de cargar. Ver content-policy §7.
-          is_published: false,
-        },
+        artistRow(artist, {
+          categoryId: refs.categoryId,
+          locationId,
+          isNew: esAlta,
+        }),
         { onConflict: 'slug' },
       )
       .select('id')

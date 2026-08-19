@@ -322,7 +322,7 @@ Los fixtures son inconfundibles: `is_fixture: true`, slug con prefijo
 impuestas por el esquema de validación—, insignia visible en toda pantalla que
 los muestre, contacto bloqueado, imágenes abstractas con la palabra FIXTURE
 impresa, y la carga a producción **falla** si encuentra alguno — verificado
-corriendo `--target production` y viendo el rechazo.
+corriendo `--target production` y viendo que los saltea y los nombra.
 
 ### Un defecto real que encontró correr el seeder
 
@@ -604,6 +604,33 @@ obligatorio del retiro, no una limpieza posterior.
 **Una decisión de producto:** no va a haber video de vista previa en V1. Un
 video de una app que todavía no se probó con nadie promete más de lo que
 sabemos.
+
+### El ensayo del camino de producción (2026-08-19)
+
+Antes de que llegue el contenido real, **corrí el camino de producción** para
+que el día que lleguen las fotos cargar sea un comando y no una tarde de
+sorpresas. Encontró tres defectos, y los tres son de los que solo existen con
+contenido real — por eso meses de construir con fixtures no los tocaron.
+
+1. **El camino estaba inusable.** `--target production` abortaba ante el primer
+   fixture, y los diez fixtures viven en este repositorio y van a seguir acá.
+   Cargar a la primera artista real habría exigido borrarlos. Ahora se saltean
+   y se nombran uno por uno.
+2. **`--publish` publicaba todo lo cargado.** Alguien despublicado a mano
+   —porque pidió salir unos días— volvía a aparecer en la siguiente corrida.
+   Ahora existe `--only <slug>`, y la documentación lo trata como el guard que
+   es, no como una comodidad.
+3. **Cargar despublicaba.** `is_published` se escribía en `false` en cada
+   corrida, así que corregir una bio sacaba a la persona de la app en silencio
+   — que es exactamente lo que `rollback.md` caso 2 promete resolver en una
+   hora. Ahora solo se escribe en el alta.
+
+El tercero se descubrió mirando un número que no cerraba: después de cargar de
+a un artista quedaban nueve publicados de diez.
+
+Lo que el ensayo **no** puede reemplazar: fotos reales. El EXIF, la
+orientación y los tamaños ya están cubiertos y testeados, pero recién con las
+fotos de alguien se ve cómo se recorta su obra en la grilla.
 
 ### Los dos bloqueantes
 

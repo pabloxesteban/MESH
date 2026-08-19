@@ -14,15 +14,21 @@
  *
  * Uso:
  *   SUPABASE_URL=… SUPABASE_SERVICE_ROLE_KEY=… npm run seed -w @mesh/seed
- *   … --target production   rechaza fixtures
+ *   … --target production   saltea fixtures
+ *   … --only <slug>[,<slug>] carga solo a quien se nombra
  *   … --publish             además publica lo cargado
+ *
+ * **`--publish` publica lo que la corrida cargó, y nada más.** Con `--only`
+ * eso es exactamente a quien se nombró. Sin `--only`, es todo el catálogo — y
+ * ahí está el filo: alguien despublicado a mano vuelve a aparecer. Ver
+ * docs/launch/rollback.md, caso 1.
  */
 
 import { createHash } from 'node:crypto'
 import { readFileSync } from 'node:fs'
 import { join, resolve } from 'node:path'
 
-import { assertNoFixturesInProduction, assertNotBundled } from './guard.ts'
+import { assertNotBundled, partitionFixtures, selectSlugs } from './guard.ts'
 import { processImage } from './media.ts'
 import {
   createServiceClient,
@@ -43,6 +49,14 @@ function arg(name: string): string | undefined {
 
 function flag(name: string): boolean {
   return process.argv.includes(`--${name}`)
+}
+
+/** `--only a,b` o `--only a --only b`. Vacío = todo el catálogo. */
+function onlySlugs(): readonly string[] {
+  return (arg('only') ?? '')
+    .split(',')
+    .map((slug) => slug.trim())
+    .filter((slug) => slug.length > 0)
 }
 
 async function seedArtist(
@@ -140,16 +154,35 @@ async function main(): Promise<void> {
     return
   }
 
-  assertNoFixturesInProduction(
+  // Los borradores cuentan como conocidos: nombrar a alguien que existe pero
+  // está en borrador tiene que decir *eso*, no "no existe".
+  const pedidos = selectSlugs(bundles, onlySlugs(), [
+    ...bundles.map((b) => b.slug),
+    ...drafts,
+  ])
+
+  const { loadable, skipped } = partitionFixtures(
     target,
-    bundles.filter((b) => b.artist.is_fixture === true).map((b) => b.slug),
+    pedidos,
+    (bundle) => bundle.artist.is_fixture === true,
   )
+
+  // Nombrados uno por uno y no contados: un fixture salteado en silencio sería
+  // el defecto que "saltear en vez de abortar" podría introducir.
+  for (const bundle of skipped) {
+    console.log(`  · ${bundle.slug}: FIXTURE — salteado, no va a producción.`)
+  }
+
+  if (loadable.length === 0) {
+    console.log('\nNada que cargar con estos filtros.')
+    return
+  }
 
   const client = createServiceClient(url)
   const refs = await loadReferenceIds(client, 'tattoo')
 
   let pieces = 0
-  for (const bundle of bundles) {
+  for (const bundle of loadable) {
     const count = await seedArtist(client, bundle, refs, publish)
     pieces += count
     console.log(
@@ -160,7 +193,7 @@ async function main(): Promise<void> {
   }
 
   console.log(
-    `\n✓ ${bundles.length} artista(s), ${pieces} pieza(s), ${pieces * 3} objeto(s) en storage.` +
+    `\n✓ ${loadable.length} artista(s), ${pieces} pieza(s), ${pieces * 3} objeto(s) en storage.` +
       (publish
         ? ''
         : '\n  Nada quedó publicado. Volvé a correr con --publish cuando estén revisados.'),

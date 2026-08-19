@@ -26,8 +26,9 @@ repositorio.
 
 Para **cada** artista, antes de publicar:
 
-1. **Cargar sin publicar.** `npm run content:seed` sin `--publish`. El perfil
-   existe en la base y no aparece en el mazo de nadie.
+1. **Cargar sin publicar.** `npm run content:seed -- --only <slug>`, sin
+   `--publish`. El perfil existe en la base y no aparece en Inicio ni en
+   Explorar para nadie.
 2. **Mostrarle el perfil en un teléfono**, no una captura. Una captura no deja
    ver cómo se recorta la obra en la grilla ni cómo se lee el nombre.
 3. **Recorrer, en voz alta, campo por campo:**
@@ -45,8 +46,13 @@ Para **cada** artista, antes de publicar:
    tu perfil, nos escribís y lo sacamos ese mismo día". Alguien que sabe cómo
    irse acepta con más confianza.
 6. **Anotar la aprobación**, con fecha, en `content/artists/<slug>/consent.md`.
-7. **Recién ahí, publicar.** `npm run content:seed -- --publish`, que además
-   escribe el `audit_event`.
+7. **Recién ahí, publicar.** `npm run content:seed -- --only <slug> --publish`,
+   que además escribe el `audit_event`.
+
+   **El `--only` no es opcional.** Sin él, `--publish` publica a todo el
+   catálogo cargado, y eso incluye a cualquiera que esté despublicado a
+   propósito — alguien que pidió salir unos días vuelve a la app sin que nadie
+   lo haya decidido. Ver `rollback.md`, caso 2.
 
 ## Lo que descalifica un perfil
 

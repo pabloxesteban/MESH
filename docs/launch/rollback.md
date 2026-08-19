@@ -16,8 +16,8 @@ Confundirlos hace que un problema de minutos se trate como uno de días.
 
 **Tiempo objetivo: el mismo día hábil. Sin release.**
 
-1. `update professionals set is_published = false where slug = '…'` — sale del
-   mazo y de los matches al instante, porque RLS filtra por `is_published`.
+1. `update professionals set is_published = false where slug = '…'` — sale de
+   Inicio y de Explorar al instante, porque RLS filtra por `is_published`.
 2. Borrar los objetos de storage de ese artista. **No alcanza con despublicar:**
    el bucket `portfolio` es de lectura pública, así que los objetos siguen
    alcanzables por URL directa hasta que se borren. Es el hallazgo 2 de la
@@ -34,8 +34,16 @@ cascada, así que desaparecen solos.
 **Tiempo objetivo: una hora. Sin release.**
 
 Corregir el YAML en `content/artists/`, correr `npm run content:validate` y
-después `npm run content:seed`. La carga es idempotente y hace upsert sobre la
-clave natural, así que solo cambia lo que cambió.
+después `npm run content:seed -- --only <slug>`. La carga es idempotente y hace
+upsert sobre la clave natural, así que solo cambia lo que cambió.
+
+> **`--only` no es una comodidad, es el guard.** Sin él la corrida abarca todo
+> el catálogo, y `--publish` pone `is_published = true` en **cada artista que
+> cargó**. Si alguien está despublicado a mano —pidió salir unos días, o se está
+> corrigiendo algo— una carga amplia con `--publish` lo devuelve a la app sin
+> que nadie lo haya decidido. En el retiro completo esto no pasa, porque el paso
+> 4 borra su directorio de `content/artists/`; el filo está en el retiro
+> **temporal**, que es el que no borra nada.
 
 ## Caso 3 — Un bug en el matching o en el gusto
 
