@@ -24,12 +24,11 @@ import * as ImagePicker from 'expo-image-picker'
 import { Image } from 'expo-image'
 import { ScrollView, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { neighborhoodsOf } from '@mesh/domain'
+import { findLocation } from '@mesh/domain'
 
 import {
   Box,
   Button,
-  FilterChip,
   HAIRLINE,
   Pressable,
   SCREEN_GUTTER,
@@ -41,15 +40,11 @@ import {
 import { useT } from '@/i18n/I18nProvider.tsx'
 import type { TranslationKey } from '@/i18n/index.ts'
 
+import { useDeviceLocation } from '../location/useDeviceLocation.ts'
 import { classifyReferencePhoto } from './classify.ts'
 import { createQuickSearch } from './createQuickSearch.ts'
 
 const MAX_PHOTOS = 4
-
-/** Mismo criterio que ProjectFormScreen: V1 es CABA, 48 barrios entran en una grilla. */
-const BARRIOS = [...neighborhoodsOf('caba')].sort((a, b) =>
-  (a.neighborhood ?? '').localeCompare(b.neighborhood ?? '', 'es-AR'),
-)
 
 export interface QuickSearchScreenProps {
   userId: string
@@ -66,8 +61,9 @@ export function QuickSearchScreen({
   const theme = useTheme()
   const insets = useSafeAreaInsets()
 
+  const device = useDeviceLocation()
+
   const [images, setImages] = useState<readonly string[]>([])
-  const [locationSlug, setLocationSlug] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   // Ausente hasta que la búsqueda corrió; con valor, algunas fotos no
@@ -99,6 +95,12 @@ export function QuickSearchScreen({
       }
 
       const title = t(`style.tattoo.${styleSlug}` as TranslationKey)
+
+      // El barrio sale del GPS, no de una grilla de 48 chips. Si no hay
+      // permiso o el geocoder no reconoció nada, va sin barrio y el
+      // componente de ubicación del matching se omite — exactamente lo que
+      // pasaba antes cuando alguien no elegía ninguno.
+      const locationSlug = device.location?.neighborhoodSlug ?? null
 
       const result = await createQuickSearch({
         userId,
@@ -211,29 +213,11 @@ export function QuickSearchScreen({
           </Box>
         </Box>
 
-        <Box gap="xs">
-          <Text role="label" color="textSecondary">
-            {t('quickSearch.location')}
-          </Text>
-          <Text role="micro" color="textTertiary">
-            {t('quickSearch.location.hint')}
-          </Text>
-          <Box direction="row" gap="xxs" wrap>
-            {BARRIOS.map((barrio) => (
-              <FilterChip
-                key={barrio.slug}
-                label={barrio.neighborhood ?? barrio.city}
-                selected={locationSlug === barrio.slug}
-                onToggle={() =>
-                  setLocationSlug((previous) =>
-                    previous === barrio.slug ? null : barrio.slug,
-                  )
-                }
-                testID={`quick-search-location-${barrio.slug}`}
-              />
-            ))}
-          </Box>
-        </Box>
+        <LocationRow
+          status={device.status}
+          neighborhoodSlug={device.location?.neighborhoodSlug ?? null}
+          onRequest={device.request}
+        />
 
         {error != null ? (
           <Text role="micro" color="stateNegative" testID="quick-search-error">
@@ -277,5 +261,75 @@ export function QuickSearchScreen({
         )}
       </Box>
     </ScrollView>
+  )
+}
+
+/**
+ * La ubicación, sin que nadie la elija.
+ *
+ * Antes acá había una grilla de 48 barrios. El barrio ahora sale del GPS: se
+ * pide el permiso una vez, con la razón al lado, y el geocoder del sistema lo
+ * traduce a un barrio de la taxonomía.
+ *
+ * Tres estados y ninguno miente:
+ * · sin permiso   → un botón que lo pide, diciendo para qué
+ * · con barrio    → lo nombra, para que se pueda ver que acertó
+ * · sin reconocer → lo dice, y la búsqueda sigue sin el componente de
+ *                   ubicación. No inventamos un barrio cercano.
+ */
+function LocationRow({
+  status,
+  neighborhoodSlug,
+  onRequest,
+}: {
+  status: 'checking' | 'unrequested' | 'granted' | 'denied'
+  neighborhoodSlug: string | null
+  onRequest: () => void
+}) {
+  const t = useT()
+
+  if (status === 'checking') return null
+
+  if (status === 'granted') {
+    return (
+      <Box gap="xxs" testID="quick-search-location-on">
+        <Text role="label" color="textSecondary">
+          {t('quickSearch.location')}
+        </Text>
+        <Text role="micro" color="textTertiary">
+          {neighborhoodSlug == null
+            ? t('quickSearch.location.unknown')
+            : t('quickSearch.location.near', {
+                barrio:
+                  findLocation(neighborhoodSlug)?.neighborhood ??
+                  neighborhoodSlug,
+              })}
+        </Text>
+      </Box>
+    )
+  }
+
+  return (
+    <Box gap="xs" testID="quick-search-location-off">
+      <Box gap="xxs">
+        <Text role="label" color="textSecondary">
+          {t('quickSearch.location')}
+        </Text>
+        <Text role="micro" color="textTertiary">
+          {status === 'denied'
+            ? t('quickSearch.location.denied')
+            : t('quickSearch.location.hint')}
+        </Text>
+      </Box>
+      {status === 'unrequested' ? (
+        <Button
+          label={t('quickSearch.location.action')}
+          variant="secondary"
+          size="sm"
+          onPress={onRequest}
+          testID="quick-search-location-request"
+        />
+      ) : null}
+    </Box>
   )
 }

@@ -7,8 +7,9 @@ Leé esto antes de cambiar nada. Es corto a propósito.
 MESH ayuda a la gente a descubrir a la persona indicada para hacer realidad una
 idea. Aprende el gusto visual a partir de decisiones de me gusta / guardar /
 paso y recomienda profesionales, con una explicación. V1: tatuadores, Buenos
-Aires / CABA, 8–15 artistas reales curados, sin reservas, sin pagos, contacto
-por WhatsApp/Instagram.
+Aires / CABA, 8–15 artistas reales curados, sin reservas, sin pagos. El
+contacto va por chat propio con los artistas que reclamaron su perfil, y por
+WhatsApp/Instagram con el resto.
 
 ## Innegociables
 
@@ -62,12 +63,31 @@ que se traduce es el nombre para mostrar, vía clave de i18n.
 | Motores de gusto y matching, taxonomía, tipos, esquemas Zod | `packages/domain/src/` |
 | CLI de carga de contenido (service role) | `tools/seed/` |
 | Migraciones SQL y políticas RLS | `supabase/migrations/` |
+| Edge Functions (única IA del producto) | `supabase/functions/` |
 | Tests de base de datos (pgTAP) | `supabase/tests/` |
 | Archivos de contenido de artistas | `content/artists/` |
 | Decisiones | `docs/decisions/` |
 
 La lógica pura va en `packages/domain` para poder testearla sin simulador y
 reutilizarla desde el seeder. Si importa algo de `react-native`, no va ahí.
+
+## Las cuatro pestañas
+
+La app abre en **Inicio**. Cuatro y ninguna más — con seis, la barra pasa a ser
+un menú que hay que estudiar en vez de un lugar donde la mano ya sabe ir.
+
+| Pestaña | Qué es |
+|---|---|
+| **Inicio** | El mazo. Donde la app abre y donde se pasa el tiempo. |
+| **Búsqueda** | Subís fotos de algo que te gusta y la IA detecta el estilo. Ver [ADR-011](docs/decisions/ADR-011-photo-classification.md). |
+| **Para vos** | Los matches, con los hilos de chat abiertos arriba. Ver [ADR-012](docs/decisions/ADR-012-chat.md). |
+| **Perfil** | Nombre, radio de búsqueda, tema, y los accesos a "Tu gusto" y "Tu estudio". |
+
+"Tu gusto" y "Tu estudio" no son pestañas: se visitan cada tanto, no cada
+sesión. Al registrarse se pregunta una sola vez si la persona ofrece un
+servicio o está buscando — es una preferencia de arranque, **no** un rol
+excluyente, y elegir "ofrezco" lleva a canjear el código de artista, no da de
+alta a nadie.
 
 ## Antes de cambiar algo
 

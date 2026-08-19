@@ -24,6 +24,8 @@ export type {
   StyleDefinition,
 } from './taxonomy/taxonomy.ts'
 
+export { matchNeighborhood } from './taxonomy/geocoding.ts'
+
 export {
   LOCATIONS,
   findLocation,

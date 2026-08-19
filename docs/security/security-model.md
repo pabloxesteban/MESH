@@ -110,6 +110,8 @@ valor— cuesta más en usuarios reales de lo que ahorra en abuso a esta escala.
 | `projects` | propios | propios | propios | propios |
 | `project_styles`, `project_references` | proyecto padre propio | padre propio | padre propio | padre propio |
 | `matches` | propios | propios | propios | propios |
+| `conversations` | participante (la persona, o el dueño del perfil) | la persona, y solo contra un perfil publicado **y** reclamado | ✗ (solo vía `mark_conversation_read()`) | ✗ |
+| `messages` | participante del hilo padre | participante, y `sender_user_id = auth.uid()` | ✗ | ✗ |
 | `analytics_events` | ✗ | propios (`user_id = auth.uid()`) | ✗ | ✗ |
 | `audit_events` | ✗ | ✗ | ✗ | ✗ (sin políticas — solo service role) |
 

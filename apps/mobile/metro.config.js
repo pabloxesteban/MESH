@@ -38,11 +38,13 @@ if (process.env.MESH_PREVIEW === '1') {
    */
   const PREVIEW_TARGETS = new Set(
     [
+      'src/features/account/queries.ts',
+      'src/features/chat/queries.ts',
       'src/features/discovery/queries.ts',
       'src/features/discovery/interactions.ts',
       'src/features/taste/queries.ts',
       'src/features/matches/queries.ts',
-      'src/features/matches/deviceLocation.ts',
+      'src/features/location/device.ts',
       'src/features/profile/queries.ts',
       'src/features/artist/queries.ts',
       'src/features/artist/upload.ts',

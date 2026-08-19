@@ -26,13 +26,22 @@ export interface PortfolioPiece {
 export interface ProfileData {
   readonly professional: Professional
   readonly pieces: readonly PortfolioPiece[]
+  /**
+   * Si este perfil lo maneja alguien.
+   *
+   * Solo se puede chatear con un perfil reclamado: sin dueño no hay nadie del
+   * otro lado a quien le llegue el mensaje, y ofrecer el chat igual sería una
+   * bandeja de salida que no llega a ningún lado. Es un booleano y no el id
+   * del dueño: quién es no le importa a ninguna pantalla.
+   */
+  readonly canChat: boolean
 }
 
 const PROFESSIONAL_SELECT = `
   id, slug, display_name, bio, travels,
   price_min_cents, price_max_cents, price_currency, priced_at,
   availability_status, availability_updated_at,
-  instagram_handle, whatsapp_e164, studio_lat, studio_lng, is_fixture,
+  instagram_handle, whatsapp_e164, studio_lat, studio_lng, owner_user_id, is_fixture,
   locations ( id, slug, city, admin_area, country_code, metro_key ),
   professional_styles ( proficiency, is_primary, styles ( slug ) )
 `
@@ -73,6 +82,7 @@ export async function fetchProfile(slug: string): Promise<ProfileData | null> {
   return {
     professional: toProfessional(row),
     pieces: ((pieces ?? []) as unknown as PieceRow[]).map(toPiece),
+    canChat: row.owner_user_id != null,
   }
 }
 
@@ -92,6 +102,7 @@ interface ProfessionalRow {
   whatsapp_e164: string | null
   studio_lat: number | null
   studio_lng: number | null
+  owner_user_id: string | null
   is_fixture: boolean
   locations: {
     id: string

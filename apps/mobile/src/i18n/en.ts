@@ -273,8 +273,15 @@ export const en: Readonly<Record<TranslationKey, string>> = {
   'quickSearch.photos': 'Photos',
   'quickSearch.photo.add': 'Add photo',
   'quickSearch.photo.remove': 'Remove photo {n}',
-  'quickSearch.location': 'Your neighbourhood',
-  'quickSearch.location.hint': 'Optional. If you pick it, we rank by distance.',
+  'quickSearch.location': 'Your location',
+  'quickSearch.location.hint':
+    "Turn it on and we search near you first. Optional: we still search without it.",
+  'quickSearch.location.action': 'Use my location',
+  'quickSearch.location.near': 'Searching near {barrio}',
+  'quickSearch.location.unknown':
+    "We didn't recognize your neighbourhood, so we're searching the whole city.",
+  'quickSearch.location.denied':
+    'Without your location we search the whole city. You can turn it on in Settings.',
   'quickSearch.submit': 'Search',
   'quickSearch.error': "Couldn't run the search. Try again.",
   'quickSearch.unrecognized':
@@ -290,4 +297,40 @@ export const en: Readonly<Record<TranslationKey, string>> = {
   'matches.location.prompt.denied':
     "We couldn't use your location. You can turn it on in Settings anytime.",
   'matches.distance': '≈{km} km',
+  'onboarding.title': "What brings you here?",
+  'onboarding.body':
+    "We only ask once. Whatever you pick, you'll still be able to do both.",
+  'onboarding.looking.title': "I'm looking for someone",
+  'onboarding.looking.body':
+    'You want a tattoo and you are looking for the right person.',
+  'onboarding.offering.title': 'I offer a service',
+  'onboarding.offering.body':
+    "You tattoo and MESH already built your profile. We'll ask for your code so you can run it.",
+  'tabs.home': 'Home',
+  'tabs.search': 'Search',
+  'tabs.matches': 'Matches',
+  'tabs.profile': 'Profile',
+  'account.title': 'Profile',
+  'account.name': 'Your name',
+  'account.radius': 'How far you search',
+  'account.radius.hint':
+    "With your location on, we filter by real distance. We never hide someone who hasn't published where they work.",
+  'account.radius.km': '{km} km',
+  'account.radius.unlimited': 'No limit',
+  'account.more': 'More',
+  'account.taste': 'Your taste',
+  'account.studio': 'Your studio',
+  'account.saved': 'Saved',
+  'chat.title': 'Messages',
+  'chat.empty.title': "You haven't written to anyone yet",
+  'chat.empty.body':
+    'When you message someone from their profile, the conversation shows up here.',
+  'chat.open': 'Open chat',
+  'chat.send': 'Send',
+  'chat.placeholder': 'Write your message',
+  'chat.unread': 'Unread',
+  'chat.error': "Couldn't send the message. Try again.",
+  'chat.unavailable':
+    "This person doesn't run their MESH profile yet. Message them on WhatsApp or Instagram.",
+  'chat.startedAt': 'Conversation open',
 }

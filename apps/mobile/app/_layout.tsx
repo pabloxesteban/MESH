@@ -1,6 +1,6 @@
 import { QueryClientProvider } from '@tanstack/react-query'
 import { useFonts } from 'expo-font'
-import { Stack } from 'expo-router'
+import { Stack, router } from 'expo-router'
 import { StatusBar } from 'expo-status-bar'
 import { View } from 'react-native'
 import { GestureHandlerRootView } from 'react-native-gesture-handler'
@@ -18,6 +18,7 @@ import {
   SessionProvider,
   useSession,
 } from '@/features/auth/SessionProvider.tsx'
+import { OnboardingGate } from '@/features/onboarding/OnboardingGate.tsx'
 import { I18nProvider } from '@/i18n/I18nProvider.tsx'
 import { createQueryClient } from '@/data/queryClient.ts'
 
@@ -94,7 +95,13 @@ function SessionGate() {
 
   if (isLoading) return <ThemedBackdrop />
 
-  return <Navigator />
+  // El gate va DENTRO de la sesión y FUERA del navegador: la pregunta de
+  // onboarding no es una ruta, así que ningún deep link la saltea.
+  return (
+    <OnboardingGate onOffering={() => router.push('/estudio')}>
+      <Navigator />
+    </OnboardingGate>
+  )
 }
 
 function Navigator() {

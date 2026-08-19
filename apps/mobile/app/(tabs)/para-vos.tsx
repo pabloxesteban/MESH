@@ -13,7 +13,13 @@ export default function MatchesRoute() {
       onExplore={() => router.replace('/')}
       onOpenProfile={(slug) => router.push(`/artista/${slug}`)}
       {...(userId != null
-        ? { onSearchByPhotos: () => router.push('/buscar') }
+        ? {
+            onSearchByPhotos: () => router.push('/buscar'),
+            onOpenChat: (conversationId: string, title: string) =>
+              router.push(
+                `/chat/${conversationId}?title=${encodeURIComponent(title)}`,
+              ),
+          }
         : {})}
     />
   )

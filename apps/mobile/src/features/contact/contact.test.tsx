@@ -43,6 +43,7 @@ function render(overrides: Partial<Professional> = {}) {
   fetchMock.mockResolvedValue({
     professional: professional(overrides),
     pieces: [],
+    canChat: false,
   })
 
   renderWithProviders(

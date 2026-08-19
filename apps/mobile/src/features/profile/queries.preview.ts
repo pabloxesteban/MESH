@@ -26,6 +26,7 @@ export interface PortfolioPiece {
 export interface ProfileData {
   readonly professional: Professional
   readonly pieces: readonly PortfolioPiece[]
+  readonly canChat: boolean
 }
 
 export async function fetchProfile(slug: string): Promise<ProfileData | null> {
@@ -63,6 +64,9 @@ export async function fetchProfile(slug: string): Promise<ProfileData | null> {
       studioCoordinates: previewStudioCoordinatesOf(artist.slug),
       isFixture: artist.isFixture,
     },
+    // En el preview se puede chatear con cualquiera: no hay dueños reales,
+    // y el punto es poder recorrer el flujo.
+    canChat: true,
     pieces: artist.pieces.map((piece) => ({
       id: piece.id,
       mediaPath: piece.id,

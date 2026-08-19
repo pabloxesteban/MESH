@@ -33,7 +33,8 @@ import {
   spacing,
   useTheme,
 } from '@/design-system/index.ts'
-import { useEffect } from 'react'
+import { useQuery } from '@tanstack/react-query'
+import { useEffect, useMemo } from 'react'
 
 import { track } from '@/analytics/track.ts'
 import { ErrorView } from '@/components/ErrorView.tsx'
@@ -41,7 +42,9 @@ import { FixtureBadge } from '@/components/FixtureBadge.tsx'
 import { useT } from '@/i18n/I18nProvider.tsx'
 import type { TranslationKey } from '@/i18n/index.ts'
 
-import { useDeviceLocation } from './useDeviceLocation.ts'
+import { fetchAccount } from '../account/queries.ts'
+import { ConversationList } from '../chat/ConversationList.tsx'
+import { useDeviceLocation } from '../location/useDeviceLocation.ts'
 import {
   useMatches,
   type MatchWithProfessional,
@@ -57,6 +60,8 @@ export interface MatchesScreenProps {
   onSearchByPhotos?: (() => void) | undefined
   /** Con proyecto, el match corre aunque no haya perfil de gusto. */
   project?: ProjectBriefInput | undefined
+  /** Ausente cuando la pantalla no puede abrir un chat (ej. sin sesión). */
+  onOpenChat?: ((conversationId: string, title: string) => void) | undefined
 }
 
 export function MatchesScreen({
@@ -66,12 +71,38 @@ export function MatchesScreen({
   onOpenProfile,
   onSearchByPhotos,
   project,
+  onOpenChat,
 }: MatchesScreenProps) {
   const t = useT()
   const theme = useTheme()
   const insets = useSafeAreaInsets()
   const state = useMatches('tattoo', userId, today, project)
   const device = useDeviceLocation()
+  const account = useQuery({ queryKey: ['account'], queryFn: fetchAccount })
+
+  const deviceCoordinates = device.location?.coordinates ?? null
+  const radiusKm = account.data?.searchRadiusKm ?? null
+
+  /**
+   * El radio de alcance, aplicado sobre distancias reales.
+   *
+   * Quien NO publicó las coordenadas de su estudio nunca se filtra: sin
+   * distancia no hay nada que comparar, y esconderlo convertiría un dato
+   * faltante en una mala respuesta. Es la misma regla que la omisión de
+   * componentes del motor de match.
+   *
+   * El filtro tampoco reordena: el ranking ya viene decidido por barrio y
+   * estilo. Esto solo saca de la lista lo que queda fuera del alcance que la
+   * persona eligió.
+   */
+  const visibles = useMemo(() => {
+    if (radiusKm == null || deviceCoordinates == null) return state.matches
+    return state.matches.filter((entry) => {
+      const studio = entry.professional.studioCoordinates
+      if (studio == null) return true
+      return haversineKm(deviceCoordinates, studio) <= radiusKm
+    })
+  }, [state.matches, radiusKm, deviceCoordinates])
 
   // Los eventos de lista se emiten en un efecto, no durante el render: emitir
   // desde el cuerpo del componente los dispararía otra vez en cada re-render.
@@ -81,11 +112,11 @@ export function MatchesScreen({
       track({ name: 'match_list_empty', props: { reason: 'not_ready' } })
       return
     }
-    if (state.matches.length === 0) {
+    if (visibles.length === 0) {
       track({ name: 'match_list_empty', props: { reason: 'no_candidates' } })
       return
     }
-    state.matches.forEach((entry, index) => {
+    visibles.forEach((entry, index) => {
       track({
         name: 'match_viewed',
         props: {
@@ -96,7 +127,7 @@ export function MatchesScreen({
         },
       })
     })
-  }, [state.isLoading, state.error, state.isReady, state.matches])
+  }, [state.isLoading, state.error, state.isReady, visibles])
 
   const body = (() => {
     if (state.error != null) {
@@ -142,7 +173,7 @@ export function MatchesScreen({
       )
     }
 
-    if (state.matches.length === 0) {
+    if (visibles.length === 0) {
       return (
         <EmptyState
           title={t('matches.empty.title')}
@@ -169,11 +200,11 @@ export function MatchesScreen({
             onRequest={device.request}
           />
         ) : null}
-        {state.matches.map((entry) => (
+        {visibles.map((entry) => (
           <MatchCard
             key={entry.match.professionalId}
             entry={entry}
-            deviceCoordinates={device.coordinates}
+            deviceCoordinates={deviceCoordinates}
             onPress={() => {
               track({
                 name: 'professional_profile_viewed',
@@ -203,6 +234,11 @@ export function MatchesScreen({
       <Box paddingBottom="md">
         <Text role="titleLg">{t('matches.title')}</Text>
       </Box>
+      {onOpenChat != null ? (
+        <Box paddingBottom="md">
+          <ConversationList onOpen={onOpenChat} />
+        </Box>
+      ) : null}
       {body}
     </ScrollView>
   )

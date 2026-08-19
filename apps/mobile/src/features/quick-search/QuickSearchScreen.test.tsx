@@ -19,6 +19,11 @@ jest.mock('./createQuickSearch.ts', () => ({
 jest.mock('./classify.ts', () => ({
   classifyReferencePhoto: jest.fn(),
 }))
+jest.mock('../location/device.ts', () => ({
+  hasDeviceLocationPermission: jest.fn().mockResolvedValue(false),
+  currentDeviceLocation: jest.fn().mockResolvedValue(null),
+  requestDeviceLocation: jest.fn(),
+}))
 jest.mock('expo-image-picker', () => ({
   launchImageLibraryAsync: jest.fn().mockResolvedValue({
     canceled: false,
@@ -32,6 +37,10 @@ const createQuickSearchMock = createQuickSearch as jest.MockedFunction<
 const classifyMock = classifyReferencePhoto as jest.MockedFunction<
   typeof classifyReferencePhoto
 >
+const deviceMock = jest.requireMock('../location/device.ts') as {
+  currentDeviceLocation: jest.Mock
+  requestDeviceLocation: jest.Mock
+}
 
 function renderScreen(
   overrides: Partial<{
@@ -65,6 +74,7 @@ function renderScreen(
 beforeEach(() => {
   jest.clearAllMocks()
   classifyMock.mockResolvedValue('fine-line')
+  deviceMock.currentDeviceLocation.mockResolvedValue(null)
 })
 
 describe('QuickSearchScreen', () => {
@@ -110,26 +120,6 @@ describe('QuickSearchScreen', () => {
     expect(call?.styleSlugs).toEqual(['fine-line'])
     expect(call?.locationSlug).toBeUndefined()
     expect(call?.imageUris).toHaveLength(2)
-  })
-
-  it('tocar el barrio lo suma a la búsqueda', async () => {
-    createQuickSearchMock.mockResolvedValue({
-      projectId: 'proj-1',
-      failedUploads: 0,
-    })
-    renderScreen()
-
-    fireEvent.press(screen.getByTestId('quick-search-add-photo'))
-    await waitFor(() =>
-      expect(screen.getByTestId('quick-search-photo-0')).toBeTruthy(),
-    )
-    fireEvent.press(screen.getByTestId('quick-search-location-palermo'))
-    fireEvent.press(screen.getByTestId('quick-search-submit'))
-
-    await waitFor(() => expect(createQuickSearchMock).toHaveBeenCalled())
-    expect(createQuickSearchMock.mock.calls[0]?.[0]?.locationSlug).toBe(
-      'palermo',
-    )
   })
 
   it('si no se reconoce ningún estilo, avisa y no inventa uno', async () => {
@@ -196,6 +186,65 @@ describe('QuickSearchScreen', () => {
     )
     fireEvent.press(screen.getByTestId('quick-search-photo-0'))
     expect(screen.queryByTestId('quick-search-photo-1')).toBeNull()
+  })
+
+  it('no hay ninguna grilla de barrios que elegir', async () => {
+    // El barrio salía de 48 chips. Ahora sale del GPS: el paso desapareció.
+    renderScreen()
+    await waitFor(() =>
+      expect(screen.getByTestId('quick-search-location-off')).toBeTruthy(),
+    )
+    expect(screen.queryByTestId('quick-search-location-palermo')).toBeNull()
+  })
+
+  it('con ubicación activada manda el barrio que resolvió el GPS', async () => {
+    deviceMock.currentDeviceLocation.mockResolvedValue({
+      coordinates: { lat: -34.5875, lng: -58.4371 },
+      neighborhoodSlug: 'palermo',
+    })
+    createQuickSearchMock.mockResolvedValue({
+      projectId: 'proj-1',
+      failedUploads: 0,
+    })
+    renderScreen()
+
+    await waitFor(() =>
+      expect(screen.getByTestId('quick-search-location-on')).toBeTruthy(),
+    )
+    fireEvent.press(screen.getByTestId('quick-search-add-photo'))
+    await waitFor(() =>
+      expect(screen.getByTestId('quick-search-photo-0')).toBeTruthy(),
+    )
+    fireEvent.press(screen.getByTestId('quick-search-submit'))
+
+    await waitFor(() => expect(createQuickSearchMock).toHaveBeenCalled())
+    expect(createQuickSearchMock.mock.calls[0]?.[0]?.locationSlug).toBe(
+      'palermo',
+    )
+  })
+
+  it('si el GPS no reconoce el barrio, busca igual y sin inventarlo', async () => {
+    deviceMock.currentDeviceLocation.mockResolvedValue({
+      coordinates: { lat: -34.9, lng: -57.95 },
+      neighborhoodSlug: null,
+    })
+    createQuickSearchMock.mockResolvedValue({
+      projectId: 'proj-1',
+      failedUploads: 0,
+    })
+    renderScreen()
+
+    await waitFor(() =>
+      expect(screen.getByTestId('quick-search-location-on')).toBeTruthy(),
+    )
+    fireEvent.press(screen.getByTestId('quick-search-add-photo'))
+    await waitFor(() =>
+      expect(screen.getByTestId('quick-search-photo-0')).toBeTruthy(),
+    )
+    fireEvent.press(screen.getByTestId('quick-search-submit'))
+
+    await waitFor(() => expect(createQuickSearchMock).toHaveBeenCalled())
+    expect(createQuickSearchMock.mock.calls[0]?.[0]?.locationSlug).toBeUndefined()
   })
 
   it('cancelar llama a onCancel', () => {

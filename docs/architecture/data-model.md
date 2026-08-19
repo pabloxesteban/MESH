@@ -222,13 +222,57 @@ publicar/despublicar, retiro de artista, borrado de cuenta.
 |---|---|
 | `ProfessionalProfile` | Fusionada en `professionals` (ADR-003) |
 | `SavedItem` | Representado como `interactions.is_saved` |
-| `Conversation`, `Message` | No se construye — el contacto de V1 es WhatsApp/Instagram. Construir un subsistema de mensajería sin uso agrega superficie de moderación, notificaciones y abuso sin demanda validada. |
+| `Conversation`, `Message` | ~~No se construye~~ — **revertido por [ADR-012](../decisions/ADR-012-chat.md)**. Se construyó chat propio; ver §Conversaciones. El contacto por WhatsApp/Instagram se mantiene y sigue siendo el único camino para un perfil sin reclamar. |
 | `Review` | No se construye — sin transacciones y con ~12 artistas, cualquier UI de reseñas queda vacía o inventada |
 | `Availability` (tabla) | Colapsada en dos columnas de `professionals`, con manejo de desactualización |
 
 Cada una está registrada con su razonamiento en
 [`product-spec.md`](../product/product-spec.md) §12. Ninguna requiere reescribir
 el esquema para agregarse después.
+
+### Conversaciones
+
+**`conversations`** — un hilo entre una persona y un artista con perfil
+reclamado.
+
+| Columna | Tipo | Notas |
+|---|---|---|
+| `id` | uuid PK | |
+| `user_id` | uuid NOT NULL | → `profiles` ON DELETE CASCADE |
+| `professional_id` | uuid NOT NULL | → `professionals` ON DELETE CASCADE |
+| `last_message_at` | timestamptz NULL | denormalizado, lo mueve un trigger |
+| `user_read_at`, `professional_read_at` | timestamptz NULL | los mueve `mark_conversation_read()` |
+| `created_at` | timestamptz | |
+
+`unique (user_id, professional_id)`: abrir el chat dos veces con la misma
+persona sigue el mismo hilo.
+
+**`messages`** — inmutable.
+
+| Columna | Tipo | Notas |
+|---|---|---|
+| `id` | uuid PK | |
+| `conversation_id` | uuid NOT NULL | → `conversations` ON DELETE CASCADE |
+| `sender_user_id` | uuid NOT NULL | → `profiles` ON DELETE CASCADE |
+| `body` | text NOT NULL | CHECK 1–2000 caracteres sin contar espacios |
+| `created_at` | timestamptz | |
+
+Sin UPDATE ni DELETE para el cliente: no se edita lo dicho, y no se borra media
+conversación que otra persona también tiene. Las dos tablas están en la
+publicación de realtime, que respeta RLS. Ver
+[ADR-012](../decisions/ADR-012-chat.md).
+
+### Preferencias del perfil
+
+`profiles` suma dos columnas, las dos nullable:
+
+| Columna | Tipo | Notas |
+|---|---|---|
+| `onboarding_intent` | `onboarding_intent` NULL | `offering` / `looking`. Preferencia de arranque, **no** un rol excluyente. NULL = no contestó |
+| `search_radius_km` | integer NULL | CHECK 1–200. NULL = sin límite. Nunca esconde a un profesional sin coordenadas publicadas |
+
+Elegir `offering` lleva a canjear el código de artista; no da de alta a nadie.
+El catálogo sigue siendo curado.
 
 ## 4. Índices
 

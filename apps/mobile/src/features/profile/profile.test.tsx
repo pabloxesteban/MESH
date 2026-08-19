@@ -43,7 +43,7 @@ function data(
   overrides: Partial<Professional> = {},
   pieces: ProfileData['pieces'] = [],
 ): ProfileData {
-  return { professional: professional(overrides), pieces }
+  return { professional: professional(overrides), pieces, canChat: false }
 }
 
 function render() {

@@ -42,6 +42,8 @@ export interface ProfileScreenProps {
   today: string
   onBack: () => void
   onContact: (slug: string) => void
+  /** Ausente cuando no se puede chatear: perfil sin reclamar, o sin sesión. */
+  onChat?: ((professionalId: string, name: string) => void) | undefined
 }
 
 export function ProfileScreen({
@@ -49,6 +51,7 @@ export function ProfileScreen({
   today,
   onBack,
   onContact,
+  onChat,
 }: ProfileScreenProps) {
   const { t, locale } = useI18n()
   const theme = useTheme()
@@ -93,7 +96,7 @@ export function ProfileScreen({
       )
     }
 
-    const { professional, pieces } = query.data
+    const { professional, pieces, canChat } = query.data
     const hero = pieces.find((piece) => piece.isFeatured) ?? pieces[0]
     const rest = pieces.filter((piece) => piece.id !== hero?.id)
 
@@ -205,8 +208,26 @@ export function ProfileScreen({
           </Section>
         ) : null}
 
+        {/* El chat va primero cuando existe, y el contacto externo queda de
+            secundario: escribir adentro de MESH no obliga a nadie a dar su
+            número. Cuando el perfil no está reclamado el chat no aparece —
+            no ofrecemos un canal que no llega a ninguna parte. */}
+        {onChat != null && canChat && !professional.isFixture ? (
+          <Button
+            label={t('chat.open')}
+            onPress={() => onChat(professional.id, professional.displayName)}
+            fullWidth
+            testID="profile-chat"
+          />
+        ) : null}
+
         <Button
           label={t('profile.contact')}
+          variant={
+            onChat != null && canChat && !professional.isFixture
+              ? 'secondary'
+              : 'primary'
+          }
           onPress={() => onContact(professional.slug)}
           fullWidth
           testID="profile-contact"

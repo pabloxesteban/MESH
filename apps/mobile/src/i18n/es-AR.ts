@@ -299,9 +299,15 @@ export const esAR = {
   'quickSearch.photos': 'Fotos',
   'quickSearch.photo.add': 'Agregar foto',
   'quickSearch.photo.remove': 'Sacar la foto {n}',
-  'quickSearch.location': 'Tu barrio',
+  'quickSearch.location': 'Tu ubicación',
   'quickSearch.location.hint':
-    'Opcional. Si lo elegís, ordenamos por cercanía.',
+    'Activala y buscamos primero cerca tuyo. Opcional: sin ella igual buscamos.',
+  'quickSearch.location.action': 'Usar mi ubicación',
+  'quickSearch.location.near': 'Buscamos cerca de {barrio}',
+  'quickSearch.location.unknown':
+    'No reconocimos tu barrio, así que buscamos en toda la ciudad.',
+  'quickSearch.location.denied':
+    'Sin tu ubicación buscamos en toda la ciudad. Podés activarla en Ajustes.',
   'quickSearch.submit': 'Buscar',
   'quickSearch.error': 'No pudimos hacer la búsqueda. Probá de nuevo.',
   'quickSearch.unrecognized':
@@ -317,6 +323,46 @@ export const esAR = {
   'matches.location.prompt.denied':
     'No pudimos usar tu ubicación. Podés activarla en Ajustes cuando quieras.',
   'matches.distance': '≈{km} km',
+  // --- onboarding ---
+  'onboarding.title': '¿A qué viniste?',
+  'onboarding.body':
+    'Lo preguntamos una sola vez. Elijas lo que elijas vas a poder hacer las dos cosas.',
+  'onboarding.looking.title': 'Busco a alguien',
+  'onboarding.looking.body':
+    'Querés tatuarte y buscás a la persona indicada.',
+  'onboarding.offering.title': 'Ofrezco un servicio',
+  'onboarding.offering.body':
+    'Tatuás y MESH ya armó tu perfil. Te pedimos tu código para que lo manejes vos.',
+  // --- pestañas ---
+  'tabs.home': 'Inicio',
+  'tabs.search': 'Buscar',
+  'tabs.matches': 'Para vos',
+  'tabs.profile': 'Perfil',
+  // --- perfil ---
+  'account.title': 'Perfil',
+  'account.name': 'Tu nombre',
+  'account.radius': 'Hasta dónde buscás',
+  'account.radius.hint':
+    'Con tu ubicación activada, filtramos por distancia real. A quien no publicó dónde trabaja no lo escondemos nunca.',
+  'account.radius.km': '{km} km',
+  'account.radius.unlimited': 'Sin límite',
+  'account.more': 'Más',
+  'account.taste': 'Tu gusto',
+  'account.studio': 'Tu estudio',
+  'account.saved': 'Guardado',
+  // --- chat ---
+  'chat.title': 'Mensajes',
+  'chat.empty.title': 'Todavía no escribiste a nadie',
+  'chat.empty.body':
+    'Cuando le escribas a alguien desde su perfil, la conversación aparece acá.',
+  'chat.open': 'Abrir chat',
+  'chat.send': 'Enviar',
+  'chat.placeholder': 'Escribí tu mensaje',
+  'chat.unread': 'Sin leer',
+  'chat.error': 'No pudimos mandar el mensaje. Probá de nuevo.',
+  'chat.unavailable':
+    'Esta persona todavía no maneja su perfil en MESH. Escribile por WhatsApp o Instagram.',
+  'chat.startedAt': 'Conversación abierta',
 } as const
 
 export type TranslationKey = keyof typeof esAR

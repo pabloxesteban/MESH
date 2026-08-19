@@ -1,37 +1,42 @@
 /**
- * Estado de la ubicación de quien busca, para esta pantalla.
+ * Estado de la ubicación de quien busca.
  *
- * No decide nada del matching: es puramente para mostrar una distancia
- * encima de un resultado que el motor de match ya ordenó por barrio. Ver
- * `packages/domain/src/geo/distance.ts`.
+ * No decide nada del ranking por sí solo: da las coordenadas para mostrar
+ * distancia y filtrar por radio, y el barrio para el componente de ubicación
+ * del matching — el mismo dato que antes se elegía a mano de una grilla de 48
+ * chips. Ver `packages/domain/src/geo/distance.ts`.
  */
 
 import { useCallback, useEffect, useState } from 'react'
-import type { GeoCoordinates } from '@mesh/domain'
 
 import {
   currentDeviceLocation,
   requestDeviceLocation,
-} from './deviceLocation.ts'
+  type DeviceLocation,
+} from './device.ts'
 
-export type DeviceLocationStatus = 'checking' | 'unrequested' | 'granted' | 'denied'
+export type DeviceLocationStatus =
+  | 'checking'
+  | 'unrequested'
+  | 'granted'
+  | 'denied'
 
 export interface DeviceLocationState {
   readonly status: DeviceLocationStatus
-  readonly coordinates: GeoCoordinates | null
+  readonly location: DeviceLocation | null
   readonly request: () => void
 }
 
 export function useDeviceLocation(): DeviceLocationState {
   const [status, setStatus] = useState<DeviceLocationStatus>('checking')
-  const [coordinates, setCoordinates] = useState<GeoCoordinates | null>(null)
+  const [location, setLocation] = useState<DeviceLocation | null>(null)
 
   useEffect(() => {
     let cancelled = false
     void currentDeviceLocation().then((result) => {
       if (cancelled) return
       if (result != null) {
-        setCoordinates(result)
+        setLocation(result)
         setStatus('granted')
       } else {
         setStatus('unrequested')
@@ -45,7 +50,7 @@ export function useDeviceLocation(): DeviceLocationState {
   const request = useCallback(() => {
     void requestDeviceLocation().then((result) => {
       if (result != null) {
-        setCoordinates(result)
+        setLocation(result)
         setStatus('granted')
       } else {
         setStatus('denied')
@@ -53,5 +58,5 @@ export function useDeviceLocation(): DeviceLocationState {
     })
   }, [])
 
-  return { status, coordinates, request }
+  return { status, location, request }
 }

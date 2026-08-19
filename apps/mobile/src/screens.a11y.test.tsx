@@ -30,6 +30,9 @@ import { ContactScreen } from '@/features/contact/ContactScreen.tsx'
 import { TasteScreen } from '@/features/taste/TasteScreen.tsx'
 import { ProjectFormScreen } from '@/features/projects/ProjectFormScreen.tsx'
 import { QuickSearchScreen } from '@/features/quick-search/QuickSearchScreen.tsx'
+import { AccountScreen } from '@/features/account/AccountScreen.tsx'
+import { IntentScreen } from '@/features/onboarding/IntentScreen.tsx'
+import { ChatScreen } from '@/features/chat/ChatScreen.tsx'
 
 const mockRpc = jest.fn()
 jest.mock('@/data/supabase.ts', () => ({
@@ -65,6 +68,29 @@ jest.mock('@/features/taste/queries.ts', () => ({
   persistTaste: jest.fn().mockResolvedValue(undefined),
   fetchCategoryId: jest.fn().mockResolvedValue('cat-1'),
   resetTaste: jest.fn().mockResolvedValue(undefined),
+}))
+jest.mock('@/features/settings/AnalyticsToggle.tsx', () => ({
+  AnalyticsToggle: () => null,
+}))
+jest.mock('@/features/account/queries.ts', () => ({
+  fetchAccount: jest.fn().mockResolvedValue({
+    displayName: null,
+    onboardingIntent: 'looking',
+    searchRadiusKm: null,
+  }),
+  updateAccount: jest.fn().mockResolvedValue(undefined),
+}))
+jest.mock('@/features/chat/queries.ts', () => ({
+  fetchConversations: jest.fn().mockResolvedValue([]),
+  fetchMessages: jest.fn().mockResolvedValue([]),
+  sendMessage: jest.fn().mockResolvedValue(undefined),
+  markConversationRead: jest.fn().mockResolvedValue(undefined),
+  subscribeToMessages: jest.fn().mockReturnValue(() => undefined),
+}))
+jest.mock('@/features/location/device.ts', () => ({
+  hasDeviceLocationPermission: jest.fn().mockResolvedValue(false),
+  currentDeviceLocation: jest.fn().mockResolvedValue(null),
+  requestDeviceLocation: jest.fn().mockResolvedValue(null),
 }))
 jest.mock('@/features/quick-search/classify.ts', () => ({
   classifyReferencePhoto: jest.fn().mockResolvedValue('fine-line'),
@@ -387,6 +413,43 @@ describe('barrido de accesibilidad y callejones', () => {
     render(<ProjectFormScreen onSubmit={jest.fn()} onCancel={jest.fn()} />)
     sweep('proyecto · formulario')
     sweepDynamicType('proyecto · formulario')
+  })
+
+  it('la pregunta de onboarding', () => {
+    render(<IntentScreen busy={false} onChoose={jest.fn()} />)
+    sweep('onboarding · intención')
+    sweepDynamicType('onboarding · intención')
+  })
+
+  it('perfil', async () => {
+    render(
+      <AccountScreen
+        userId="u1"
+        onOpenTaste={jest.fn()}
+        onOpenStudio={jest.fn()}
+      />,
+    )
+    await waitFor(() =>
+      expect(screen.getByTestId('account-content')).toBeTruthy(),
+    )
+    sweep('perfil')
+    sweepDynamicType('perfil')
+  })
+
+  it('chat, vacío', async () => {
+    render(
+      <ChatScreen
+        conversationId="c1"
+        userId="u1"
+        title="Aguja Fina"
+        onBack={jest.fn()}
+      />,
+    )
+    await waitFor(() =>
+      expect(screen.getByTestId('chat-messages')).toBeTruthy(),
+    )
+    sweep('chat · vacío')
+    sweepDynamicType('chat · vacío')
   })
 
   it('buscar por fotos', () => {

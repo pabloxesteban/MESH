@@ -15,7 +15,11 @@ import {
   useTheme,
   useThemePreference,
 } from '@/design-system/index.ts'
+import { AccountScreen } from '@/features/account/AccountScreen.tsx'
 import { StudioScreen } from '@/features/artist/StudioScreen.tsx'
+import { ChatScreen } from '@/features/chat/ChatScreen.tsx'
+import { useOpenChat } from '@/features/chat/useOpenChat.ts'
+import { OnboardingGate } from '@/features/onboarding/OnboardingGate.tsx'
 import { ContactScreen } from '@/features/contact/ContactScreen.tsx'
 import { DeckScreen } from '@/features/discovery/DeckScreen.tsx'
 import { MatchesScreen } from '@/features/matches/MatchesScreen.tsx'
@@ -56,21 +60,20 @@ import DesignSystemGallery from './app/galeria.tsx'
 const HOY = '2026-08-18'
 const USUARIO = 'preview-user'
 
-type Pestana = 'mazo' | 'gusto' | 'encajes' | 'buscar' | 'estudio' | 'galeria'
+type Pestana = 'inicio' | 'buscar' | 'para-vos' | 'perfil' | 'galeria'
 
 /**
- * Etiquetas de una palabra.
+ * Las cuatro pestañas de la app, más una que no existe en el teléfono.
  *
- * En la app las pestañas dicen "Descubrí", "Tu gusto", "Para vos" — copy, no
- * navegación. Acá son cinco y entran en 390 px solo si son cortas: con dos
- * palabras, "Tu gusto" se partía en dos líneas y la barra crecía.
+ * "Diseño" es la galería del design system: no es producto, es una
+ * herramienta para mirar tokens y componentes en una pantalla real. Vive acá
+ * y no en la app.
  */
 const PESTANAS: ReadonlyArray<{ id: Pestana; label: string }> = [
-  { id: 'mazo', label: 'Mazo' },
-  { id: 'gusto', label: 'Gusto' },
-  { id: 'encajes', label: 'Encajes' },
+  { id: 'inicio', label: 'Inicio' },
   { id: 'buscar', label: 'Buscar' },
-  { id: 'estudio', label: 'Estudio' },
+  { id: 'para-vos', label: 'Para vos' },
+  { id: 'perfil', label: 'Perfil' },
   { id: 'galeria', label: 'Diseño' },
 ]
 
@@ -97,7 +100,7 @@ function PreviewRoot() {
           <I18nProvider>
             <QueryClientProvider client={client}>
               <StatusBar style="auto" />
-              {fontsLoaded ? <Shell /> : <ThemedBackdrop />}
+              {fontsLoaded ? <GatedShell /> : <ThemedBackdrop />}
             </QueryClientProvider>
           </I18nProvider>
         </MotionProvider>
@@ -106,11 +109,35 @@ function PreviewRoot() {
   )
 }
 
-function Shell() {
+/**
+ * La pregunta de onboarding envuelve todo, igual que en la app real.
+ *
+ * Elegir "ofrezco" abre el estudio; "busco" deja pasar al mazo. Es el mismo
+ * componente que corre en el teléfono, sobre el perfil en memoria de
+ * `preview/store.ts`.
+ */
+function GatedShell() {
+  const [estudioDirecto, setEstudioDirecto] = useState(false)
+  return (
+    <OnboardingGate onOffering={() => setEstudioDirecto(true)}>
+      <Shell abrirEstudio={estudioDirecto} />
+    </OnboardingGate>
+  )
+}
+
+function Shell({ abrirEstudio }: { abrirEstudio: boolean }) {
   const theme = useTheme()
-  const [pestana, setPestana] = useState<Pestana>('mazo')
+  const [pestana, setPestana] = useState<Pestana>(
+    abrirEstudio ? 'perfil' : 'inicio',
+  )
   const [perfil, setPerfil] = useState<string | null>(null)
   const [contacto, setContacto] = useState<string | null>(null)
+  const [estudio, setEstudio] = useState(abrirEstudio)
+  const [gusto, setGusto] = useState(false)
+  const [chat, setChat] = useState<{ id: string; titulo: string } | null>(null)
+  const abrirChat = useOpenChat(USUARIO, (id, titulo) =>
+    setChat({ id, titulo }),
+  )
   // Resultado de "buscar por fotos": un ProjectBriefInput armado a partir del
   // proyecto liviano que creó QuickSearchScreen. `null` mientras se busca o
   // mientras no hay ninguna búsqueda activa.
@@ -118,6 +145,24 @@ function Shell() {
     useState<ProjectBriefInput | null>(null)
 
   const contenido = (() => {
+    if (chat != null) {
+      return (
+        <ChatScreen
+          conversationId={chat.id}
+          userId={USUARIO}
+          title={chat.titulo}
+          onBack={() => setChat(null)}
+        />
+      )
+    }
+    if (estudio) {
+      return <StudioScreen userId={USUARIO} onBack={() => setEstudio(false)} />
+    }
+    if (gusto) {
+      return (
+        <TasteScreen userId={USUARIO} onExplore={() => setGusto(false)} />
+      )
+    }
     if (contacto != null) {
       return <ContactScreen slug={contacto} onBack={() => setContacto(null)} />
     }
@@ -129,6 +174,7 @@ function Shell() {
           project={resultadoBusqueda}
           onExplore={() => setResultadoBusqueda(null)}
           onOpenProfile={(slug) => setPerfil(slug)}
+          onOpenChat={(id, titulo) => setChat({ id, titulo })}
         />
       )
     }
@@ -139,11 +185,12 @@ function Shell() {
           today={HOY}
           onBack={() => setPerfil(null)}
           onContact={(slug) => setContacto(slug)}
+          onChat={abrirChat.open}
         />
       )
     }
     switch (pestana) {
-      case 'mazo':
+      case 'inicio':
         return (
           <DeckScreen
             categorySlug="tattoo"
@@ -151,24 +198,25 @@ function Shell() {
             onOpenProfile={(slug) => setPerfil(slug)}
           />
         )
-      case 'gusto':
+      case 'perfil':
         return (
-          <TasteScreen userId={USUARIO} onExplore={() => setPestana('mazo')} />
+          <AccountScreen
+            userId={USUARIO}
+            onOpenTaste={() => setGusto(true)}
+            onOpenStudio={() => setEstudio(true)}
+          />
         )
-      case 'encajes':
+      case 'para-vos':
         return (
           <MatchesScreen
             userId={USUARIO}
             today={HOY}
-            onExplore={() => setPestana('mazo')}
+            onExplore={() => setPestana('inicio')}
             onOpenProfile={(slug) => setPerfil(slug)}
+            onOpenChat={(id, titulo) => setChat({ id, titulo })}
           />
         )
       case 'buscar':
-        // En la app de verdad esto tampoco es una pestaña: vive como un
-        // atajo desde "Encajes". Acá es una pestaña por la misma razón que
-        // Estudio — para que se pueda encontrar sin tener que simular el
-        // camino real.
         return (
           <QuickSearchScreen
             userId={USUARIO}
@@ -185,15 +233,8 @@ function Shell() {
                 })
               })()
             }}
-            onCancel={() => setPestana('mazo')}
+            onCancel={() => setPestana('inicio')}
           />
-        )
-      case 'estudio':
-        // En la app de verdad esto NO es una pestaña: vive adentro de Cuenta,
-        // porque de cada mil personas que usan MESH quince son artistas. Acá es
-        // una pestaña para que se pueda encontrar sin explicación.
-        return (
-          <StudioScreen userId={USUARIO} onBack={() => setPestana('mazo')} />
         )
       case 'galeria':
         return (
@@ -213,6 +254,9 @@ function Shell() {
           setPerfil(null)
           setContacto(null)
           setResultadoBusqueda(null)
+          setChat(null)
+          setEstudio(false)
+          setGusto(false)
           setPestana(id)
         }}
       />

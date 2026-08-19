@@ -147,6 +147,51 @@ export type Database = {
         }
         Relationships: []
       }
+      conversations: {
+        Row: {
+          created_at: string
+          id: string
+          last_message_at: string | null
+          professional_id: string
+          professional_read_at: string | null
+          user_id: string
+          user_read_at: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          last_message_at?: string | null
+          professional_id: string
+          professional_read_at?: string | null
+          user_id: string
+          user_read_at?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          last_message_at?: string | null
+          professional_id?: string
+          professional_read_at?: string | null
+          user_id?: string
+          user_read_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "conversations_professional_id_fkey"
+            columns: ["professional_id"]
+            isOneToOne: false
+            referencedRelation: "professionals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "conversations_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       interactions: {
         Row: {
           created_at: string
@@ -368,6 +413,45 @@ export type Database = {
           {
             foreignKeyName: "media_assets_owner_user_id_fkey"
             columns: ["owner_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      messages: {
+        Row: {
+          body: string
+          conversation_id: string
+          created_at: string
+          id: string
+          sender_user_id: string
+        }
+        Insert: {
+          body: string
+          conversation_id: string
+          created_at?: string
+          id?: string
+          sender_user_id: string
+        }
+        Update: {
+          body?: string
+          conversation_id?: string
+          created_at?: string
+          id?: string
+          sender_user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "messages_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "messages_sender_user_id_fkey"
+            columns: ["sender_user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
@@ -668,6 +752,10 @@ export type Database = {
           display_name: string | null
           id: string
           locale: string
+          onboarding_intent:
+            | Database["public"]["Enums"]["onboarding_intent"]
+            | null
+          search_radius_km: number | null
           updated_at: string
         }
         Insert: {
@@ -678,6 +766,10 @@ export type Database = {
           display_name?: string | null
           id: string
           locale?: string
+          onboarding_intent?:
+            | Database["public"]["Enums"]["onboarding_intent"]
+            | null
+          search_radius_km?: number | null
           updated_at?: string
         }
         Update: {
@@ -688,6 +780,10 @@ export type Database = {
           display_name?: string | null
           id?: string
           locale?: string
+          onboarding_intent?:
+            | Database["public"]["Enums"]["onboarding_intent"]
+            | null
+          search_radius_km?: number | null
           updated_at?: string
         }
         Relationships: [
@@ -984,6 +1080,10 @@ export type Database = {
           style_slug: string
         }[]
       }
+      mark_conversation_read: {
+        Args: { p_conversation_id: string }
+        Returns: undefined
+      }
       match_reasons_are_grounded: {
         Args: { p_components: Json; p_reasons: Json }
         Returns: boolean
@@ -998,6 +1098,7 @@ export type Database = {
       interaction_source: "discover" | "search" | "profile"
       interaction_verdict: "like" | "pass"
       match_band: "strong" | "good" | "possible"
+      onboarding_intent: "offering" | "looking"
       project_status: "draft" | "active" | "archived"
       project_timing: "asap" | "weeks" | "months" | "flexible"
     }
@@ -1134,6 +1235,7 @@ export const Constants = {
       interaction_source: ["discover", "search", "profile"],
       interaction_verdict: ["like", "pass"],
       match_band: ["strong", "good", "possible"],
+      onboarding_intent: ["offering", "looking"],
       project_status: ["draft", "active", "archived"],
       project_timing: ["asap", "weeks", "months", "flexible"],
     },

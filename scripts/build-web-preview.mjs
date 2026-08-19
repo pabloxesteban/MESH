@@ -269,6 +269,18 @@ try {
   await page.goto(`file://${outPath}`)
   await page.waitForTimeout(3000)
 
+  // La app abre preguntando a qué vino la persona (ver CLAUDE.md, "Las cuatro
+  // pestañas"). El canario del catálogo vive detrás de esa pregunta, así que
+  // el verificador la contesta como la contestaría cualquiera que viene a
+  // buscar. Que el botón exista es parte de lo que se verifica: si el
+  // onboarding se rompe, esto falla acá y no doce líneas más abajo con un
+  // mensaje confuso sobre el mazo vacío.
+  const elegirBuscar = page.getByTestId('onboarding-looking')
+  if ((await elegirBuscar.count()) > 0) {
+    await elegirBuscar.click()
+    await page.waitForTimeout(2000)
+  }
+
   // El cuerpo de `evaluate` corre en el navegador, no en Node, así que `document`
   // existe allá aunque el lint de este archivo no lo conozca.
   const text = (

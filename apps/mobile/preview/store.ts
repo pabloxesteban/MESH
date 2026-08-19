@@ -197,6 +197,115 @@ export function previewLocation(slug: string | null): Location | null {
 export { PREVIEW_ARTISTS }
 export type { PreviewArtist }
 
+// --- perfil propio -------------------------------------------------------------
+//
+// Arranca sin intención elegida, para que el preview muestre la pregunta de
+// onboarding igual que la app real la primera vez.
+
+interface PreviewAccount {
+  displayName: string | null
+  onboardingIntent: 'offering' | 'looking' | null
+  searchRadiusKm: number | null
+}
+
+const account: PreviewAccount = {
+  displayName: null,
+  onboardingIntent: null,
+  searchRadiusKm: null,
+}
+
+export function previewAccount(): PreviewAccount {
+  return { ...account }
+}
+
+export function updatePreviewAccount(patch: Partial<PreviewAccount>): void {
+  Object.assign(account, patch)
+}
+
+// --- chat ----------------------------------------------------------------------
+//
+// Hilos en memoria, con el slug del artista como identidad — en la app real es
+// un uuid, pero acá el catálogo está horneado y el slug ya es único.
+
+export interface PreviewConversation {
+  readonly id: string
+  readonly professionalSlug: string
+  lastMessageAt: string | null
+  readAt: string | null
+  readonly hasUnread: boolean
+}
+
+interface PreviewMessage {
+  readonly id: string
+  readonly senderUserId: string
+  readonly body: string
+  readonly createdAt: string
+}
+
+const conversations = new Map<
+  string,
+  { professionalSlug: string; lastMessageAt: string | null; readAt: string | null }
+>()
+const messagesByConversation = new Map<string, PreviewMessage[]>()
+let messageCounter = 0
+
+export function openPreviewConversation(professionalSlug: string): string {
+  const id = `preview-chat-${professionalSlug}`
+  if (!conversations.has(id)) {
+    conversations.set(id, {
+      professionalSlug,
+      lastMessageAt: null,
+      readAt: null,
+    })
+    messagesByConversation.set(id, [])
+  }
+  return id
+}
+
+export function previewConversations(): readonly PreviewConversation[] {
+  return [...conversations.entries()]
+    .map(([id, value]) => ({
+      id,
+      professionalSlug: value.professionalSlug,
+      lastMessageAt: value.lastMessageAt,
+      readAt: value.readAt,
+      hasUnread:
+        value.lastMessageAt != null &&
+        (value.readAt == null || value.readAt < value.lastMessageAt),
+    }))
+    .sort((a, b) => (b.lastMessageAt ?? '').localeCompare(a.lastMessageAt ?? ''))
+}
+
+export function previewMessages(conversationId: string): readonly PreviewMessage[] {
+  return messagesByConversation.get(conversationId) ?? []
+}
+
+export function addPreviewMessage(
+  conversationId: string,
+  senderUserId: string,
+  body: string,
+): void {
+  messageCounter += 1
+  // Un contador y no un reloj: `Date.now()` haría que dos corridas del preview
+  // den resultados distintos, y el orden solo necesita ser estable.
+  const createdAt = `2026-08-19T00:00:${String(messageCounter).padStart(2, '0')}Z`
+  const list = messagesByConversation.get(conversationId) ?? []
+  list.push({
+    id: `preview-msg-${String(messageCounter)}`,
+    senderUserId,
+    body,
+    createdAt,
+  })
+  messagesByConversation.set(conversationId, list)
+  const conversation = conversations.get(conversationId)
+  if (conversation != null) conversation.lastMessageAt = createdAt
+}
+
+export function markPreviewConversationRead(conversationId: string): void {
+  const conversation = conversations.get(conversationId)
+  if (conversation != null) conversation.readAt = conversation.lastMessageAt
+}
+
 // --- proyectos / búsqueda por fotos -------------------------------------------
 //
 // Un proyecto en memoria, con lo mínimo que necesita el matching por brief:
