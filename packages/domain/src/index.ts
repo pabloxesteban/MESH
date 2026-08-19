@@ -167,5 +167,5 @@ export type { ContactLabels, ContactMessageInput } from './contact/message.ts'
 
 export { haversineKm, roundDistanceKm } from './geo/distance.ts'
 export type { GeoCoordinates } from './geo/distance.ts'
-export { sortByProximity } from './geo/proximity.ts'
+export { sortByNeighborhood, sortByProximity } from './geo/proximity.ts'
 export type { Locatable, WithDistance } from './geo/proximity.ts'

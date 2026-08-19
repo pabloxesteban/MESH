@@ -15,13 +15,11 @@ export type OnboardingIntent = 'offering' | 'looking'
 export interface Account {
   readonly displayName: string | null
   readonly onboardingIntent: OnboardingIntent | null
-  readonly searchRadiusKm: number | null
 }
 
 export interface AccountPatch {
   readonly displayName?: string | null
   readonly onboardingIntent?: OnboardingIntent
-  readonly searchRadiusKm?: number | null
 }
 
 export async function fetchAccount(): Promise<Account> {

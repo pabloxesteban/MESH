@@ -1,4 +1,4 @@
-import { sortByProximity } from './proximity.ts'
+import { sortByNeighborhood, sortByProximity } from './proximity.ts'
 
 const PALERMO = { lat: -34.5875, lng: -58.4371 }
 const SAN_TELMO = { lat: -34.6212, lng: -58.3731 }
@@ -61,5 +61,69 @@ describe('sortByProximity', () => {
     const lista = [artista('lejos', LEJOS), artista('cerca', SAN_TELMO)]
     sortByProximity(lista, PALERMO)
     expect(lista.map((a) => a.nombre)).toEqual(['lejos', 'cerca'])
+  })
+})
+
+describe('sortByNeighborhood', () => {
+  const artista = (slug: string, neighborhoodSlug: string | null) => ({
+    slug,
+    neighborhoodSlug,
+  })
+
+  it('sin barrio elegido devuelve todo como vino', () => {
+    // No hay desde dónde medir. Reordenar sería inventar un criterio.
+    const items = [artista('a', 'palermo'), artista('b', 'boedo')]
+    expect(sortByNeighborhood(items, null)).toBe(items)
+  })
+
+  it('el mismo barrio va primero, después la comuna, después la ciudad', () => {
+    const items = [
+      artista('lejos', 'la-plata'),
+      artista('ciudad', 'boedo'),
+      artista('mismo', 'palermo'),
+    ]
+    expect(
+      sortByNeighborhood(items, 'palermo').map((item) => item.slug),
+    ).toEqual(['mismo', 'ciudad', 'lejos'])
+  })
+
+  it('quien no declaró barrio aparece igual, al final', () => {
+    // Esconderlo sería castigarlo por no haber compartido dónde trabaja.
+    const items = [artista('sin', null), artista('con', 'palermo')]
+    expect(sortByNeighborhood(items, 'palermo').map((i) => i.slug)).toEqual([
+      'con',
+      'sin',
+    ])
+  })
+
+  it('un barrio que no está en la taxonomía no rompe: va al final', () => {
+    const items = [artista('raro', 'inventado'), artista('real', 'palermo')]
+    expect(sortByNeighborhood(items, 'palermo').map((i) => i.slug)).toEqual([
+      'real',
+      'raro',
+    ])
+  })
+
+  it('dentro del mismo nivel conserva el orden en que vino', () => {
+    // Es la mezcla estable por usuario que hizo la base: reordenarla acá le
+    // daría siempre el mismo primer puesto al mismo artista.
+    const items = [
+      artista('uno', 'boedo'),
+      artista('dos', 'flores'),
+      artista('tres', 'caballito'),
+    ]
+    expect(sortByNeighborhood(items, 'palermo').map((i) => i.slug)).toEqual([
+      'uno',
+      'dos',
+      'tres',
+    ])
+  })
+
+  it('no anota ninguna distancia', () => {
+    // Los barrios de la taxonomía no tienen coordenadas, y el centro de
+    // Palermo tampoco sería donde está la persona. Ordenar sí; decir "a 2 km"
+    // sería inventarlo.
+    const [primero] = sortByNeighborhood([artista('a', 'palermo')], 'palermo')
+    expect(primero).not.toHaveProperty('distanceKm')
   })
 })

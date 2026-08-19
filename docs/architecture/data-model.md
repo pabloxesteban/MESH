@@ -264,12 +264,20 @@ publicación de realtime, que respeta RLS. Ver
 
 ### Preferencias del perfil
 
-`profiles` suma dos columnas, las dos nullable:
+`profiles` suma una columna, nullable:
 
 | Columna | Tipo | Notas |
 |---|---|---|
 | `onboarding_intent` | `onboarding_intent` NULL | `offering` / `looking`. Preferencia de arranque, **no** un rol excluyente. NULL = no contestó |
-| `search_radius_km` | integer NULL | CHECK 1–200. NULL = sin límite. Nunca esconde a un profesional sin coordenadas publicadas |
+
+**`search_radius_km` se cayó.** Existió para filtrar la lista de encajes por
+distancia; los encajes salieron de la app
+([D-010](../design/MESH-DESIGN-DECISIONS.md)) y la columna quedó
+escribiéndose y leyéndose a sí misma, con un control en Perfil que prometía un
+filtrado que ya no ocurría. Desde dónde se mira es hoy una preferencia **del
+dispositivo**, no de la cuenta, y vive en el almacenamiento local: el GPS lo es
+por definición, y el barrio desde el que mirás depende de dónde estés, no de
+quién sos. Ver [D-012](../design/MESH-DESIGN-DECISIONS.md).
 
 Elegir `offering` lleva al estudio: crear el perfil propio, o canjear el código
 si MESH armó uno. Es una preferencia de arranque y nada más — la que crea el

@@ -51,33 +51,21 @@ beforeEach(() => {
   fetchMock.mockResolvedValue({
     displayName: null,
     onboardingIntent: 'looking',
-    searchRadiusKm: null,
   })
 })
 
 describe('AccountScreen', () => {
-  it('arranca sin límite de radio', async () => {
+  it('no ofrece un radio de búsqueda', async () => {
+    // Estuvo y era mentira: se guardaba, se leía a sí mismo, y ninguna pantalla
+    // lo usaba desde D-010. Un control que no cambia nada es peor que la
+    // ausencia del control — enseña a no confiar en los que sí funcionan.
+    // Desde dónde se mira se elige en Inicio, donde se ve el efecto.
     renderScreen()
     await waitFor(() =>
       expect(screen.getByTestId('account-content')).toBeTruthy(),
     )
-    expect(
-      screen.getByTestId('account-radius-null').props.accessibilityState
-        .selected,
-    ).toBe(true)
-  })
-
-  it('elegir un radio lo guarda en km', async () => {
-    renderScreen()
-    await waitFor(() =>
-      expect(screen.getByTestId('account-content')).toBeTruthy(),
-    )
-
-    fireEvent.press(screen.getByTestId('account-radius-5'))
-    // El primer argumento y no la llamada entera: react-query le pasa al
-    // `mutationFn` un segundo parámetro con su propio contexto.
-    await waitFor(() => expect(updateMock).toHaveBeenCalled())
-    expect(updateMock.mock.calls[0]?.[0]).toEqual({ searchRadiusKm: 5 })
+    expect(screen.queryByTestId('account-radius-null')).toBeNull()
+    expect(screen.queryByText(/radio|hasta dónde/i)).toBeNull()
   })
 
   it('guardar el nombre queda deshabilitado hasta que cambia', async () => {

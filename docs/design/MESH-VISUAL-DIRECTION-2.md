@@ -258,9 +258,10 @@ después mira si le queda cerca. Un mapa como superficie principal invertiría e
 orden.
 
 Lo que ya existe y alcanza: distancia real en kilómetros cuando las dos partes
-dieron su ubicación, y radio de búsqueda configurable. Si alguna vez se agrega
-un mapa, entra como **contexto secundario** dentro de un perfil, nunca como
-pestaña.
+dieron su ubicación, y un control de **desde dónde** se mira, arriba de Inicio
+(ver D-012). El radio configurable se sacó — no filtraba nada. Si alguna vez se
+agrega un mapa, entra como **contexto secundario** dentro de un perfil, nunca
+como pestaña.
 
 ---
 

@@ -1,10 +1,13 @@
 /**
- * Estado de la ubicación de quien busca.
+ * El permiso de ubicación del sistema y lo que devuelve.
  *
- * No decide nada del ranking por sí solo: da las coordenadas para mostrar
- * distancia y filtrar por radio, y el barrio para el componente de ubicación
- * del matching — el mismo dato que antes se elegía a mano de una grilla de 48
- * chips. Ver `packages/domain/src/geo/distance.ts`.
+ * No decide nada por sí solo: da coordenadas y, cuando el sistema lo resuelve,
+ * un barrio. Qué se hace con eso lo decide `useSearchLocation`, que es donde
+ * vive la preferencia de **desde dónde** se mira — el GPS es uno de los tres
+ * modos, no el único. Ver D-012.
+ *
+ * Tener el permiso no significa estar en modo GPS, y estar en modo GPS no
+ * significa tener el permiso. Son dos cosas y la pantalla las distingue.
  */
 
 import { useCallback, useEffect, useState } from 'react'
@@ -16,10 +19,7 @@ import {
 } from './device.ts'
 
 export type DeviceLocationStatus =
-  | 'checking'
-  | 'unrequested'
-  | 'granted'
-  | 'denied'
+  'checking' | 'unrequested' | 'granted' | 'denied'
 
 export interface DeviceLocationState {
   readonly status: DeviceLocationStatus

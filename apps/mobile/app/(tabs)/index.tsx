@@ -26,6 +26,7 @@ export default function HomeScreen() {
       userId={userId}
       onOpenArtist={(slug) => router.push(`/artista/${slug}`)}
       onExplore={() => router.push('/(tabs)/explorar')}
+      onChangeLocation={() => router.push('/ubicacion')}
     />
   )
 }

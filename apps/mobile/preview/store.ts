@@ -354,13 +354,11 @@ export type { PreviewArtist }
 interface PreviewAccount {
   displayName: string | null
   onboardingIntent: 'offering' | 'looking' | null
-  searchRadiusKm: number | null
 }
 
 const account: PreviewAccount = {
   displayName: null,
   onboardingIntent: null,
-  searchRadiusKm: null,
 }
 
 export function previewAccount(): PreviewAccount {

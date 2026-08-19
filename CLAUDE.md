@@ -91,7 +91,7 @@ depende de a qué vino la persona. Ver
 
 | | Busca a alguien | Ofrece un servicio |
 |---|---|---|
-| **Inicio** | La grilla de artistas: un carrusel chico de la obra de cada uno y, debajo, nombre, foto y ubicación. Contesta *quién tatúa cerca mío*. Ordena por cercanía, **nunca filtra por ella**. | El mazo de búsquedas de gente. Un tatuador no quiere deslizar obra de otros tatuadores. |
+| **Inicio** | La grilla de artistas: un carrusel chico de la obra de cada uno y, debajo, nombre, foto y ubicación. Contesta *quién tatúa cerca mío*. Arriba dice desde dónde se mide y se cambia — GPS, un barrio, o nada ([D-012](docs/design/MESH-DESIGN-DECISIONS.md)). Ordena por cercanía, **nunca filtra por ella**. | El mazo de búsquedas de gente. Un tatuador no quiere deslizar obra de otros tatuadores. |
 | **Segunda** | **Explorar**: toda la obra de todos los que se registraron, cerca o lejos. Contesta *qué me quiero tatuar*. Buscar por fotos con IA se entra desde acá — ver [ADR-011](docs/decisions/ADR-011-photo-classification.md). | **Estudio**: tu perfil, tus estilos, tu ubicación, tu obra. |
 | **Tercera** | **Chats** | **Chats**: nada más. MESH no le recomienda tatuadores a un tatuador. |
 | **Cuarta** | **Perfil** | **Perfil** |

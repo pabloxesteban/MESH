@@ -6,9 +6,11 @@
  * algo que se visita cada tanto, no cada sesión, y una barra de seis pestañas
  * hace que ninguna se lea.
  *
- * El radio de búsqueda es la única preferencia que cambia resultados, así que
- * dice explícitamente qué NO hace: nunca esconde a alguien que no publicó
- * dónde trabaja. Un dato faltante no puede parecer una mala respuesta.
+ * **No está el radio de búsqueda.** Estuvo, y era mentira: se guardaba, se leía
+ * a sí mismo, y ninguna pantalla lo usaba desde que salieron los encajes
+ * (D-010). Su texto además prometía un filtrado por distancia que D-010
+ * eliminó — la distancia ordena y nunca filtra. Desde dónde se mira ahora se
+ * elige en Inicio, donde se ve el efecto. Ver D-012.
  */
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
@@ -33,15 +35,6 @@ import { AnalyticsToggle } from '@/features/settings/AnalyticsToggle.tsx'
 import { useT } from '@/i18n/I18nProvider.tsx'
 
 import { fetchAccount, updateAccount } from './queries.ts'
-
-/**
- * Los pasos del radio, en km. `null` = sin límite.
- *
- * Cinco opciones y no un slider: un slider invita a afinar un número que no
- * significa nada a esta escala — entre 11 y 13 km no hay decisión, y CABA
- * entera entra en 20.
- */
-const RADIUS_STEPS: readonly (number | null)[] = [2, 5, 10, 25, null]
 
 export interface AccountScreenProps {
   /** Como el resto de las pantallas: la sesión entra por prop, no por hook.
@@ -93,7 +86,6 @@ export function AccountScreen({
     }
 
     const data = account.data
-    const radius = data.searchRadiusKm
 
     return (
       <Box gap="xl" testID="account-content">
@@ -141,30 +133,6 @@ export function AccountScreen({
               onToggle={() => save.mutate({ onboardingIntent: 'offering' })}
               testID="account-intent-offering"
             />
-          </Box>
-        </Box>
-
-        <Box gap="xs">
-          <Text role="label" color="textSecondary">
-            {t('account.radius')}
-          </Text>
-          <Text role="micro" color="textTertiary">
-            {t('account.radius.hint')}
-          </Text>
-          <Box direction="row" gap="xxs" wrap>
-            {RADIUS_STEPS.map((step) => (
-              <FilterChip
-                key={String(step)}
-                label={
-                  step == null
-                    ? t('account.radius.unlimited')
-                    : t('account.radius.km', { km: step })
-                }
-                selected={radius === step}
-                onToggle={() => save.mutate({ searchRadiusKm: step })}
-                testID={`account-radius-${String(step)}`}
-              />
-            ))}
           </Box>
         </Box>
 

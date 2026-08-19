@@ -500,6 +500,79 @@ salida, y dos "Volver" no son dos salidas, son una pregunta sobre cuál hace qu�
 
 ---
 
+## D-012 · Desde dónde se mira se ve, se cambia, y nunca filtra
+
+**Fecha:** 2026-08-19 · **Origen:** el
+[análisis de Tattoodo](../research/MESH-TATTOODO-TEARDOWN.md) §2.1, que lo marcó
+como la deuda más clara de MESH.
+
+Inicio ordenaba por cercanía en silencio. Tomaba el GPS, no lo decía, y no lo
+dejaba corregir. Eso falla de dos maneras concretas que nadie puede diagnosticar
+desde adentro de la app: quien la abre en el subte queda con la ubicación de la
+estación, y quien vive en Palermo pero se tatúa cerca del trabajo en Microcentro
+no tiene forma de decirlo.
+
+**Decidido: arriba de la lista dice desde dónde se está midiendo, y desde ahí se
+cambia.** Un orden invisible no es un orden, es una caja negra que a veces
+acierta.
+
+**Decidido: tres modos, y ninguno es el castigo de los otros.**
+
+| | Ordena por | Muestra kilómetros |
+|---|---|---|
+| **Mi ubicación** (GPS) | distancia real, `sortByProximity` | **sí** |
+| **Un barrio** elegido a mano | cercanía de barrio, `sortByNeighborhood` | **no** |
+| **Sin ubicación** | nada — queda el orden del servidor | no |
+
+**Elegir un barrio no da kilómetros, y eso no es una limitación técnica que
+haya que resolver.** Los barrios de la taxonomía no tienen coordenadas, y aunque
+las tuvieran, el centro de Palermo no es donde está la persona. Ordenar sí se
+puede —mismo barrio, misma comuna, misma ciudad, misma área metropolitana— y el
+motor para eso ya existía: `proximity()`, puro y con tests. Decir "a 2 km" sería
+inventarlo, y el selector lo explica en vez de dejar que se note.
+
+**"Sin ubicación" es una opción de primera clase**, no lo que queda cuando
+negás el permiso. Quien no quiere compartir dónde está tiene que poder usar la
+app sin que se lo vuelvan a pedir en cada pantalla.
+
+**El GPS elegido sin permiso no finge.** El encabezado dice "sin ubicación" —
+que es la verdad— y el aviso de abajo explica qué falta y cómo activarlo. Es el
+caso que más se rompe en silencio: el modo dice `device` y la app se comporta
+como si supiera dónde está.
+
+**La ubicación ordena y nunca filtra.** Está dicho arriba del selector, porque
+es lo que más se malinterpreta de un control de ubicación: en casi todas las
+apps, elegir un lugar filtra. Con quince artistas, filtrar por zona vaciaría la
+pantalla. Hay un test que lo verifica en los tres modos.
+
+**La preferencia es del dispositivo, no de la cuenta.** Vive en el
+almacenamiento local (ADR-009). El GPS es del dispositivo por definición, y el
+barrio desde el que mirás depende de dónde estés, no de quién sos.
+
+**Y se cayó el radio de búsqueda.** Al buscar dónde poner esto apareció que
+`search_radius_km` se guardaba, se leía a sí mismo, y **ninguna consulta lo
+usaba** desde D-010. Su texto además prometía "filtramos por distancia real",
+que D-010 había vuelto falso. Un control que no hace lo que dice es peor que la
+ausencia del control: enseña a desconfiar de los que sí funcionan. Se fue la
+columna, el campo del cliente y el control.
+
+**Rechazado: un selector de ciudad como el de la competencia.** Tattoodo pone
+"Bondi Beach, NSW, Australia" y una lista de ciudades para explorar. MESH es
+CABA en V1; una lista de ciudades donde no hay nadie sería una promesa vacía.
+El barrio es la unidad que importa acá.
+
+**Rechazado: pedir el barrio en el onboarding.** Es una pregunta más antes de
+ver nada, para algo que la app puede resolver sola con el GPS y que se corrige
+en dos toques el día que haga falta.
+
+**El riesgo, escrito.** Un control de ubicación invita a esperar que filtre. Si
+alguien elige "Boedo" y ve a alguien de La Plata al final de la lista, puede
+leerlo como un error en vez de como la decisión que es. Por eso está dicho en el
+selector y no solo en este documento — y si igual se malinterpreta, la respuesta
+es mejorar el texto, no empezar a filtrar.
+
+---
+
 ## Pendiente, y dicho como pendiente
 
 Nada de esto está implementado en las pantallas de producción todavía. Lo que

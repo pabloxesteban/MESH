@@ -1,0 +1,21 @@
+-- Se cae `profiles.search_radius_km`.
+--
+-- La columna se agregó para filtrar la lista de encajes por distancia. Los
+-- encajes salieron de la app (ver docs/design/MESH-DESIGN-DECISIONS.md D-010) y
+-- la columna quedó escribiéndose y leyéndose a sí misma: el control de Perfil
+-- la guardaba, volvía a mostrarla, y **ninguna consulta la usaba**.
+--
+-- Peor que inútil: el texto del control prometía "filtramos por distancia real",
+-- que desde D-010 es falso — la distancia ordena y nunca filtra. Un control que
+-- no hace lo que dice enseña a desconfiar de los que sí funcionan.
+--
+-- Desde dónde se mira ahora se elige en Inicio, donde se ve el efecto, y es una
+-- preferencia del dispositivo: el GPS lo es por definición, y el barrio desde el
+-- que mirás depende de dónde estés, no de quién sos. Vive en el almacenamiento
+-- local. Ver D-012.
+--
+-- Se puede volver a agregar el día que exista una decisión de producto que
+-- justifique filtrar por distancia. Ese día será una columna nueva con su
+-- justificación, no esta desenterrada.
+
+alter table public.profiles drop column if exists search_radius_km;

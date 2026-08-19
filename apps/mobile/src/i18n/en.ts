@@ -79,6 +79,26 @@ export const en: Readonly<Record<TranslationKey, string>> = {
   'artists.location.body':
     'With your location on we sort by distance and tell you how far each one is. Without it the list still shows, in another order.',
   'artists.location.action': 'Turn on my location',
+  'searchLocation.title': 'Where from',
+  'searchLocation.hint':
+    'Changes the order of the list. It never hides anyone: whoever is far away still shows up, further down.',
+  'searchLocation.header.device': 'Near where you are',
+  'searchLocation.header.deviceAt': 'Near {barrio}',
+  'searchLocation.header.neighborhood': 'Near {barrio}',
+  'searchLocation.header.none': 'No location',
+  'searchLocation.header.action': 'Change',
+  'searchLocation.device': 'My location',
+  'searchLocation.device.hint': 'Orders by real distance and tells you how many kilometres away each one is.',
+  'searchLocation.device.denied':
+    'Permission is denied. You can turn it on from the phone settings.',
+  'searchLocation.none': 'No location',
+  'searchLocation.none.hint': 'The list is not ordered by proximity.',
+  'searchLocation.neighborhoods': 'Pick a neighbourhood',
+  'searchLocation.neighborhoods.hint':
+    'Orders by neighbourhood proximity. Without your real location we cannot say how many kilometres away each one is, so we do not say it.',
+  'searchLocation.search': 'Search a neighbourhood',
+  'searchLocation.empty': 'No neighbourhood is called that',
+  'searchLocation.close': 'Done',
   'artists.empty.title': 'Nobody has signed up yet',
   'artists.empty.body':
     'Once tattooers register, this is where you will see the ones working near you. In the meantime you can browse work.',
@@ -354,11 +374,6 @@ export const en: Readonly<Record<TranslationKey, string>> = {
     'Changes what you see when you open the app. It closes no doors: you can switch back whenever you want.',
   'account.intent.looking': "I'm looking for someone",
   'account.intent.offering': 'I offer a service',
-  'account.radius': 'How far you search',
-  'account.radius.hint':
-    "With your location on, we filter by real distance. We never hide someone who hasn't published where they work.",
-  'account.radius.km': '{km} km',
-  'account.radius.unlimited': 'No limit',
   'account.more': 'More',
   'account.studio': 'Your studio',
   'account.saved': 'Saved',

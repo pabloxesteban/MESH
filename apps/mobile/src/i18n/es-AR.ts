@@ -95,6 +95,27 @@ export const esAR = {
   'artists.location.body':
     'Con tu ubicación activada ordenamos por cercanía y te decimos a cuántos kilómetros está cada uno. Sin eso la lista igual se ve, en otro orden.',
   'artists.location.action': 'Activar mi ubicación',
+  // --- desde dónde se mira ---
+  'searchLocation.title': 'Desde dónde',
+  'searchLocation.hint':
+    'Cambia el orden de la lista. Nunca esconde a nadie: quien está lejos aparece igual, más abajo.',
+  'searchLocation.header.device': 'Cerca de donde estás',
+  'searchLocation.header.deviceAt': 'Cerca de {barrio}',
+  'searchLocation.header.neighborhood': 'Cerca de {barrio}',
+  'searchLocation.header.none': 'Sin ubicación',
+  'searchLocation.header.action': 'Cambiar',
+  'searchLocation.device': 'Mi ubicación',
+  'searchLocation.device.hint': 'Ordena por distancia real y te dice a cuántos kilómetros está cada uno.',
+  'searchLocation.device.denied':
+    'El permiso está denegado. Se activa desde los ajustes del teléfono.',
+  'searchLocation.none': 'Sin ubicación',
+  'searchLocation.none.hint': 'La lista no se ordena por cercanía.',
+  'searchLocation.neighborhoods': 'Elegí un barrio',
+  'searchLocation.neighborhoods.hint':
+    'Ordena por cercanía de barrio. Sin tu ubicación real no se puede decir a cuántos kilómetros está cada uno, así que no se dice.',
+  'searchLocation.search': 'Buscar un barrio',
+  'searchLocation.empty': 'Ningún barrio se llama así',
+  'searchLocation.close': 'Listo',
   'artists.empty.title': 'Todavía no hay nadie dado de alta',
   'artists.empty.body':
     'Cuando se registren tatuadores, acá vas a ver a los que trabajan cerca tuyo. Mientras tanto podés mirar obra.',
@@ -388,11 +409,6 @@ export const esAR = {
     'Cambia qué ves al abrir la app. No cierra ninguna puerta: podés volver cuando quieras.',
   'account.intent.looking': 'Busco a alguien',
   'account.intent.offering': 'Ofrezco un servicio',
-  'account.radius': 'Hasta dónde buscás',
-  'account.radius.hint':
-    'Con tu ubicación activada, filtramos por distancia real. A quien no publicó dónde trabaja no lo escondemos nunca.',
-  'account.radius.km': '{km} km',
-  'account.radius.unlimited': 'Sin límite',
   'account.more': 'Más',
   'account.studio': 'Tu estudio',
   'account.saved': 'Guardado',

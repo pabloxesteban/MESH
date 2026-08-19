@@ -20,6 +20,7 @@ app/
     para-vos.tsx                 chats
     perfil.tsx                   cuenta, alcance, tema, acceso al estudio
     buscar.tsx                   buscar por fotos — ruta sin pestaña
+  ubicacion.tsx                  desde dónde mirar — se llega desde Inicio
   artista/[slug].tsx             perfil profesional (push desde cualquier lado)
   chat/[id].tsx                  una conversación
   contacto/[slug].tsx            traspaso a WhatsApp / Instagram
@@ -53,10 +54,12 @@ para mostrar quién hay y qué hizo. Ver
 Notas por pestaña:
 
 - **Inicio** contesta *quién tatúa cerca mío*: una grilla de artistas, cada uno
-  con un carrusel chico de su obra y, debajo, nombre, foto y ubicación. El orden
-  es por cercanía y lo hace `sortByProximity` en `packages/domain`, no el SQL.
-  La distancia **ordena pero nunca filtra**: quien no publicó dónde trabaja
-  aparece igual, al final.
+  con un carrusel chico de su obra y, debajo, nombre, foto y ubicación. Arriba
+  dice **desde dónde** se está midiendo y se puede cambiar — GPS, un barrio a
+  mano, o nada (D-012). El orden lo hacen `sortByProximity` o
+  `sortByNeighborhood` en `packages/domain`, nunca el SQL. La ubicación
+  **ordena pero nunca filtra**: quien está lejos, o no publicó dónde trabaja,
+  aparece igual y más abajo.
 - **Explorar** contesta *qué me quiero tatuar*: toda la obra de todos los que se
   registraron, esté cerca o lejos. Cada obra abre a la persona que la hizo —
   una grilla que se pueda recorrer sin llegar nunca a alguien sería otra app.

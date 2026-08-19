@@ -755,7 +755,6 @@ export type Database = {
           onboarding_intent:
             | Database["public"]["Enums"]["onboarding_intent"]
             | null
-          search_radius_km: number | null
           updated_at: string
         }
         Insert: {
@@ -769,7 +768,6 @@ export type Database = {
           onboarding_intent?:
             | Database["public"]["Enums"]["onboarding_intent"]
             | null
-          search_radius_km?: number | null
           updated_at?: string
         }
         Update: {
@@ -783,7 +781,6 @@ export type Database = {
           onboarding_intent?:
             | Database["public"]["Enums"]["onboarding_intent"]
             | null
-          search_radius_km?: number | null
           updated_at?: string
         }
         Relationships: [

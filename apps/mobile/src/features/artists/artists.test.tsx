@@ -36,6 +36,12 @@ jest.mock('@/features/location/useDeviceLocation.ts', () => ({
   useDeviceLocation: () => mockDeviceLocation(),
 }))
 
+const mockSearchLocation = jest.fn()
+jest.mock('@/features/location/useSearchLocation.ts', () => ({
+  ...jest.requireActual('@/features/location/useSearchLocation.ts'),
+  useSearchLocation: () => mockSearchLocation(),
+}))
+
 const gridMock = fetchArtistGrid as jest.Mock
 
 const PALERMO = { lat: -34.5875, lng: -58.4371 }
@@ -81,6 +87,7 @@ function renderArtists(onOpenArtist = jest.fn()) {
               userId="u1"
               onOpenArtist={onOpenArtist}
               onExplore={jest.fn()}
+              onChangeLocation={jest.fn()}
             />
           </I18nProvider>
         </MotionProvider>
@@ -97,6 +104,11 @@ beforeEach(() => {
     status: 'granted',
     location: { coordinates: PALERMO, neighborhoodSlug: 'palermo' },
     request: jest.fn(),
+  })
+  mockSearchLocation.mockReturnValue({
+    value: { mode: 'device', neighborhoodSlug: null },
+    isLoading: false,
+    set: jest.fn(),
   })
 })
 
@@ -202,5 +214,136 @@ describe('grilla de artistas', () => {
 
     // Reintentar no va a hacer aparecer a nadie.
     await waitFor(() => expect(screen.getByTestId('artists-empty')).toBeTruthy())
+  })
+})
+
+describe('desde dónde se mira', () => {
+  it('el encabezado dice el barrio que resolvió el GPS', async () => {
+    gridMock.mockResolvedValue([artista('uno')])
+    renderArtists()
+
+    await waitFor(() => expect(screen.getByTestId('artists-list')).toBeTruthy())
+    expect(screen.getByTestId('search-location-label')).toHaveTextContent(
+      'Cerca de Palermo',
+    )
+  })
+
+  it('con un barrio elegido ordena por barrio y no muestra kilómetros', async () => {
+    // Los barrios de la taxonomía no tienen coordenadas, y el centro de Palermo
+    // tampoco sería donde está la persona. Ordenar sí; decir "a 2 km" no.
+    mockSearchLocation.mockReturnValue({
+      value: { mode: 'neighborhood', neighborhoodSlug: 'palermo' },
+      isLoading: false,
+      set: jest.fn(),
+    })
+    gridMock.mockResolvedValue([
+      artista('lejos', {
+        neighborhoodSlug: 'la-plata',
+        studioCoordinates: SAN_TELMO,
+      }),
+      artista('mismo', {
+        neighborhoodSlug: 'palermo',
+        studioCoordinates: LEJOS,
+      }),
+    ])
+    renderArtists()
+
+    await waitFor(() => expect(screen.getByTestId('artists-list')).toBeTruthy())
+
+    const tarjetas = screen.getByTestId('artists-list').children as Array<{
+      props: { testID?: string }
+    }>
+    expect(tarjetas.map((c) => c.props.testID)).toEqual([
+      'artist-mismo',
+      'artist-lejos',
+    ])
+    // Aunque las dos tengan coordenadas: el modo elegido manda, y en ese modo
+    // no hay distancia que decir.
+    expect(screen.queryByText(/km/)).toBeNull()
+    expect(screen.getByTestId('search-location-label')).toHaveTextContent(
+      'Cerca de Palermo',
+    )
+  })
+
+  it('sin ubicación conserva el orden del servidor y lo dice', async () => {
+    mockSearchLocation.mockReturnValue({
+      value: { mode: 'none', neighborhoodSlug: null },
+      isLoading: false,
+      set: jest.fn(),
+    })
+    gridMock.mockResolvedValue([
+      artista('lejos', { studioCoordinates: LEJOS }),
+      artista('cerca', { studioCoordinates: SAN_TELMO }),
+    ])
+    renderArtists()
+
+    await waitFor(() => expect(screen.getByTestId('artists-list')).toBeTruthy())
+
+    const tarjetas = screen.getByTestId('artists-list').children as Array<{
+      props: { testID?: string }
+    }>
+    expect(tarjetas.map((c) => c.props.testID)).toEqual([
+      'artist-lejos',
+      'artist-cerca',
+    ])
+    expect(screen.getByTestId('search-location-label')).toHaveTextContent(
+      'Sin ubicación',
+    )
+  })
+
+  it('elegir el GPS sin permiso no finge que hay ubicación', async () => {
+    // Es el caso que más se rompe en silencio: el modo dice "device" y la app
+    // se comporta como si supiera dónde está.
+    mockDeviceLocation.mockReturnValue({
+      status: 'denied',
+      location: null,
+      request: jest.fn(),
+    })
+    gridMock.mockResolvedValue([
+      artista('lejos', { studioCoordinates: LEJOS }),
+      artista('cerca', { studioCoordinates: SAN_TELMO }),
+    ])
+    renderArtists()
+
+    await waitFor(() => expect(screen.getByTestId('artists-list')).toBeTruthy())
+
+    expect(screen.getByTestId('search-location-label')).toHaveTextContent(
+      'Sin ubicación',
+    )
+    expect(screen.queryByText(/km/)).toBeNull()
+    // Y ahí sí hay algo que arreglar, así que el aviso aparece.
+    expect(screen.getByTestId('artists-location-prompt')).toBeTruthy()
+  })
+
+  it('ningún modo esconde a nadie', async () => {
+    for (const value of [
+      { mode: 'device' as const, neighborhoodSlug: null },
+      { mode: 'neighborhood' as const, neighborhoodSlug: 'palermo' },
+      { mode: 'none' as const, neighborhoodSlug: null },
+    ]) {
+      mockSearchLocation.mockReturnValue({
+        value,
+        isLoading: false,
+        set: jest.fn(),
+      })
+      gridMock.mockResolvedValue([
+        artista('lejisimos', {
+          neighborhoodSlug: 'la-plata',
+          studioCoordinates: LEJOS,
+        }),
+        artista('sin-nada', {
+          neighborhoodSlug: null,
+          studioCoordinates: null,
+        }),
+      ])
+      renderArtists()
+
+      await waitFor(() =>
+        expect(screen.getByTestId('artists-list')).toBeTruthy(),
+      )
+      // La ubicación ordena y nunca filtra. En los tres modos.
+      expect(screen.getAllByTestId('artist-lejisimos').length).toBeGreaterThan(0)
+      expect(screen.getAllByTestId('artist-sin-nada').length).toBeGreaterThan(0)
+    }
   })
 })

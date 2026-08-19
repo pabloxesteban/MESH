@@ -16,6 +16,8 @@
  * alguien por no haber compartido su ubicación, y publicarla es voluntario.
  */
 
+import { proximity, type Proximity } from '../taxonomy/locations.ts'
+
 import { haversineKm, type GeoCoordinates } from './distance.ts'
 
 /** Lo mínimo para ordenar. Cualquier cosa con coordenadas opcionales sirve. */
@@ -62,5 +64,61 @@ export function sortByProximity<T extends Locatable>(
     if (a.distanceKm == null) return 1
     if (b.distanceKm == null) return -1
     return a.distanceKm - b.distanceKm
+  })
+}
+
+/**
+ * Lo mínimo para ordenar por barrio: el barrio declarado, si lo hay.
+ */
+export interface Placeable {
+  readonly neighborhoodSlug: string | null
+}
+
+/**
+ * Qué tan cerca está cada nivel de la taxonomía, para ordenar.
+ *
+ * No son puntajes ni pesos: son un orden. La diferencia importa — un puntaje
+ * se pondera con otros y esto no se pondera con nada. Ver `proximity()` en
+ * taxonomy/locations.ts, que es quien decide en qué nivel cae cada par.
+ */
+const RANK: Record<Proximity, number> = {
+  same: 0,
+  group: 1,
+  city: 2,
+  metro: 3,
+  far: 4,
+  // Quien no declaró barrio va último, igual que quien no declaró coordenadas.
+  // Último no es escondido.
+  unknown: 5,
+}
+
+/**
+ * Ordena por cercanía **de barrio**, cuando no hay coordenadas.
+ *
+ * Es lo que se usa cuando la persona eligió un barrio a mano en vez de dar su
+ * ubicación real. La diferencia con `sortByProximity` no es de precisión: es
+ * que acá **no hay distancia que mostrar**. Los barrios de la taxonomía no
+ * tienen coordenadas, y el centro de Palermo tampoco sería donde está la
+ * persona. Ordenar sí se puede; decir "a 2 km" sería inventarlo.
+ *
+ * Estable: dentro del mismo nivel se conserva el orden en que vinieron, que es
+ * la mezcla estable por usuario que hizo la base.
+ */
+export function sortByNeighborhood<T extends Placeable>(
+  items: readonly T[],
+  viewerSlug: string | null,
+): readonly T[] {
+  if (viewerSlug == null) return items
+
+  return [...items].sort((a, b) => {
+    const left =
+      a.neighborhoodSlug == null
+        ? RANK.unknown
+        : RANK[proximity(viewerSlug, a.neighborhoodSlug)]
+    const right =
+      b.neighborhoodSlug == null
+        ? RANK.unknown
+        : RANK[proximity(viewerSlug, b.neighborhoodSlug)]
+    return left - right
   })
 }

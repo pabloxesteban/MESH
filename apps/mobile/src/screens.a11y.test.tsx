@@ -71,7 +71,6 @@ jest.mock('@/features/account/queries.ts', () => ({
   fetchAccount: jest.fn().mockResolvedValue({
     displayName: null,
     onboardingIntent: 'looking',
-    searchRadiusKm: null,
   }),
   updateAccount: jest.fn().mockResolvedValue(undefined),
 }))
@@ -302,6 +301,7 @@ describe('barrido de accesibilidad y callejones', () => {
         userId="u1"
         onOpenArtist={jest.fn()}
         onExplore={jest.fn()}
+        onChangeLocation={jest.fn()}
       />,
     )
     await waitFor(() => expect(screen.getByTestId('artists-empty')).toBeTruthy())
@@ -337,6 +337,7 @@ describe('barrido de accesibilidad y callejones', () => {
         userId="u1"
         onOpenArtist={jest.fn()}
         onExplore={jest.fn()}
+        onChangeLocation={jest.fn()}
       />,
     )
     await waitFor(() => expect(screen.getByTestId('artists-list')).toBeTruthy())

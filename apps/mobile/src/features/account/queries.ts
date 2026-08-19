@@ -20,7 +20,6 @@ export interface Account {
   readonly displayName: string | null
   readonly onboardingIntent: OnboardingIntent | null
   /** Radio de búsqueda en km. `null` = sin límite. */
-  readonly searchRadiusKm: number | null
 }
 
 export async function fetchAccount(): Promise<Account> {
@@ -29,7 +28,7 @@ export async function fetchAccount(): Promise<Account> {
   // cliente.
   const { data, error } = await supabase
     .from('profiles')
-    .select('display_name, onboarding_intent, search_radius_km')
+    .select('display_name, onboarding_intent')
     .maybeSingle()
 
   if (error != null) throw error
@@ -37,14 +36,12 @@ export async function fetchAccount(): Promise<Account> {
   return {
     displayName: data?.display_name ?? null,
     onboardingIntent: data?.onboarding_intent ?? null,
-    searchRadiusKm: data?.search_radius_km ?? null,
   }
 }
 
 export interface AccountPatch {
   readonly displayName?: string | null
   readonly onboardingIntent?: OnboardingIntent
-  readonly searchRadiusKm?: number | null
 }
 
 export async function updateAccount(patch: AccountPatch): Promise<void> {
@@ -59,9 +56,6 @@ export async function updateAccount(patch: AccountPatch): Promise<void> {
         : {}),
       ...(patch.onboardingIntent !== undefined
         ? { onboarding_intent: patch.onboardingIntent }
-        : {}),
-      ...(patch.searchRadiusKm !== undefined
-        ? { search_radius_km: patch.searchRadiusKm }
         : {}),
     })
     .eq('id', userId)

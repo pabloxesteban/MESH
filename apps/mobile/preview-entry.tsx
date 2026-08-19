@@ -29,6 +29,9 @@ import { ContactScreen } from '@/features/contact/ContactScreen.tsx'
 import { ExploreScreen } from '@/features/discovery/ExploreScreen.tsx'
 import { QuickSearchScreen } from '@/features/quick-search/QuickSearchScreen.tsx'
 import { ProfileScreen } from '@/features/profile/ProfileScreen.tsx'
+import { SearchLocationScreen } from '@/features/location/SearchLocationScreen.tsx'
+import { useDeviceLocation } from '@/features/location/useDeviceLocation.ts'
+import { useSearchLocation } from '@/features/location/useSearchLocation.ts'
 import { I18nProvider } from '@/i18n/I18nProvider.tsx'
 
 import DesignSystemGallery from './app/galeria.tsx'
@@ -170,6 +173,9 @@ function Shell({ abrirEstudio }: { abrirEstudio: boolean }) {
   // ya no existe. Se vuelve a Inicio, que existe en las dos apps.
   const actual = pestanas.some((tab) => tab.id === pestana) ? pestana : 'inicio'
   const [perfil, setPerfil] = useState<string | null>(null)
+  const [eligiendoUbicacion, setEligiendoUbicacion] = useState(false)
+  const searchLocation = useSearchLocation()
+  const device = useDeviceLocation()
   const [contacto, setContacto] = useState<string | null>(null)
   const [estudio, setEstudio] = useState(abrirEstudio)
   const [chat, setChat] = useState<{ id: string; titulo: string } | null>(null)
@@ -197,6 +203,17 @@ function Shell({ abrirEstudio }: { abrirEstudio: boolean }) {
     }
     if (estudio) {
       return <StudioScreen userId={USUARIO} onBack={() => setEstudio(false)} />
+    }
+    if (eligiendoUbicacion) {
+      return (
+        <SearchLocationScreen
+          value={searchLocation.value}
+          onChange={searchLocation.set}
+          onClose={() => setEligiendoUbicacion(false)}
+          deviceStatus={device.status}
+          onRequestDevice={device.request}
+        />
+      )
     }
     if (contacto != null) {
       return <ContactScreen slug={contacto} onBack={() => setContacto(null)} />
@@ -241,6 +258,7 @@ function Shell({ abrirEstudio }: { abrirEstudio: boolean }) {
             userId={USUARIO}
             onOpenArtist={(slug) => setPerfil(slug)}
             onExplore={() => setPestana('explorar')}
+            onChangeLocation={() => setEligiendoUbicacion(true)}
           />
         )
       case 'explorar':
