@@ -382,8 +382,15 @@ inspector_port = 8083
 # The Deno major version to use.
 deno_version = 2
 
-# [edge_runtime.secrets]
-# secret_key = "env(SECRET_VALUE)"
+[edge_runtime.secrets]
+ANTHROPIC_API_KEY = "env(ANTHROPIC_API_KEY)"
+
+# Clasifica una foto de referencia contra la taxonomía de estilos con Claude.
+# Ver supabase/functions/classify-style/index.ts. La función verifica la
+# sesión ella misma, pero `verify_jwt` es una segunda barrera: sin sesión, ni
+# siquiera llega a correr el código.
+[functions.classify-style]
+verify_jwt = true
 
 [analytics]
 enabled = true

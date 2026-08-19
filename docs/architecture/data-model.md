@@ -294,14 +294,23 @@ abriría precio, disponibilidad y estilos con el mismo `with check`. Ver
 
 **`get_style_examples(p_category_slug)`** — `SECURITY INVOKER`, `search_path`
 fijado. Una foto real y publicada por estilo, la de mayor peso declarado
-(`portfolio_item_styles.weight`), para el selector visual de "buscar por
-fotos" — la respuesta a "no sé cómo se llama esto que quiero, pero lo
-reconozco si lo veo". Selección determinística, nunca ML: la etiqueta ya la
-puso el artista al cargar su portafolio, esto solo la muestra en vez de
-esconderla detrás de un nombre. Un estilo sin ninguna pieza publicada no
-aparece en el resultado. Ver
+(`portfolio_item_styles.weight`). Se construyó para un selector visual manual
+en "buscar por fotos" que después se reemplazó por clasificación con IA (ver
+[ADR-011](../decisions/ADR-011-photo-classification.md)) — sin caller en el
+cliente hoy, pero no se borra: es una migración ya pusheada, y candidata a
+remoción en una migración posterior si nadie la retoma. Ver
 `supabase/migrations/20260819000100_style_examples.sql` y
 `supabase/tests/35_style_examples.sql`.
+
+**`classify-style`** (Edge Function, no RPC de Postgres) — recibe la primera
+foto de referencia de "buscar por fotos" en base64 y la clasifica contra los
+estilos activos de la categoría con un modelo de visión, devolviendo un slug
+real o `null`. Corre en el servidor con `ANTHROPIC_API_KEY` como secreto —
+nunca en el cliente. Es la única llamada a IA de toda la app, acotada a
+interpretar la entrada: el motor de matching que puntúa y ordena sigue
+siendo el determinístico de arriba. Ver
+`supabase/functions/classify-style/index.ts` y
+[ADR-011](../decisions/ADR-011-photo-classification.md).
 
 ## 5. Enums
 

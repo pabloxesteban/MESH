@@ -3,11 +3,13 @@
  *
  * No inventa un mecanismo nuevo: un proyecto ya es "estilos + ubicación
  * opcional + hasta N referencias", que es exactamente lo que esto necesita. Lo
- * único que cambia es cómo se llega — dos toques (fotos, estilos) en vez de un
- * formulario con título, descripción, presupuesto y timing.
+ * único que cambia es cómo se llega — un toque (fotos) en vez de un
+ * formulario con título, descripción, presupuesto y timing. El estilo lo
+ * clasifica `classifyReferencePhoto()` (ver `classify.ts`), no lo elige la
+ * persona a mano.
  *
- * El título se arma solo, a partir de los estilos que la persona tocó — nunca
- * texto libre, y nunca inventado: son sus propias palabras (traducidas), no una
+ * El título se arma solo, a partir del estilo detectado — nunca texto libre,
+ * y nunca inventado: es un slug real de la taxonomía, traducido, no una
  * descripción generada.
  *
  * Reusa la subida de referencias ya construida en `features/projects/upload.ts`

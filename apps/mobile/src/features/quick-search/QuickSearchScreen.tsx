@@ -1,24 +1,25 @@
 /**
  * Buscar por fotos.
  *
- * Dos toques, no un formulario: elegís hasta 4 fotos de algo que te gusta,
- * tocás qué estilos son, y listo — te lleva directo a la gente cerca tuyo que
- * hace eso. Sin título que escribir, sin descripción, sin presupuesto, sin
- * timing: eso sigue existiendo en "Crear proyecto" para quien lo quiera, esto
- * es la versión corta.
+ * Lo más simple posible: elegís hasta 4 fotos de algo que te gusta, tocás
+ * Buscar, y listo. Sin título que escribir, sin descripción, sin presupuesto,
+ * sin timing, sin elegir un estilo de una lista: eso sigue existiendo en
+ * "Crear proyecto" para quien lo quiera, esto es la versión corta.
  *
  * El barrio es opcional y de un solo toque — si no lo elegís, el matching
  * sigue funcionando, solo que sin el componente de ubicación. Nunca se le
  * pide a nadie el barrio con un campo de texto.
  *
- * **Lo que este flujo NO hace, a propósito:** no mira el contenido de las
- * fotos. El sistema no sabe qué hay en la imagen — vos se lo decís tocando los
- * estilos. Ver docs/product/product-spec.md y CLAUDE.md: nada de ML en el
- * camino de recomendación.
+ * **De dónde sale el estilo, si nadie lo toca acá.** La primera foto se manda
+ * a `classifyReferencePhoto()` — la única llamada a un modelo de IA de toda
+ * la app (ver ADR-011), acotada a devolver un slug de la taxonomía real o
+ * `null`. El motor de matching en sí (`packages/domain`) sigue siendo
+ * puro y determinístico: la IA interpreta lo que subiste, no decide a quién
+ * te mostramos ni en qué orden. Si no reconoce ningún estilo, se lo decimos
+ * y no se inventa uno.
  */
 
 import { useState } from 'react'
-import { useQuery } from '@tanstack/react-query'
 import * as ImagePicker from 'expo-image-picker'
 import { Image } from 'expo-image'
 import { ScrollView, View } from 'react-native'
@@ -32,7 +33,6 @@ import {
   HAIRLINE,
   Pressable,
   SCREEN_GUTTER,
-  Skeleton,
   Text,
   radius,
   spacing,
@@ -41,9 +41,8 @@ import {
 import { useT } from '@/i18n/I18nProvider.tsx'
 import type { TranslationKey } from '@/i18n/index.ts'
 
+import { classifyReferencePhoto } from './classify.ts'
 import { createQuickSearch } from './createQuickSearch.ts'
-import { fetchStyleExamples } from './queries.ts'
-import { StyleExampleGrid } from './StyleExampleGrid.tsx'
 
 const MAX_PHOTOS = 4
 
@@ -67,13 +66,7 @@ export function QuickSearchScreen({
   const theme = useTheme()
   const insets = useSafeAreaInsets()
 
-  const styleExamples = useQuery({
-    queryKey: ['quick-search', 'style-examples', 'tattoo'],
-    queryFn: () => fetchStyleExamples('tattoo'),
-  })
-
   const [images, setImages] = useState<readonly string[]>([])
-  const [styleSlugs, setStyleSlugs] = useState<readonly string[]>([])
   const [locationSlug, setLocationSlug] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -86,20 +79,31 @@ export function QuickSearchScreen({
     readonly failedUploads: number
   } | null>(null)
 
-  const canSubmit = images.length > 0 && styleSlugs.length > 0 && !isSubmitting
+  const canSubmit = images.length > 0 && !isSubmitting
 
   const submit = async () => {
     setIsSubmitting(true)
     setError(null)
     try {
-      const title = styleSlugs
-        .map((slug) => t(`style.tattoo.${slug}` as TranslationKey))
-        .join(' + ')
+      const firstPhoto = images[0]
+      if (firstPhoto == null) return
+
+      const styleSlug = await classifyReferencePhoto({
+        uri: firstPhoto,
+        categorySlug: 'tattoo',
+      })
+
+      if (styleSlug == null) {
+        setError(t('quickSearch.unrecognized'))
+        return
+      }
+
+      const title = t(`style.tattoo.${styleSlug}` as TranslationKey)
 
       const result = await createQuickSearch({
         userId,
         title,
-        styleSlugs,
+        styleSlugs: [styleSlug],
         imageUris: images,
         ...(locationSlug != null ? { locationSlug } : {}),
       })
@@ -205,48 +209,6 @@ export function QuickSearchScreen({
               </Pressable>
             ) : null}
           </Box>
-        </Box>
-
-        <Box gap="xs">
-          <Text role="label" color="textSecondary">
-            {t('quickSearch.styles')}
-          </Text>
-          <Text role="micro" color="textTertiary">
-            {t('quickSearch.styles.hint')}
-          </Text>
-
-          {styleExamples.error != null ? (
-            <Box gap="xs" testID="quick-search-styles-error">
-              <Text role="micro" color="stateNegative">
-                {t('quickSearch.styles.error')}
-              </Text>
-              <Button
-                label={t('common.retry')}
-                variant="secondary"
-                size="sm"
-                onPress={() => void styleExamples.refetch()}
-                testID="quick-search-styles-retry"
-              />
-            </Box>
-          ) : styleExamples.isPending ? (
-            <Box direction="row" gap="sm" testID="quick-search-styles-loading">
-              <Skeleton width={108} height={108} radius="md" />
-              <Skeleton width={108} height={108} radius="md" />
-              <Skeleton width={108} height={108} radius="md" />
-            </Box>
-          ) : (
-            <StyleExampleGrid
-              examples={styleExamples.data ?? []}
-              selected={styleSlugs}
-              onToggle={(slug) =>
-                setStyleSlugs((previous) =>
-                  previous.includes(slug)
-                    ? previous.filter((s) => s !== slug)
-                    : [...previous, slug],
-                )
-              }
-            />
-          )}
         </Box>
 
         <Box gap="xs">

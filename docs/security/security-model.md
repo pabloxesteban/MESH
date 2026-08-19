@@ -258,6 +258,7 @@ desde donde se intentaría evadirlos.
 | `EXPO_PUBLIC_SUPABASE_URL` | Bundle del cliente (público por diseño) | — |
 | `EXPO_PUBLIC_SUPABASE_ANON_KEY` | Bundle del cliente (público por diseño) | — |
 | `SUPABASE_SERVICE_ROLE_KEY` | `tools/seed/.env.local`, secreto de CI | Cualquier archivo bajo `apps/`, cualquier log, cualquier commit |
+| `ANTHROPIC_API_KEY` | Secreto de la Edge Function `classify-style` (`supabase/.env` local, `supabase secrets set` en producción) | Cualquier archivo bajo `apps/`, cualquier variable `EXPO_PUBLIC_*`, cualquier log, cualquier commit |
 | Contraseña de la base | Gestor de contraseñas del operador | En cualquier otro lado |
 
 Controles:

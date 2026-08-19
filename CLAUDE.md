@@ -13,8 +13,15 @@ por WhatsApp/Instagram.
 ## Innegociables
 
 1. **Explicable antes que ingenioso.** Nada de ML ni LLM en el camino de
-   recomendación. La función de matching es determinística, versionada y con
-   tests unitarios.
+   *recomendación*: la función de matching —qué se puntúa, en qué orden se
+   muestra, qué razón se da— es determinística, versionada y con tests
+   unitarios. Excepción única y acotada: interpretar una entrada ambigua que
+   la propia persona subió (hoy, clasificar la foto de referencia de "buscar
+   por fotos" contra la taxonomía real de estilos) puede usar un modelo,
+   siempre con vocabulario cerrado — nunca texto libre, nunca un slug
+   inventado — y siempre corriendo del lado del servidor. El resultado de esa
+   clasificación entra al motor de matching como un dato más; el motor en sí
+   nunca deja de ser puro. Ver [ADR-011](docs/decisions/ADR-011-photo-classification.md).
 2. **Nunca inventar.** Nada de reseñas, testimonios, disponibilidad, precios,
    estadísticas de reservas ni razones de match inventadas. Una razón solo se
    puede mostrar si el término que describe efectivamente aportó al puntaje.

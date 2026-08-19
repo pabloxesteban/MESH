@@ -296,24 +296,33 @@ match corre normalmente. Ubicación y presupuesto salen del proyecto cuando est�
 presentes, con fallback al perfil.
 
 **"Buscar por fotos" es esto mismo, sin formulario.** La persona sube hasta 4
-fotos de referencia y toca los estilos que representan — nunca escribe un
-título, una descripción, un presupuesto ni un timing. Del lado del motor es
-un proyecto igual a cualquier otro: mismos pesos normalizados, misma mezcla
-0,75/0,25, mismo `blendProjectStyles`. Lo único que cambia es que el título
-se arma solo a partir de los estilos elegidos, y que las cuatro fotos quedan
-como referencias del proyecto — el mismo mecanismo que ya existía para
-proyectos completos, no uno nuevo. Ver
+fotos de referencia y toca Buscar — nunca escribe un título, una descripción,
+un presupuesto ni un timing, y nunca elige un estilo a mano. Del lado del
+motor es un proyecto igual a cualquier otro: mismos pesos normalizados,
+misma mezcla 0,75/0,25, mismo `blendProjectStyles` — con un solo estilo,
+`styles` tiene una sola entrada con peso 1, no una diferencia de mecanismo.
+Lo único que cambia es que el título se arma solo a partir del estilo
+detectado, y que las cuatro fotos quedan como referencias del proyecto — el
+mismo mecanismo que ya existía para proyectos completos, no uno nuevo. Ver
 `apps/mobile/src/features/quick-search/`.
 
-**Elegir el estilo es reconocer una foto, no leer un nombre.** Hay gente que
-sabe lo que quiere pero no sabe cómo se llama el estilo — "esa cosa de puntitos"
-es `dotwork` para nosotros y una descripción real para ella. El selector de
-`quick-search` muestra una foto real y ya publicada por estilo en vez de una
-lista de chips de texto (`packages/domain` no interviene: la foto sale de
-`get_style_examples`, la pieza de mayor peso declarado para ese estilo —
-la misma etiqueta que ya alimenta el matching, mostrada en vez de escondida).
-Sigue siendo cero ML: nadie clasifica la foto que la persona sube, ella misma
-la reconoce contra ejemplos reales y toca.
+**De dónde sale el estilo, si nadie lo elige.** La primera foto se manda a
+`classify-style` (`supabase/functions/classify-style/`), una Edge Function
+que le pide a un modelo de visión (Claude) que elija un slug de la lista de
+estilos activos — real, la misma que ya etiqueta el catálogo — o `null` si
+no reconoce ninguno. Es la única llamada a un modelo de IA en toda la app, y
+está acotada a propósito: interpreta la foto, no decide a quién se muestra
+ni en qué orden — eso lo sigue haciendo este motor, puro y determinístico,
+igual que siempre. `null` nunca se reemplaza por una adivinanza: si el
+modelo no reconoce nada, se le dice a la persona y no se inventa un
+resultado. Ver [ADR-011](../decisions/ADR-011-photo-classification.md) para
+por qué esto no contradice ADR-005 (que sigue rechazando IA en el ranking en
+sí), y CLAUDE.md (Innegociable 1) para el límite exacto de la excepción.
+
+Antes de esto hubo dos intentos manuales: una lista de chips de texto, y
+después una grilla de fotos reales para tocar la que se pareciera. Los dos se
+rechazaron por el mismo motivo — seguía siendo una decisión más antes de
+poder buscar, y el pedido fue sacarla del todo, no hacerla más linda.
 
 **Bug encontrado y corregido al construir esto:** `useMatches.ts` mandaba
 `locationDiscriminates: false` siempre, con un comentario de cuando toda la

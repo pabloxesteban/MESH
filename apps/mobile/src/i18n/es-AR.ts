@@ -295,19 +295,17 @@ export const esAR = {
   // --- buscar por fotos ---
   'quickSearch.title': 'Buscar por fotos',
   'quickSearch.subtitle':
-    'Subí hasta 4 fotos de algo que te gusta. Elegís qué estilo es, y te llevamos con la gente cerca tuyo que lo hace.',
+    'Subí hasta 4 fotos de algo que te gusta y te llevamos con la gente cerca tuyo que hace algo parecido.',
   'quickSearch.photos': 'Fotos',
   'quickSearch.photo.add': 'Agregar foto',
   'quickSearch.photo.remove': 'Sacar la foto {n}',
-  'quickSearch.styles': 'Qué estilo es',
-  'quickSearch.styles.hint': 'Tocá las fotos que se parecen a lo que buscás',
-  'quickSearch.styles.error':
-    'No pudimos traer los ejemplos. Probá de nuevo.',
   'quickSearch.location': 'Tu barrio',
   'quickSearch.location.hint':
     'Opcional. Si lo elegís, ordenamos por cercanía.',
   'quickSearch.submit': 'Buscar',
   'quickSearch.error': 'No pudimos hacer la búsqueda. Probá de nuevo.',
+  'quickSearch.unrecognized':
+    'No reconocimos el estilo en esa foto. Probá con otra.',
   'quickSearch.uploadsFailed':
     'Subimos {ok} de {total} fotos. Igual buscamos con lo que tenemos.',
   'matches.notReady.searchByPhotos': 'O buscá por fotos',

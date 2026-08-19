@@ -10,14 +10,14 @@ import { MotionProvider, ThemeProvider } from '@/design-system/index.ts'
 import { I18nProvider } from '@/i18n/I18nProvider.tsx'
 
 import { QuickSearchScreen } from './QuickSearchScreen.tsx'
+import { classifyReferencePhoto } from './classify.ts'
 import { createQuickSearch } from './createQuickSearch.ts'
-import { fetchStyleExamples } from './queries.ts'
 
 jest.mock('./createQuickSearch.ts', () => ({
   createQuickSearch: jest.fn(),
 }))
-jest.mock('./queries.ts', () => ({
-  fetchStyleExamples: jest.fn(),
+jest.mock('./classify.ts', () => ({
+  classifyReferencePhoto: jest.fn(),
 }))
 jest.mock('expo-image-picker', () => ({
   launchImageLibraryAsync: jest.fn().mockResolvedValue({
@@ -29,8 +29,8 @@ jest.mock('expo-image-picker', () => ({
 const createQuickSearchMock = createQuickSearch as jest.MockedFunction<
   typeof createQuickSearch
 >
-const fetchStyleExamplesMock = fetchStyleExamples as jest.MockedFunction<
-  typeof fetchStyleExamples
+const classifyMock = classifyReferencePhoto as jest.MockedFunction<
+  typeof classifyReferencePhoto
 >
 
 function renderScreen(
@@ -64,14 +64,11 @@ function renderScreen(
 
 beforeEach(() => {
   jest.clearAllMocks()
-  fetchStyleExamplesMock.mockResolvedValue([
-    { styleSlug: 'fine-line', mediaPath: 'fixture-aguja-fina/1/lg.webp' },
-    { styleSlug: 'blackwork', mediaPath: 'fixture-tinta-negra/1/lg.webp' },
-  ])
+  classifyMock.mockResolvedValue('fine-line')
 })
 
 describe('QuickSearchScreen', () => {
-  it('el botón de buscar arranca deshabilitado sin fotos ni estilos', () => {
+  it('el botón de buscar arranca deshabilitado sin fotos', () => {
     renderScreen()
     expect(
       screen.getByTestId('quick-search-submit').props.accessibilityState
@@ -79,7 +76,7 @@ describe('QuickSearchScreen', () => {
     ).toBe(true)
   })
 
-  it('sigue deshabilitado con fotos pero sin estilo elegido', async () => {
+  it('se habilita con al menos una foto, sin pedir nada más', async () => {
     renderScreen()
     fireEvent.press(screen.getByTestId('quick-search-add-photo'))
     await waitFor(() =>
@@ -88,10 +85,10 @@ describe('QuickSearchScreen', () => {
     expect(
       screen.getByTestId('quick-search-submit').props.accessibilityState
         .disabled,
-    ).toBe(true)
+    ).toBe(false)
   })
 
-  it('se habilita con al menos una foto y un estilo, y busca sin barrio si no se eligió', async () => {
+  it('busca clasificando la primera foto, sin barrio si no se eligió', async () => {
     createQuickSearchMock.mockResolvedValue({
       projectId: 'proj-1',
       failedUploads: 0,
@@ -102,19 +99,13 @@ describe('QuickSearchScreen', () => {
     await waitFor(() =>
       expect(screen.getByTestId('quick-search-photo-0')).toBeTruthy(),
     )
-    await waitFor(() =>
-      expect(screen.getByTestId('quick-search-style-fine-line')).toBeTruthy(),
-    )
-    fireEvent.press(screen.getByTestId('quick-search-style-fine-line'))
-
-    expect(
-      screen.getByTestId('quick-search-submit').props.accessibilityState
-        .disabled,
-    ).toBe(false)
-
     fireEvent.press(screen.getByTestId('quick-search-submit'))
 
     await waitFor(() => expect(onCreated).toHaveBeenCalledWith('proj-1'))
+    expect(classifyMock).toHaveBeenCalledWith({
+      uri: 'file:///a.jpg',
+      categorySlug: 'tattoo',
+    })
     const call = createQuickSearchMock.mock.calls[0]?.[0]
     expect(call?.styleSlugs).toEqual(['fine-line'])
     expect(call?.locationSlug).toBeUndefined()
@@ -132,10 +123,6 @@ describe('QuickSearchScreen', () => {
     await waitFor(() =>
       expect(screen.getByTestId('quick-search-photo-0')).toBeTruthy(),
     )
-    await waitFor(() =>
-      expect(screen.getByTestId('quick-search-style-fine-line')).toBeTruthy(),
-    )
-    fireEvent.press(screen.getByTestId('quick-search-style-fine-line'))
     fireEvent.press(screen.getByTestId('quick-search-location-palermo'))
     fireEvent.press(screen.getByTestId('quick-search-submit'))
 
@@ -143,6 +130,22 @@ describe('QuickSearchScreen', () => {
     expect(createQuickSearchMock.mock.calls[0]?.[0]?.locationSlug).toBe(
       'palermo',
     )
+  })
+
+  it('si no se reconoce ningún estilo, avisa y no inventa uno', async () => {
+    classifyMock.mockResolvedValue(null)
+    renderScreen()
+
+    fireEvent.press(screen.getByTestId('quick-search-add-photo'))
+    await waitFor(() =>
+      expect(screen.getByTestId('quick-search-photo-0')).toBeTruthy(),
+    )
+    fireEvent.press(screen.getByTestId('quick-search-submit'))
+
+    await waitFor(() =>
+      expect(screen.getByTestId('quick-search-error')).toBeTruthy(),
+    )
+    expect(createQuickSearchMock).not.toHaveBeenCalled()
   })
 
   it('con fotos que fallaron, pide un segundo toque antes de avanzar', async () => {
@@ -156,10 +159,6 @@ describe('QuickSearchScreen', () => {
     await waitFor(() =>
       expect(screen.getByTestId('quick-search-photo-0')).toBeTruthy(),
     )
-    await waitFor(() =>
-      expect(screen.getByTestId('quick-search-style-fine-line')).toBeTruthy(),
-    )
-    fireEvent.press(screen.getByTestId('quick-search-style-fine-line'))
     fireEvent.press(screen.getByTestId('quick-search-submit'))
 
     await waitFor(() =>
@@ -181,10 +180,6 @@ describe('QuickSearchScreen', () => {
     await waitFor(() =>
       expect(screen.getByTestId('quick-search-photo-0')).toBeTruthy(),
     )
-    await waitFor(() =>
-      expect(screen.getByTestId('quick-search-style-fine-line')).toBeTruthy(),
-    )
-    fireEvent.press(screen.getByTestId('quick-search-style-fine-line'))
     fireEvent.press(screen.getByTestId('quick-search-submit'))
 
     await waitFor(() =>
