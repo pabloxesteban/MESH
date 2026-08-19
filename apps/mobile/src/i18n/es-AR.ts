@@ -336,7 +336,7 @@ export const esAR = {
   // --- pestañas ---
   'tabs.home': 'Inicio',
   'tabs.search': 'Buscar',
-  'tabs.matches': 'Para vos',
+  'tabs.matches': 'Matches',
   'tabs.profile': 'Perfil',
   // --- perfil ---
   'account.title': 'Perfil',

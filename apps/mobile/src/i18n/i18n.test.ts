@@ -58,8 +58,15 @@ describe('catálogos', () => {
   })
 
   it('no deja inglés suelto en el catálogo de origen', () => {
-    // Salvo los nombres propios de estilo, que son términos del oficio y se
-    // dicen en inglés también acá.
+    // Dos clases de excepción, y las dos son préstamos ya asentados en el
+    // castellano rioplatense — no descuidos.
+    //
+    // · Los nombres propios de estilo son términos del oficio y se dicen en
+    //   inglés también acá.
+    // · "Matches", en la etiqueta de la pestaña. Tinder volvió la palabra de
+    //   uso corriente y nadie en CABA la lee como inglés. Es la ÚNICA clave
+    //   donde se acepta: adentro de la pantalla las bandas siguen diciendo
+    //   "Encaje fuerte" / "Buen encaje", que es castellano y es más preciso.
     const permitidos = new Set([
       'style.tattoo.blackwork',
       'style.tattoo.old-school',
@@ -67,6 +74,7 @@ describe('catálogos', () => {
       'style.tattoo.handpoke',
       'style.tattoo.fine-line',
       'style.tattoo.dotwork',
+      'tabs.matches',
     ])
     const ingles =
       /\b(cancel|retry|back|close|continue|save|loading|error|search|settings|profile|match(es)?|tap|swipe)\b/i

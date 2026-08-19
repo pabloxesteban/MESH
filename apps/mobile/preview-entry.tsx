@@ -72,7 +72,7 @@ type Pestana = 'inicio' | 'buscar' | 'para-vos' | 'perfil' | 'galeria'
 const PESTANAS: ReadonlyArray<{ id: Pestana; label: string }> = [
   { id: 'inicio', label: 'Inicio' },
   { id: 'buscar', label: 'Buscar' },
-  { id: 'para-vos', label: 'Para vos' },
+  { id: 'para-vos', label: 'Matches' },
   { id: 'perfil', label: 'Perfil' },
   { id: 'galeria', label: 'Diseño' },
 ]

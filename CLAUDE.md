@@ -80,7 +80,7 @@ un menú que hay que estudiar en vez de un lugar donde la mano ya sabe ir.
 |---|---|
 | **Inicio** | El mazo. Donde la app abre y donde se pasa el tiempo. |
 | **Búsqueda** | Subís fotos de algo que te gusta y la IA detecta el estilo. Ver [ADR-011](docs/decisions/ADR-011-photo-classification.md). |
-| **Para vos** | Los matches, con los hilos de chat abiertos arriba. Ver [ADR-012](docs/decisions/ADR-012-chat.md). |
+| **Matches** | Los encajes, con los hilos de chat abiertos arriba. Ver [ADR-012](docs/decisions/ADR-012-chat.md). |
 | **Perfil** | Nombre, radio de búsqueda, tema, y los accesos a "Tu gusto" y "Tu estudio". |
 
 "Tu gusto" y "Tu estudio" no son pestañas: se visitan cada tanto, no cada
