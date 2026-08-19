@@ -23,6 +23,7 @@
     "format:check": "prettier --check .",
     "test": "npm run test --workspaces --if-present",
     "test:domain": "npm run test -w @mesh/domain",
+    "content:doctor": "npm run doctor -w @mesh/seed",
     "content:validate": "npm run validate -w @mesh/seed",
     "content:new": "npm run new -w @mesh/seed --",
     "content:claim": "npm run claim -w @mesh/seed --",

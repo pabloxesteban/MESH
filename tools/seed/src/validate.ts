@@ -65,23 +65,21 @@ function readYaml(path: string): unknown {
 }
 
 /**
- * `root` existe solo para los tests: el guard de borradores decide si un
- * directorio se puede publicar, y un guard sin test es una regla que alguien
- * borra sin enterarse.
+ * Revisa UN directorio de artista y devuelve su bundle, o `null` si algo falla.
+ *
+ * Extraída de `validateAll` para poder correr exactamente los mismos chequeos
+ * sobre un borrador sin cargarlo. Si el diagnóstico de borradores usara una
+ * copia de estas reglas, terminaría contestando algo distinto de lo que va a
+ * decir la validación real el día que se borre el `DRAFT` — que es la única
+ * forma en que una herramienta así hace perder tiempo en vez de ahorrarlo.
  */
-export function validateAll(root: string = CONTENT_ROOT): ValidationResult {
-  const errors: string[] = []
-  const bundles: ArtistBundle[] = []
-  const drafts: string[] = []
+function checkArtistDir(
+  root: string,
+  dir: string,
+  fail: (message: string) => void,
+): ArtistBundle | null {
+  const base = join(root, dir)
 
-  for (const dir of listArtistDirs(root)) {
-    const base = join(root, dir)
-
-    if (existsSync(join(base, 'DRAFT'))) {
-      drafts.push(dir)
-      continue
-    }
-    const fail = (message: string) => errors.push(`${dir}: ${message}`)
 
     // El consentimiento es requisito de inclusión, no un chequeo blando.
     // Ver docs/product/content-policy.md §2.
@@ -93,7 +91,7 @@ export function validateAll(root: string = CONTENT_ROOT): ValidationResult {
         'falta consent.md. Ningún artista se carga sin un registro de ' +
           'consentimiento fechado.',
       )
-      continue
+      return null
     }
     if (!/\d{4}-\d{2}-\d{2}/.test(consent)) {
       fail('consent.md no tiene una fecha ISO (AAAA-MM-DD)')
@@ -112,7 +110,7 @@ export function validateAll(root: string = CONTENT_ROOT): ValidationResult {
       try {
         contenido = readFileSync(join(base, archivo), 'utf8')
       } catch {
-        continue
+        return null
       }
       // Solo lo que queda fuera de un comentario de YAML: las plantillas
       // explican los campos en comentarios, y ahí la palabra es documentación.
@@ -134,12 +132,12 @@ export function validateAll(root: string = CONTENT_ROOT): ValidationResult {
             `artist.yaml → ${issue.path.join('.') || '(raíz)'}: ${issue.message}`,
           )
         }
-        continue
+        return null
       }
       artist = parsed.data
     } catch (error) {
       fail(`no se pudo leer artist.yaml: ${(error as Error).message}`)
-      continue
+      return null
     }
 
     if (artist.slug !== dir) {
@@ -155,12 +153,12 @@ export function validateAll(root: string = CONTENT_ROOT): ValidationResult {
         for (const issue of parsed.error.issues) {
           fail(`portfolio.yaml → ${issue.path.join('.')}: ${issue.message}`)
         }
-        continue
+        return null
       }
       portfolio = parsed.data
     } catch (error) {
       fail(`no se pudo leer portfolio.yaml: ${(error as Error).message}`)
-      continue
+      return null
     }
 
     for (const message of validatePortfolioStyles(portfolio, artist.category)) {
@@ -179,7 +177,7 @@ export function validateAll(root: string = CONTENT_ROOT): ValidationResult {
             `Permitidas: ${[...ALLOWED_MEDIA].join(', ')} (SVG queda afuera a ` +
             `propósito: es un contenedor de scripts).`,
         )
-        continue
+        return null
       }
 
       try {
@@ -195,7 +193,49 @@ export function validateAll(root: string = CONTENT_ROOT): ValidationResult {
       }
     }
 
-    bundles.push({ slug: dir, artist, portfolio })
+  return { slug: dir, artist, portfolio }
+}
+
+/**
+ * Qué le falta a un borrador para poder publicarse.
+ *
+ * Un borrador no se valida ni se carga —esa es la regla y no cambia—, pero sin
+ * esto tampoco recibe ningún feedback: se trabaja a ciegas hasta borrar el
+ * `DRAFT`, y ahí aparecen todos los errores juntos. Devuelve la misma lista que
+ * daría la validación real, para poder ir tachando de a uno.
+ */
+export function diagnoseDraft(root: string, dir: string): readonly string[] {
+  const findings: string[] = []
+  checkArtistDir(root, dir, (message) => findings.push(message))
+  return findings
+}
+
+export function listDrafts(root: string = CONTENT_ROOT): readonly string[] {
+  return listArtistDirs(root).filter((dir) =>
+    existsSync(join(root, dir, 'DRAFT')),
+  )
+}
+
+/**
+ * `root` existe solo para los tests: el guard de borradores decide si un
+ * directorio se puede publicar, y un guard sin test es una regla que alguien
+ * borra sin enterarse.
+ */
+export function validateAll(root: string = CONTENT_ROOT): ValidationResult {
+  const errors: string[] = []
+  const bundles: ArtistBundle[] = []
+  const drafts: string[] = []
+
+  for (const dir of listArtistDirs(root)) {
+    if (existsSync(join(root, dir, 'DRAFT'))) {
+      drafts.push(dir)
+      continue
+    }
+
+    const bundle = checkArtistDir(root, dir, (message) =>
+      errors.push(`${dir}: ${message}`),
+    )
+    if (bundle != null) bundles.push(bundle)
   }
 
   return { bundles, errors, drafts }

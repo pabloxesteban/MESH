@@ -12,7 +12,7 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { test } from 'node:test'
 
-import { validateAll } from './validate.ts'
+import { diagnoseDraft, listDrafts, validateAll } from './validate.ts'
 
 /** Un artista incompleto: sin consentimiento, sin YAML. Falla todo. */
 function artistaRoto(root: string, slug: string): void {
@@ -62,5 +62,42 @@ test('un borrador nunca entra en los bundles, ni con hermanos válidos', () => {
     // validación entera.
     assert.ok(errors.some((error) => error.startsWith('roto-de-verdad:')))
     assert.ok(!errors.some((error) => error.startsWith('en-borrador:')))
+  })
+})
+
+test('el diagnóstico dice qué falta sin cargar el borrador', () => {
+  conRaizTemporal((root) => {
+    artistaRoto(root, 'briza-maldonado')
+    writeFileSync(join(root, 'briza-maldonado', 'DRAFT'), 'faltan las fotos\n')
+
+    assert.deepEqual([...listDrafts(root)], ['briza-maldonado'])
+
+    const faltantes = diagnoseDraft(root, 'briza-maldonado')
+    assert.ok(faltantes.length > 0, 'un borrador incompleto tiene faltantes')
+
+    // Lo que importa: diagnosticar NO afloja el guard. El borrador sigue sin
+    // cargarse y sin reportar errores en la validación real — si diagnosticar
+    // lo publicara, sería la puerta de atrás que el guard existe para cerrar.
+    const { bundles, errors } = validateAll(root)
+    assert.equal(bundles.length, 0)
+    assert.deepEqual([...errors], [])
+  })
+})
+
+test('el diagnóstico da exactamente los mismos errores que la validación real', () => {
+  // Si fueran dos listas distintas, tachar todo lo que dice el doctor no
+  // garantizaría que `content:validate` pase — y la herramienta haría perder
+  // tiempo en vez de ahorrarlo.
+  conRaizTemporal((root) => {
+    artistaRoto(root, 'briza-maldonado')
+
+    const sinDraft = validateAll(root).errors.map((e) =>
+      e.replace('briza-maldonado: ', ''),
+    )
+
+    writeFileSync(join(root, 'briza-maldonado', 'DRAFT'), 'x\n')
+    const conDraft = diagnoseDraft(root, 'briza-maldonado')
+
+    assert.deepEqual([...conDraft], [...sinDraft])
   })
 })

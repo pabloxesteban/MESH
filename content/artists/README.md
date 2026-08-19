@@ -62,6 +62,21 @@ content/artists/briza-maldonado/DRAFT
 
 Cuando esté completo, borrá el archivo y validá.
 
+Mientras tanto, para saber qué falta sin borrar el `DRAFT`:
+
+```bash
+npm run content:doctor
+```
+
+Corre exactamente los mismos chequeos que la validación real y los muestra como
+una lista para ir tachando, más las notas a mano del `DRAFT`. No publica nada:
+solo lee. Sin esto se trabaja a ciegas hasta borrar el archivo, y ahí aparecen
+todos los errores juntos.
+
+Lo que el doctor **no** puede decirte es lo que ninguna máquina puede verificar:
+si la persona dijo que sí, si la bio son sus palabras, y si revisó sus pesos de
+estilo. Eso queda escrito en `consent.md` y en las notas del borrador.
+
 El riesgo obvio es que `DRAFT` se vuelva la forma de saltear los chequeos.
 Contra eso: los borradores se listan en cada corrida, verde o roja, así que no
 se pueden olvidar en silencio.
