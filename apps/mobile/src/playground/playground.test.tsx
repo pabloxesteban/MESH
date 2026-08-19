@@ -10,10 +10,21 @@
 
 import { PLAYGROUND_ENTRIES } from './index.ts'
 
-const BUILT_IDS = ['swipe-physics', 'bottom-sheet', 'taste-map']
+const BUILT_IDS = [
+  // Las cuatro direcciones visuales candidatas. Ver
+  // docs/design/MESH-DESIGN-DECISIONS.md — se quedan después de elegir, como
+  // registro de qué se consideró.
+  'direction-editorial-dark',
+  'direction-warm-gallery',
+  'direction-spatial-apple',
+  'direction-creative-minimal',
+  'swipe-physics',
+  'bottom-sheet',
+  'taste-map',
+]
 
 describe('PLAYGROUND_ENTRIES', () => {
-  it('solo los tres prototipos construidos tienen componente', () => {
+  it('solo los prototipos construidos tienen componente', () => {
     for (const entry of PLAYGROUND_ENTRIES) {
       if (BUILT_IDS.includes(entry.id)) {
         expect(entry.component).toBeDefined()

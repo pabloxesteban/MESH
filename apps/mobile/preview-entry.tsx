@@ -35,6 +35,7 @@ import { TasteScreen } from '@/features/taste/TasteScreen.tsx'
 import { I18nProvider } from '@/i18n/I18nProvider.tsx'
 
 import DesignSystemGallery from './app/galeria.tsx'
+import { PlaygroundHome } from '@/playground/PlaygroundHome.tsx'
 
 /**
  * Punto de entrada del preview web.
@@ -71,6 +72,7 @@ type Pestana =
   | 'para-vos'
   | 'perfil'
   | 'galeria'
+  | 'lab'
 
 /**
  * Las cuatro pestañas de la app, más una que no existe en el teléfono.
@@ -95,6 +97,10 @@ function pestanasPara(ofrece: boolean): ReadonlyArray<{
     { id: 'para-vos', label: ofrece ? 'Chats' : 'Matches' },
     { id: 'perfil', label: 'Perfil' },
     { id: 'galeria', label: 'Diseño' },
+    // El playground entra al preview para poder MIRAR las direcciones
+    // visuales en una pantalla de teléfono real, que es la única forma
+    // honesta de compararlas. No es producto y no viaja en el bundle nativo.
+    { id: 'lab', label: 'Lab' },
   ]
 }
 
@@ -293,6 +299,8 @@ function Shell({ abrirEstudio }: { abrirEstudio: boolean }) {
             <DesignSystemGallery />
           </ScrollView>
         )
+      case 'lab':
+        return <PlaygroundHome />
     }
   })()
 

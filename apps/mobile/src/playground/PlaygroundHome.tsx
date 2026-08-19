@@ -24,6 +24,7 @@ import {
 import { PLAYGROUND_ENTRIES, type PlaygroundEntry } from './index.ts'
 
 const CATEGORY_LABEL: Record<PlaygroundEntry['category'], string> = {
+  direction: 'DIRECCIÓN VISUAL',
   discovery: 'DESCUBRIMIENTO',
   taste: 'GUSTO',
   matching: 'MATCHING',

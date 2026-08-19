@@ -32,6 +32,7 @@ riesgo de una apuesta, no lo elimina.
 | [`ux-benchmark.md`](ux-benchmark.md) | La tabla de referencia rápida, un patrón por fila |
 | [`patterns/`](patterns) | Investigaciones puntuales de `/research-pattern` |
 | [`decisions/`](decisions) | Decisiones de UX con su justificación, una por archivo |
+| [`MESH-2026-UX-RESEARCH.md`](MESH-2026-UX-RESEARCH.md) | Ciclo 2026-08-19, desde el encuadre de **marketplace de descubrimiento**: Airbnb, iOS 26, Cosmos/Are.na, Pinterest, navegación 2026, confianza sin reseñas. Cada hallazgo clasificado como PATRÓN ESTABLECIDO / TENDENCIA / MODA |
 | [`MESH-UX-STRATEGY.md`](MESH-UX-STRATEGY.md) | La síntesis — el documento que alguien lee si solo va a leer uno |
 
 ## Lo que este directorio NO es
