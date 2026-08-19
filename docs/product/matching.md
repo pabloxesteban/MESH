@@ -378,6 +378,33 @@ Hacer que el descubrimiento mismo esté guiado por el gusto crearía una burbuja
 antes de que el perfil sea confiable, y volvería la entrada del motor de gusto
 una función de su propia salida. En V1 la entrada se mantiene sin sesgo.
 
+## 7 bis. Orden del mazo del artista (búsquedas abiertas)
+
+**Esto NO es matching, y por eso no toca `MATCHING_VERSION`.** El motor de match
+sigue corriendo en una sola dirección: de una persona hacia los profesionales.
+El mazo del artista no puntúa nada.
+
+Lo que hace `get_open_search_feed` es un **filtro y un orden**, los dos
+triviales a propósito:
+
+1. La búsqueda tiene `is_open_to_professionals`. Sin eso no existe para nadie.
+2. Es de la misma categoría que el perfil del artista.
+3. Pide **al menos un estilo** que el artista declaró en
+   `professional_styles`. No es un umbral de puntaje: es pertenencia. Mostrarle
+   a alguien que hace blackwork una búsqueda de lettering no es "un match
+   flojo", es ruido, y el ruido vacía el mazo de sentido.
+4. El artista todavía no la decidió (ni interés ni paso).
+5. Orden: `created_at desc`. Lo más nuevo primero, y nada más.
+
+Por qué no un puntaje: del lado de la persona hay meses de decisiones que
+sostienen un vector de gusto. Del lado del artista hay una lista de tres
+estilos que él mismo escribió. Puntuar sobre eso produciría un orden que se ve
+sofisticado y no distingue nada — y una razón de match que no podríamos
+sostener. Cuando haya volumen suficiente para que el orden importe, se decide
+con datos y se escribe acá.
+
+Ver [ADR-014](../decisions/ADR-014-two-sided.md).
+
 ## 8. Tests requeridos
 
 Los fixtures viven en `packages/domain/src/matching/__fixtures__/`. Cada caso de

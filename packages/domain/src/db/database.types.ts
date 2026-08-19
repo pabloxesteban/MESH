@@ -803,6 +803,45 @@ export type Database = {
           },
         ]
       }
+      project_interests: {
+        Row: {
+          created_at: string
+          id: string
+          professional_id: string
+          project_id: string
+          verdict: Database["public"]["Enums"]["professional_verdict"]
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          professional_id: string
+          project_id: string
+          verdict: Database["public"]["Enums"]["professional_verdict"]
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          professional_id?: string
+          project_id?: string
+          verdict?: Database["public"]["Enums"]["professional_verdict"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_interests_professional_id_fkey"
+            columns: ["professional_id"]
+            isOneToOne: false
+            referencedRelation: "professionals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_interests_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       project_references: {
         Row: {
           created_at: string
@@ -881,6 +920,7 @@ export type Database = {
           created_at: string
           description: string | null
           id: string
+          is_open_to_professionals: boolean
           location_id: string | null
           size_note: string | null
           status: Database["public"]["Enums"]["project_status"]
@@ -897,6 +937,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           id?: string
+          is_open_to_professionals?: boolean
           location_id?: string | null
           size_note?: string | null
           status?: Database["public"]["Enums"]["project_status"]
@@ -913,6 +954,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           id?: string
+          is_open_to_professionals?: boolean
           location_id?: string | null
           size_note?: string | null
           status?: Database["public"]["Enums"]["project_status"]
@@ -1079,6 +1121,35 @@ export type Database = {
           year: number
         }[]
       }
+      get_open_search_feed: {
+        Args: { p_category_slug: string; p_cursor?: string; p_limit?: number }
+        Returns: {
+          budget_currency: string
+          budget_max_cents: number
+          budget_min_cents: number
+          created_at: string
+          description: string
+          location_slug: string
+          project_id: string
+          reference_paths: string[]
+          size_note: string
+          style_slugs: string[]
+          timing: Database["public"]["Enums"]["project_timing"]
+          title: string
+        }[]
+      }
+      get_search_interests: {
+        Args: { p_project_id?: string }
+        Returns: {
+          created_at: string
+          interest_id: string
+          professional_display_name: string
+          professional_id: string
+          professional_slug: string
+          project_id: string
+          project_title: string
+        }[]
+      }
       get_style_examples: {
         Args: { p_category_slug: string }
         Returns: {
@@ -1088,6 +1159,7 @@ export type Database = {
           style_slug: string
         }[]
       }
+      is_search_open: { Args: { p_project_id: string }; Returns: boolean }
       mark_conversation_read: {
         Args: { p_conversation_id: string }
         Returns: undefined
@@ -1108,6 +1180,7 @@ export type Database = {
       interaction_verdict: "like" | "pass"
       match_band: "strong" | "good" | "possible"
       onboarding_intent: "offering" | "looking"
+      professional_verdict: "interest" | "pass"
       project_status: "draft" | "active" | "archived"
       project_timing: "asap" | "weeks" | "months" | "flexible"
     }
@@ -1245,6 +1318,7 @@ export const Constants = {
       interaction_verdict: ["like", "pass"],
       match_band: ["strong", "good", "possible"],
       onboarding_intent: ["offering", "looking"],
+      professional_verdict: ["interest", "pass"],
       project_status: ["draft", "active", "archived"],
       project_timing: ["asap", "weeks", "months", "flexible"],
     },

@@ -112,6 +112,7 @@ valor— cuesta más en usuarios reales de lo que ahorra en abuso a esta escala.
 | `matches` | propios | propios | propios | propios |
 | `conversations` | participante (la persona, o el dueño del perfil) | la persona, y solo contra un perfil publicado **y** reclamado | ✗ (solo vía `mark_conversation_read()`) | ✗ |
 | `messages` | participante del hilo padre | participante, y `sender_user_id = auth.uid()` | ✗ | ✗ |
+| `project_interests` | el artista dueño (todas las suyas) · la persona (solo `verdict = 'interest'`) | el artista dueño, con perfil publicado y sobre una búsqueda abierta | ✗ | las dos partes |
 | `analytics_events` | ✗ | propios (`user_id = auth.uid()`) | ✗ | ✗ |
 | `audit_events` | ✗ | ✗ | ✗ | ✗ (sin políticas — solo service role) |
 
@@ -153,6 +154,43 @@ Una persona tiene como mucho un perfil, y eso lo impone la base
 No hay moderación, ni denuncia, ni camino de despublicación. Es un riesgo
 aceptado a sabiendas con el producto sin lanzar, y la vuelta atrás es una línea
 —sacarle el `grant execute` a `create_own_professional`—, no una migración.
+
+### Las búsquedas de la gente
+
+Un `project` es privado por default y sigue siéndolo: `projects_select_own` no
+se tocó. Lo nuevo es `is_open_to_professionals`, que arranca en `false` y solo
+enciende la persona. Ver [ADR-014](../decisions/ADR-014-two-sided.md).
+
+Con el interruptor encendido, un artista publicado que haga alguno de los
+estilos pedidos puede:
+
+- leer **la proyección** que devuelve `get_open_search_feed()` — no la tabla, y
+  sin `user_id`;
+- bajar las fotos de referencia, por la política
+  `"references: leer las de búsquedas abiertas"`;
+- insertar una fila en `project_interests`.
+
+Nada más. No puede leer `projects`, ni `project_styles`, ni
+`project_references`, ni abrir una conversación: el chat lo abre la persona
+(ADR-012), y esta feature era la que habría roto esa regla sin que nadie lo
+notara.
+
+**Dos predicados `SECURITY DEFINER` sostienen esto**, y la razón es la misma en
+los dos casos: una política que consulte una tabla que el escritor no puede leer
+se evalúa con SUS permisos y siempre da falso. `is_search_open(uuid)` responde
+si una búsqueda está abierta; `is_open_search_reference(text)` responde si una
+ruta de storage cuelga de una búsqueda abierta. Los dos devuelven un booleano
+sobre un dato que quien pregunta ya tiene en la mano, y no exponen ninguna
+columna.
+
+**Un `pass` no le llega a nadie.** `project_interests` guarda las dos
+decisiones del artista para que su mazo no repita, pero la política de SELECT de
+la persona exige `verdict = 'interest'`. Nadie recibe la noticia de que la
+pasaron de largo, igual que un artista nunca se entera de quién pasó su obra.
+
+**Rate limit:** 30 intereses por hora por profesional (`enforce_interest_rate`).
+El paso no cuenta — descartar rápido es el uso normal del mazo. Es un tope
+técnico, no moderación: no hay denuncia ni bloqueo todavía.
 
 El SELECT de `media_assets` es el caso sutil: un `using (true)` ingenuo filtraría
 las rutas de storage de las imágenes de referencia privadas de otras personas —

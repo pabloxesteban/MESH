@@ -83,6 +83,15 @@ export type AnalyticsEvent =
     }
   | { name: 'project_abandoned'; props: { last_step: string } }
   | { name: 'search_performed'; props: { filter_count: number } }
+  // El mazo del artista. `project_id` y nada más: quién publicó la búsqueda no
+  // entra a analytics, igual que no entra a la tarjeta. Ver ADR-014.
+  | { name: 'search_interested'; props: { project_id: string; via: Via } }
+  | { name: 'search_passed'; props: { project_id: string; via: Via } }
+  | {
+      name: 'search_undone'
+      props: { project_id: string; previous_verdict: string }
+    }
+  | { name: 'search_opened'; props: { is_open: boolean } }
   | { name: 'error_shown'; props: { surface: string; error_code: string } }
 
 export type EventName = AnalyticsEvent['name']
@@ -109,5 +118,9 @@ export const EVENT_NAMES = [
   'project_completed',
   'project_abandoned',
   'search_performed',
+  'search_interested',
+  'search_passed',
+  'search_undone',
+  'search_opened',
   'error_shown',
 ] as const satisfies readonly EventName[]

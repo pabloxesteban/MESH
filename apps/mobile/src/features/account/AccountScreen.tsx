@@ -119,6 +119,33 @@ export function AccountScreen({
           />
         </Box>
 
+        {/* Cambiar esto cambia la app entera: qué pestañas hay y qué muestra
+            Inicio. Tiene que poder cambiarse — una elección de la primera
+            pantalla que no se puede deshacer no es una preferencia, es una
+            trampa. Ver ADR-014. */}
+        <Box gap="xs">
+          <Text role="label" color="textSecondary">
+            {t('account.intent')}
+          </Text>
+          <Text role="micro" color="textTertiary">
+            {t('account.intent.hint')}
+          </Text>
+          <Box direction="row" gap="xxs" wrap>
+            <FilterChip
+              label={t('account.intent.looking')}
+              selected={data.onboardingIntent === 'looking'}
+              onToggle={() => save.mutate({ onboardingIntent: 'looking' })}
+              testID="account-intent-looking"
+            />
+            <FilterChip
+              label={t('account.intent.offering')}
+              selected={data.onboardingIntent === 'offering'}
+              onToggle={() => save.mutate({ onboardingIntent: 'offering' })}
+              testID="account-intent-offering"
+            />
+          </Box>
+        </Box>
+
         <Box gap="xs">
           <Text role="label" color="textSecondary">
             {t('account.radius')}

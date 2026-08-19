@@ -1,4 +1,4 @@
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { QueryClient, QueryClientProvider, useQuery } from '@tanstack/react-query'
 import { registerRootComponent } from 'expo'
 import { useFonts } from 'expo-font'
 import { StatusBar } from 'expo-status-bar'
@@ -16,8 +16,12 @@ import {
   useThemePreference,
 } from '@/design-system/index.ts'
 import { AccountScreen } from '@/features/account/AccountScreen.tsx'
+import { useOnboardingIntent } from '@/features/account/useIntent.ts'
+import { fetchOwnedProfessional } from '@/features/artist/queries.ts'
 import { StudioScreen } from '@/features/artist/StudioScreen.tsx'
 import { ChatScreen } from '@/features/chat/ChatScreen.tsx'
+import { ChatsScreen } from '@/features/chat/ChatsScreen.tsx'
+import { SearchDeckScreen } from '@/features/demand/SearchDeckScreen.tsx'
 import { useOpenChat } from '@/features/chat/useOpenChat.ts'
 import { OnboardingGate } from '@/features/onboarding/OnboardingGate.tsx'
 import { ContactScreen } from '@/features/contact/ContactScreen.tsx'
@@ -60,22 +64,39 @@ import DesignSystemGallery from './app/galeria.tsx'
 const HOY = '2026-08-18'
 const USUARIO = 'preview-user'
 
-type Pestana = 'inicio' | 'buscar' | 'para-vos' | 'perfil' | 'galeria'
+type Pestana =
+  | 'inicio'
+  | 'buscar'
+  | 'estudio'
+  | 'para-vos'
+  | 'perfil'
+  | 'galeria'
 
 /**
  * Las cuatro pestañas de la app, más una que no existe en el teléfono.
+ *
+ * No son las mismas cuatro para todos: dependen de a qué vino la persona,
+ * igual que en `app/(tabs)/_layout.tsx`. Ver ADR-014. Si esto y aquello se
+ * separan, el preview deja de mostrar la app que existe.
  *
  * "Diseño" es la galería del design system: no es producto, es una
  * herramienta para mirar tokens y componentes en una pantalla real. Vive acá
  * y no en la app.
  */
-const PESTANAS: ReadonlyArray<{ id: Pestana; label: string }> = [
-  { id: 'inicio', label: 'Inicio' },
-  { id: 'buscar', label: 'Buscar' },
-  { id: 'para-vos', label: 'Matches' },
-  { id: 'perfil', label: 'Perfil' },
-  { id: 'galeria', label: 'Diseño' },
-]
+function pestanasPara(ofrece: boolean): ReadonlyArray<{
+  id: Pestana
+  label: string
+}> {
+  return [
+    { id: 'inicio', label: 'Inicio' },
+    ofrece
+      ? { id: 'estudio' as const, label: 'Estudio' }
+      : { id: 'buscar' as const, label: 'Buscar' },
+    { id: 'para-vos', label: ofrece ? 'Chats' : 'Matches' },
+    { id: 'perfil', label: 'Perfil' },
+    { id: 'galeria', label: 'Diseño' },
+  ]
+}
 
 function PreviewRoot() {
   const [fontsLoaded] = useFonts({
@@ -127,9 +148,24 @@ function GatedShell() {
 
 function Shell({ abrirEstudio }: { abrirEstudio: boolean }) {
   const theme = useTheme()
+  const intent = useOnboardingIntent()
+  const ofrece = intent === 'offering'
+  const pestanas = pestanasPara(ofrece)
   const [pestana, setPestana] = useState<Pestana>(
-    abrirEstudio ? 'perfil' : 'inicio',
+    abrirEstudio ? 'estudio' : 'inicio',
   )
+
+  // El perfil de artista propio, para el mazo de búsquedas. Misma clave que
+  // usa el estudio, así que crear el perfil ahí lo actualiza acá.
+  const propio = useQuery({
+    queryKey: ['studio', 'professional'],
+    queryFn: fetchOwnedProfessional,
+    enabled: ofrece,
+  })
+
+  // Cambiar de intención desde Perfil puede dejar seleccionada una pestaña que
+  // ya no existe. Se vuelve a Inicio, que existe en las dos apps.
+  const actual = pestanas.some((tab) => tab.id === pestana) ? pestana : 'inicio'
   const [perfil, setPerfil] = useState<string | null>(null)
   const [contacto, setContacto] = useState<string | null>(null)
   const [estudio, setEstudio] = useState(abrirEstudio)
@@ -189,15 +225,25 @@ function Shell({ abrirEstudio }: { abrirEstudio: boolean }) {
         />
       )
     }
-    switch (pestana) {
+    switch (actual) {
       case 'inicio':
-        return (
+        // La app entera cambia según a qué vino la persona: quien ofrece ve
+        // búsquedas de gente, no obra de otros tatuadores.
+        return ofrece ? (
+          <SearchDeckScreen
+            categorySlug="tattoo"
+            professionalId={propio.data?.id ?? null}
+            onOpenStudio={() => setPestana('estudio')}
+          />
+        ) : (
           <DeckScreen
             categorySlug="tattoo"
             userId={USUARIO}
             onOpenProfile={(slug) => setPerfil(slug)}
           />
         )
+      case 'estudio':
+        return <StudioScreen userId={USUARIO} onBack={() => setPestana('inicio')} />
       case 'perfil':
         return (
           <AccountScreen
@@ -207,7 +253,12 @@ function Shell({ abrirEstudio }: { abrirEstudio: boolean }) {
           />
         )
       case 'para-vos':
-        return (
+        return ofrece ? (
+          <ChatsScreen
+            onOpenChat={(id, titulo) => setChat({ id, titulo })}
+            onOpenDeck={() => setPestana('inicio')}
+          />
+        ) : (
           <MatchesScreen
             userId={USUARIO}
             today={HOY}
@@ -249,7 +300,8 @@ function Shell({ abrirEstudio }: { abrirEstudio: boolean }) {
     <View style={{ flex: 1, backgroundColor: theme.surface }}>
       <View style={{ flex: 1 }}>{contenido}</View>
       <TabBar
-        actual={pestana}
+        pestanas={pestanas}
+        actual={actual}
         onCambiar={(id) => {
           setPerfil(null)
           setContacto(null)
@@ -265,9 +317,11 @@ function Shell({ abrirEstudio }: { abrirEstudio: boolean }) {
 }
 
 function TabBar({
+  pestanas,
   actual,
   onCambiar,
 }: {
+  pestanas: ReadonlyArray<{ id: Pestana; label: string }>
   actual: Pestana
   onCambiar: (id: Pestana) => void
 }) {
@@ -282,7 +336,7 @@ function TabBar({
       padding="xs"
       gap="xxs"
     >
-      {PESTANAS.map((tab) => (
+      {pestanas.map((tab) => (
         <Pressable
           key={tab.id}
           onPress={() => onCambiar(tab.id)}

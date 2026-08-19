@@ -26,6 +26,14 @@ export interface QuickSearchInput {
   readonly locationSlug?: string | undefined
   /** URIs locales, ya elegidas del picker. Hasta MAX_PROJECT_REFERENCES. */
   readonly imageUris: readonly string[]
+  /**
+   * Si los tatuadores pueden ver esta búsqueda y levantar la mano.
+   *
+   * Apagado salvo que la persona lo encienda. Estas fotos las subió para sí
+   * misma; que las vea un desconocido es una decisión suya, no nuestra. Ver
+   * ADR-014.
+   */
+  readonly openToProfessionals?: boolean | undefined
 }
 
 export interface QuickSearchResult {
@@ -49,6 +57,7 @@ export async function createQuickSearch(
   const projectId = await createProject(input.userId, {
     title: input.title,
     styleSlugs: input.styleSlugs,
+    openToProfessionals: input.openToProfessionals ?? false,
     ...(input.locationSlug != null ? { locationSlug: input.locationSlug } : {}),
   })
 

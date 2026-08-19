@@ -37,6 +37,7 @@ import {
   spacing,
   useTheme,
 } from '@/design-system/index.ts'
+import { track } from '@/analytics/track.ts'
 import { useT } from '@/i18n/I18nProvider.tsx'
 import type { TranslationKey } from '@/i18n/index.ts'
 
@@ -64,6 +65,9 @@ export function QuickSearchScreen({
   const device = useDeviceLocation()
 
   const [images, setImages] = useState<readonly string[]>([])
+  // Apagado. Estas fotos las subió para sí misma; que las vea un tatuador es
+  // una decisión suya, y una decisión no se toma por default. Ver ADR-014.
+  const [openToPros, setOpenToPros] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   // Ausente hasta que la búsqueda corrió; con valor, algunas fotos no
@@ -107,8 +111,11 @@ export function QuickSearchScreen({
         title,
         styleSlugs: [styleSlug],
         imageUris: images,
+        openToProfessionals: openToPros,
         ...(locationSlug != null ? { locationSlug } : {}),
       })
+
+      track({ name: 'search_opened', props: { is_open: openToPros } })
 
       if (result.failedUploads > 0) {
         setPending(result)
@@ -217,6 +224,11 @@ export function QuickSearchScreen({
           status={device.status}
           neighborhoodSlug={device.location?.neighborhoodSlug ?? null}
           onRequest={device.request}
+        />
+
+        <OpenToProsRow
+          open={openToPros}
+          onToggle={() => setOpenToPros((previous) => !previous)}
         />
 
         {error != null ? (
@@ -330,6 +342,51 @@ function LocationRow({
           testID="quick-search-location-request"
         />
       ) : null}
+    </Box>
+  )
+}
+
+/**
+ * El interruptor que decide si un tatuador puede ver esta búsqueda.
+ *
+ * Arranca apagado y la etiqueta dice qué pasa si se enciende, con las dos
+ * consecuencias que importan: **qué se muestra** (las fotos y el estilo) y
+ * **qué no** (quién sos). Sin eso, "que los tatuadores lo vean" suena a
+ * publicar el perfil.
+ *
+ * Mismo patrón que el interruptor de datos de uso: un botón con el estado
+ * escrito arriba. MESH no tiene un `Switch` propio, y un control cuyo estado
+ * solo se lee del color no se lee.
+ */
+function OpenToProsRow({
+  open,
+  onToggle,
+}: {
+  open: boolean
+  onToggle: () => void
+}) {
+  const t = useT()
+
+  return (
+    <Box gap="xxs" testID="quick-search-open">
+      <Text role="label" color="textSecondary">
+        {t('quickSearch.open.title')}
+      </Text>
+      <Text role="body" color="textSecondary">
+        {t('quickSearch.open.body')}
+      </Text>
+      <Text role="micro" color="textTertiary">
+        {t(open ? 'quickSearch.open.on' : 'quickSearch.open.off')}
+      </Text>
+      <Button
+        label={t(
+          open ? 'quickSearch.open.toggle.on' : 'quickSearch.open.toggle.off',
+        )}
+        variant="secondary"
+        onPress={onToggle}
+        fullWidth
+        testID="quick-search-open-toggle"
+      />
     </Box>
   )
 }

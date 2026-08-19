@@ -34,6 +34,8 @@ import { AccountScreen } from '@/features/account/AccountScreen.tsx'
 import { IntentScreen } from '@/features/onboarding/IntentScreen.tsx'
 import { ChatScreen } from '@/features/chat/ChatScreen.tsx'
 import { StudioScreen } from '@/features/artist/StudioScreen.tsx'
+import { SearchDeckScreen } from '@/features/demand/SearchDeckScreen.tsx'
+import { ChatsScreen } from '@/features/chat/ChatsScreen.tsx'
 
 const mockRpc = jest.fn()
 jest.mock('@/data/supabase.ts', () => ({
@@ -118,6 +120,17 @@ jest.mock('@/features/artist/upload.ts', () => ({
 jest.mock('expo-image-picker', () => ({
   launchImageLibraryAsync: jest.fn().mockResolvedValue({ canceled: true }),
 }))
+jest.mock('@/features/demand/queries.ts', () => ({
+  fetchOpenSearchFeed: jest
+    .fn()
+    .mockResolvedValue({ items: [], nextCursor: null }),
+  decideOnSearch: jest.fn(),
+  undoDecision: jest.fn(),
+}))
+jest.mock('@/features/demand/interests.ts', () => ({
+  fetchSearchInterests: jest.fn().mockResolvedValue([]),
+  dismissInterest: jest.fn(),
+}))
 jest.mock('@/features/quick-search/classify.ts', () => ({
   classifyReferencePhoto: jest.fn().mockResolvedValue('fine-line'),
 }))
@@ -134,6 +147,7 @@ jest.mock('expo-location', () => ({
 import { fetchProfile } from '@/features/profile/queries.ts'
 import { fetchCatalog } from '@/features/matches/queries.ts'
 import { fetchOwnedProfessional } from '@/features/artist/queries.ts'
+import { fetchOpenSearchFeed } from '@/features/demand/queries.ts'
 
 const HOY = '2026-08-18'
 
@@ -502,6 +516,62 @@ describe('barrido de accesibilidad y callejones', () => {
     )
     sweep('estudio · con perfil')
     sweepDynamicType('estudio · con perfil')
+  })
+
+  it('el mazo del artista, sin perfil todavía', async () => {
+    render(
+      <SearchDeckScreen
+        categorySlug="tattoo"
+        professionalId={null}
+        onOpenStudio={jest.fn()}
+      />,
+    )
+    await waitFor(() =>
+      expect(screen.getByTestId('demand-no-profile')).toBeTruthy(),
+    )
+    sweep('mazo del artista · sin perfil')
+    sweepDynamicType('mazo del artista · sin perfil')
+  })
+
+  it('el mazo del artista, con una búsqueda', async () => {
+    ;(fetchOpenSearchFeed as jest.Mock).mockResolvedValue({
+      items: [
+        {
+          projectId: 'proj-1',
+          title: 'Algo de línea fina',
+          description: null,
+          locationSlug: 'palermo',
+          budgetMinCents: null,
+          budgetMaxCents: null,
+          budgetCurrency: null,
+          timing: null,
+          sizeNote: null,
+          createdAt: '2026-08-18T12:00:00Z',
+          styleSlugs: ['fine-line'],
+          referenceUrls: [],
+        },
+      ],
+      nextCursor: null,
+    })
+    render(
+      <SearchDeckScreen
+        categorySlug="tattoo"
+        professionalId="pro-1"
+        onOpenStudio={jest.fn()}
+      />,
+    )
+    await waitFor(() =>
+      expect(screen.getByTestId('demand-card-top')).toBeTruthy(),
+    )
+    sweep('mazo del artista · con búsqueda')
+    sweepDynamicType('mazo del artista · con búsqueda')
+  })
+
+  it('los chats del artista, vacíos', async () => {
+    render(<ChatsScreen onOpenChat={jest.fn()} onOpenDeck={jest.fn()} />)
+    await waitFor(() => expect(screen.getByTestId('chats-empty')).toBeTruthy())
+    sweep('chats del artista · vacío')
+    sweepDynamicType('chats del artista · vacío')
   })
 
   it('buscar por fotos', () => {

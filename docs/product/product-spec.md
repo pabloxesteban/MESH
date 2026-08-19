@@ -29,7 +29,7 @@ La promesa, en palabras del usuario:
 | Categoría | Solo tatuajes |
 | Mercado | Buenos Aires / CABA, Argentina |
 | Oferta | Arranca con 8–15 artistas reales curados, con consentimiento; desde 2026-08-19 cualquier artista puede darse de alta solo ([ADR-013](../decisions/ADR-013-artist-self-signup.md)) |
-| Demanda | Cualquiera; sin restricción de quién puede explorar |
+| Demanda | Cualquiera; sin restricción de quién puede explorar. Desde 2026-08-19 una búsqueda se puede abrir para que los tatuadores la vean ([ADR-014](../decisions/ADR-014-two-sided.md)), apagado por default |
 | Contacto | Chat propio adentro de MESH ([ADR-012](../decisions/ADR-012-chat.md)); WhatsApp e Instagram para los perfiles sin dueño |
 | Reservas / pagos | Fuera de alcance |
 | Mensajería in-app | Adentro de V1 desde 2026-08-19 ([ADR-012](../decisions/ADR-012-chat.md)) |

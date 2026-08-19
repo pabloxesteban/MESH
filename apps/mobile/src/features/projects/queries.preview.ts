@@ -9,7 +9,13 @@
 
 import type { WeightedStyle } from '@mesh/domain'
 
-import { createPreviewProject, previewProject } from '../../../preview/store.ts'
+import {
+  attachPreviewSearchReference,
+  createPreviewProject,
+  nextPreviewTimestamp,
+  openPreviewSearch,
+  previewProject,
+} from '../../../preview/store.ts'
 
 export interface ProjectSummary {
   readonly id: string
@@ -31,6 +37,7 @@ export interface ProjectDraft {
     { readonly minCents: number; readonly maxCents: number } | undefined
   readonly timing?: string | undefined
   readonly locationSlug?: string | undefined
+  readonly openToProfessionals?: boolean | undefined
 }
 
 function toWeightedStyles(slugs: readonly string[]): readonly WeightedStyle[] {
@@ -43,11 +50,28 @@ export async function createProject(
   _userId: string,
   draft: ProjectDraft,
 ): Promise<string> {
-  return createPreviewProject({
+  const projectId = createPreviewProject({
     title: draft.title,
     styleSlugs: draft.styleSlugs,
     ...(draft.locationSlug != null ? { locationSlug: draft.locationSlug } : {}),
   })
+
+  // Solo si la persona lo pidió. El default apagado se respeta acá igual que
+  // en la base: el preview no puede ser más permisivo que el producto, porque
+  // entonces demuestra otra cosa. Ver ADR-014.
+  if (draft.openToProfessionals === true) {
+    openPreviewSearch({
+      projectId,
+      title: draft.title,
+      styleSlugs: draft.styleSlugs,
+      locationSlug: draft.locationSlug ?? null,
+      // Las referencias se adjuntan después, con `attachReference`.
+      referenceIds: [],
+      createdAt: nextPreviewTimestamp(),
+    })
+  }
+
+  return projectId
 }
 
 export async function fetchProject(id: string): Promise<ProjectSummary | null> {
@@ -67,11 +91,13 @@ export async function fetchProject(id: string): Promise<ProjectSummary | null> {
 }
 
 export async function attachReference(
-  _projectId: string,
-  _mediaId: string,
+  projectId: string,
+  mediaId: string,
   _sortOrder: number,
 ): Promise<void> {
-  // El preview no lista referencias en ningún lado todavía, así que no hay
-  // nada que registrar más allá de que la subida (upload.preview.ts) ya dejó
-  // la imagen accesible por su id.
+  // Si la búsqueda está abierta, la foto es lo que ve el tatuador en su mazo.
+  // `upload.preview.ts` ya dejó la imagen accesible por su id, así que alcanza
+  // con anotarla. Si la búsqueda está cerrada esto no hace nada, que es lo
+  // correcto: no existe para nadie más.
+  attachPreviewSearchReference(projectId, mediaId)
 }

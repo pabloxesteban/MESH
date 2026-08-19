@@ -354,6 +354,27 @@ deriva del nombre —minúsculas, sin acentos, sin nada que no sea alfanumérico
 los repetidos se numeran. Ver
 [ADR-013](../decisions/ADR-013-artist-self-signup.md).
 
+**`get_open_search_feed(p_category_slug, p_limit, p_cursor)`** — `SECURITY
+DEFINER`, `search_path` fijado. El mazo del artista: las búsquedas con
+`is_open_to_professionals` que piden algún estilo que él declaró, sin las que ya
+decidió, lo más nuevo primero. DEFINER al revés que `get_discovery_feed`, que es
+INVOKER: ahí se muestran filas que quien llama ya puede leer; acá, filas que un
+artista NO puede leer y no queremos que pueda. Lo que se expone no es la tabla,
+es esta proyección columna por columna — y **no incluye `user_id`**. Ver
+[ADR-014](../decisions/ADR-014-two-sided.md).
+
+**`get_search_interests(p_project_id default null)`** — `SECURITY INVOKER`. Los
+artistas que levantaron la mano ante una búsqueda propia; sin argumento, ante
+todas. Solo `verdict = 'interest'`: un `pass` no se le muestra nunca a la
+persona.
+
+**`is_search_open(p_project_id)`** / **`is_open_search_reference(p_path)`** —
+`SECURITY DEFINER`, devuelven un booleano sobre un id o una ruta que quien
+pregunta ya tiene. Existen porque una política que consulte `projects` o
+`media_assets` se evalúa con los permisos de quien escribe, que no puede leer
+ninguna de las dos, y queda muda. Las usan la política de INSERT de
+`project_interests` y la de lectura del bucket `references`.
+
 **`set_own_styles(p_style_slugs[])`** — `SECURITY DEFINER`, `search_path`
 fijado, owner-scoped. Reemplaza el conjunto entero de `professional_styles` del
 perfil propio; los primeros tres quedan `is_primary` (el tope lo impone

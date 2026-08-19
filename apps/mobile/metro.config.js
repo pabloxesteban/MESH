@@ -40,6 +40,8 @@ if (process.env.MESH_PREVIEW === '1') {
     [
       'src/features/account/queries.ts',
       'src/features/chat/queries.ts',
+      'src/features/demand/queries.ts',
+      'src/features/demand/interests.ts',
       'src/features/discovery/queries.ts',
       'src/features/discovery/interactions.ts',
       'src/features/taste/queries.ts',

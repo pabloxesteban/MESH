@@ -48,6 +48,7 @@ preview.
 | Los dos temas en una pantalla real | Gestos nativos y su física |
 | El flujo completo: mazo → gusto → encajes → perfil | Performance real |
 | El modo artista entero: alta propia, estilos, ubicación, subir obra | Que un artista no pueda escribir en el perfil de otro |
+| Las dos apps: el mazo de obra y el mazo de búsquedas, según qué elegiste | Que una búsqueda cerrada no la vea nadie |
 | Que el motor de gusto y el ranking dan lo que se espera | Offline y la cola de interacciones |
 | Áreas táctiles y etiquetas de accesibilidad | RLS, permisos, paginación contra la base |
 
@@ -58,10 +59,20 @@ ubicación fija de ejemplo y se sube una foto que aparece en el mazo. El único
 perfil con coordenadas es el propio: el catálogo horneado no trae GPS de nadie,
 porque nadie lo dio.
 
-Lo que el preview **no** prueba de todo eso es justamente lo que importa de
-seguridad —que un artista no pueda escribir en el perfil de otro—, porque eso lo
-decide RLS y acá no hay base. Está en `supabase/tests/25_artist_ownership.sql`,
-`supabase/tests/26_artist_self_signup.sql` y en `tests/integration/`.
+En **Perfil → ¿A qué venís?** se cambia entre las dos apps sin recargar. Con
+"ofrezco", Inicio pasa a ser el mazo de búsquedas: trae dos ejemplos horneados
+—inventados igual que los diez artistas del catálogo— y se le suman las
+búsquedas que abras vos desde "Buscar por fotos" con el interruptor encendido.
+Como en el preview hay un solo artista con dueño, si tocás "me interesa" sobre
+una búsqueda tuya, volvés a "busco" y la ves en Matches: es la única forma de
+recorrer el circuito entero sin dos teléfonos.
+
+Lo que el preview **no** prueba de todo eso es justamente lo que importa —que un
+artista no pueda escribir en el perfil de otro, y que una búsqueda cerrada no la
+vea nadie—, porque eso lo decide RLS y acá no hay base. Está en
+`supabase/tests/25_artist_ownership.sql`,
+`supabase/tests/26_artist_self_signup.sql`,
+`supabase/tests/46_open_searches.sql` y en `tests/integration/`.
 
 **Un preview que se ve bien no dice que la app esté bien.** react-native-web es
 una traducción. Antes de un release hay que abrirla en un dispositivo con Expo

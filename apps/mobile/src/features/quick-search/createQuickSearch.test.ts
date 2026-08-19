@@ -40,6 +40,9 @@ describe('createQuickSearch', () => {
     })
 
     expect(createProjectMock).toHaveBeenCalledWith('u1', {
+      // Cerrada salvo que se pida. Ver ADR-014: estas fotos las subió la
+      // persona para sí misma.
+      openToProfessionals: false,
       title: 'Línea fina + Japonés',
       styleSlugs: ['fine-line', 'japanese'],
       locationSlug: 'palermo',
@@ -57,6 +60,7 @@ describe('createQuickSearch', () => {
       imageUris: [],
     })
     expect(createProjectMock).toHaveBeenCalledWith('u1', {
+      openToProfessionals: false,
       title: 'Blackwork',
       styleSlugs: ['blackwork'],
     })

@@ -326,8 +326,50 @@ export const en: Readonly<Record<TranslationKey, string>> = {
   'tabs.search': 'Search',
   'tabs.matches': 'Matches',
   'tabs.profile': 'Profile',
+  'tabs.studio': 'Studio',
+  'tabs.chats': 'Chats',
+  'demand.title': 'People looking',
+  'demand.card.reference': 'Reference photo for this search',
+  'demand.card.noPhotos': 'No reference photos',
+  'demand.card.morePhotos': '+{n}',
+  'demand.action.pass': 'Pass',
+  'demand.action.interest': "I'm interested",
+  'demand.action.undo': 'Undo',
+  'demand.empty.title': 'No searches for you right now',
+  'demand.empty.body':
+    'This is where searches show up when someone asks for a style you do, and ' +
+    'only if they chose to share it. There are still very few.',
+  'demand.empty.action': 'Look again',
+  'demand.noProfile.title': 'Create your profile first',
+  'demand.noProfile.body':
+    'To show you who is looking we need to know what you tattoo. It takes a ' +
+    'minute from your studio.',
+  'demand.noProfile.action': 'Go to my studio',
+  'demand.interests.title': 'Interested in your search',
+  'demand.interests.open': "Open {nombre}'s profile",
+  'demand.interests.dismiss': 'Remove {nombre} from the list',
+  'demand.interests.dismiss.short': 'Remove',
+  'quickSearch.open.title': 'Let tattooers see it?',
+  'quickSearch.open.body':
+    'If you turn this on, artists who tattoo what you are looking for can see ' +
+    'these photos and the style, and let you know they are interested. They ' +
+    'cannot see your name or write to you: you open the chat.',
+  'quickSearch.open.on': 'They can see it',
+  'quickSearch.open.off': 'Nobody sees it',
+  'quickSearch.open.toggle.on': 'Hide it again',
+  'quickSearch.open.toggle.off': 'Let them see it',
+  'chat.empty.artist.title': 'Nobody has written to you yet',
+  'chat.empty.artist.body':
+    'When someone writes, the conversation shows up here. You cannot write ' +
+    'first: the person looking decides when to open the chat.',
+  'chat.empty.artist.action': 'See who is looking',
   'account.title': 'Profile',
   'account.name': 'Your name',
+  'account.intent': 'What brings you here?',
+  'account.intent.hint':
+    'Changes what you see when you open the app. It closes no doors: you can switch back whenever you want.',
+  'account.intent.looking': "I'm looking for someone",
+  'account.intent.offering': 'I offer a service',
   'account.radius': 'How far you search',
   'account.radius.hint':
     "With your location on, we filter by real distance. We never hide someone who hasn't published where they work.",

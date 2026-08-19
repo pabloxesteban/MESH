@@ -79,19 +79,32 @@ reutilizarla desde el seeder. Si importa algo de `react-native`, no va ahí.
 La app abre en **Inicio**. Cuatro y ninguna más — con seis, la barra pasa a ser
 un menú que hay que estudiar en vez de un lugar donde la mano ya sabe ir.
 
-| Pestaña | Qué es |
-|---|---|
-| **Inicio** | El mazo. Donde la app abre y donde se pasa el tiempo. |
-| **Búsqueda** | Subís fotos de algo que te gusta y la IA detecta el estilo. Ver [ADR-011](docs/decisions/ADR-011-photo-classification.md). |
-| **Matches** | Los encajes, con los hilos de chat abiertos arriba. Ver [ADR-012](docs/decisions/ADR-012-chat.md). |
-| **Perfil** | Nombre, radio de búsqueda, tema, y los accesos a "Tu gusto" y "Tu estudio". |
+**Pero no las mismas cuatro para todos.** MESH tiene dos lados, y la barra
+depende de a qué vino la persona. Ver
+[ADR-014](docs/decisions/ADR-014-two-sided.md).
 
-"Tu gusto" y "Tu estudio" no son pestañas: se visitan cada tanto, no cada
-sesión. Al registrarse se pregunta una sola vez si la persona ofrece un
-servicio o está buscando — es una preferencia de arranque, **no** un rol
-excluyente. Elegir "ofrezco" lleva al estudio, donde se crea el perfil propio o
-se canjea el código si MESH armó uno; la pregunta por sí sola no da de alta a
-nadie.
+| | Busca a alguien | Ofrece un servicio |
+|---|---|---|
+| **Inicio** | El mazo de obra. Donde la app abre y donde se pasa el tiempo. | El mazo de búsquedas de gente. Un tatuador no quiere deslizar obra de otros tatuadores. |
+| **Segunda** | **Búsqueda**: subís fotos y la IA detecta el estilo. Ver [ADR-011](docs/decisions/ADR-011-photo-classification.md). | **Estudio**: tu perfil, tus estilos, tu ubicación, tu obra. |
+| **Tercera** | **Matches**: los encajes, con los chats arriba y quién se interesó en tu búsqueda. | **Chats**: nada más. MESH no le recomienda tatuadores a un tatuador. |
+| **Cuarta** | **Perfil** | **Perfil** |
+
+Al registrarse se pregunta una sola vez si la persona ofrece un servicio o está
+buscando. Es una preferencia de arranque, **no** un rol excluyente, y se cambia
+desde Perfil: una elección de la primera pantalla que no se puede deshacer no
+es una preferencia, es una trampa. Elegir "ofrezco" lleva al estudio, donde se
+crea el perfil propio o se canjea el código si MESH armó uno; la pregunta por sí
+sola no da de alta a nadie.
+
+"Tu gusto" no es una pestaña: se visita cada tanto, no cada sesión.
+
+**Una búsqueda es privada salvo que su dueña la abra.** Las fotos de referencia
+que alguien sube son suyas; que un tatuador las vea es una decisión explícita,
+con un interruptor apagado por default. Y un artista nunca escribe primero:
+manda interés, y el chat lo abre la persona. Ver
+[ADR-012](docs/decisions/ADR-012-chat.md) y
+[ADR-014](docs/decisions/ADR-014-two-sided.md).
 
 ## Antes de cambiar algo
 

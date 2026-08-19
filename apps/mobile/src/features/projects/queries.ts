@@ -34,6 +34,15 @@ export interface ProjectDraft {
     { readonly minCents: number; readonly maxCents: number } | undefined
   readonly timing?: ProjectTiming | undefined
   readonly locationSlug?: string | undefined
+  /**
+   * Si los tatuadores pueden ver esta búsqueda. Apagado salvo que se pida.
+   *
+   * El default vive en la base (`is_open_to_professionals` arranca en `false`)
+   * y se repite acá a propósito: un campo que decide si las fotos de alguien
+   * las ve un desconocido no se deja en manos de que el cliente se acuerde de
+   * mandarlo. Ver ADR-014.
+   */
+  readonly openToProfessionals?: boolean | undefined
 }
 
 const SELECT = `
@@ -153,6 +162,7 @@ export async function createProject(
       budget_max_cents: draft.budget?.maxCents ?? null,
       budget_currency: draft.budget != null ? 'ARS' : null,
       timing: draft.timing ?? null,
+      is_open_to_professionals: draft.openToProfessionals ?? false,
       status: 'active',
     })
     .select('id')

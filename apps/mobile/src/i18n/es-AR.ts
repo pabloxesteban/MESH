@@ -354,9 +354,54 @@ export const esAR = {
   'tabs.search': 'Buscar',
   'tabs.matches': 'Matches',
   'tabs.profile': 'Perfil',
+  'tabs.studio': 'Estudio',
+  'tabs.chats': 'Chats',
+  // --- el mazo del artista (búsquedas abiertas) ---
+  'demand.title': 'Gente buscando',
+  'demand.card.reference': 'Foto de referencia de la búsqueda',
+  'demand.card.noPhotos': 'Sin fotos de referencia',
+  'demand.card.morePhotos': '+{n}',
+  'demand.action.pass': 'Paso',
+  'demand.action.interest': 'Me interesa',
+  'demand.action.undo': 'Deshacer',
+  'demand.empty.title': 'Por ahora no hay búsquedas para vos',
+  'demand.empty.body':
+    'Acá aparecen las búsquedas de gente que pide algún estilo que hacés, y ' +
+    'solo si esa persona eligió mostrarla. Todavía son pocas.',
+  'demand.empty.action': 'Buscar de nuevo',
+  'demand.noProfile.title': 'Primero creá tu perfil',
+  'demand.noProfile.body':
+    'Para ver quién está buscando necesitamos saber qué tatuás. Se hace en un ' +
+    'minuto desde tu estudio.',
+  'demand.noProfile.action': 'Ir a mi estudio',
+  'demand.interests.title': 'Le interesa tu búsqueda',
+  'demand.interests.open': 'Ver el perfil de {nombre}',
+  'demand.interests.dismiss': 'Sacar a {nombre} de la lista',
+  'demand.interests.dismiss.short': 'Sacar',
+  // --- publicar la búsqueda ---
+  'quickSearch.open.title': '¿Que los tatuadores la vean?',
+  'quickSearch.open.body':
+    'Si lo activás, quienes tatúan lo que buscás pueden ver estas fotos y el ' +
+    'estilo, y avisarte que les interesa. No ven tu nombre ni pueden ' +
+    'escribirte: el chat lo abrís vos.',
+  'quickSearch.open.on': 'La van a ver',
+  'quickSearch.open.off': 'No la ve nadie',
+  'quickSearch.open.toggle.on': 'Que no la vean',
+  'quickSearch.open.toggle.off': 'Que la vean',
+  // --- chats del artista ---
+  'chat.empty.artist.title': 'Todavía no te escribió nadie',
+  'chat.empty.artist.body':
+    'Cuando alguien te escriba, la conversación aparece acá. Vos no podés ' +
+    'escribir primero: quien busca decide cuándo abrir el chat.',
+  'chat.empty.artist.action': 'Ver quién está buscando',
   // --- perfil ---
   'account.title': 'Perfil',
   'account.name': 'Tu nombre',
+  'account.intent': '¿A qué venís?',
+  'account.intent.hint':
+    'Cambia qué ves al abrir la app. No cierra ninguna puerta: podés volver cuando quieras.',
+  'account.intent.looking': 'Busco a alguien',
+  'account.intent.offering': 'Ofrezco un servicio',
   'account.radius': 'Hasta dónde buscás',
   'account.radius.hint':
     'Con tu ubicación activada, filtramos por distancia real. A quien no publicó dónde trabaja no lo escondemos nunca.',

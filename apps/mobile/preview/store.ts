@@ -490,3 +490,170 @@ export function createPreviewProject(input: {
 export function previewProject(id: string): PreviewProject | undefined {
   return previewProjects.get(id)
 }
+
+// --- búsquedas abiertas ---------------------------------------------------------
+//
+// La otra dirección de MESH: lo que ve un tatuador. Ver ADR-014.
+//
+// Dos ejemplos horneados más lo que abras vos desde "Buscar por fotos" con el
+// interruptor encendido. Los ejemplos son inventados igual que los diez
+// artistas del catálogo —el preview entero es una maqueta y lo dice arriba de
+// todo— y usan una foto del catálogo como referencia porque no hay otra imagen
+// adentro del bundle.
+//
+// Lo que el preview NO prueba de esto es lo único que importa: que una búsqueda
+// cerrada no la vea nadie. Eso lo decide RLS. Está en
+// supabase/tests/46_open_searches.sql.
+
+export interface PreviewOpenSearch {
+  readonly projectId: string
+  readonly title: string
+  readonly styleSlugs: readonly string[]
+  readonly locationSlug: string | null
+  readonly referenceIds: readonly string[]
+  readonly createdAt: string
+}
+
+function ejemploDeBusqueda(
+  projectId: string,
+  title: string,
+  styleSlug: string,
+  locationSlug: string,
+  createdAt: string,
+): PreviewOpenSearch {
+  // La primera pieza del catálogo que sea de ese estilo. Si no hay ninguna, la
+  // búsqueda va sin foto — que es un estado real y la tarjeta lo contempla.
+  const pieza = PREVIEW_ARTISTS.flatMap((artist) => artist.pieces).find(
+    (candidate) => candidate.styles.some((style) => style.slug === styleSlug),
+  )
+  return {
+    projectId,
+    title,
+    styleSlugs: [styleSlug],
+    locationSlug,
+    referenceIds: pieza == null ? [] : [pieza.id],
+    createdAt,
+  }
+}
+
+const BUSQUEDAS_HORNEADAS: readonly PreviewOpenSearch[] = [
+  ejemploDeBusqueda(
+    'preview-search-1',
+    'Algo de línea fina en el antebrazo',
+    'fine-line',
+    'palermo',
+    '2026-08-18T12:00:00Z',
+  ),
+  ejemploDeBusqueda(
+    'preview-search-2',
+    'Blackwork chico, primera vez',
+    'blackwork',
+    'san-telmo',
+    '2026-08-17T12:00:00Z',
+  ),
+]
+
+const busquedasPropias: PreviewOpenSearch[] = []
+
+/** Lo que "Buscar por fotos" abre cuando el interruptor está encendido. */
+export function openPreviewSearch(search: PreviewOpenSearch): void {
+  busquedasPropias.unshift(search)
+}
+
+/** Suma una foto de referencia a una búsqueda propia ya abierta. */
+export function attachPreviewSearchReference(
+  projectId: string,
+  mediaId: string,
+): void {
+  const indice = busquedasPropias.findIndex(
+    (search) => search.projectId === projectId,
+  )
+  const search = busquedasPropias[indice]
+  if (search == null) return
+  busquedasPropias[indice] = {
+    ...search,
+    referenceIds: [...search.referenceIds, mediaId],
+  }
+}
+
+/**
+ * Un reloj de mentira, monótono.
+ *
+ * `Date.now()` haría que dos corridas del preview den resultados distintos, y
+ * el orden solo necesita ser estable. Mismo criterio que los mensajes.
+ */
+let relojPreview = 0
+
+export function nextPreviewTimestamp(): string {
+  relojPreview += 1
+  return `2026-08-19T01:00:${String(relojPreview).padStart(2, '0')}Z`
+}
+
+export type PreviewVerdict = 'interest' | 'pass'
+
+const decisiones = new Map<string, PreviewVerdict>()
+
+/**
+ * Las búsquedas que este artista todavía no decidió, y que piden algún estilo
+ * que hace. El mismo filtro que hace el RPC, y por el mismo motivo: mostrarle
+ * a alguien que hace blackwork una búsqueda de lettering es ruido.
+ */
+export function previewOpenSearches(): readonly PreviewOpenSearch[] {
+  const mios = new Set(previewOwnStyleSlugs())
+  return [...busquedasPropias, ...BUSQUEDAS_HORNEADAS].filter(
+    (search) =>
+      !decisiones.has(search.projectId) &&
+      search.styleSlugs.some((slug) => mios.has(slug)),
+  )
+}
+
+export function decidePreviewSearch(
+  projectId: string,
+  verdict: PreviewVerdict,
+): void {
+  decisiones.set(projectId, verdict)
+}
+
+export function undoPreviewSearchDecision(projectId: string): void {
+  decisiones.delete(projectId)
+}
+
+/**
+ * Los artistas que levantaron la mano ante una búsqueda tuya.
+ *
+ * En el preview hay un solo artista con dueño —el tuyo— así que esto se llena
+ * cuando vos mismo tocás "me interesa" sobre una búsqueda que vos mismo
+ * abriste. Suena raro y es exactamente lo que hace falta para recorrer el
+ * circuito completo sin dos teléfonos.
+ */
+export function previewSearchInterests(): readonly {
+  interestId: string
+  projectId: string
+  projectTitle: string
+  professionalSlug: string
+  professionalName: string
+  createdAt: string
+}[] {
+  const own = previewOwnProfile()
+  if (own == null) return []
+
+  return [...busquedasPropias, ...BUSQUEDAS_HORNEADAS]
+    .filter(
+      (search) =>
+        decisiones.get(search.projectId) === 'interest' &&
+        busquedasPropias.some((mia) => mia.projectId === search.projectId),
+    )
+    .map((search) => ({
+      interestId: `preview-interest-${search.projectId}`,
+      projectId: search.projectId,
+      projectTitle: search.title,
+      professionalSlug: own.slug,
+      professionalName: own.displayName,
+      createdAt: search.createdAt,
+    }))
+}
+
+export function dismissPreviewInterest(interestId: string): void {
+  const projectId = interestId.replace('preview-interest-', '')
+  decisiones.delete(projectId)
+}

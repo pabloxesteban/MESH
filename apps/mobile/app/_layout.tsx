@@ -98,7 +98,11 @@ function SessionGate() {
   // El gate va DENTRO de la sesión y FUERA del navegador: la pregunta de
   // onboarding no es una ruta, así que ningún deep link la saltea.
   return (
-    <OnboardingGate onOffering={() => router.push('/estudio')}>
+    // Elegir "ofrezco" cambia la app entera, no abre una pantalla suelta: las
+    // pestañas pasan a ser las del artista. Se entra por el estudio porque sin
+    // perfil no hay nada más que hacer, pero con la barra a la vista — ver
+    // ADR-014.
+    <OnboardingGate onOffering={() => router.replace('/(tabs)/estudio')}>
       <Navigator />
     </OnboardingGate>
   )

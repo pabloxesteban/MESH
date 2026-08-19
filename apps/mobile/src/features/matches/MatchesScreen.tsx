@@ -44,6 +44,7 @@ import type { TranslationKey } from '@/i18n/index.ts'
 
 import { fetchAccount } from '../account/queries.ts'
 import { ConversationList } from '../chat/ConversationList.tsx'
+import { InterestList } from '../demand/InterestList.tsx'
 import { useDeviceLocation } from '../location/useDeviceLocation.ts'
 import {
   useMatches,
@@ -239,6 +240,12 @@ export function MatchesScreen({
           <ConversationList onOpen={onOpenChat} />
         </Box>
       ) : null}
+      {/* Debajo de los chats y arriba de los matches: una conversación abierta
+          pesa más que una mano levantada, y una mano levantada pesa más que una
+          recomendación nuestra. */}
+      <Box paddingBottom="md">
+        <InterestList onOpenProfile={onOpenProfile} />
+      </Box>
       {body}
     </ScrollView>
   )

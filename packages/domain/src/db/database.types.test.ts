@@ -67,6 +67,7 @@ const KNOWN_TABLES = [
   'professional_styles',
   'professionals',
   'profiles',
+  'project_interests',
   'project_references',
   'project_styles',
   'projects',
