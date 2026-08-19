@@ -85,7 +85,7 @@ depende de a qué vino la persona. Ver
 
 | | Busca a alguien | Ofrece un servicio |
 |---|---|---|
-| **Inicio** | El mazo de obra. Donde la app abre y donde se pasa el tiempo. | El mazo de búsquedas de gente. Un tatuador no quiere deslizar obra de otros tatuadores. |
+| **Inicio** | Obra, en dos modos: el mazo —que es lo que le enseña a MESH— y una grilla para comparar. Con cuál abre lo decide cuántas decisiones hay, no una preferencia escondida. | El mazo de búsquedas de gente. Un tatuador no quiere deslizar obra de otros tatuadores. |
 | **Segunda** | **Búsqueda**: subís fotos y la IA detecta el estilo. Ver [ADR-011](docs/decisions/ADR-011-photo-classification.md). | **Estudio**: tu perfil, tus estilos, tu ubicación, tu obra. |
 | **Tercera** | **Matches**: los encajes, con los chats arriba y quién se interesó en tu búsqueda. | **Chats**: nada más. MESH no le recomienda tatuadores a un tatuador. |
 | **Cuarta** | **Perfil** | **Perfil** |

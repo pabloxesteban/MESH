@@ -20,7 +20,7 @@ todo el repositorio.
 | [004](ADR-004-database-and-rls.md) | Postgres + RLS como única capa de autorización | Propuesto |
 | [005](ADR-005-matching.md) | Puntaje determinístico; bandas en lugar de porcentajes | **Aceptado** |
 | [006](ADR-006-media.md) | Storage con tamaños derivados y blurhash; sin binarios en Postgres | Propuesto |
-| [007](ADR-007-navigation.md) | Expo Router, cuatro pestañas | Propuesto |
+| [007](ADR-007-navigation.md) | Expo Router, cuatro pestañas | Reemplazado en parte por ADR-014 |
 | [008](ADR-008-design-system.md) | Design system dentro de la app, impuesto por lint | Propuesto |
 | [009](ADR-009-almacenamiento-local.md) | `expo-sqlite/kv-store` en vez de MMKV, para no salir de Expo Go | **Aceptado** |
 | [010](ADR-010-color-system.md) | El color es información: paleta generada en OKLCH, una familia por familia de estilo | **Aceptado** |

@@ -36,29 +36,39 @@ app/
 
 ## 2. Pestañas
 
-**Descubrir · Matches · Proyectos · Vos**
+**Cuatro, y no las mismas cuatro para todos.** Dependen de a qué vino la
+persona — ver [ADR-014](../decisions/ADR-014-two-sided.md).
 
-Cuatro y no tres, porque §08 del brief define dos puntos de entrada *iguales*
-—exploratorio y dirigido— y enterrar la creación de proyectos dentro de una
-pestaña de perfil hace que la persona dirigida tenga que buscar justamente
-aquello que vino a hacer. El costo es una pestaña más; el beneficio es que
-ambas intenciones son visibles en el primer arranque.
+| | Busca a alguien | Ofrece un servicio |
+|---|---|---|
+| 1 | **Inicio** — obra | **Inicio** — búsquedas de gente |
+| 2 | **Búsqueda** — por fotos, con IA | **Estudio** — perfil, estilos, obra |
+| 3 | **Matches** — encajes, chats e interesados | **Chats** |
+| 4 | **Perfil** | **Perfil** |
 
-Esta es la [pregunta abierta Q2](../product/product-spec.md#14-preguntas-abiertas).
-Si tras la primera cohorte los `project_started` originados en la pestaña
-Proyectos son insignificantes, colapsar a tres pestañas y exponer proyectos
-desde Descubrir.
+Cuatro y no seis: con seis, la barra pasa a ser un menú que hay que estudiar en
+vez de un lugar donde la mano ya sabe ir. La intención se cambia desde Perfil.
+
+**Inicio tiene a su vez dos modos** para quien busca: el mazo (se decide, y MESH
+aprende) y la grilla (se recorre y se compara). Con cuál abre lo decide cuántas
+decisiones hay, no una preferencia escondida. Ver
+[MESH-DESIGN-DECISIONS D-009](../design/MESH-DESIGN-DECISIONS.md).
+
+**"Explorar" no es una pestaña.** El recorrido de producto lo nombra como paso
+—descubrir, explorar, entender, confiar, encajar, contactar— pero explorar es
+lo que pasa **adentro** de la grilla y adentro del mundo de una persona, no una
+superficie propia. Una quinta pestaña rompería la regla de cuatro para nombrar
+algo que ya está sucediendo en las que hay.
 
 Notas por pestaña:
 
-- **Matches** lleva el resumen de gusto arriba, y después la gente rankeada. El
-  gusto y los matches son la misma idea a dos niveles de zoom; separarlos en
-  pestañas distintas obligaría a la persona a armar sola la conexión.
-- **Proyectos** sin proyectos *es* el punto de entrada para crear uno — el
+- **Matches** lleva los chats arriba, después quién se interesó en tu búsqueda,
+  y después la gente rankeada. Son la misma idea a tres niveles de cercanía;
+  separarlas en pestañas distintas obligaría a la persona a armar sola la
+  conexión.
+- **Búsqueda** sin búsquedas *es* el punto de entrada para crear una — el
   estado vacío es la feature, no un placeholder.
-- **Vos** guarda los trabajos guardados, los ajustes de gusto, la cuenta y la
-  privacidad. Sin insignias, sin puntitos, sin nada que parezca una
-  notificación.
+
 
 ## 3. Acceso a las rutas
 

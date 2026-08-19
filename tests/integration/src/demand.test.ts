@@ -219,9 +219,17 @@ describe('búsquedas abiertas', () => {
       })
     assert.equal(error, null, `el interés falló: ${error?.message}`)
 
+    // Se busca AL artista, no se cuenta el total: `get_search_interests()` sin
+    // argumento devuelve los interesados en todas las búsquedas propias, y
+    // afirmar sobre ese total es afirmar sobre estado que este test no
+    // controla del todo. Antes decía `length === 1` y falló una vez sin que
+    // pudiera reproducirlo; esto no puede fallar por esa clase de razón.
     const { data } = await persona.client.rpc('get_search_interests', {})
-    assert.equal((data ?? []).length, 1)
-    assert.equal((data ?? [])[0]?.professional_display_name, 'Demand Artista')
+    const mio = (data ?? []).filter(
+      (row) => row.professional_id === professionalId,
+    )
+    assert.equal(mio.length, 1, 'el interés llegó, una sola vez')
+    assert.equal(mio[0]?.professional_display_name, 'Demand Artista')
   })
 
   test('levantar la mano NO abre un chat', async () => {

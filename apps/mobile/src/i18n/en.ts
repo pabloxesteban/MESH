@@ -65,7 +65,6 @@ export const en: Readonly<Record<TranslationKey, string>> = {
   'auth.error.emailTaken': 'That email already has an account. Try signing in.',
   'auth.error.rateLimited': 'Too many attempts. Wait a minute.',
 
-  'discovery.title': 'Discover',
   'discovery.empty.title': "You've seen everything there is",
   'discovery.empty.body':
     'There is no new work right now. We add artists slowly, and we would rather have few and good ones.',
@@ -74,6 +73,21 @@ export const en: Readonly<Record<TranslationKey, string>> = {
   'discovery.action.save': 'Save',
   'discovery.action.pass': 'Pass',
   'discovery.action.undo': 'Undo',
+  'discovery.tile.open': "Open {nombre}'s work",
+  'discovery.mode.grid': 'Grid',
+  'discovery.mode.deck': 'One at a time',
+  'discovery.mode.label': 'How you want to look',
+  'discovery.filter.all': 'All',
+  'discovery.grid.empty.title': 'No work to show yet',
+  'discovery.grid.empty.body':
+    'We add artists slowly, and we would rather have few and good ones.',
+  'discovery.grid.empty.action': 'Look again',
+  'discovery.grid.filtered.title': 'Nobody is working that style yet',
+  'discovery.grid.filtered.body':
+    'Clear the filter to see everything, or try another style.',
+  'discovery.grid.filtered.action': 'See everything',
+  'discovery.learning':
+    'While we get to know each other, this is the shape that teaches us most.',
   'discovery.saved': 'Saved',
   'discovery.passed': 'You passed on this work',
 

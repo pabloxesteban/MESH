@@ -80,7 +80,6 @@ export const esAR = {
   'auth.error.rateLimited': 'Demasiados intentos. Esperá un minuto.',
 
   // --- descubrimiento --------------------------------------------------------
-  'discovery.title': 'Descubrí',
   'discovery.empty.title': 'Viste todo lo que hay',
   'discovery.empty.body':
     'Por ahora no queda obra nueva. Vamos sumando artistas de a poco, y preferimos pocos y buenos.',
@@ -89,6 +88,21 @@ export const esAR = {
   'discovery.action.save': 'Guardar',
   'discovery.action.pass': 'Paso',
   'discovery.action.undo': 'Deshacer',
+  'discovery.tile.open': 'Ver la obra de {nombre}',
+  'discovery.mode.grid': 'Grilla',
+  'discovery.mode.deck': 'De a una',
+  'discovery.mode.label': 'Cómo querés mirar',
+  'discovery.filter.all': 'Todo',
+  'discovery.grid.empty.title': 'Todavía no hay obra para mostrar',
+  'discovery.grid.empty.body':
+    'Vamos sumando artistas de a poco, y preferimos pocos y buenos.',
+  'discovery.grid.empty.action': 'Buscar de nuevo',
+  'discovery.grid.filtered.title': 'Nadie está trabajando ese estilo todavía',
+  'discovery.grid.filtered.body':
+    'Sacá el filtro para ver todo lo que hay, o probá con otro estilo.',
+  'discovery.grid.filtered.action': 'Ver todo',
+  'discovery.learning':
+    'Mientras nos vamos conociendo, esta es la forma que más nos enseña.',
   'discovery.saved': 'Guardado',
   'discovery.passed': 'Pasaste este trabajo',
 

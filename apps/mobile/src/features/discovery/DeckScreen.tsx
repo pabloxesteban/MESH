@@ -167,12 +167,10 @@ export function DeckScreen({ categorySlug, userId }: DeckScreenProps) {
       }}
       testID="screen-deck"
     >
-      <Box paddingX="lg" paddingY="sm">
-        <Text role="label" color="textSecondary">
-          {t('discovery.title')}
-        </Text>
-      </Box>
-
+      {/* Sin encabezado propio. La pestaña ya dice Inicio y el control de modo
+          dice cuál de los dos es; un tercer "Descubrí" arriba de esos dos era
+          cromo que le comía alto a la obra sin agregar nada. Ver
+          docs/design/MESH-VISUAL-DIRECTION-2.md §7. */}
       <View style={{ flex: 1, paddingHorizontal: SCREEN_GUTTER }}>{body}</View>
 
       <DeckControls

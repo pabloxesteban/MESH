@@ -71,15 +71,24 @@ const ORDERED: readonly FeedItem[] = PREVIEW_ARTISTS.flatMap((artist) =>
   .sort((a, b) => a.sort - b.sort || a.item.cursor.localeCompare(b.item.cursor))
   .map((entry) => entry.item)
 
+export interface FeedOptions {
+  readonly includeSeen?: boolean
+}
+
 export async function fetchDiscoveryFeed(
   _categorySlug: string,
   cursor: string | null,
+  options: FeedOptions = {},
 ): Promise<FeedPage> {
   const { previewInteractions, previewOwnProfile, previewPiecesOf } =
     await import('../../../preview/store.ts')
-  const seen = new Set(
-    previewInteractions().map((entry) => entry.portfolioItemId),
-  )
+  // La grilla trae todo, también lo ya decidido: esconderlo haría que quien
+  // marcó treinta obras no encuentre ninguna. Ver la migración
+  // 20260819000600_feed_include_seen.sql.
+  const seen =
+    options.includeSeen === true
+      ? new Set<string>()
+      : new Set(previewInteractions().map((entry) => entry.portfolioItemId))
 
   // Lo que se sube desde el estudio entra al mazo. Es la mitad que hace que el
   // flujo se pueda evaluar: subir una foto y no verla aparecer no prueba nada.
@@ -124,4 +133,10 @@ export async function fetchDiscoveryFeed(
 export function mediaUrl(path: string, _size: 'sm' | 'md' | 'lg'): string {
   // Un solo tamaño horneado: el preview no tiene de dónde bajar tres.
   return previewMediaUrl(path)
+}
+
+/** Cuántas decisiones hay en esta sesión de preview. */
+export async function fetchDecisionCount(): Promise<number> {
+  const { previewInteractions } = await import('../../../preview/store.ts')
+  return previewInteractions().length
 }

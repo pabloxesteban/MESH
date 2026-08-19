@@ -39,9 +39,22 @@ export interface FeedPage {
   readonly nextCursor: string | null
 }
 
+export interface FeedOptions {
+  /**
+   * Si trae también la obra ya decidida.
+   *
+   * `false` en el mazo: una obra que vuelve después de que la marcaste es una
+   * decisión que no se respetó. `true` en la grilla: alguien que marcó treinta
+   * obras abriría Descubrir y no encontraría ninguna, que es lo contrario de
+   * explorar. Ver docs/design/MESH-VISUAL-DIRECTION-2.md.
+   */
+  readonly includeSeen?: boolean
+}
+
 export async function fetchDiscoveryFeed(
   categorySlug: string,
   cursor: string | null,
+  options: FeedOptions = {},
 ): Promise<FeedPage> {
   const { data, error } = await supabase.rpc('get_discovery_feed', {
     p_category_slug: categorySlug,
@@ -50,6 +63,7 @@ export async function fetchDiscoveryFeed(
     // `undefined` en la primera página es lo mismo para Postgres, que aplica el
     // default de la función.
     ...(cursor != null ? { p_cursor: cursor } : {}),
+    ...(options.includeSeen === true ? { p_include_seen: true } : {}),
   })
 
   if (error != null) throw error
@@ -123,4 +137,25 @@ export function mediaUrl(path: string, size: 'sm' | 'md' | 'lg'): string {
     (_match, _size, extension: string) => `/${size}.${extension}`,
   )
   return supabase.storage.from('portfolio').getPublicUrl(resized).data.publicUrl
+}
+
+/**
+ * Cuántas decisiones tomó esta persona.
+ *
+ * Un solo número, con `head: true` — no baja ni una fila. Decide con qué modo
+ * abre Descubrir: mientras MESH todavía no la conoce, el mazo, porque es la
+ * única superficie que le enseña; después, la grilla. Ver
+ * docs/design/MESH-DESIGN-DECISIONS.md D-009.
+ *
+ * RLS ya restringe `interactions` a las filas propias, así que no lleva filtro
+ * por usuario: repetirlo acá invitaría a creer que la seguridad vive en el
+ * cliente.
+ */
+export async function fetchDecisionCount(): Promise<number> {
+  const { count, error } = await supabase
+    .from('interactions')
+    .select('*', { count: 'exact', head: true })
+
+  if (error != null) throw error
+  return count ?? 0
 }

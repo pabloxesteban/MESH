@@ -5,7 +5,7 @@
 -- sigue devolviendo obra.
 
 begin;
-select plan(10);
+select plan(12);
 
 -- --- fixtures: 3 profesionales con 5, 6 y 4 piezas ---------------------------
 --
@@ -159,6 +159,22 @@ select is(
   (select count(*) from public.get_discovery_feed('tattoo', 50, null)),
   11::bigint,
   'Las piezas ya vistas no vuelven al mazo'
+);
+
+-- La grilla es la otra superficie y necesita lo contrario. Alguien que marcó
+-- treinta obras abriría Descubrir y no encontraría ninguna de ellas.
+select is(
+  (select count(*) from public.get_discovery_feed('tattoo', 50, null, true)),
+  15::bigint,
+  'Con p_include_seen la grilla trae todo, también lo ya decidido'
+);
+
+-- El default importa: es el mazo el que más llama a esta función, y un default
+-- equivocado ahí devolvería obra ya decidida sin que nadie lo pidiera.
+select is(
+  (select count(*) from public.get_discovery_feed('tattoo', 50, null, false)),
+  11::bigint,
+  'Sin el parámetro, el comportamiento del mazo no cambió'
 );
 
 -- Y el orden del resto no se movió: la profundidad se calcula antes de

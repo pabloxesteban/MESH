@@ -24,6 +24,7 @@ import { I18nProvider } from '@/i18n/I18nProvider.tsx'
 import { MIN_TOUCH_TARGET } from '@/design-system/index.ts'
 
 import { DeckScreen } from '@/features/discovery/DeckScreen.tsx'
+import { DiscoveryScreen } from '@/features/discovery/DiscoveryScreen.tsx'
 import { MatchesScreen } from '@/features/matches/MatchesScreen.tsx'
 import { ProfileScreen } from '@/features/profile/ProfileScreen.tsx'
 import { ContactScreen } from '@/features/contact/ContactScreen.tsx'
@@ -120,6 +121,18 @@ jest.mock('@/features/artist/upload.ts', () => ({
 jest.mock('expo-image-picker', () => ({
   launchImageLibraryAsync: jest.fn().mockResolvedValue({ canceled: true }),
 }))
+jest.mock('@/features/discovery/queries.ts', () => ({
+  ...jest.requireActual('@/features/discovery/queries.ts'),
+  fetchDiscoveryFeed: jest
+    .fn()
+    .mockResolvedValue({ items: [], nextCursor: null }),
+  fetchDecisionCount: jest.fn().mockResolvedValue(0),
+  mediaUrl: (path: string) => `https://ejemplo.test/${path}`,
+}))
+jest.mock('@/features/discovery/interactions.ts', () => ({
+  recordInteraction: jest.fn().mockResolvedValue(undefined),
+  undoInteraction: jest.fn().mockResolvedValue(undefined),
+}))
 jest.mock('@/features/demand/queries.ts', () => ({
   fetchOpenSearchFeed: jest
     .fn()
@@ -148,6 +161,10 @@ import { fetchProfile } from '@/features/profile/queries.ts'
 import { fetchCatalog } from '@/features/matches/queries.ts'
 import { fetchOwnedProfessional } from '@/features/artist/queries.ts'
 import { fetchOpenSearchFeed } from '@/features/demand/queries.ts'
+import {
+  fetchDecisionCount,
+  fetchDiscoveryFeed,
+} from '@/features/discovery/queries.ts'
 
 const HOY = '2026-08-18'
 
@@ -305,10 +322,11 @@ describe('barrido de accesibilidad y callejones', () => {
   })
 
   it('el mazo, con error', async () => {
-    mockRpc.mockResolvedValue({
-      data: null,
-      error: { code: '500', status: 503 },
-    })
+    // El error entra por la capa de queries, que ahora está mockeada a nivel de
+    // módulo: pisar `rpc` ya no alcanza para que el mazo falle.
+    ;(fetchDiscoveryFeed as jest.Mock).mockRejectedValueOnce(
+      Object.assign(new Error('sin red'), { code: '500', status: 503 }),
+    )
     render(<DeckScreen categorySlug="tattoo" userId="u1" />)
     await waitFor(() => expect(screen.getByTestId('deck-error')).toBeTruthy())
     sweep('mazo · error')
@@ -572,6 +590,43 @@ describe('barrido de accesibilidad y callejones', () => {
     await waitFor(() => expect(screen.getByTestId('chats-empty')).toBeTruthy())
     sweep('chats del artista · vacío')
     sweepDynamicType('chats del artista · vacío')
+  })
+
+  it('la grilla de descubrimiento, con obra', async () => {
+    ;(fetchDecisionCount as jest.Mock).mockResolvedValue(50)
+    ;(fetchDiscoveryFeed as jest.Mock).mockResolvedValue({
+      items: [
+        {
+          cursor: 'a',
+          portfolioItemId: 'a',
+          professionalId: 'pro-a',
+          professionalSlug: 'artista-a',
+          professionalName: 'Artista Uno',
+          isFixture: false,
+          caption: null,
+          year: null,
+          mediaBucket: 'portfolio',
+          mediaPath: 'a/lg.jpg',
+          mediaWidth: 800,
+          mediaHeight: 1000,
+          blurhash: null,
+          styles: [{ slug: 'fine-line', weight: 1 }],
+        },
+      ],
+      nextCursor: null,
+    })
+    render(
+      <DiscoveryScreen
+        categorySlug="tattoo"
+        userId="u1"
+        onOpenProfile={jest.fn()}
+      />,
+    )
+    await waitFor(() =>
+      expect(screen.getByTestId('discovery-grid')).toBeTruthy(),
+    )
+    sweep('descubrir · grilla')
+    sweepDynamicType('descubrir · grilla')
   })
 
   it('buscar por fotos', () => {

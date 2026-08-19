@@ -1,6 +1,6 @@
 # MESH — Dirección visual 2.0 · EDITORIAL GRID
 
-**Estado:** Seleccionada, sin implementar · **Fecha:** 2026-08-19
+**Estado:** Seleccionada · Descubrir implementado · **Fecha:** 2026-08-19
 **Responsable:** ux-product-designer + design-system-engineer
 
 Este documento **no reemplaza** a [`visual-language.md`](visual-language.md) ni
@@ -219,6 +219,15 @@ las superficies de descubrimiento, que hoy repite lo que la pestaña ya dice.
 intención, y separarlos obliga a decidir cuál se toca antes de saber qué se
 quiere. La búsqueda vive arriba de la grilla, como una fila de filtros que se
 desplaza y se abre en hoja.
+
+**"Explorar" tampoco es una pestaña.** Es un verbo: pasa adentro de la grilla y
+adentro del mundo de una persona. Ver
+[D-008](MESH-DESIGN-DECISIONS.md#d-008--explorar-no-es-una-pestaña).
+
+**Inicio tiene dos modos, y ninguno es secundario.** El mazo enseña —es la única
+superficie que produce `interactions`, y sin eso no hay gusto ni encajes— y la
+grilla compara. Con cuál abre lo decide cuántas decisiones hay. Ver
+[D-009](MESH-DESIGN-DECISIONS.md#d-009--inicio-tiene-dos-modos-y-el-default-sale-de-un-dato).
 
 ---
 

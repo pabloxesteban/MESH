@@ -1,6 +1,22 @@
 # ADR-007 — Expo Router y una estructura de cuatro pestañas
 
-**Estado:** Propuesto · **Fecha:** 2026-08-17 · **Responsables:** ux-product-designer, mobile-engineer
+**Estado:** Reemplazado por [ADR-014](ADR-014-two-sided.md) en la parte de
+pestañas · **Fecha:** 2026-08-17 · **Responsables:** ux-product-designer, mobile-engineer
+
+> **Leé esto antes de implementar nada de acá.** La barra que este documento
+> describe —Descubrir · Matches · Proyectos · Vos— **ya no existe**. Quien la
+> implemente hoy construye la app equivocada.
+>
+> Lo que sobrevive y sigue valiendo: la elección de **Expo Router**, el
+> razonamiento sobre deep links, y el criterio de **cuatro pestañas y no seis**.
+>
+> Lo que cambió: las pestañas dependen de a qué vino la persona
+> ([ADR-014](ADR-014-two-sided.md)) y hoy son Inicio · Búsqueda · Matches ·
+> Perfil para quien busca, e Inicio · Estudio · Chats · Perfil para quien
+> ofrece. La búsqueda dejó de ser una pestaña de proyectos.
+>
+> Un ADR no se edita después de aceptado salvo para cambiar su estado; esta
+> nota es exactamente eso, y el contenido de abajo queda como historia.
 
 ## Contexto
 

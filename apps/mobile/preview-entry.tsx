@@ -25,7 +25,7 @@ import { SearchDeckScreen } from '@/features/demand/SearchDeckScreen.tsx'
 import { useOpenChat } from '@/features/chat/useOpenChat.ts'
 import { OnboardingGate } from '@/features/onboarding/OnboardingGate.tsx'
 import { ContactScreen } from '@/features/contact/ContactScreen.tsx'
-import { DeckScreen } from '@/features/discovery/DeckScreen.tsx'
+import { DiscoveryScreen } from '@/features/discovery/DiscoveryScreen.tsx'
 import { MatchesScreen } from '@/features/matches/MatchesScreen.tsx'
 import type { ProjectBriefInput } from '@/features/matches/useMatches.ts'
 import { QuickSearchScreen } from '@/features/quick-search/QuickSearchScreen.tsx'
@@ -242,7 +242,7 @@ function Shell({ abrirEstudio }: { abrirEstudio: boolean }) {
             onOpenStudio={() => setPestana('estudio')}
           />
         ) : (
-          <DeckScreen
+          <DiscoveryScreen
             categorySlug="tattoo"
             userId={USUARIO}
             onOpenProfile={(slug) => setPerfil(slug)}

@@ -251,6 +251,67 @@ confianza media, falta verificar".
 
 ---
 
+## D-008 · "Explorar" no es una pestaña
+
+**Fecha:** 2026-08-19 · **Cerraba una pendiente que bloqueaba implementar.**
+
+El recorrido nuevo nombra seis pasos —descubrir, explorar, entender, confiar,
+encajar, contactar— y el quinto no existía en el mapa de superficies. La
+investigación lo marcó como decisión de producto disfrazada de navegación, y
+tenía razón: prototipar sin contestarla habría sido construir sobre una duda.
+
+**Decidido: explorar es un verbo, no un lugar.** Pasa adentro de la grilla
+(filtrar, comparar, seguir bajando) y adentro del mundo de una persona
+(portafolio, obra relacionada). Una quinta pestaña rompería la regla de cuatro
+para nombrar algo que ya está sucediendo en las que hay.
+
+**Rechazado: una pestaña Explorar.** Obligaría a decidir entre "Inicio" y
+"Explorar" antes de saber qué se quiere — que es justo el estado en el que está
+alguien que abre la app sin saber qué busca.
+
+**Rechazado: separar Descubrir de Buscar.** Misma razón, y además contradice el
+principio de que ningún modo es secundario.
+
+---
+
+## D-009 · Inicio tiene dos modos, y el default sale de un dato
+
+**Fecha:** 2026-08-19 · **Origen:** un problema que apareció al implementar.
+
+Al llevar EDITORIAL GRID a la pantalla apareció algo que ninguna viñeta podía
+mostrar: **la grilla no alimenta el motor de gusto.** Tocar una obra es mirarla,
+no opinar sobre ella. Sin `interactions` no hay vector de gusto; sin vector no
+hay encajes. El mazo es la única superficie que le enseña algo a MESH.
+
+Reemplazar el mazo por la grilla habría dejado al producto sin su diferencial
+en la primera pantalla, y nadie lo habría notado hasta ver que los encajes
+nunca aparecen.
+
+**Decidido.** Inicio tiene dos modos y ninguno es secundario:
+
+- **De a una** — el mazo. Se decide, y MESH aprende.
+- **Grilla** — se recorre y se compara.
+
+**Con cuál abre lo decide un dato:** menos de `READY_MIN_INTERACTIONS`
+decisiones → el mazo, porque es lo único que puede sacar a MESH de no
+conocerte; a partir de ahí → la grilla, porque ya puede comparar por vos. El
+control está siempre a la vista y la elección manual manda sobre el default.
+
+**Rechazado: un botón de me gusta sobre cada obra de la grilla.** Resolvería el
+problema del gusto y rompería el principio que sostiene toda la dirección — cero
+cromo flotante sobre las obras. Es también lo que haría que la grilla se lea
+como Pinterest.
+
+**Rechazado: preguntar en qué modo querés abrir.** Una preferencia más que
+configurar, para algo que la app puede saber sola.
+
+**El riesgo, escrito:** el control de modo es cromo, y el default que cambia
+solo puede sorprender — alguien que eligió grilla ayer y hoy encuentra el mazo
+cree que la app se rompió. Por eso el mazo lleva una línea que dice por qué está
+ahí, y desaparece apenas la persona elige a mano.
+
+---
+
 ## Pendiente, y dicho como pendiente
 
 Nada de esto está implementado en las pantallas de producción todavía. Lo que
@@ -266,26 +327,32 @@ Lo que falta, en orden:
    horizontal, match, perfil, portafolio.
 3. Transición obra → artista con elemento compartido, prototipada en el
    playground antes de tocar producción.
-4. Rehacer Descubrir con la grilla de D.
+4. ~~Rehacer Descubrir con la grilla de D.~~ **Hecho** — ver D-009. Falta la
+   transición desde la grilla, que hoy es una navegación común.
 5. Rehacer Perfil con la hoja de C.
 6. Reemplazar la explicación de gusto por la cartela de B.
 7. Volver a pasar el barrido de accesibilidad y el de tipografía dinámica —
    la densidad de D usa tipografía chica y eso hay que verificarlo en el tamaño
    accesible más grande, no suponerlo.
 
-### Dos cosas que no son de diseño y bloquean
+### Los dos bloqueadores, cerrados
 
-**ADR-007 quedó desactualizado y contradice a `CLAUDE.md`.** Hoy hay tres
-documentos describiendo tres barras de pestañas distintas: ADR-007 dice
-Descubrir/Matches/Proyectos/Vos, `CLAUDE.md` dice Inicio/Búsqueda/Matches/Perfil
-(y ahora depende de la intención, por [ADR-014](../decisions/ADR-014-two-sided.md)),
-y `docs/architecture/navigation.md` una tercera. El *razonamiento* de ADR-007
-sobrevive; el contenido no. Quien lo lea hoy implementa la barra equivocada. Es
-para `product-architect`, no para diseño.
+**ADR-007** quedó marcado como reemplazado en su parte de pestañas, con una nota
+arriba de todo que dice qué de él sobrevive (Expo Router, deep links, cuatro y
+no seis) y qué no (la barra Descubrir/Matches/Proyectos/Vos).
+`docs/architecture/navigation.md` se reescribió con la barra que existe.
 
-**"EXPLORAR" no está resuelto.** El recorrido nuevo —DESCUBRIR → EXPLORAR →
-ENTENDER → CONFIAR → ENCAJAR → CONTACTAR— agrega un escalón que no existe en
-`MESH-UX-STRATEGY.md` §2. ¿Explorar es una superficie propia o un modo dentro de
-Inicio? Es una decisión de producto disfrazada de navegación, y prototipar antes
-de contestarla sería construir sobre una duda. Va a `product-thinking` /
-`product-critic` antes de la fase de implementación.
+**"Explorar"** se cerró en D-008: es un verbo, no un lugar.
+
+### Lo que la implementación dejó pendiente
+
+- **La transición obra → artista sigue siendo una navegación común.** Tocar una
+  obra en la grilla abre el perfil, pero no crece desde donde estaba. Es la
+  interacción firma y todavía no existe; se prototipa en el playground antes de
+  tocar producción (D-007).
+- **El masonry todavía no se ve escalonado**, y no es un bug: las fotos fixture
+  tienen todas la misma relación de aspecto, así que las dos columnas quedan
+  alineadas. Con obra real se escalona solo. El reparto por altura acumulada sí
+  está implementado y testeado.
+- **El filtro por estilo filtra lo que bajó, no el catálogo.** Con pocos
+  artistas alcanza; cuando el catálogo crezca hay que empujarlo al RPC.

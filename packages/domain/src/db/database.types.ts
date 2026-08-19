@@ -1103,7 +1103,12 @@ export type Database = {
         Returns: string
       }
       get_discovery_feed: {
-        Args: { p_category_slug: string; p_cursor?: string; p_limit?: number }
+        Args: {
+          p_category_slug: string
+          p_cursor?: string
+          p_include_seen?: boolean
+          p_limit?: number
+        }
         Returns: {
           caption: string
           feed_cursor: string
@@ -1115,7 +1120,6 @@ export type Database = {
           portfolio_item_id: string
           professional_display_name: string
           professional_id: string
-          professional_is_fixture: boolean
           professional_slug: string
           styles: Json
           year: number
@@ -1159,6 +1163,7 @@ export type Database = {
           style_slug: string
         }[]
       }
+      is_open_search_reference: { Args: { p_path: string }; Returns: boolean }
       is_search_open: { Args: { p_project_id: string }; Returns: boolean }
       mark_conversation_read: {
         Args: { p_conversation_id: string }
