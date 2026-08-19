@@ -334,6 +334,7 @@ describe('matching de punta a punta', () => {
       availability: null,
       instagramHandle: row.instagram_handle,
       whatsappE164: row.whatsapp_e164,
+      studioCoordinates: null,
       isFixture: row.is_fixture,
     }))
 

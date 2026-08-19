@@ -23,6 +23,19 @@ jest.mock('../taste/queries.ts', () => ({
   resetTaste: jest.fn().mockResolvedValue(undefined),
 }))
 
+// Sin permiso otorgado por default: así el resto de los tests, que no le
+// importa la ubicación, ve la pantalla igual que un usuario que todavía no
+// activó nada.
+jest.mock('expo-location', () => ({
+  getForegroundPermissionsAsync: jest
+    .fn()
+    .mockResolvedValue({ status: 'undetermined' }),
+  requestForegroundPermissionsAsync: jest
+    .fn()
+    .mockResolvedValue({ status: 'denied' }),
+  getCurrentPositionAsync: jest.fn(),
+}))
+
 import { fetchCatalog, persistMatches } from './queries.ts'
 import { fetchTasteSource } from '../taste/queries.ts'
 
@@ -30,6 +43,11 @@ const catalogMock = fetchCatalog as jest.MockedFunction<typeof fetchCatalog>
 const tasteMock = fetchTasteSource as jest.MockedFunction<
   typeof fetchTasteSource
 >
+const expoLocationMock = jest.requireMock('expo-location') as {
+  getForegroundPermissionsAsync: jest.Mock
+  requestForegroundPermissionsAsync: jest.Mock
+  getCurrentPositionAsync: jest.Mock
+}
 
 const HOY = '2026-08-18'
 
@@ -37,6 +55,7 @@ function artist(
   id: string,
   styleSlugs: readonly string[],
   location: Professional['location'] = null,
+  studioCoordinates: Professional['studioCoordinates'] = null,
 ): Professional {
   return {
     id,
@@ -55,6 +74,7 @@ function artist(
     availability: null,
     instagramHandle: id,
     whatsappE164: null,
+    studioCoordinates,
     isFixture: true,
   }
 }
@@ -226,6 +246,110 @@ describe('MatchesScreen', () => {
     await waitFor(() => expect(screen.getByTestId('matches-list')).toBeTruthy())
     fireEvent(screen.getByTestId('match-a'), 'touchEnd')
     expect(onOpenProfile).toHaveBeenCalledWith('a')
+  })
+
+  describe('distancia real (GPS)', () => {
+    it('sin permiso otorgado, ofrece activar la ubicación y no muestra distancia', async () => {
+      tasteMock.mockResolvedValue(
+        tasteSource(15, ['fine-line', 'dotwork', 'blackwork']),
+      )
+      catalogMock.mockResolvedValue([
+        artist('a', ['fine-line', 'dotwork', 'blackwork'], null, {
+          lat: -34.5875,
+          lng: -58.4371,
+        }),
+      ])
+      render()
+
+      await waitFor(() =>
+        expect(screen.getByTestId('matches-location-prompt')).toBeTruthy(),
+      )
+      expect(screen.queryByTestId('match-distance')).toBeNull()
+    })
+
+    it('activar ubicación y obtener permiso muestra la distancia real al estudio', async () => {
+      tasteMock.mockResolvedValue(
+        tasteSource(15, ['fine-line', 'dotwork', 'blackwork']),
+      )
+      catalogMock.mockResolvedValue([
+        artist('a', ['fine-line', 'dotwork', 'blackwork'], null, {
+          // Obelisco, a ~5,4 km de Palermo.
+          lat: -34.6037,
+          lng: -58.3816,
+        }),
+      ])
+      expoLocationMock.requestForegroundPermissionsAsync.mockResolvedValue({
+        status: 'granted',
+      })
+      expoLocationMock.getCurrentPositionAsync.mockResolvedValue({
+        coords: { latitude: -34.5875, longitude: -58.4371 },
+      })
+      render()
+
+      await waitFor(() =>
+        expect(screen.getByTestId('matches-location-prompt')).toBeTruthy(),
+      )
+      fireEvent.press(screen.getByTestId('matches-location-request'))
+
+      await waitFor(() =>
+        expect(screen.getByTestId('match-distance')).toBeTruthy(),
+      )
+      expect(screen.getByText(/≈\s*5[.,]4\s*km/)).toBeTruthy()
+      expect(
+        screen.queryByTestId('matches-location-prompt'),
+      ).toBeNull()
+    })
+
+    it('un profesional sin ubicación publicada nunca muestra distancia, aunque haya permiso', async () => {
+      tasteMock.mockResolvedValue(
+        tasteSource(15, ['fine-line', 'dotwork', 'blackwork']),
+      )
+      catalogMock.mockResolvedValue([
+        artist('a', ['fine-line', 'dotwork', 'blackwork'], null, null),
+      ])
+      expoLocationMock.requestForegroundPermissionsAsync.mockResolvedValue({
+        status: 'granted',
+      })
+      expoLocationMock.getCurrentPositionAsync.mockResolvedValue({
+        coords: { latitude: -34.5875, longitude: -58.4371 },
+      })
+      render()
+
+      await waitFor(() =>
+        expect(screen.getByTestId('matches-location-prompt')).toBeTruthy(),
+      )
+      fireEvent.press(screen.getByTestId('matches-location-request'))
+
+      await waitFor(() => expect(screen.getByTestId('match-a')).toBeTruthy())
+      expect(screen.queryByTestId('match-distance')).toBeNull()
+    })
+
+    it('permiso denegado no repite el pedido ni inventa una distancia', async () => {
+      tasteMock.mockResolvedValue(
+        tasteSource(15, ['fine-line', 'dotwork', 'blackwork']),
+      )
+      catalogMock.mockResolvedValue([
+        artist('a', ['fine-line', 'dotwork', 'blackwork'], null, {
+          lat: -34.5875,
+          lng: -58.4371,
+        }),
+      ])
+      expoLocationMock.requestForegroundPermissionsAsync.mockResolvedValue({
+        status: 'denied',
+      })
+      render()
+
+      await waitFor(() =>
+        expect(screen.getByTestId('matches-location-prompt')).toBeTruthy(),
+      )
+      fireEvent.press(screen.getByTestId('matches-location-request'))
+
+      await waitFor(() =>
+        expect(screen.getByTestId('matches-location-denied')).toBeTruthy(),
+      )
+      expect(screen.queryByTestId('matches-location-prompt')).toBeNull()
+      expect(screen.queryByTestId('match-distance')).toBeNull()
+    })
   })
 
   it('marca los registros ficticios en la tarjeta de encaje', async () => {

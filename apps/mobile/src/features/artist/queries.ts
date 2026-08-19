@@ -6,6 +6,8 @@
  * Ver supabase/tests/25_artist_ownership.sql.
  */
 
+import type { GeoCoordinates } from '@mesh/domain'
+
 import { supabase } from '../../data/supabase.ts'
 
 import { weightsFor } from './weights.ts'
@@ -15,6 +17,7 @@ export interface OwnedProfessional {
   readonly slug: string
   readonly displayName: string
   readonly isPublished: boolean
+  readonly studioCoordinates: GeoCoordinates | null
 }
 
 export interface OwnedPiece {
@@ -33,7 +36,7 @@ export interface OwnedPiece {
 export async function fetchOwnedProfessional(): Promise<OwnedProfessional | null> {
   const { data, error } = await supabase
     .from('professionals')
-    .select('id, slug, display_name, is_published')
+    .select('id, slug, display_name, is_published, studio_lat, studio_lng')
     .not('owner_user_id', 'is', null)
     .limit(1)
     .maybeSingle()
@@ -46,7 +49,22 @@ export async function fetchOwnedProfessional(): Promise<OwnedProfessional | null
     slug: data.slug,
     displayName: data.display_name,
     isPublished: data.is_published,
+    studioCoordinates:
+      data.studio_lat == null || data.studio_lng == null
+        ? null
+        : { lat: data.studio_lat, lng: data.studio_lng },
   }
+}
+
+/** Publica (o actualiza) la ubicación real del estudio. Solo la fila propia. */
+export async function setStudioLocation(
+  coordinates: GeoCoordinates,
+): Promise<void> {
+  const { error } = await supabase.rpc('set_studio_location', {
+    p_lat: coordinates.lat,
+    p_lng: coordinates.lng,
+  })
+  if (error != null) throw error
 }
 
 export async function fetchOwnedPieces(

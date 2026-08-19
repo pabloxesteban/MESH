@@ -27,7 +27,13 @@
       "expo-font",
       "expo-secure-store",
       "expo-image",
-      "expo-sqlite"
+      "expo-sqlite",
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "MESH usa tu ubicación para mostrarte a cuántos kilómetros está cada estudio. Nunca la compartimos con nadie."
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true

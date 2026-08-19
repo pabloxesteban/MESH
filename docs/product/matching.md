@@ -166,14 +166,26 @@ equivocado antes que suprimir en silencio uno bueno.
 | Otra ciudad, no viaja | 0,0 |
 | Ubicación del usuario desconocida | *componente omitido* |
 
-**Por qué la comuna y no una distancia.** No hay coordenadas: la columna
-`lat`/`lng` existe y sigue vacía, porque no escribimos coordenadas que no
-verificamos y porque una distancia en línea recta miente sobre una ciudad con
-río, autopistas y subte. La comuna es la división administrativa real de CABA
-(las 15 de la Ley 1777), así que "misma comuna" es un hecho verificable y no una
-estimación nuestra. Lo que **no** afirma: que dos barrios de la misma comuna
-estén a la misma distancia entre sí que otros dos. Es una cota superior barata y
-cierta, no una métrica.
+**Por qué la comuna y no una distancia.** No hay coordenadas *verificadas* a
+escala de ciudad: la columna `locations.lat`/`lng` existe y sigue vacía, porque
+no escribimos coordenadas que no verificamos y porque una distancia en línea
+recta miente sobre una ciudad con río, autopistas y subte. La comuna es la
+división administrativa real de CABA (las 15 de la Ley 1777), así que "misma
+comuna" es un hecho verificable y no una estimación nuestra. Lo que **no**
+afirma: que dos barrios de la misma comuna estén a la misma distancia entre sí
+que otros dos. Es una cota superior barata y cierta, no una métrica.
+
+**Distancia real, aparte del ranking.** Desde `20260818000400_studio_location`
+existe `professionals.studio_lat`/`studio_lng`: coordenadas reales, pero
+autoprovistas por el artista y con permiso explícito de quien busca — dos
+consentimientos activos, no una estimación de barrio. Con las dos partes
+otorgadas, Matches muestra "≈X km" (`packages/domain/src/geo/distance.ts`,
+haversine) al lado de cada tarjeta. Es **display-only**: nunca es un
+componente del score, nunca reordena el resultado. El ranking sigue siendo
+Ubicación-por-comuna, de arriba. Mostrarla como criterio de orden requeriría
+coordenadas para el catálogo entero, y en V1 son opcionales y las pone cada
+artista por su cuenta — mezclarlas con el ranking premiaría a quien activó el
+GPS por sobre quien no, que no es señal de qué tan buen match es.
 
 **Por qué la granularidad desigual vale 1,0 y no 0,7.** Si el artista declaró
 "Palermo" y la persona solo "CABA", lo más preciso que se puede afirmar es "la

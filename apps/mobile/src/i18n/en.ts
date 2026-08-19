@@ -250,6 +250,22 @@ export const en: Readonly<Record<TranslationKey, string>> = {
   'studio.entry.hint':
     'If we built your profile, your code lets you manage your portfolio.',
   'studio.entry.action': 'Go to my studio',
+  'studio.location.title': 'Your studio location',
+  'studio.location.body':
+    "This way people who search for you see how many kilometers away you are. Nobody sees the exact point on a map, only the distance.",
+  'studio.location.button': 'Use my current location',
+  'studio.location.button.update': 'Update location',
+  'studio.location.set': 'Your studio is published',
+  'studio.location.confirm.title': 'Publish this location?',
+  'studio.location.confirm.body':
+    "It'll show as your studio's location to anyone searching on MESH.",
+  'studio.location.confirm.submit': 'Yes, publish',
+  'studio.location.confirm.cancel': 'Cancel',
+  'studio.location.error.permission':
+    'We need location permission for this. You can turn it on in Settings.',
+  'studio.location.error.unavailable':
+    "We couldn't get your location. Try again.",
+  'studio.location.error.save': "Couldn't publish. Try again.",
   // --- search by photos ---
   'quickSearch.title': 'Search by photos',
   'quickSearch.subtitle':
@@ -266,4 +282,11 @@ export const en: Readonly<Record<TranslationKey, string>> = {
     'We uploaded {ok} of {total} photos. Searching with what we have.',
   'matches.notReady.searchByPhotos': 'Or search by photos',
   'matches.empty.searchByPhotos': 'Try different photos',
+  'matches.location.prompt.title': 'How far away are they?',
+  'matches.location.prompt.body':
+    'Turn on your location and we\'ll show the real distance to each published studio.',
+  'matches.location.prompt.action': 'Turn on location',
+  'matches.location.prompt.denied':
+    "We couldn't use your location. You can turn it on in Settings anytime.",
+  'matches.distance': '≈{km} km',
 }

@@ -11,6 +11,7 @@
  * mantenerlo. La diferencia con el seeder es quién opera, no quién decide.
  */
 
+import type { GeoCoordinates } from '@mesh/domain'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Image } from 'expo-image'
 import * as ImagePicker from 'expo-image-picker'
@@ -36,12 +37,14 @@ import { mediaUrl } from '@/features/discovery/queries.ts'
 import { useT } from '@/i18n/I18nProvider.tsx'
 import type { TranslationKey } from '@/i18n/index.ts'
 
+import { readDeviceGps } from './gps.ts'
 import {
   addPiece,
   claimProfessional,
   fetchOwnedPieces,
   fetchOwnedProfessional,
   removePiece,
+  setStudioLocation,
 } from './queries.ts'
 import { uploadPortfolioPiece } from './upload.ts'
 import { MAX_STYLES_PER_PIECE } from './weights.ts'
@@ -62,6 +65,11 @@ export function StudioScreen({ userId, onBack }: StudioScreenProps) {
   const [claimError, setClaimError] = useState<string | null>(null)
   const [uploadError, setUploadError] = useState<string | null>(null)
   const [toast, setToast] = useState<string | null>(null)
+  const [pendingLocation, setPendingLocation] = useState<GeoCoordinates | null>(
+    null,
+  )
+  const [locationError, setLocationError] = useState<string | null>(null)
+  const [locatingDevice, setLocatingDevice] = useState(false)
 
   const profile = useQuery({
     queryKey: ['studio', 'professional'],
@@ -114,6 +122,34 @@ export function StudioScreen({ userId, onBack }: StudioScreenProps) {
     },
     onError: () => setUploadError(t('studio.upload.failed')),
   })
+
+  const saveLocation = useMutation({
+    mutationFn: (coordinates: GeoCoordinates) => setStudioLocation(coordinates),
+    onSuccess: () => {
+      setPendingLocation(null)
+      setLocationError(null)
+      setToast(t('studio.location.set'))
+      void client.invalidateQueries({ queryKey: ['studio', 'professional'] })
+    },
+    onError: () => setLocationError(t('studio.location.error.save')),
+  })
+
+  async function requestDeviceLocation(): Promise<void> {
+    setLocationError(null)
+    setLocatingDevice(true)
+    try {
+      const reading = await readDeviceGps()
+      if (!reading.granted || reading.coordinates == null) {
+        setLocationError(t('studio.location.error.permission'))
+        return
+      }
+      setPendingLocation(reading.coordinates)
+    } catch {
+      setLocationError(t('studio.location.error.unavailable'))
+    } finally {
+      setLocatingDevice(false)
+    }
+  }
 
   const borrar = useMutation({
     mutationFn: (id: string) => removePiece(id),
@@ -202,6 +238,17 @@ export function StudioScreen({ userId, onBack }: StudioScreenProps) {
             </Text>
           ) : null}
         </Box>
+
+        <StudioLocation
+          hasSavedLocation={professional.studioCoordinates != null}
+          pendingLocation={pendingLocation}
+          busy={locatingDevice}
+          saving={saveLocation.isPending}
+          error={locationError}
+          onRequestLocation={() => void requestDeviceLocation()}
+          onConfirm={(coordinates) => saveLocation.mutate(coordinates)}
+          onCancel={() => setPendingLocation(null)}
+        />
 
         <AddPiece
           busy={upload.isPending}
@@ -298,6 +345,98 @@ export function StudioScreen({ userId, onBack }: StudioScreenProps) {
         />
       ) : null}
     </View>
+  )
+}
+
+/**
+ * Ubicación real del estudio. Dos pasos siempre, nunca uno: el GPS del
+ * teléfono se lee al tocar el botón, pero no se publica hasta que la persona
+ * confirma que ESA es la ubicación que quiere mostrar — así el consentimiento
+ * que describe la migración (`set_studio_location`) también existe en la
+ * pantalla, no solo en la base.
+ */
+function StudioLocation({
+  hasSavedLocation,
+  pendingLocation,
+  busy,
+  saving,
+  error,
+  onRequestLocation,
+  onConfirm,
+  onCancel,
+}: {
+  hasSavedLocation: boolean
+  pendingLocation: GeoCoordinates | null
+  busy: boolean
+  saving: boolean
+  error: string | null
+  onRequestLocation: () => void
+  onConfirm: (coordinates: GeoCoordinates) => void
+  onCancel: () => void
+}) {
+  const t = useT()
+
+  if (pendingLocation != null) {
+    return (
+      <Box gap="sm" testID="studio-location-confirm">
+        <Box gap="xxs">
+          <Text role="title">{t('studio.location.confirm.title')}</Text>
+          <Text role="body" color="textSecondary">
+            {t('studio.location.confirm.body')}
+          </Text>
+        </Box>
+        <Box direction="row" gap="sm">
+          <Button
+            label={t('studio.location.confirm.cancel')}
+            variant="secondary"
+            onPress={onCancel}
+            testID="studio-location-cancel"
+          />
+          <Button
+            label={t('studio.location.confirm.submit')}
+            loading={saving}
+            onPress={() => onConfirm(pendingLocation)}
+            testID="studio-location-confirm-submit"
+          />
+        </Box>
+      </Box>
+    )
+  }
+
+  return (
+    <Box gap="sm" testID="studio-location">
+      <Box gap="xxs">
+        <Text role="label" color="textSecondary">
+          {t('studio.location.title')}
+        </Text>
+        <Text role="micro" color="textTertiary">
+          {t('studio.location.body')}
+        </Text>
+        {hasSavedLocation ? (
+          <Text role="micro" color="statePositive">
+            {t('studio.location.set')}
+          </Text>
+        ) : null}
+      </Box>
+
+      {error != null ? (
+        <Text role="micro" color="stateNegative" testID="studio-location-error">
+          {error}
+        </Text>
+      ) : null}
+
+      <Button
+        label={t(
+          hasSavedLocation
+            ? 'studio.location.button.update'
+            : 'studio.location.button',
+        )}
+        variant="secondary"
+        loading={busy}
+        onPress={onRequestLocation}
+        testID="studio-location-request"
+      />
+    </Box>
   )
 }
 

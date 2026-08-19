@@ -100,10 +100,10 @@ valor— cuesta más en usuarios reales de lo que ahorra en abuso a esta escala.
 |---|---|---|---|---|
 | `profiles` | fila propia | solo por trigger | fila propia | fila propia |
 | `categories`, `styles`, `locations` | todas las filas activas | ✗ | ✗ | ✗ |
-| `professionals` | `is_published` | ✗ | ✗ | ✗ |
+| `professionals` | `is_published` **o** dueño (sin publicar) | ✗ | ✗ (solo vía RPC — ver abajo) | ✗ |
 | `professional_styles` | padre publicado | ✗ | ✗ | ✗ |
-| `portfolio_items` | padre publicado | ✗ | ✗ | ✗ |
-| `portfolio_item_styles` | padre publicado | ✗ | ✗ | ✗ |
+| `portfolio_items` | padre publicado **o** dueño | dueño del padre | dueño del padre | dueño del padre |
+| `portfolio_item_styles` | padre publicado **o** dueño | dueño del padre | ✗ | dueño del padre |
 | `media_assets` | subidas propias **o** referenciada por un profesional publicado | subidas propias, a `references`/`avatars` | ✗ | subidas propias |
 | `interactions` | propias | propias | propias | propias |
 | `taste_profiles` | propio | propio | propio | propio |
@@ -113,13 +113,25 @@ valor— cuesta más en usuarios reales de lo que ahorra en abuso a esta escala.
 | `analytics_events` | ✗ | propios (`user_id = auth.uid()`) | ✗ | ✗ |
 | `audit_events` | ✗ | ✗ | ✗ | ✗ (sin políticas — solo service role) |
 
-**Todo el catálogo es de solo lectura para el cliente**, y no por descuido: en V1
-no hay flujo de reclamo de perfil, así que las tablas de oferta no tienen ningún
-grant de escritura para `authenticated` y por lo tanto tampoco políticas de
-escritura. `professionals.owner_user_id` existe igual, para que agregar el
-reclamo más adelante sea una política nueva y no una migración de datos. Escribir
-una política de update para un flujo que no existe sería mantener una superficie
-de ataque a cambio de nada.
+**El catálogo curado sigue siendo de solo lectura para el cliente**, con dos
+excepciones angostas y deliberadas: un artista que reclamó su perfil (código
+de un solo uso, `claim_professional()`) puede escribir su propio portafolio
+(`portfolio_items`, `portfolio_item_styles`) por política normal, y puede
+actualizar la ubicación real de su estudio por `set_studio_location()`. Las
+dos veces la propiedad se resuelve por `owner_user_id = auth.uid()`, nunca por
+algo que el cliente provee. Ver
+`supabase/migrations/20260818000300_artist_portfolio.sql`,
+`supabase/migrations/20260818000400_studio_location.sql` y
+`supabase/tests/25_artist_ownership.sql`.
+
+`professionals` no tiene política de UPDATE ni para el dueño: la fila tiene
+precio, disponibilidad y estilos además de la ubicación del estudio, y una
+sola política de update abriría todo eso con un `with check` que solo
+debería cubrir dos columnas. `set_studio_location()` es SECURITY DEFINER
+angosta a propósito — toca esas dos columnas y nada más — en vez de un
+`grant update` por columnas, que ya se probó y se descartó en el flujo de
+reclamo (rompe cualquier `select *`; ver el comentario de
+`professional_claims` en la migración de portfolio).
 
 El SELECT de `media_assets` es el caso sutil: un `using (true)` ingenuo filtraría
 las rutas de storage de las imágenes de referencia privadas de otras personas —

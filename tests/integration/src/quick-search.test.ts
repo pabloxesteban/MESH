@@ -183,6 +183,7 @@ describe('búsqueda por fotos: barrio real de punta a punta', () => {
       availability: null,
       instagramHandle: row.slug,
       whatsappE164: null,
+      studioCoordinates: null,
       isFixture: row.is_fixture,
     })
 

@@ -39,6 +39,7 @@ function artist(
     availability: null,
     instagramHandle: 'x',
     whatsappE164: null,
+    studioCoordinates: null,
     isFixture: true,
     ...overrides,
   }

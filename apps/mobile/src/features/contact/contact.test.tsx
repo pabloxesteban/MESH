@@ -26,6 +26,7 @@ function professional(overrides: Partial<Professional> = {}): Professional {
     availability: null,
     instagramHandle: null,
     whatsappE164: null,
+    studioCoordinates: null,
     // No es fixture: un fixture no llega a la pantalla de contacto
     // (content-policy §4.4), y hay un test propio para ese corte.
     isFixture: false,

@@ -8,6 +8,7 @@ import {
   artistBySlug,
   previewLocation,
   previewProfessionalId,
+  previewStudioCoordinatesOf,
 } from '../../../preview/store.ts'
 
 export interface PortfolioPiece {
@@ -59,6 +60,7 @@ export async function fetchProfile(slug: string): Promise<ProfileData | null> {
           : null,
       instagramHandle: artist.instagramHandle,
       whatsappE164: artist.whatsappE164,
+      studioCoordinates: previewStudioCoordinatesOf(artist.slug),
       isFixture: artist.isFixture,
     },
     pieces: artist.pieces.map((piece) => ({

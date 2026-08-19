@@ -20,15 +20,18 @@ import { MotionProvider, ThemeProvider } from '@/design-system/index.ts'
 import { I18nProvider } from '@/i18n/I18nProvider.tsx'
 
 import { StudioScreen } from './StudioScreen.tsx'
+import { readDeviceGps } from './gps.ts'
 import {
   addPiece,
   claimProfessional,
   fetchOwnedPieces,
   fetchOwnedProfessional,
+  setStudioLocation,
 } from './queries.ts'
 import { weightsFor, MAX_STYLES_PER_PIECE } from './weights.ts'
 
 jest.mock('./queries.ts')
+jest.mock('./gps.ts')
 jest.mock('./upload.ts', () => ({
   uploadPortfolioPiece: jest.fn().mockResolvedValue({
     mediaId: 'm1',
@@ -46,6 +49,8 @@ const fetchProfileMock = fetchOwnedProfessional as jest.Mock
 const fetchPiecesMock = fetchOwnedPieces as jest.Mock
 const claimMock = claimProfessional as jest.Mock
 const addPieceMock = addPiece as jest.Mock
+const setLocationMock = setStudioLocation as jest.Mock
+const readGpsMock = readDeviceGps as jest.Mock
 
 function renderStudio() {
   const client = new QueryClient({
@@ -194,5 +199,80 @@ describe('StudioScreen', () => {
     const pieza = within(screen.getByTestId('studio-piece-pieza-1'))
     expect(pieza.getByText('Tradicional')).toBeTruthy()
     expect(pieza.getByText('Lettering')).toBeTruthy()
+  })
+
+  describe('ubicación del estudio', () => {
+    beforeEach(() => {
+      fetchProfileMock.mockResolvedValue({
+        id: 'p1',
+        slug: 'briza',
+        displayName: 'Briza Maldonado',
+        isPublished: true,
+        studioCoordinates: null,
+      })
+    })
+
+    it('sin permiso muestra el error, sin pasar a confirmación', async () => {
+      readGpsMock.mockResolvedValue({ granted: false, coordinates: null })
+      renderStudio()
+      await waitFor(() =>
+        expect(screen.getByTestId('studio-content')).toBeTruthy(),
+      )
+
+      fireEvent.press(screen.getByTestId('studio-location-request'))
+
+      await waitFor(() =>
+        expect(screen.getByTestId('studio-location-error')).toBeTruthy(),
+      )
+      expect(screen.queryByTestId('studio-location-confirm')).toBeNull()
+      expect(setLocationMock).not.toHaveBeenCalled()
+    })
+
+    it('con permiso pide confirmación antes de publicar, y cancelar no publica nada', async () => {
+      readGpsMock.mockResolvedValue({
+        granted: true,
+        coordinates: { lat: -34.5875, lng: -58.4371 },
+      })
+      renderStudio()
+      await waitFor(() =>
+        expect(screen.getByTestId('studio-content')).toBeTruthy(),
+      )
+
+      fireEvent.press(screen.getByTestId('studio-location-request'))
+      await waitFor(() =>
+        expect(screen.getByTestId('studio-location-confirm')).toBeTruthy(),
+      )
+
+      fireEvent.press(screen.getByTestId('studio-location-cancel'))
+      await waitFor(() =>
+        expect(screen.getByTestId('studio-location-request')).toBeTruthy(),
+      )
+      expect(setLocationMock).not.toHaveBeenCalled()
+    })
+
+    it('confirmar publica exactamente las coordenadas leídas del GPS', async () => {
+      readGpsMock.mockResolvedValue({
+        granted: true,
+        coordinates: { lat: -34.5875, lng: -58.4371 },
+      })
+      setLocationMock.mockResolvedValue(undefined)
+      renderStudio()
+      await waitFor(() =>
+        expect(screen.getByTestId('studio-content')).toBeTruthy(),
+      )
+
+      fireEvent.press(screen.getByTestId('studio-location-request'))
+      await waitFor(() =>
+        expect(screen.getByTestId('studio-location-confirm')).toBeTruthy(),
+      )
+      fireEvent.press(screen.getByTestId('studio-location-confirm-submit'))
+
+      await waitFor(() =>
+        expect(setLocationMock).toHaveBeenCalledWith({
+          lat: -34.5875,
+          lng: -58.4371,
+        }),
+      )
+    })
   })
 })

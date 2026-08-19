@@ -2,7 +2,7 @@
   "name": "mesh",
   "version": "0.1.0",
   "private": true,
-  "description": "MESH \u2014 descubr\u00ed gente, hac\u00e9 que las ideas pasen",
+  "description": "MESH — descubrí gente, hacé que las ideas pasen",
   "workspaces": [
     "apps/mobile",
     "packages/domain",

@@ -25,6 +25,8 @@ interface ProfessionalRow {
   availability_updated_at: string | null
   instagram_handle: string | null
   whatsapp_e164: string | null
+  studio_lat: number | null
+  studio_lng: number | null
   is_fixture: boolean
   locations: {
     id: string
@@ -45,7 +47,7 @@ const SELECT = `
   id, slug, display_name, bio, travels,
   price_min_cents, price_max_cents, price_currency, priced_at,
   availability_status, availability_updated_at,
-  instagram_handle, whatsapp_e164, is_fixture,
+  instagram_handle, whatsapp_e164, studio_lat, studio_lng, is_fixture,
   locations ( id, slug, city, admin_area, country_code, metro_key ),
   professional_styles ( proficiency, is_primary, styles ( slug ) )
 `
@@ -120,6 +122,10 @@ function toProfessional(row: ProfessionalRow): Professional {
           },
     instagramHandle: row.instagram_handle,
     whatsappE164: row.whatsapp_e164,
+    studioCoordinates:
+      row.studio_lat == null || row.studio_lng == null
+        ? null
+        : { lat: row.studio_lat, lng: row.studio_lng },
     isFixture: row.is_fixture,
   }
 }

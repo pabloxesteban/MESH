@@ -12,7 +12,12 @@
  * falta un dispositivo con Expo Go. Ver docs/design/preview.md.
  */
 
-import { findLocation, type Interaction, type Location } from '@mesh/domain'
+import {
+  findLocation,
+  type GeoCoordinates,
+  type Interaction,
+  type Location,
+} from '@mesh/domain'
 
 import { PREVIEW_ARTISTS, type PreviewArtist } from './data.generated.ts'
 
@@ -121,6 +126,58 @@ export function removePreviewPiece(id: string): void {
 /** El id sintético de un profesional. Estable, porque sale del slug. */
 export function previewProfessionalId(slug: string): string {
   return `preview-${slug}`
+}
+
+// --- ubicación del estudio ----------------------------------------------------
+//
+// Igual que `ownPieces`: solo el perfil reclamado puede tener una. El
+// catálogo horneado no trae coordenadas para el resto de los artistas — son
+// fixtures, y no inventamos una GPS que nadie dio. El único que puede
+// aparecer con distancia en el preview es el perfil que reclamaste y le
+// pusiste ubicación a mano, con el mismo botón que en la app real.
+
+const studioLocations = new Map<string, GeoCoordinates>()
+
+export function setPreviewStudioLocation(coordinates: GeoCoordinates): void {
+  if (ownedSlug == null) return
+  studioLocations.set(ownedSlug, coordinates)
+}
+
+export function previewStudioCoordinatesOf(
+  slug: string,
+): GeoCoordinates | null {
+  return studioLocations.get(slug) ?? null
+}
+
+// --- ubicación de quien busca --------------------------------------------------
+//
+// El export estático no tiene GPS real. Una vez que la persona "activa" su
+// ubicación en el preview, se usa una posición fija de ejemplo (Palermo) en
+// vez de simular un valor al azar — determinismo, mismo criterio que el resto
+// del preview.
+
+const PREVIEW_DEVICE_COORDINATES: GeoCoordinates = { lat: -34.5875, lng: -58.4371 }
+
+let deviceLocationGranted = false
+
+export function grantPreviewDeviceLocation(): void {
+  deviceLocationGranted = true
+}
+
+export function previewDeviceCoordinates(): GeoCoordinates | null {
+  return deviceLocationGranted ? PREVIEW_DEVICE_COORDINATES : null
+}
+
+/**
+ * Lo que "usar mi ubicación actual" lee cuando lo toca un artista en el
+ * preview. Un punto distinto del de arriba (San Telmo, no Palermo) para que
+ * la distancia mostrada en Matches no salga siempre en cero — sigue siendo
+ * un valor fijo y no un GPS real, pero demuestra el cálculo de verdad.
+ */
+const PREVIEW_STUDIO_GPS_READING: GeoCoordinates = { lat: -34.6212, lng: -58.3731 }
+
+export function previewStudioGpsReading(): GeoCoordinates {
+  return PREVIEW_STUDIO_GPS_READING
 }
 
 export function previewLocation(slug: string | null): Location | null {

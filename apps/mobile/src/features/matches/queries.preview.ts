@@ -12,42 +12,49 @@ import {
   PREVIEW_ARTISTS,
   previewLocation,
   previewProfessionalId,
+  previewStudioCoordinatesOf,
 } from '../../../preview/store.ts'
 
-const CATALOG: readonly Professional[] = PREVIEW_ARTISTS.map((artist) => ({
-  id: previewProfessionalId(artist.slug),
-  slug: artist.slug,
-  categorySlug: 'tattoo' as const,
-  displayName: artist.displayName,
-  bio: artist.bio,
-  location: previewLocation(artist.location),
-  travels: artist.travels,
-  styles: artist.styles,
-  price:
-    artist.price?.minCents != null && artist.price.maxCents != null
-      ? {
-          minCents: artist.price.minCents,
-          maxCents: artist.price.maxCents,
-          currency: artist.price.currency,
-          pricedAt: artist.price.pricedAt,
-        }
-      : null,
-  availability:
-    artist.availability != null
-      ? {
-          status: artist.availability.status as AvailabilityStatus,
-          updatedAt: artist.availability.updatedAt,
-        }
-      : null,
-  instagramHandle: artist.instagramHandle,
-  whatsappE164: artist.whatsappE164,
-  isFixture: artist.isFixture,
-}))
+// Función y no una constante a nivel de módulo: `studioCoordinates` puede
+// cambiar en medio de la sesión de preview (el estudio recién publicó su
+// ubicación), y una constante horneada en el import no se enteraría.
+function catalog(): readonly Professional[] {
+  return PREVIEW_ARTISTS.map((artist) => ({
+    id: previewProfessionalId(artist.slug),
+    slug: artist.slug,
+    categorySlug: 'tattoo' as const,
+    displayName: artist.displayName,
+    bio: artist.bio,
+    location: previewLocation(artist.location),
+    travels: artist.travels,
+    styles: artist.styles,
+    price:
+      artist.price?.minCents != null && artist.price.maxCents != null
+        ? {
+            minCents: artist.price.minCents,
+            maxCents: artist.price.maxCents,
+            currency: artist.price.currency,
+            pricedAt: artist.price.pricedAt,
+          }
+        : null,
+    availability:
+      artist.availability != null
+        ? {
+            status: artist.availability.status as AvailabilityStatus,
+            updatedAt: artist.availability.updatedAt,
+          }
+        : null,
+    instagramHandle: artist.instagramHandle,
+    whatsappE164: artist.whatsappE164,
+    studioCoordinates: previewStudioCoordinatesOf(artist.slug),
+    isFixture: artist.isFixture,
+  }))
+}
 
 export async function fetchCatalog(
   _categorySlug: string,
 ): Promise<readonly Professional[]> {
-  return CATALOG
+  return catalog()
 }
 
 export interface PersistableMatch {

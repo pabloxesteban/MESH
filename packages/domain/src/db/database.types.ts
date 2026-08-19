@@ -557,6 +557,8 @@ export type Database = {
           price_min_cents: number | null
           priced_at: string | null
           slug: string
+          studio_lat: number | null
+          studio_lng: number | null
           travels: boolean
           updated_at: string
           whatsapp_e164: string | null
@@ -584,6 +586,8 @@ export type Database = {
           price_min_cents?: number | null
           priced_at?: string | null
           slug: string
+          studio_lat?: number | null
+          studio_lng?: number | null
           travels?: boolean
           updated_at?: string
           whatsapp_e164?: string | null
@@ -611,6 +615,8 @@ export type Database = {
           price_min_cents?: number | null
           priced_at?: string | null
           slug?: string
+          studio_lat?: number | null
+          studio_lng?: number | null
           travels?: boolean
           updated_at?: string
           whatsapp_e164?: string | null
@@ -972,6 +978,10 @@ export type Database = {
       match_reasons_are_grounded: {
         Args: { p_components: Json; p_reasons: Json }
         Returns: boolean
+      }
+      set_studio_location: {
+        Args: { p_lat: number; p_lng: number }
+        Returns: undefined
       }
     }
     Enums: {

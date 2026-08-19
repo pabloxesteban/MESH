@@ -9,6 +9,7 @@
  * Nada acá conoce la categoría "tattoo". Ver ADR-003.
  */
 
+import type { GeoCoordinates } from '../geo/distance.ts'
 import type { CategorySlug } from '../taxonomy/taxonomy.ts'
 
 export type Uuid = string
@@ -91,6 +92,14 @@ export interface Professional {
   readonly availability: Availability | null
   readonly instagramHandle: string | null
   readonly whatsappE164: string | null
+  /**
+   * Coordenadas reales del estudio, puestas por el artista dueño del perfil
+   * vía `set_studio_location()`. `null` si no las publicó. No confundir con
+   * `location`, que es el barrio y sigue siendo la entrada del matching —
+   * esto es solo para mostrar una distancia, nunca para puntuar. Ver
+   * `packages/domain/src/geo/distance.ts`.
+   */
+  readonly studioCoordinates: GeoCoordinates | null
   readonly isFixture: boolean
 }
 

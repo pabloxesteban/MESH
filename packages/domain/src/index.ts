@@ -162,3 +162,6 @@ export {
   whatsappUrl,
 } from './contact/message.ts'
 export type { ContactLabels, ContactMessageInput } from './contact/message.ts'
+
+export { haversineKm, roundDistanceKm } from './geo/distance.ts'
+export type { GeoCoordinates } from './geo/distance.ts'

@@ -8,7 +8,7 @@
 -- ninguna noticia.
 
 begin;
-select plan(14);
+select plan(23);
 
 -- --- fixtures (como postgres) ------------------------------------------------
 
@@ -140,14 +140,78 @@ select throws_ok(
   'La dueña NO puede registrar media bajo el slug de otra'
 );
 
+-- --- ubicación del estudio (set_studio_location) -----------------------------
+
+select lives_ok(
+  $$ select public.set_studio_location(-34.5875, -58.4371) $$,
+  'La dueña puede setear la ubicación de SU estudio'
+);
+
+select is(
+  (select studio_lat from public.professionals where slug = 'briza'),
+  -34.5875::double precision,
+  'La latitud quedó guardada tal cual se envió'
+);
+
+select is(
+  (select studio_lng from public.professionals where slug = 'briza'),
+  -58.4371::double precision,
+  'La longitud quedó guardada tal cual se envió'
+);
+
+-- No hay política de UPDATE sobre `professionals` para el cliente: la única
+-- vía es la función. Sin esto, un `with check` roto en una política futura
+-- pasaría inadvertido.
+select throws_ok(
+  $$ update public.professionals set studio_lat = 0 where slug = 'briza' $$,
+  '42501',
+  null,
+  'No hay UPDATE directo sobre professionals, ni siquiera de la fila propia'
+);
+
+select throws_ok(
+  $$ select public.set_studio_location(200, -58.4371) $$,
+  '23514',
+  null,
+  'Una latitud fuera de rango se rechaza'
+);
+
+select throws_ok(
+  $$ select public.set_studio_location(-34.5875, null) $$,
+  '22004',
+  null,
+  'Longitud faltante se rechaza antes de llegar a la restricción de la tabla'
+);
+
 -- --- somos la otra artista ---------------------------------------------------
 
 set local request.jwt.claims = '{"sub":"aaaaaaaa-0000-0000-0000-0000000000a2","role":"authenticated"}';
+
+-- Todavía no reclamó ningún perfil: la función no tiene ninguna fila propia
+-- que tocar. El mismo error que "existe pero algo más falló" — no hay una
+-- rama que distinga los dos casos.
+select throws_ok(
+  $$ select public.set_studio_location(-34.6037, -58.3816) $$,
+  'P0002',
+  null,
+  'Sin perfil propio reclamado, set_studio_location no tiene qué actualizar'
+);
 
 select is(
   public.claim_professional('OTRA4567'),
   'otra',
   'Otra artista reclama su propio perfil'
+);
+
+select lives_ok(
+  $$ select public.set_studio_location(-34.6037, -58.3816) $$,
+  'Con perfil propio ya reclamado, puede setear SU ubicación'
+);
+
+select is(
+  (select studio_lat from public.professionals where slug = 'briza'),
+  -34.5875::double precision,
+  'Setear la ubicación de otra no tocó la de Briza'
 );
 
 -- Con perfil propio reclamado, sigue sin poder escribir en el de Briza. Este es

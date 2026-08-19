@@ -87,6 +87,7 @@ taxonomía no queda con forma de inglés dentro de la base.
 | `instagram_handle` | text NULL | handle pelado, CHECK de formato |
 | `whatsapp_e164` | text NULL | CHECK `^\+[1-9]\d{7,14}$` |
 | `avatar_media_id`, `hero_media_id` | uuid NULL | → `media_assets` ON DELETE SET NULL |
+| `studio_lat`, `studio_lng` | double precision NULL | GPS real del estudio, provisto por el dueño vía `set_studio_location()`. Display-only — ver §"Ubicación real" abajo |
 | `is_published` | boolean NOT NULL DEFAULT false | |
 | `is_fixture` | boolean NOT NULL DEFAULT false | |
 | `claimed_at` | timestamptz NULL | |
@@ -103,7 +104,18 @@ Restricciones, todas verificadas con un test de rechazo en
 - **reclamado ⟺ tiene dueño**: `claimed_at` y `owner_user_id` son nulos los dos
   o ninguno;
 - formato de `instagram_handle` (handle pelado, nunca una URL) y de
-  `whatsapp_e164`.
+  `whatsapp_e164`;
+- **`studio_lat`/`studio_lng` completos o ausentes**, y cada uno dentro de su
+  rango geográfico válido.
+
+> **Ubicación real, aparte del barrio.** `location_id` sigue siendo la unidad
+> del matching (`match/2`, por comuna). `studio_lat`/`studio_lng` es otra
+> cosa: coordenadas reales, autoprovistas por el artista, que solo sirven
+> para mostrar una distancia en la pantalla de Matches — nunca entran al
+> puntaje. Solo se escriben vía `set_studio_location()` (SECURITY DEFINER,
+> owner-scoped, sin política de UPDATE general sobre la tabla). Ver
+> `supabase/migrations/20260818000400_studio_location.sql` y
+> `docs/product/matching.md` §4.1.
 
 > **Desvío respecto del brief.** El brief lista `Professional` y
 > `ProfessionalProfile` como entidades separadas. Una partición 1:1 agrega un

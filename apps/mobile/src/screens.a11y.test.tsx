@@ -66,8 +66,18 @@ jest.mock('@/features/taste/queries.ts', () => ({
   fetchCategoryId: jest.fn().mockResolvedValue('cat-1'),
   resetTaste: jest.fn().mockResolvedValue(undefined),
 }))
+jest.mock('expo-location', () => ({
+  getForegroundPermissionsAsync: jest
+    .fn()
+    .mockResolvedValue({ status: 'undetermined' }),
+  requestForegroundPermissionsAsync: jest
+    .fn()
+    .mockResolvedValue({ status: 'denied' }),
+  getCurrentPositionAsync: jest.fn(),
+}))
 
 import { fetchProfile } from '@/features/profile/queries.ts'
+import { fetchCatalog } from '@/features/matches/queries.ts'
 
 const HOY = '2026-08-18'
 
@@ -248,6 +258,47 @@ describe('barrido de accesibilidad y callejones', () => {
     )
     sweep('matches · antes del umbral')
     sweepDynamicType('matches · antes del umbral')
+  })
+
+  it('matches, con resultados y el aviso de ubicación', async () => {
+    ;(fetchCatalog as jest.Mock).mockResolvedValue([
+      {
+        id: 'p1',
+        slug: 'artista-1',
+        categorySlug: 'tattoo',
+        displayName: 'Artista Uno',
+        bio: null,
+        location: null,
+        travels: false,
+        styles: [
+          { styleSlug: 'fine-line', proficiency: 1, isPrimary: true },
+        ],
+        price: null,
+        availability: null,
+        instagramHandle: 'artista1',
+        whatsappE164: null,
+        studioCoordinates: null,
+        isFixture: false,
+      },
+    ])
+    render(
+      <MatchesScreen
+        userId="u1"
+        today={HOY}
+        onExplore={jest.fn()}
+        onOpenProfile={jest.fn()}
+        project={{
+          id: 'proj-1',
+          styles: [{ styleSlug: 'fine-line', weight: 1 }],
+        }}
+      />,
+    )
+    await waitFor(() => expect(screen.getByTestId('matches-list')).toBeTruthy())
+    await waitFor(() =>
+      expect(screen.getByTestId('matches-location-prompt')).toBeTruthy(),
+    )
+    sweep('matches · con resultados')
+    sweepDynamicType('matches · con resultados')
   })
 
   it('gusto, antes del umbral', async () => {

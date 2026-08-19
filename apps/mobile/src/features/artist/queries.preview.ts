@@ -8,13 +8,17 @@
  * supabase/tests/25_artist_ownership.sql y en tests/integration.
  */
 
+import type { GeoCoordinates } from '@mesh/domain'
+
 import {
   PREVIEW_ARTISTS,
   addPreviewPiece,
   claimPreviewProfessional,
   previewOwnedProfessional,
   previewPiecesOf,
+  previewStudioCoordinatesOf,
   removePreviewPiece,
+  setPreviewStudioLocation,
 } from '../../../preview/store.ts'
 import { weightsFor } from './weights.ts'
 
@@ -23,6 +27,7 @@ export interface OwnedProfessional {
   readonly slug: string
   readonly displayName: string
   readonly isPublished: boolean
+  readonly studioCoordinates: GeoCoordinates | null
 }
 
 export interface OwnedPiece {
@@ -42,7 +47,14 @@ export async function fetchOwnedProfessional(): Promise<OwnedProfessional | null
     slug: artist.slug,
     displayName: artist.displayName,
     isPublished: true,
+    studioCoordinates: previewStudioCoordinatesOf(artist.slug),
   }
+}
+
+export async function setStudioLocation(
+  coordinates: GeoCoordinates,
+): Promise<void> {
+  setPreviewStudioLocation(coordinates)
 }
 
 export async function fetchOwnedPieces(

@@ -14,10 +14,16 @@
 
 import { ScrollView, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import type { MatchReason } from '@mesh/domain'
+import {
+  haversineKm,
+  roundDistanceKm,
+  type GeoCoordinates,
+  type MatchReason,
+} from '@mesh/domain'
 
 import {
   Box,
+  Button,
   EmptyState,
   HAIRLINE,
   SCREEN_GUTTER,
@@ -35,6 +41,7 @@ import { FixtureBadge } from '@/components/FixtureBadge.tsx'
 import { useT } from '@/i18n/I18nProvider.tsx'
 import type { TranslationKey } from '@/i18n/index.ts'
 
+import { useDeviceLocation } from './useDeviceLocation.ts'
 import {
   useMatches,
   type MatchWithProfessional,
@@ -64,6 +71,7 @@ export function MatchesScreen({
   const theme = useTheme()
   const insets = useSafeAreaInsets()
   const state = useMatches('tattoo', userId, today, project)
+  const device = useDeviceLocation()
 
   // Los eventos de lista se emiten en un efecto, no durante el render: emitir
   // desde el cuerpo del componente los dispararía otra vez en cada re-render.
@@ -155,10 +163,17 @@ export function MatchesScreen({
 
     return (
       <Box gap="sm" testID="matches-list">
+        {device.status === 'unrequested' || device.status === 'denied' ? (
+          <LocationPrompt
+            denied={device.status === 'denied'}
+            onRequest={device.request}
+          />
+        ) : null}
         {state.matches.map((entry) => (
           <MatchCard
             key={entry.match.professionalId}
             entry={entry}
+            deviceCoordinates={device.coordinates}
             onPress={() => {
               track({
                 name: 'professional_profile_viewed',
@@ -195,14 +210,26 @@ export function MatchesScreen({
 
 function MatchCard({
   entry,
+  deviceCoordinates,
   onPress,
 }: {
   entry: MatchWithProfessional
+  deviceCoordinates: GeoCoordinates | null
   onPress: () => void
 }) {
   const t = useT()
   const theme = useTheme()
   const { match, professional } = entry
+
+  // Display-only: la distancia nunca entra al puntaje ni al orden, que ya
+  // vino decidido por barrio (`match/2`). Solo se muestra cuando las DOS
+  // partes dieron su ubicación real — nunca se estima para nadie.
+  const distanceKm =
+    deviceCoordinates != null && professional.studioCoordinates != null
+      ? roundDistanceKm(
+          haversineKm(deviceCoordinates, professional.studioCoordinates),
+        )
+      : null
 
   return (
     <View
@@ -236,6 +263,11 @@ function MatchCard({
         {professional.isFixture ? (
           <FixtureBadge testID="match-fixture-badge" />
         ) : null}
+        {distanceKm != null ? (
+          <Text role="micro" color="textSecondary" testID="match-distance">
+            {t('matches.distance', { km: distanceKm })}
+          </Text>
+        ) : null}
       </Box>
 
       <Text role="title" numberOfLines={2}>
@@ -254,6 +286,54 @@ function MatchCard({
         ))}
       </Box>
     </View>
+  )
+}
+
+/**
+ * El permiso de ubicación de quien busca. Nunca se pide solo — un botón
+ * explícito, con la razón escrita al lado, igual que del lado del artista.
+ * Rechazado una vez, no vuelve a insistir: la distancia es un plus, no algo
+ * que MESH necesite para funcionar.
+ */
+function LocationPrompt({
+  denied,
+  onRequest,
+}: {
+  denied: boolean
+  onRequest: () => void
+}) {
+  const t = useT()
+
+  if (denied) {
+    return (
+      <Box testID="matches-location-denied" paddingY="xs">
+        <Text role="micro" color="textTertiary">
+          {t('matches.location.prompt.denied')}
+        </Text>
+      </Box>
+    )
+  }
+
+  return (
+    <Box
+      testID="matches-location-prompt"
+      gap="xs"
+      padding="sm"
+      radius="md"
+      border="borderStrong"
+    >
+      <Text role="label">{t('matches.location.prompt.title')}</Text>
+      <Text role="micro" color="textSecondary">
+        {t('matches.location.prompt.body')}
+      </Text>
+      <Button
+        label={t('matches.location.prompt.action')}
+        variant="secondary"
+        size="sm"
+        onPress={onRequest}
+        testID="matches-location-request"
+      />
+    </Box>
   )
 }
 

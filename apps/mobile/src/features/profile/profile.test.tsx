@@ -33,6 +33,7 @@ function professional(overrides: Partial<Professional> = {}): Professional {
     availability: null,
     instagramHandle: 'aguja',
     whatsappE164: null,
+    studioCoordinates: null,
     isFixture: true,
     ...overrides,
   }

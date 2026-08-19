@@ -276,6 +276,22 @@ export const esAR = {
   'studio.entry.hint':
     'Si armamos tu perfil, con tu código pasás a manejar tu portafolio.',
   'studio.entry.action': 'Ir a mi estudio',
+  'studio.location.title': 'Ubicación de tu estudio',
+  'studio.location.body':
+    'Así la gente que te busca ve a cuántos kilómetros estás. Nadie ve el punto exacto en un mapa, solo la distancia.',
+  'studio.location.button': 'Usar mi ubicación actual',
+  'studio.location.button.update': 'Actualizar ubicación',
+  'studio.location.set': 'Tu estudio está publicado',
+  'studio.location.confirm.title': '¿Publicamos esta ubicación?',
+  'studio.location.confirm.body':
+    'Va a quedar visible como la ubicación de tu estudio para cualquiera que te busque en MESH.',
+  'studio.location.confirm.submit': 'Sí, publicar',
+  'studio.location.confirm.cancel': 'Cancelar',
+  'studio.location.error.permission':
+    'Necesitamos el permiso de ubicación para esto. Podés activarlo en Ajustes.',
+  'studio.location.error.unavailable':
+    'No pudimos obtener tu ubicación. Probá de nuevo.',
+  'studio.location.error.save': 'No se pudo publicar. Probá de nuevo.',
   // --- buscar por fotos ---
   'quickSearch.title': 'Buscar por fotos',
   'quickSearch.subtitle':
@@ -293,6 +309,13 @@ export const esAR = {
     'Subimos {ok} de {total} fotos. Igual buscamos con lo que tenemos.',
   'matches.notReady.searchByPhotos': 'O buscá por fotos',
   'matches.empty.searchByPhotos': 'Probar con otras fotos',
+  'matches.location.prompt.title': '¿A cuántos km te queda?',
+  'matches.location.prompt.body':
+    'Activá tu ubicación y te mostramos la distancia real a cada estudio publicado.',
+  'matches.location.prompt.action': 'Activar ubicación',
+  'matches.location.prompt.denied':
+    'No pudimos usar tu ubicación. Podés activarla en Ajustes cuando quieras.',
+  'matches.distance': '≈{km} km',
 } as const
 
 export type TranslationKey = keyof typeof esAR
