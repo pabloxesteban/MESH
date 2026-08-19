@@ -300,6 +300,9 @@ export const esAR = {
   'quickSearch.photo.add': 'Agregar foto',
   'quickSearch.photo.remove': 'Sacar la foto {n}',
   'quickSearch.styles': 'Qué estilo es',
+  'quickSearch.styles.hint': 'Tocá las fotos que se parecen a lo que buscás',
+  'quickSearch.styles.error':
+    'No pudimos traer los ejemplos. Probá de nuevo.',
   'quickSearch.location': 'Tu barrio',
   'quickSearch.location.hint':
     'Opcional. Si lo elegís, ordenamos por cercanía.',

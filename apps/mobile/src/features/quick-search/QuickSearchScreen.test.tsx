@@ -11,9 +11,13 @@ import { I18nProvider } from '@/i18n/I18nProvider.tsx'
 
 import { QuickSearchScreen } from './QuickSearchScreen.tsx'
 import { createQuickSearch } from './createQuickSearch.ts'
+import { fetchStyleExamples } from './queries.ts'
 
 jest.mock('./createQuickSearch.ts', () => ({
   createQuickSearch: jest.fn(),
+}))
+jest.mock('./queries.ts', () => ({
+  fetchStyleExamples: jest.fn(),
 }))
 jest.mock('expo-image-picker', () => ({
   launchImageLibraryAsync: jest.fn().mockResolvedValue({
@@ -24,6 +28,9 @@ jest.mock('expo-image-picker', () => ({
 
 const createQuickSearchMock = createQuickSearch as jest.MockedFunction<
   typeof createQuickSearch
+>
+const fetchStyleExamplesMock = fetchStyleExamples as jest.MockedFunction<
+  typeof fetchStyleExamples
 >
 
 function renderScreen(
@@ -57,6 +64,10 @@ function renderScreen(
 
 beforeEach(() => {
   jest.clearAllMocks()
+  fetchStyleExamplesMock.mockResolvedValue([
+    { styleSlug: 'fine-line', mediaPath: 'fixture-aguja-fina/1/lg.webp' },
+    { styleSlug: 'blackwork', mediaPath: 'fixture-tinta-negra/1/lg.webp' },
+  ])
 })
 
 describe('QuickSearchScreen', () => {
@@ -91,6 +102,9 @@ describe('QuickSearchScreen', () => {
     await waitFor(() =>
       expect(screen.getByTestId('quick-search-photo-0')).toBeTruthy(),
     )
+    await waitFor(() =>
+      expect(screen.getByTestId('quick-search-style-fine-line')).toBeTruthy(),
+    )
     fireEvent.press(screen.getByTestId('quick-search-style-fine-line'))
 
     expect(
@@ -118,6 +132,9 @@ describe('QuickSearchScreen', () => {
     await waitFor(() =>
       expect(screen.getByTestId('quick-search-photo-0')).toBeTruthy(),
     )
+    await waitFor(() =>
+      expect(screen.getByTestId('quick-search-style-fine-line')).toBeTruthy(),
+    )
     fireEvent.press(screen.getByTestId('quick-search-style-fine-line'))
     fireEvent.press(screen.getByTestId('quick-search-location-palermo'))
     fireEvent.press(screen.getByTestId('quick-search-submit'))
@@ -138,6 +155,9 @@ describe('QuickSearchScreen', () => {
     fireEvent.press(screen.getByTestId('quick-search-add-photo'))
     await waitFor(() =>
       expect(screen.getByTestId('quick-search-photo-0')).toBeTruthy(),
+    )
+    await waitFor(() =>
+      expect(screen.getByTestId('quick-search-style-fine-line')).toBeTruthy(),
     )
     fireEvent.press(screen.getByTestId('quick-search-style-fine-line'))
     fireEvent.press(screen.getByTestId('quick-search-submit'))
@@ -160,6 +180,9 @@ describe('QuickSearchScreen', () => {
     fireEvent.press(screen.getByTestId('quick-search-add-photo'))
     await waitFor(() =>
       expect(screen.getByTestId('quick-search-photo-0')).toBeTruthy(),
+    )
+    await waitFor(() =>
+      expect(screen.getByTestId('quick-search-style-fine-line')).toBeTruthy(),
     )
     fireEvent.press(screen.getByTestId('quick-search-style-fine-line'))
     fireEvent.press(screen.getByTestId('quick-search-submit'))

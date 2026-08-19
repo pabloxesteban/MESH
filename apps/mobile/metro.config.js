@@ -49,6 +49,7 @@ if (process.env.MESH_PREVIEW === '1') {
       'src/features/artist/gps.ts',
       'src/features/projects/queries.ts',
       'src/features/projects/upload.ts',
+      'src/features/quick-search/queries.ts',
     ].map((relative) => path.join(projectRoot, relative)),
   )
 

@@ -305,6 +305,16 @@ como referencias del proyecto — el mismo mecanismo que ya existía para
 proyectos completos, no uno nuevo. Ver
 `apps/mobile/src/features/quick-search/`.
 
+**Elegir el estilo es reconocer una foto, no leer un nombre.** Hay gente que
+sabe lo que quiere pero no sabe cómo se llama el estilo — "esa cosa de puntitos"
+es `dotwork` para nosotros y una descripción real para ella. El selector de
+`quick-search` muestra una foto real y ya publicada por estilo en vez de una
+lista de chips de texto (`packages/domain` no interviene: la foto sale de
+`get_style_examples`, la pieza de mayor peso declarado para ese estilo —
+la misma etiqueta que ya alimenta el matching, mostrada en vez de escondida).
+Sigue siendo cero ML: nadie clasifica la foto que la persona sube, ella misma
+la reconoce contra ejemplos reales y toca.
+
 **Bug encontrado y corregido al construir esto:** `useMatches.ts` mandaba
 `locationDiscriminates: false` siempre, con un comentario de cuando toda la
 ciudad era una sola ubicación. Desde que existen barrios, un proyecto con

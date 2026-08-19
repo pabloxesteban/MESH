@@ -278,6 +278,31 @@ no son evidentes leyendo la consulta y que tienen su test:
   cada vuelta, y el último de una vuelta puede ser el mismo que el primero de la
   siguiente — que es exactamente el bug que encontró el test de diversidad.
 
+**`claim_professional(p_code)`** — `SECURITY DEFINER`, `search_path` fijado.
+Canjea un código de un solo uso y deja a quien llama como dueño del perfil
+correspondiente. DEFINER porque tiene que leer `professional_claims`, la
+tabla que el cliente no puede ver. Ver
+`supabase/migrations/20260818000300_artist_portfolio.sql` y
+`supabase/tests/25_artist_ownership.sql`.
+
+**`set_studio_location(p_lat, p_lng)`** — `SECURITY DEFINER`, `search_path`
+fijado, owner-scoped por `owner_user_id = auth.uid()`. Escribe
+`studio_lat`/`studio_lng` solo en la fila propia. Angosta a propósito: dos
+columnas, nada más — una política de UPDATE general sobre `professionals`
+abriría precio, disponibilidad y estilos con el mismo `with check`. Ver
+`supabase/migrations/20260818000400_studio_location.sql`.
+
+**`get_style_examples(p_category_slug)`** — `SECURITY INVOKER`, `search_path`
+fijado. Una foto real y publicada por estilo, la de mayor peso declarado
+(`portfolio_item_styles.weight`), para el selector visual de "buscar por
+fotos" — la respuesta a "no sé cómo se llama esto que quiero, pero lo
+reconozco si lo veo". Selección determinística, nunca ML: la etiqueta ya la
+puso el artista al cargar su portafolio, esto solo la muestra en vez de
+esconderla detrás de un nombre. Un estilo sin ninguna pieza publicada no
+aparece en el resultado. Ver
+`supabase/migrations/20260819000100_style_examples.sql` y
+`supabase/tests/35_style_examples.sql`.
+
 ## 5. Enums
 
 `availability_status`, `interaction_verdict`, `interaction_source`,

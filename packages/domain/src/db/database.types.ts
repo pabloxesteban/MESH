@@ -975,6 +975,15 @@ export type Database = {
           year: number
         }[]
       }
+      get_style_examples: {
+        Args: { p_category_slug: string }
+        Returns: {
+          media_blurhash: string
+          media_bucket: string
+          media_path: string
+          style_slug: string
+        }[]
+      }
       match_reasons_are_grounded: {
         Args: { p_components: Json; p_reasons: Json }
         Returns: boolean

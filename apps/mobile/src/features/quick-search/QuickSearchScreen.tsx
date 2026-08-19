@@ -18,11 +18,12 @@
  */
 
 import { useState } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import * as ImagePicker from 'expo-image-picker'
 import { Image } from 'expo-image'
 import { ScrollView, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { STYLES, neighborhoodsOf } from '@mesh/domain'
+import { neighborhoodsOf } from '@mesh/domain'
 
 import {
   Box,
@@ -31,6 +32,7 @@ import {
   HAIRLINE,
   Pressable,
   SCREEN_GUTTER,
+  Skeleton,
   Text,
   radius,
   spacing,
@@ -40,6 +42,8 @@ import { useT } from '@/i18n/I18nProvider.tsx'
 import type { TranslationKey } from '@/i18n/index.ts'
 
 import { createQuickSearch } from './createQuickSearch.ts'
+import { fetchStyleExamples } from './queries.ts'
+import { StyleExampleGrid } from './StyleExampleGrid.tsx'
 
 const MAX_PHOTOS = 4
 
@@ -62,6 +66,11 @@ export function QuickSearchScreen({
   const t = useT()
   const theme = useTheme()
   const insets = useSafeAreaInsets()
+
+  const styleExamples = useQuery({
+    queryKey: ['quick-search', 'style-examples', 'tattoo'],
+    queryFn: () => fetchStyleExamples('tattoo'),
+  })
 
   const [images, setImages] = useState<readonly string[]>([])
   const [styleSlugs, setStyleSlugs] = useState<readonly string[]>([])
@@ -202,23 +211,42 @@ export function QuickSearchScreen({
           <Text role="label" color="textSecondary">
             {t('quickSearch.styles')}
           </Text>
-          <Box direction="row" gap="xxs" wrap>
-            {STYLES.map((style) => (
-              <FilterChip
-                key={style.slug}
-                label={t(`style.tattoo.${style.slug}` as TranslationKey)}
-                selected={styleSlugs.includes(style.slug)}
-                onToggle={() =>
-                  setStyleSlugs((previous) =>
-                    previous.includes(style.slug)
-                      ? previous.filter((slug) => slug !== style.slug)
-                      : [...previous, style.slug],
-                  )
-                }
-                testID={`quick-search-style-${style.slug}`}
+          <Text role="micro" color="textTertiary">
+            {t('quickSearch.styles.hint')}
+          </Text>
+
+          {styleExamples.error != null ? (
+            <Box gap="xs" testID="quick-search-styles-error">
+              <Text role="micro" color="stateNegative">
+                {t('quickSearch.styles.error')}
+              </Text>
+              <Button
+                label={t('common.retry')}
+                variant="secondary"
+                size="sm"
+                onPress={() => void styleExamples.refetch()}
+                testID="quick-search-styles-retry"
               />
-            ))}
-          </Box>
+            </Box>
+          ) : styleExamples.isPending ? (
+            <Box direction="row" gap="sm" testID="quick-search-styles-loading">
+              <Skeleton width={108} height={108} radius="md" />
+              <Skeleton width={108} height={108} radius="md" />
+              <Skeleton width={108} height={108} radius="md" />
+            </Box>
+          ) : (
+            <StyleExampleGrid
+              examples={styleExamples.data ?? []}
+              selected={styleSlugs}
+              onToggle={(slug) =>
+                setStyleSlugs((previous) =>
+                  previous.includes(slug)
+                    ? previous.filter((s) => s !== slug)
+                    : [...previous, slug],
+                )
+              }
+            />
+          )}
         </Box>
 
         <Box gap="xs">

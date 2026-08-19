@@ -274,6 +274,8 @@ export const en: Readonly<Record<TranslationKey, string>> = {
   'quickSearch.photo.add': 'Add photo',
   'quickSearch.photo.remove': 'Remove photo {n}',
   'quickSearch.styles': 'What style is it',
+  'quickSearch.styles.hint': 'Tap the photos that look like what you want',
+  'quickSearch.styles.error': "We couldn't load the examples. Try again.",
   'quickSearch.location': 'Your neighbourhood',
   'quickSearch.location.hint': 'Optional. If you pick it, we rank by distance.',
   'quickSearch.submit': 'Search',

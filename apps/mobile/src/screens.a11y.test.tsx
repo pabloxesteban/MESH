@@ -66,6 +66,12 @@ jest.mock('@/features/taste/queries.ts', () => ({
   fetchCategoryId: jest.fn().mockResolvedValue('cat-1'),
   resetTaste: jest.fn().mockResolvedValue(undefined),
 }))
+jest.mock('@/features/quick-search/queries.ts', () => ({
+  fetchStyleExamples: jest.fn().mockResolvedValue([
+    { styleSlug: 'fine-line', mediaPath: 'fixture-aguja-fina/1/lg.webp' },
+    { styleSlug: 'blackwork', mediaPath: 'fixture-tinta-negra/1/lg.webp' },
+  ]),
+}))
 jest.mock('expo-location', () => ({
   getForegroundPermissionsAsync: jest
     .fn()
@@ -386,13 +392,16 @@ describe('barrido de accesibilidad y callejones', () => {
     sweepDynamicType('proyecto · formulario')
   })
 
-  it('buscar por fotos', () => {
+  it('buscar por fotos', async () => {
     render(
       <QuickSearchScreen
         userId="u1"
         onCreated={jest.fn()}
         onCancel={jest.fn()}
       />,
+    )
+    await waitFor(() =>
+      expect(screen.getByTestId('quick-search-style-fine-line')).toBeTruthy(),
     )
     sweep('buscar por fotos')
     sweepDynamicType('buscar por fotos')
