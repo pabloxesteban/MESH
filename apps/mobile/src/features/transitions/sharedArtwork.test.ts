@@ -20,6 +20,7 @@ function entrega(patch: Partial<ArtworkHandoff> = {}): ArtworkHandoff {
   return {
     portfolioItemId: 'pieza-1',
     professionalSlug: 'a-mano',
+    scope: 'explore',
     mediaPath: 'a-mano/pieza-1/lg.webp',
     blurhash: null,
     aspectRatio: 0.8,

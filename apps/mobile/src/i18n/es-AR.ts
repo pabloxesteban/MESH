@@ -142,6 +142,7 @@ export const esAR = {
   'profile.availability.stale': 'Sin novedades desde el {fecha}',
   'profile.travels': 'Viaja',
   'profile.portfolio': 'Obra',
+  'profile.back': 'Volver',
   'profile.contact': 'Escribirle',
   'profile.fixture': 'Registro de prueba. No es una persona real.',
   'common.fixture': 'Ficticio',

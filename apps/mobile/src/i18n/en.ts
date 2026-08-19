@@ -120,6 +120,7 @@ export const en: Readonly<Record<TranslationKey, string>> = {
   'profile.availability.stale': 'No update since {fecha}',
   'profile.travels': 'Travels',
   'profile.portfolio': 'Work',
+  'profile.back': 'Back',
   'profile.contact': 'Write to them',
   'profile.fixture': 'Test record. Not a real person.',
   'common.fixture': 'Test',

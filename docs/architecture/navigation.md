@@ -93,7 +93,7 @@ Justificación y contrapartidas:
 | Pestaña → pestaña | Instantáneo, sin animación |
 | Obra → perfil de artista | La obra crece desde donde estaba hasta ser el hero del perfil, 280ms, mientras la pantalla se funde. Ver [D-011](../design/MESH-DESIGN-DECISIONS.md) |
 | Fila del nombre en Inicio → perfil | Fundido. No hay obra que crecer, así que no hay nada que seguir con la vista |
-| Perfil → atrás | Navegación de siempre. La transición no se invierte todavía (D-011) |
+| Perfil → atrás | La obra encoge hasta su lugar en la grilla, si ese lugar todavía se ve; si no, navegación de siempre (D-011) |
 | Cualquiera → modal | Hoja, con manija; se cierra arrastrando y con un Cerrar explícito |
 
 Las duraciones, los easings y el comportamiento con reducción de movimiento son
@@ -136,6 +136,9 @@ Ver [`threat-model.md`](../security/threat-model.md) §T7.
   sistema operativo es un defecto.
 - El modal de contacto vuelve al perfil: la persona venía de algún lado y tiene
   que aterrizar de nuevo en contexto.
+- **El perfil tiene su propia salida en pantalla**, además del gesto del
+  sistema. Se agregó al construir la vuelta de la transición; su ausencia era un
+  defecto según esta misma sección y nadie lo había mirado.
 
 ## 7. Accesibilidad
 

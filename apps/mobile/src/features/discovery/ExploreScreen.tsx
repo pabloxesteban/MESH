@@ -12,6 +12,9 @@
  * obra abre a la persona que la hizo, y esa persona está a un mensaje. Una
  * grilla que se pueda recorrer sin llegar nunca a alguien sería Pinterest con
  * otra tipografía.
+ *
+ * La obra que se toca crece hasta ser el perfil, y al volver encoge hasta su
+ * lugar en la grilla — si ese lugar todavía se ve. Ver features/transitions.
  */
 
 import { ScrollView, View, type NativeScrollEvent } from 'react-native'
@@ -26,13 +29,18 @@ import {
   Skeleton,
   Text,
   spacing,
+  useMotion,
   useTheme,
 } from '@/design-system/index.ts'
 import { ErrorView } from '@/components/ErrorView.tsx'
 import { useT } from '@/i18n/I18nProvider.tsx'
 import type { TranslationKey } from '@/i18n/index.ts'
 
+import { GrowingArtwork } from '@/features/transitions/GrowingArtwork.tsx'
+import { useArtworkReturn } from '@/features/transitions/useArtworkReturn.ts'
+
 import { ArtworkGrid } from './ArtworkGrid.tsx'
+import { mediaUrl } from './queries.ts'
 import { useDiscoveryGrid } from './useDiscoveryGrid.ts'
 
 /** A cuántos píxeles del final se pide la página siguiente. */
@@ -65,7 +73,9 @@ export function ExploreScreen({
   const t = useT()
   const theme = useTheme()
   const insets = useSafeAreaInsets()
+  const { durationOf } = useMotion()
   const grid = useDiscoveryGrid(categorySlug, userId, initialStyle ?? null)
+  const back = useArtworkReturn('explore')
 
   const body = (() => {
     if (grid.error != null) {
@@ -114,57 +124,74 @@ export function ExploreScreen({
       <ArtworkGrid
         items={grid.items}
         onOpen={(item) => onOpenArtist(item.professionalSlug)}
+        hiddenPieceId={back.hiddenPieceId}
       />
     )
   })()
 
   return (
-    <ScrollView
-      style={{ flex: 1, backgroundColor: theme.surface }}
-      contentContainerStyle={{
-        paddingTop: insets.top,
-        paddingBottom: insets.bottom + spacing.xxl,
-      }}
-      onScroll={({ nativeEvent }) => {
-        if (cercaDelFinal(nativeEvent)) grid.loadMore()
-      }}
-      scrollEventThrottle={200}
-      testID="screen-explore"
-    >
-      <Box gap="xs" paddingX="lg" paddingY="sm">
-        <Box gap="xxs">
-          <Text role="titleLg">{t('explore.title')}</Text>
-          <Text role="micro" color="textTertiary">
-            {t('explore.subtitle')}
-          </Text>
-        </Box>
+    // La raíz existe por la vuelta: la copia se posiciona en coordenadas de
+    // ventana, y adentro del ScrollView quedaría atada al scroll.
+    <View style={{ flex: 1, backgroundColor: theme.surface }}>
+      <ScrollView
+        style={{ flex: 1, backgroundColor: theme.surface }}
+        contentContainerStyle={{
+          paddingTop: insets.top,
+          paddingBottom: insets.bottom + spacing.xxl,
+        }}
+        onScroll={({ nativeEvent }) => {
+          if (cercaDelFinal(nativeEvent)) grid.loadMore()
+        }}
+        scrollEventThrottle={200}
+        testID="screen-explore"
+      >
+        <Box gap="xs" paddingX="lg" paddingY="sm">
+          <Box gap="xxs">
+            <Text role="titleLg">{t('explore.title')}</Text>
+            <Text role="micro" color="textTertiary">
+              {t('explore.subtitle')}
+            </Text>
+          </Box>
 
-        {/* El camino con IA vive acá y no en una pestaña propia: es la misma
+          {/* El camino con IA vive acá y no en una pestaña propia: es la misma
             intención que explorar —encontrar obra parecida a una idea— con una
             entrada distinta. */}
-        {onSearchByPhotos != null ? (
-          <View style={{ alignItems: 'flex-start' }}>
-            <Button
-              label={t('explore.byPhotos')}
-              variant="secondary"
-              size="sm"
-              onPress={onSearchByPhotos}
-              testID="explore-by-photos"
-            />
-          </View>
-        ) : null}
-      </Box>
+          {onSearchByPhotos != null ? (
+            <View style={{ alignItems: 'flex-start' }}>
+              <Button
+                label={t('explore.byPhotos')}
+                variant="secondary"
+                size="sm"
+                onPress={onSearchByPhotos}
+                testID="explore-by-photos"
+              />
+            </View>
+          ) : null}
+        </Box>
 
-      {grid.availableStyles.length > 0 ? (
-        <StyleFilters
-          styles={grid.availableStyles}
-          active={grid.activeStyle}
-          onSelect={grid.setActiveStyle}
+        {grid.availableStyles.length > 0 ? (
+          <StyleFilters
+            styles={grid.availableStyles}
+            active={grid.activeStyle}
+            onSelect={grid.setActiveStyle}
+          />
+        ) : null}
+
+        {body}
+      </ScrollView>
+
+      {back.shrinking != null ? (
+        <GrowingArtwork
+          from={back.shrinking.from}
+          to={back.shrinking.to}
+          source={mediaUrl(back.shrinking.mediaPath, 'md')}
+          blurhash={back.shrinking.blurhash}
+          durationMs={durationOf('standard')}
+          onArrived={back.onArrived}
+          testID="explore-returning-artwork"
         />
       ) : null}
-
-      {body}
-    </ScrollView>
+    </View>
   )
 }
 

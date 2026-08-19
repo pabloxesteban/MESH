@@ -22,6 +22,10 @@
  * origen y el hero no comparten relación de aspecto, como en el carrusel de
  * Inicio— deforma la imagen y el radio de las esquinas. Es una sola vista
  * animada durante 280ms: el costo se paga y la deformación no.
+ *
+ * **Sirve para las dos direcciones.** Al ir, `from` es la tarjeta y `to` el
+ * hero; al volver, al revés. Nada más cambia: el componente no sabe —ni
+ * necesita saber— hacia dónde va la navegación.
  */
 
 import { Image } from 'expo-image'
@@ -92,6 +96,12 @@ export function GrowingArtwork({
     )
   }, [durationMs, onArrived, progress, reduceMotion])
 
+  // El radio sale del tamaño y no de la dirección: el rectángulo grande usa el
+  // radio grande, sea el origen o el destino. Así la vuelta se ve bien sin que
+  // el componente sepa que es una vuelta.
+  const radiusFrom = from.width >= to.width ? radius.lg : radius.md
+  const radiusTo = from.width >= to.width ? radius.md : radius.lg
+
   const animatedStyle = useAnimatedStyle(() => {
     const rect = interpolateRect(from, to, progress.value)
     return {
@@ -103,7 +113,7 @@ export function GrowingArtwork({
       // no tienen el mismo, y dejarlo fijo delata que son dos cosas distintas
       // justo cuando la animación está diciendo que son la misma.
       borderRadius:
-        radius.md + (radius.lg - radius.md) * Math.min(progress.value, 1),
+        radiusFrom + (radiusTo - radiusFrom) * Math.min(progress.value, 1),
     }
   })
 

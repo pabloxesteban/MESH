@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { screen, waitFor } from '@testing-library/react-native'
+import { fireEvent, screen, waitFor } from '@testing-library/react-native'
 import type { Professional } from '@mesh/domain'
 
 import { renderWithProviders } from '@/design-system/test-utils.tsx'
@@ -56,19 +56,20 @@ function render() {
     defaultOptions: { queries: { retry: false, gcTime: 0 } },
   })
   const onContact = jest.fn()
+  const onBack = jest.fn()
   renderWithProviders(
     <QueryClientProvider client={client}>
       <I18nProvider locale="es-AR">
         <ProfileScreen
           slug="aguja-fina"
           today={HOY}
-          onBack={jest.fn()}
+          onBack={onBack}
           onContact={onContact}
         />
       </I18nProvider>
     </QueryClientProvider>,
   )
-  return { onContact }
+  return { onContact, onBack }
 }
 
 function pieza(
@@ -212,6 +213,7 @@ describe('la entrada desde una obra', () => {
     offerArtwork({
       portfolioItemId,
       professionalSlug: 'aguja-fina',
+      scope: 'explore',
       mediaPath: `aguja-fina/${portfolioItemId}/lg.webp`,
       blurhash: null,
       aspectRatio: 0.8,
@@ -260,6 +262,7 @@ describe('la entrada desde una obra', () => {
     offerArtwork({
       portfolioItemId: 'tocada',
       professionalSlug: 'otro-artista',
+      scope: 'explore',
       mediaPath: 'otro-artista/tocada/lg.webp',
       blurhash: null,
       aspectRatio: 0.8,
@@ -278,5 +281,33 @@ describe('la entrada desde una obra', () => {
         includeHiddenElements: true,
       }),
     ).toBeNull()
+  })
+})
+
+describe('la salida del perfil', () => {
+  it('tiene una salida visible, no solo el gesto del sistema', async () => {
+    // navigation.md §6: una pantalla cuya única salida es el gesto del sistema
+    // operativo es un defecto. El perfil se abre a pantalla completa y sin
+    // barra, así que la salida tiene que estar en la pantalla.
+    fetchMock.mockResolvedValue(data({}, [pieza('una')]))
+    const { onBack } = render()
+
+    await waitFor(() =>
+      expect(screen.getByTestId('profile-content')).toBeTruthy(),
+    )
+
+    fireEvent.press(screen.getByTestId('profile-back'))
+    expect(onBack).toHaveBeenCalled()
+  })
+
+  it('no duplica la salida cuando el error ya trae la suya', async () => {
+    fetchMock.mockRejectedValue(new Error('permission denied for table'))
+    render()
+
+    await waitFor(() =>
+      expect(screen.getByTestId('profile-error')).toBeTruthy(),
+    )
+    // Dos "Volver" no son dos salidas: son una pregunta sobre cuál hace qué.
+    expect(screen.queryByTestId('profile-back')).toBeNull()
   })
 })

@@ -21,7 +21,7 @@
  */
 
 import { Image } from 'expo-image'
-import { memo, useRef } from 'react'
+import { memo } from 'react'
 import { ScrollView, View } from 'react-native'
 
 import { findLocation, roundDistanceKm } from '@mesh/domain'
@@ -39,6 +39,7 @@ import {
 import { FixtureBadge } from '@/components/FixtureBadge.tsx'
 import { ratioOf } from '@/features/transitions/geometry.ts'
 import { openArtwork } from '@/features/transitions/openArtwork.ts'
+import { useArtworkAnchor } from '@/features/transitions/useArtworkAnchor.ts'
 import { useT } from '@/i18n/I18nProvider.tsx'
 import type { TranslationKey } from '@/i18n/index.ts'
 
@@ -55,6 +56,8 @@ export interface ArtistCardProps {
   /** `null` cuando falta la ubicación de alguna de las dos puntas. */
   distanceKm: number | null
   onPress: () => void
+  /** La obra del carrusel que está volviendo a su lugar, si es de esta tarjeta. */
+  hiddenPieceId?: string | null
   testID?: string
 }
 
@@ -62,6 +65,7 @@ function ArtistCardImpl({
   artist,
   distanceKm,
   onPress,
+  hiddenPieceId = null,
   testID,
 }: ArtistCardProps) {
   const t = useT()
@@ -98,6 +102,7 @@ function ArtistCardImpl({
             piece={piece}
             artist={artist}
             onPress={onPress}
+            hidden={piece.id === hiddenPieceId}
           />
         ))}
       </ScrollView>
@@ -158,14 +163,16 @@ function CarouselPiece({
   piece,
   artist,
   onPress,
+  hidden,
 }: {
   piece: ArtistCardData['pieces'][number]
   artist: ArtistCardData
   onPress: () => void
+  hidden: boolean
 }) {
   const t = useT()
   const theme = useTheme()
-  const view = useRef<View | null>(null)
+  const view = useArtworkAnchor('artists', piece.id)
 
   return (
     <Pressable
@@ -179,6 +186,7 @@ function CarouselPiece({
             mediaPath: piece.mediaPath,
             blurhash: piece.blurhash,
             aspectRatio: ratioOf(piece.width, piece.height),
+            scope: 'artists',
           },
           open: onPress,
         })
@@ -193,6 +201,8 @@ function CarouselPiece({
         borderRadius: radius.md,
         overflow: 'hidden',
         backgroundColor: theme.surfaceRaised,
+        // El hueco mientras la copia vuelve. Ver features/transitions.
+        opacity: hidden ? 0 : 1,
       }}
     >
       <Image

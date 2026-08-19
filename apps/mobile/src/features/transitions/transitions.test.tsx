@@ -22,12 +22,22 @@ import {
   openArtwork,
   type ArtworkIdentity,
 } from './openArtwork.ts'
+import { __resetArtworkRegistry, registerArtwork } from './artworkRegistry.ts'
 import {
   __resetArtworkHandoff,
+  __resetReturnHandoff,
+  armReturn,
   claimArtwork,
+  claimReturn,
   offerArtwork,
+  releaseReturn,
+  subscribeReturn,
 } from './sharedArtwork.ts'
-import { useArtworkEntrance, type ArtworkEntrance } from './useArtworkEntrance.ts'
+import {
+  useArtworkEntrance,
+  type ArtworkEntrance,
+} from './useArtworkEntrance.ts'
+import { useArtworkReturn, type ArtworkReturn } from './useArtworkReturn.ts'
 
 const OBRA: ArtworkIdentity = {
   portfolioItemId: 'pieza-1',
@@ -35,6 +45,7 @@ const OBRA: ArtworkIdentity = {
   mediaPath: 'a-mano/pieza-1/lg.webp',
   blurhash: null,
   aspectRatio: 0.8,
+  scope: 'explore',
 }
 
 /** Una vista que se puede medir, como en la arquitectura nueva y en web. */
@@ -49,6 +60,8 @@ function vistaMedible(rect: {
 
 beforeEach(() => {
   __resetArtworkHandoff()
+  __resetReturnHandoff()
+  __resetArtworkRegistry()
 })
 
 describe('tocar una obra', () => {
@@ -263,5 +276,180 @@ describe('la entrada del perfil', () => {
     expect(ultima?.growing).toBeNull()
     // Pero la obra tocada sigue siendo el hero.
     expect(ultima?.heroPieceId).toBe('pieza-1')
+  })
+})
+
+const VUELTA = {
+  portfolioItemId: 'pieza-1',
+  mediaPath: 'a-mano/pieza-1/lg.webp',
+  blurhash: null,
+  aspectRatio: 0.8,
+  from: { x: 20, y: 16, width: 350, height: 437 },
+  scope: 'explore',
+} as const
+
+describe('el pasamanos de vuelta', () => {
+  it('nadie se entera hasta que el perfil se va', () => {
+    const aviso = jest.fn()
+    subscribeReturn(aviso)
+    armReturn(VUELTA)
+
+    // Armar no es soltar: mientras el perfil está en pantalla no hay vuelta.
+    expect(aviso).not.toHaveBeenCalled()
+    expect(claimReturn('explore')).toBeNull()
+  })
+
+  it('al irse el perfil, la superficie que corresponde la recibe', () => {
+    const aviso = jest.fn()
+    subscribeReturn(aviso)
+    armReturn(VUELTA)
+    releaseReturn()
+
+    expect(aviso).toHaveBeenCalledTimes(1)
+    expect(claimReturn('explore')?.portfolioItemId).toBe('pieza-1')
+  })
+
+  it('la otra superficie no se la queda', () => {
+    // Con las pestañas montadas todas a la vez, sin el candado la vuelta a
+    // Inicio se la podría llevar Explorar, que nadie está mirando.
+    armReturn(VUELTA)
+    releaseReturn()
+    expect(claimReturn('artists')).toBeNull()
+  })
+
+  it('se reclama una sola vez', () => {
+    armReturn(VUELTA)
+    releaseReturn()
+    expect(claimReturn('explore')).not.toBeNull()
+    expect(claimReturn('explore')).toBeNull()
+  })
+
+  it('desarmar deja al perfil sin vuelta', () => {
+    // Es lo que pasa cuando el hero se scrollea fuera de la pantalla: volver
+    // desde ahí haría entrar la obra volando desde afuera.
+    armReturn(VUELTA)
+    armReturn(null)
+    releaseReturn()
+    expect(claimReturn('explore')).toBeNull()
+  })
+
+  it('irse sin nada armado no avisa a nadie', () => {
+    const aviso = jest.fn()
+    subscribeReturn(aviso)
+    releaseReturn()
+    expect(aviso).not.toHaveBeenCalled()
+  })
+})
+
+describe('la vuelta, del lado de la grilla', () => {
+  let ultima: ArtworkReturn | null = null
+
+  function Sonda() {
+    ultima = useArtworkReturn('explore')
+    return null
+  }
+
+  function montar() {
+    render(
+      <ThemeProvider>
+        <MotionProvider forceReduceMotion={false}>
+          <Sonda />
+        </MotionProvider>
+      </ThemeProvider>,
+    )
+  }
+
+  beforeEach(() => {
+    ultima = null
+  })
+
+  it('con la tarjeta a la vista, la obra vuelve a su lugar', () => {
+    registerArtwork('explore', 'pieza-1', () => ({
+      x: 20,
+      y: 500,
+      width: 175,
+      height: 219,
+    }))
+    montar()
+
+    act(() => {
+      armReturn(VUELTA)
+      releaseReturn()
+    })
+
+    expect(ultima?.shrinking?.to).toEqual({
+      x: 20,
+      y: 500,
+      width: 175,
+      height: 219,
+    })
+    // Y su lugar queda vacío mientras tanto: si no, la obra se vería dos veces.
+    expect(ultima?.hiddenPieceId).toBe('pieza-1')
+  })
+
+  it('sin la tarjeta montada no anima, y no deja nada escondido', () => {
+    // La grilla scrolleó lejos. Encoger hacia una tarjeta que no existe haría
+    // que el ojo siga la obra hasta la nada.
+    montar()
+
+    act(() => {
+      armReturn(VUELTA)
+      releaseReturn()
+    })
+
+    expect(ultima?.shrinking).toBeNull()
+    expect(ultima?.hiddenPieceId).toBeNull()
+  })
+
+  it('la vuelta de otra superficie no la toma', () => {
+    registerArtwork('explore', 'pieza-1', () => ({
+      x: 20,
+      y: 500,
+      width: 175,
+      height: 219,
+    }))
+    montar()
+
+    act(() => {
+      armReturn({ ...VUELTA, scope: 'artists' })
+      releaseReturn()
+    })
+
+    expect(ultima?.shrinking).toBeNull()
+  })
+
+  it('cuando llega, la tarjeta real vuelve a mostrarse', () => {
+    registerArtwork('explore', 'pieza-1', () => ({
+      x: 20,
+      y: 500,
+      width: 175,
+      height: 219,
+    }))
+    montar()
+
+    act(() => {
+      armReturn(VUELTA)
+      releaseReturn()
+    })
+    expect(ultima?.hiddenPieceId).toBe('pieza-1')
+
+    act(() => {
+      ultima?.onArrived()
+    })
+    expect(ultima?.shrinking).toBeNull()
+    expect(ultima?.hiddenPieceId).toBeNull()
+  })
+
+  it('no anima cuando la tarjeta quedó donde estaba el hero', () => {
+    registerArtwork('explore', 'pieza-1', () => VUELTA.from)
+    montar()
+
+    act(() => {
+      armReturn(VUELTA)
+      releaseReturn()
+    })
+
+    // Moverse cero píxeles no comunica nada y solo suma espera.
+    expect(ultima?.shrinking).toBeNull()
   })
 })

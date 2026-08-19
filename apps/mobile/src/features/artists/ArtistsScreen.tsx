@@ -9,6 +9,9 @@
  * testeado en packages/domain. Sin permiso de ubicación no se ordena y **se
  * dice** — el aviso no es un pedido con culpa, es la explicación de por qué la
  * lista está en el orden en que está.
+ *
+ * La obra que se toca en un carrusel crece hasta ser el perfil, y al volver
+ * encoge hasta su lugar. Ver features/transitions.
  */
 
 import { useQuery } from '@tanstack/react-query'
@@ -26,14 +29,18 @@ import {
   Skeleton,
   Text,
   spacing,
+  useMotion,
   useTheme,
 } from '@/design-system/index.ts'
 import { ErrorView } from '@/components/ErrorView.tsx'
 import { useDeviceLocation } from '@/features/location/useDeviceLocation.ts'
 import { useT } from '@/i18n/I18nProvider.tsx'
 
+import { GrowingArtwork } from '@/features/transitions/GrowingArtwork.tsx'
+import { useArtworkReturn } from '@/features/transitions/useArtworkReturn.ts'
+
 import { ArtistCard } from './ArtistCard.tsx'
-import { fetchArtistGrid } from './queries.ts'
+import { fetchArtistGrid, mediaUrl } from './queries.ts'
 
 export interface ArtistsScreenProps {
   categorySlug: string
@@ -53,6 +60,8 @@ export function ArtistsScreen({
   const theme = useTheme()
   const insets = useSafeAreaInsets()
   const device = useDeviceLocation()
+  const { durationOf } = useMotion()
+  const back = useArtworkReturn('artists')
 
   const artists = useQuery({
     queryKey: ['artist-grid', categorySlug],
@@ -103,6 +112,7 @@ export function ArtistsScreen({
             artist={item}
             distanceKm={distanceKm}
             onPress={() => onOpenArtist(item.slug)}
+            hiddenPieceId={back.hiddenPieceId}
             testID={`artist-${item.slug}`}
           />
         ))}
@@ -111,19 +121,35 @@ export function ArtistsScreen({
   })()
 
   return (
-    <ScrollView
-      style={{ flex: 1, backgroundColor: theme.surface }}
-      contentContainerStyle={{
-        paddingTop: insets.top + spacing.sm,
-        paddingBottom: insets.bottom + spacing.xxl,
-      }}
-      testID="screen-artists"
-    >
-      {device.status === 'unrequested' || device.status === 'denied' ? (
-        <LocationPrompt onRequest={device.request} />
+    // La raíz existe por la vuelta: la copia se posiciona en coordenadas de
+    // ventana, y adentro del ScrollView quedaría atada al scroll.
+    <View style={{ flex: 1, backgroundColor: theme.surface }}>
+      <ScrollView
+        style={{ flex: 1 }}
+        contentContainerStyle={{
+          paddingTop: insets.top + spacing.sm,
+          paddingBottom: insets.bottom + spacing.xxl,
+        }}
+        testID="screen-artists"
+      >
+        {device.status === 'unrequested' || device.status === 'denied' ? (
+          <LocationPrompt onRequest={device.request} />
+        ) : null}
+        {body}
+      </ScrollView>
+
+      {back.shrinking != null ? (
+        <GrowingArtwork
+          from={back.shrinking.from}
+          to={back.shrinking.to}
+          source={mediaUrl(back.shrinking.mediaPath, 'md')}
+          blurhash={back.shrinking.blurhash}
+          durationMs={durationOf('standard')}
+          onArrived={back.onArrived}
+          testID="artists-returning-artwork"
+        />
       ) : null}
-      {body}
-    </ScrollView>
+    </View>
   )
 }
 

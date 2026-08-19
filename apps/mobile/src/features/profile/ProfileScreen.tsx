@@ -13,17 +13,32 @@
  * o del carrusel de Inicio— esa obra crece hasta ocupar el hero, y el hero es
  * ella y no la destacada por el artista. Si creciera una y arriba apareciera
  * otra, la transición habría contado una mentira sobre qué se estaba abriendo.
+ *
+ * **Y la salida.** Mientras el perfil está en pantalla deja lista la vuelta con
+ * la posición actual de su hero —por eso el scroll la actualiza— y al
+ * desmontarse la suelta. No se intercepta ningún "atrás": el desmontaje pasa
+ * igual con el botón, con el gesto de borde y con el botón físico de Android.
+ *
  * Ver features/transitions y D-011.
  */
 
 import { Image } from 'expo-image'
 import { useQuery } from '@tanstack/react-query'
-import { ScrollView, View, useWindowDimensions } from 'react-native'
+import { useCallback, useRef } from 'react'
+import {
+  ScrollView,
+  View,
+  useWindowDimensions,
+  type NativeScrollEvent,
+} from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import {
   Box,
   Button,
+  HAIRLINE,
+  MIN_TOUCH_TARGET,
+  Pressable,
   SCREEN_GUTTER,
   Skeleton,
   Tag,
@@ -41,7 +56,7 @@ import { mediaUrl } from '@/features/discovery/queries.ts'
 import { GrowingArtwork } from '@/features/transitions/GrowingArtwork.tsx'
 import { ratioOf } from '@/features/transitions/geometry.ts'
 import { useArtworkEntrance } from '@/features/transitions/useArtworkEntrance.ts'
-import { useI18n } from '@/i18n/I18nProvider.tsx'
+import { useI18n, useT } from '@/i18n/I18nProvider.tsx'
 import type { TranslationKey } from '@/i18n/index.ts'
 
 import { formatDate, formatMoney, isAvailabilityStale } from './format.ts'
@@ -69,10 +84,38 @@ export function ProfileScreen({
   const { durationOf } = useMotion()
   const entrance = useArtworkEntrance(slug)
 
+  // El hero que se está mostrando y cuánto se scrolleó: las dos cosas que
+  // definen desde dónde tiene que volver la obra.
+  const heroShown = useRef<PortfolioPiece | null>(null)
+  const scrollY = useRef(0)
+
+  const { armReturnTo } = entrance
+  const rearmReturn = useCallback(() => {
+    const piece = heroShown.current
+    armReturnTo(
+      piece == null
+        ? null
+        : {
+            portfolioItemId: piece.id,
+            mediaPath: piece.mediaPath,
+            blurhash: piece.blurhash,
+            width: piece.width,
+            height: piece.height,
+            scrollY: scrollY.current,
+          },
+    )
+  }, [armReturnTo])
+
   const query = useQuery({
     queryKey: ['profile', slug],
     queryFn: () => fetchProfile(slug),
   })
+
+  // Los estados de error traen su propia salida adentro de `ErrorView`. Dos
+  // "Volver" en la misma pantalla no son dos salidas: son una pregunta sobre
+  // cuál de las dos hace qué.
+  const bodyHasOwnBack =
+    query.error != null || (!query.isPending && query.data == null)
 
   const body = (() => {
     if (query.error != null) {
@@ -116,9 +159,13 @@ export function ProfileScreen({
       entrance.heroPieceId == null
         ? undefined
         : pieces.find((piece) => piece.id === entrance.heroPieceId)
-    const hero =
-      tocada ?? pieces.find((piece) => piece.isFeatured) ?? pieces[0]
+    const hero = tocada ?? pieces.find((piece) => piece.isFeatured) ?? pieces[0]
     const rest = pieces.filter((piece) => piece.id !== hero?.id)
+
+    // Se anota cuál es el hero para que la vuelta sepa qué obra devolver. Es un
+    // ref y no estado: cambiarlo no tiene que redibujar nada.
+    heroShown.current = hero ?? null
+    rearmReturn()
 
     return (
       <Box gap="lg" testID="profile-content">
@@ -273,10 +320,28 @@ export function ProfileScreen({
           paddingTop: insets.top + spacing.md,
           paddingBottom: insets.bottom + spacing.xxl,
         }}
+        // El hero se mueve con el scroll, así que la vuelta se rearma. Sin
+        // esto, cerrar el perfil desde abajo mandaría la obra a encoger desde
+        // un lugar donde ya no está.
+        onScroll={({ nativeEvent }: { nativeEvent: NativeScrollEvent }) => {
+          scrollY.current = nativeEvent.contentOffset.y
+          rearmReturn()
+        }}
+        scrollEventThrottle={64}
         testID="screen-profile"
       >
         {body}
       </ScrollView>
+
+      {/* La salida.
+          Un perfil se abre a pantalla completa y sin barra: hasta acá la única
+          forma de volver era el gesto del sistema, y navigation.md §6 dice que
+          una pantalla cuya única salida es ese gesto es un defecto. Va sobre la
+          obra porque no hay encabezado donde ponerlo, y con fondo opaco porque
+          el contraste de un texto sobre una foto no se puede verificar. */}
+      {bodyHasOwnBack ? null : (
+        <BackControl onPress={onBack} insetTop={insets.top} />
+      )}
 
       {entrance.growing != null ? (
         <GrowingArtwork
@@ -313,13 +378,50 @@ function Section({
   )
 }
 
-function Hero({
-  piece,
-  hidden,
+/**
+ * Volver.
+ *
+ * Sin ícono: MESH no tiene set propio, y uno genérico de librería al lado de la
+ * tipografía de marca se lee como pegado — la misma razón por la que la barra
+ * de pestañas es solo texto. La palabra ocupa más que una flecha y dice
+ * exactamente lo que hace.
+ */
+function BackControl({
+  onPress,
+  insetTop,
 }: {
-  piece: PortfolioPiece
-  hidden: boolean
+  onPress: () => void
+  insetTop: number
 }) {
+  const t = useT()
+  const theme = useTheme()
+
+  return (
+    <Pressable
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={t('profile.back')}
+      testID="profile-back"
+      style={{
+        position: 'absolute',
+        top: insetTop + spacing.sm,
+        left: SCREEN_GUTTER,
+        minHeight: MIN_TOUCH_TARGET,
+        justifyContent: 'center',
+        paddingHorizontal: spacing.sm,
+        borderRadius: radius.full,
+        borderWidth: HAIRLINE,
+        borderColor: theme.borderSubtle,
+        backgroundColor: theme.surface,
+        zIndex: 2,
+      }}
+    >
+      <Text role="label">{t('profile.back')}</Text>
+    </Pressable>
+  )
+}
+
+function Hero({ piece, hidden }: { piece: PortfolioPiece; hidden: boolean }) {
   const theme = useTheme()
   const aspectRatio = ratioOf(piece.width, piece.height)
 

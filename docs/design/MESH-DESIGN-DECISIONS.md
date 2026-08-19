@@ -453,12 +453,41 @@ sola vista durante 280ms: el costo se paga, la deformación no.
 "animar más rápido", es no animar, que es lo que pidió quien configuró el
 sistema así.
 
+**La vuelta existe, y no es simétrica.** Al ir, la obra está en pantalla y se
+mide; al volver, el destino es una grilla que quedó atrás y pudo scrollearse,
+desmontar la tarjeta, o ser otra pestaña. Tres decisiones más:
+
+- **Cada obra visible se anota en un registro mientras está montada.** No se
+  guarda su posición: se guarda que sabe medirse. La posición se pregunta en el
+  momento de volver, porque la de hace tres segundos ya no sirve. El registro
+  está separado por superficie, porque las pestañas quedan montadas todas a la
+  vez y la misma obra puede estar en Explorar y en el carrusel de Inicio.
+- **No se intercepta ningún "atrás".** Hay tres —el botón, el gesto de borde de
+  iOS, el botón físico de Android— y atajarlos con `beforeRemove` es frágil, y
+  pelea con el gesto justo cuando la pantalla ya se movió con el dedo. En vez de
+  eso, el perfil **arma** la vuelta mientras está en pantalla y la **suelta al
+  desmontarse**, que es lo que pasa con los tres. El desmontaje es la señal.
+- **Tres motivos para no animar, y los tres terminan en la navegación de
+  siempre:** la tarjeta ya no está montada, está montada pero fuera de la
+  ventana, o quedó donde estaba el hero. Una obra que encoge hacia un punto que
+  no se ve es peor que ninguna animación — el ojo la sigue hasta la nada.
+
+**El perfil ganó una salida visible.** No la tenía: se abre a pantalla completa
+y sin barra, y hasta acá la única forma de volver era el gesto del sistema.
+`navigation.md` §6 ya decía que eso es un defecto, y recién se vio al necesitar
+un lugar desde donde disparar la vuelta. Es un botón con la palabra "Volver" y
+sin ícono, por la misma razón que la barra de pestañas no tiene íconos: MESH no
+tiene set propio. En los estados de error no aparece — `ErrorView` ya trae su
+salida, y dos "Volver" no son dos salidas, son una pregunta sobre cuál hace qué.
+
 **Lo que no hace, y hay que decirlo.**
 
-- **No hay transición al volver.** Salir del perfil es la navegación de siempre.
-  Invertirla necesita que la obra de origen siga montada y en el mismo lugar, y
-  con la grilla scrolleada eso no se puede garantizar sin registrar cada tarjeta
-  visible. Se puede hacer; no está hecho.
+- **Al volver se ven dos obras por un instante.** El perfil se funde mientras la
+  copia encoge, así que durante ~280ms hay un hero desvaneciéndose arriba y la
+  obra viajando hacia su lugar. Coinciden en el fotograma cero, que es lo que
+  sostiene la ilusión, pero se separan en el medio. Esconder el hero del perfil
+  al salir requeriría saber cuándo empieza el pop, que es justamente lo que se
+  decidió no interceptar.
 - **Desde el carrusel de Inicio la obra cambia de forma en el camino.** El
   carrusel recorta todo a 4:5 para que la fila quede pareja y el hero respeta la
   forma real. Se ve como que la obra se "desrecorta", que es honesto —está

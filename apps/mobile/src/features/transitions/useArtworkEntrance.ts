@@ -11,14 +11,20 @@
  * geometría.
  */
 
-import { useCallback, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useWindowDimensions } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import { SCREEN_GUTTER, spacing } from '@/design-system/index.ts'
 
-import { heroRect, isWorthAnimating, type Rect } from './geometry.ts'
-import { claimArtwork, type ArtworkHandoff } from './sharedArtwork.ts'
+import type { ArtworkScope } from './artworkRegistry.ts'
+import { heroRect, isWorthAnimating, ratioOf, type Rect } from './geometry.ts'
+import {
+  armReturn,
+  claimArtwork,
+  releaseReturn,
+  type ArtworkHandoff,
+} from './sharedArtwork.ts'
 
 export interface ArtworkEntrance {
   /**
@@ -36,10 +42,30 @@ export interface ArtworkEntrance {
   readonly heroPieceId: string | null
   /** El hero real puede aparecer: la copia terminó su viaje. */
   readonly onArrived: () => void
+  /**
+   * Deja lista la vuelta con el hero que se está mostrando.
+   *
+   * Lo llama el perfil cada vez que sabe dónde está su hero — al montarlo y en
+   * cada scroll. `null` desarma, que es lo correcto cuando el hero se fue de la
+   * pantalla: volver desde una posición que ya no se ve haría que la obra salga
+   * volando desde afuera.
+   */
+  readonly armReturnTo: (hero: ReturnableHero | null) => void
+}
+
+/** Lo que el perfil sabe del hero que está mostrando. */
+export interface ReturnableHero {
+  readonly portfolioItemId: string
+  readonly mediaPath: string
+  readonly blurhash: string | null
+  readonly width: number | null
+  readonly height: number | null
+  /** Cuánto scrolleó el perfil: el hero está más arriba de donde se dibujó. */
+  readonly scrollY: number
 }
 
 export function useArtworkEntrance(professionalSlug: string): ArtworkEntrance {
-  const { width } = useWindowDimensions()
+  const { width, height } = useWindowDimensions()
   const insets = useSafeAreaInsets()
 
   // `useState` con inicializador perezoso y no `useEffect`: el reclamo tiene
@@ -54,8 +80,52 @@ export function useArtworkEntrance(professionalSlug: string): ArtworkEntrance {
     setArrived(true)
   }, [])
 
+  // De qué superficie se vino, y por lo tanto a cuál se vuelve. Sin ida no hay
+  // vuelta: llegar por un chat o por un enlace no deja a dónde encoger.
+  const scope: ArtworkScope | null = claimed?.scope ?? null
+
+  const armReturnTo = useCallback(
+    (hero: ReturnableHero | null) => {
+      if (hero == null || scope == null) {
+        armReturn(null)
+        return
+      }
+
+      const dibujado = heroRect({
+        screenWidth: width,
+        insetTop: insets.top,
+        aspectRatio: ratioOf(hero.width, hero.height),
+        gutter: SCREEN_GUTTER,
+        topSpacing: spacing.md,
+      })
+      const enPantalla: Rect = { ...dibujado, y: dibujado.y - hero.scrollY }
+
+      // Un hero scrolleado fuera de la ventana no sirve como origen: la obra
+      // entraría volando desde arriba, que no explica nada.
+      if (enPantalla.y + enPantalla.height <= 0 || enPantalla.y >= height) {
+        armReturn(null)
+        return
+      }
+
+      armReturn({
+        portfolioItemId: hero.portfolioItemId,
+        mediaPath: hero.mediaPath,
+        blurhash: hero.blurhash,
+        aspectRatio: ratioOf(hero.width, hero.height),
+        from: enPantalla,
+        scope,
+      })
+    },
+    [scope, width, height, insets.top],
+  )
+
+  // Irse de la pantalla es desmontarse, y pasa igual con el botón, con el
+  // gesto de borde y con el botón físico de Android. Por eso el desmontaje es
+  // la señal: no hay que interceptar ninguno de los tres.
+  useEffect(() => releaseReturn, [])
+
   if (claimed == null) {
-    return { growing: null, heroPieceId: null, onArrived }
+    return { growing: null, heroPieceId: null, onArrived, armReturnTo }
   }
 
   const to = heroRect({
@@ -72,8 +142,8 @@ export function useArtworkEntrance(professionalSlug: string): ArtworkEntrance {
   const heroPieceId = claimed.portfolioItemId
 
   if (arrived || !isWorthAnimating(claimed.from, to)) {
-    return { growing: null, heroPieceId, onArrived }
+    return { growing: null, heroPieceId, onArrived, armReturnTo }
   }
 
-  return { growing: { ...claimed, to }, heroPieceId, onArrived }
+  return { growing: { ...claimed, to }, heroPieceId, onArrived, armReturnTo }
 }

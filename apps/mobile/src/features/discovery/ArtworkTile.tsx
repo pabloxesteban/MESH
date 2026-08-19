@@ -16,7 +16,7 @@
  */
 
 import { Image } from 'expo-image'
-import { memo, useRef } from 'react'
+import { memo } from 'react'
 import { View } from 'react-native'
 
 import {
@@ -31,19 +31,27 @@ import { useT } from '@/i18n/I18nProvider.tsx'
 
 import { ratioOf } from '@/features/transitions/geometry.ts'
 import { openArtwork } from '@/features/transitions/openArtwork.ts'
+import { useArtworkAnchor } from '@/features/transitions/useArtworkAnchor.ts'
 
 import { mediaUrl, type FeedItem } from './queries.ts'
 
 export interface ArtworkTileProps {
   item: FeedItem
   onPress: () => void
+  /** Escondida mientras la obra vuelve a su lugar. Ver features/transitions. */
+  hidden?: boolean
   testID?: string
 }
 
-function ArtworkTileImpl({ item, onPress, testID }: ArtworkTileProps) {
+function ArtworkTileImpl({
+  item,
+  onPress,
+  hidden = false,
+  testID,
+}: ArtworkTileProps) {
   const theme = useTheme()
   const t = useT()
-  const view = useRef<View | null>(null)
+  const view = useArtworkAnchor('explore', item.portfolioItemId)
 
   const aspectRatio = ratioOf(item.mediaWidth, item.mediaHeight)
 
@@ -62,6 +70,7 @@ function ArtworkTileImpl({ item, onPress, testID }: ArtworkTileProps) {
             mediaPath: item.mediaPath,
             blurhash: item.blurhash,
             aspectRatio,
+            scope: 'explore',
           },
           open: onPress,
         })
@@ -82,6 +91,9 @@ function ArtworkTileImpl({ item, onPress, testID }: ArtworkTileProps) {
         borderRadius: radius.md,
         overflow: 'hidden',
         backgroundColor: theme.surfaceRaised,
+        // Mientras la copia viaja de vuelta, el hueco: si no, la obra se vería
+        // dos veces y la transición mostraría el truco justo al final.
+        opacity: hidden ? 0 : 1,
       }}
     >
       <Image

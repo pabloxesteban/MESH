@@ -32,6 +32,8 @@ const GAP = spacing.xxs
 export interface ArtworkGridProps {
   items: readonly FeedItem[]
   onOpen: (item: FeedItem) => void
+  /** La obra que está volviendo a su lugar, y por eso no se dibuja todavía. */
+  hiddenPieceId?: string | null
 }
 
 /**
@@ -67,7 +69,11 @@ export function splitIntoColumns(
   return [left, right]
 }
 
-export function ArtworkGrid({ items, onOpen }: ArtworkGridProps) {
+export function ArtworkGrid({
+  items,
+  onOpen,
+  hiddenPieceId = null,
+}: ArtworkGridProps) {
   const [left, right] = useMemo(() => splitIntoColumns(items), [items])
 
   return (
@@ -81,6 +87,7 @@ export function ArtworkGrid({ items, onOpen }: ArtworkGridProps) {
             key={item.portfolioItemId}
             item={item}
             onPress={() => onOpen(item)}
+            hidden={item.portfolioItemId === hiddenPieceId}
             testID={`discovery-tile-${item.portfolioItemId}`}
           />
         ))}
@@ -91,6 +98,7 @@ export function ArtworkGrid({ items, onOpen }: ArtworkGridProps) {
             key={item.portfolioItemId}
             item={item}
             onPress={() => onOpen(item)}
+            hidden={item.portfolioItemId === hiddenPieceId}
             testID={`discovery-tile-${item.portfolioItemId}`}
           />
         ))}
