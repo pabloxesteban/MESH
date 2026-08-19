@@ -1,10 +1,10 @@
 /**
  * Perfil: todo lo tuyo en un lugar.
  *
- * Nombre, alcance de la búsqueda, tema de la app, y los accesos a "Tu gusto" y
- * —si ofrecés un servicio— "Tu estudio". Esas dos dejaron de ser pestañas:
- * son cosas que se visitan cada tanto, no cada sesión, y una barra de seis
- * pestañas hace que ninguna se lea.
+ * Nombre, alcance de la búsqueda, tema de la app, y —si ofrecés un servicio—
+ * el acceso a "Tu estudio". El estudio no es una pestaña para quien busca: es
+ * algo que se visita cada tanto, no cada sesión, y una barra de seis pestañas
+ * hace que ninguna se lea.
  *
  * El radio de búsqueda es la única preferencia que cambia resultados, así que
  * dice explícitamente qué NO hace: nunca esconde a alguien que no publicó
@@ -47,13 +47,11 @@ export interface AccountScreenProps {
   /** Como el resto de las pantallas: la sesión entra por prop, no por hook.
       Así el preview puede montarla sin `SessionProvider`. */
   userId: string | null
-  onOpenTaste: () => void
   onOpenStudio: () => void
 }
 
 export function AccountScreen({
   userId,
-  onOpenTaste,
   onOpenStudio,
 }: AccountScreenProps) {
   const t = useT()
@@ -174,13 +172,6 @@ export function AccountScreen({
           <Text role="label" color="textSecondary">
             {t('account.more')}
           </Text>
-          <Button
-            label={t('account.taste')}
-            variant="secondary"
-            onPress={onOpenTaste}
-            fullWidth
-            testID="account-taste"
-          />
           {/* El estudio se ofrece siempre, no solo a quien eligió "ofrezco":
               los roles no son excluyentes, y alguien que entró buscando puede
               recibir su código después. */}

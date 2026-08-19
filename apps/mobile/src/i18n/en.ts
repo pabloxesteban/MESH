@@ -73,6 +73,19 @@ export const en: Readonly<Record<TranslationKey, string>> = {
   'discovery.action.save': 'Save',
   'discovery.action.pass': 'Pass',
   'discovery.action.undo': 'Undo',
+  'artists.card.open': "Open {nombre}'s profile",
+  'artists.card.km': '{km} km away',
+  'artists.card.noLocation': 'Location not shared',
+  'artists.location.body':
+    'With your location on we sort by distance and tell you how far each one is. Without it the list still shows, in another order.',
+  'artists.location.action': 'Turn on my location',
+  'artists.empty.title': 'Nobody has signed up yet',
+  'artists.empty.body':
+    'Once tattooers register, this is where you will see the ones working near you. In the meantime you can browse work.',
+  'artists.empty.action': 'Go explore',
+  'explore.byPhotos': 'Search with a photo',
+  'explore.title': 'Explore',
+  'explore.subtitle': 'All the work, near or far.',
   'discovery.tile.open': "Open {nombre}'s work",
   'discovery.mode.grid': 'Grid',
   'discovery.mode.deck': 'One at a time',
@@ -91,44 +104,8 @@ export const en: Readonly<Record<TranslationKey, string>> = {
   'discovery.saved': 'Saved',
   'discovery.passed': 'You passed on this work',
 
-  'taste.progress.title': "We're still getting to know you",
-  'taste.progress.body':
-    'With {faltan} more decisions we can build your profile. {total} in total, and that is not an arbitrary number: fewer than that is not enough to say anything honest.',
-  'taste.progress.empty.title': 'Your profile does not exist yet',
-  'taste.progress.empty.body':
-    'It is built only from what you mark. There is no questionnaire and no personality test.',
-  'taste.progress.action': 'Keep exploring',
-  'taste.ready.title': 'Your taste',
-  'taste.ready.body':
-    'This came from {n} of your decisions. Under each style is where it came from.',
-  'taste.evidence.likes': '{n} likes',
-  'taste.evidence.saves': '{n} saves',
-  'taste.strength.high': 'Very present in what you choose',
-  'taste.strength.medium': 'Present in what you choose',
-  'taste.strength.low': 'Barely present in what you choose',
-  'taste.reset.explanation':
-    'You can delete everything we learned. Your decisions and your profile go, and the deck starts over.',
-  'taste.reset.action': 'Delete my taste',
-  'taste.reset.confirm': 'Tap again to delete it',
 
-  'matches.title': 'Chats',
-  'matches.band.strong': 'Strong fit',
-  'matches.band.good': 'Good fit',
-  'matches.band.possible': 'Possible fit',
-  'matches.notReady.title': 'Not yet',
-  'matches.notReady.body':
-    'We need {faltan} more decisions from you before we can say anything worth saying. Before that it would be guessing.',
-  'matches.notReady.action': 'Go to the deck',
-  'matches.empty.title': "We haven't found anyone who fits yet",
-  'matches.empty.body':
-    'Keep exploring and we will understand your taste better. We would rather have a short honest list than a padded one.',
-  'matches.empty.action': 'Keep exploring',
 
-  'match.reason.markedStyle': 'You marked several {termino} pieces',
-  'match.reason.worksBoth': 'Works {termino} and {termino2}',
-  'match.reason.location': 'In {termino}',
-  'match.reason.price': 'Their range fits your budget',
-  'match.reason.availability': 'Taking appointments',
 
   'profile.styles': 'Works',
   'profile.price': 'Price range',
@@ -318,15 +295,6 @@ export const en: Readonly<Record<TranslationKey, string>> = {
     "We couldn't recognize the style in that photo. Try another one.",
   'quickSearch.uploadsFailed':
     'We uploaded {ok} of {total} photos. Searching with what we have.',
-  'matches.notReady.searchByPhotos': 'Or search by photos',
-  'matches.empty.searchByPhotos': 'Try different photos',
-  'matches.location.prompt.title': 'How far away are they?',
-  'matches.location.prompt.body':
-    'Turn on your location and we\'ll show the real distance to each published studio.',
-  'matches.location.prompt.action': 'Turn on location',
-  'matches.location.prompt.denied':
-    "We couldn't use your location. You can turn it on in Settings anytime.",
-  'matches.distance': '≈{km} km',
   'onboarding.title': "What brings you here?",
   'onboarding.body':
     "We only ask once. Whatever you pick, you'll still be able to do both.",
@@ -340,6 +308,7 @@ export const en: Readonly<Record<TranslationKey, string>> = {
   'tabs.search': 'Search',
   'tabs.matches': 'Matches',
   'tabs.profile': 'Profile',
+  'tabs.explore': 'Explore',
   'tabs.studio': 'Studio',
   'tabs.chats': 'Chats',
   'demand.title': 'People looking',
@@ -390,13 +359,13 @@ export const en: Readonly<Record<TranslationKey, string>> = {
   'account.radius.km': '{km} km',
   'account.radius.unlimited': 'No limit',
   'account.more': 'More',
-  'account.taste': 'Your taste',
   'account.studio': 'Your studio',
   'account.saved': 'Saved',
   'chat.title': 'Messages',
   'chat.empty.title': "You haven't written to anyone yet",
   'chat.empty.body':
     'When you message someone from their profile, the conversation shows up here.',
+  'chat.empty.action': 'See artists near you',
   'chat.open': 'Open chat',
   'chat.send': 'Send',
   'chat.placeholder': 'Write your message',

@@ -134,9 +134,3 @@ export function mediaUrl(path: string, _size: 'sm' | 'md' | 'lg'): string {
   // Un solo tamaño horneado: el preview no tiene de dónde bajar tres.
   return previewMediaUrl(path)
 }
-
-/** Cuántas decisiones hay en esta sesión de preview. */
-export async function fetchDecisionCount(): Promise<number> {
-  const { previewInteractions } = await import('../../../preview/store.ts')
-  return previewInteractions().length
-}

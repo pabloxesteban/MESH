@@ -1,11 +1,13 @@
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { fireEvent, screen, waitFor } from '@testing-library/react-native'
+/**
+ * La cola de interacciones.
+ *
+ * Lo que quedó de este archivo cuando el mazo salió de la app de quien busca
+ * (ver MESH-DESIGN-DECISIONS D-010): la cola offline sigue siendo
+ * infraestructura y sigue verificada. Los tests del mazo se fueron con el mazo.
+ */
 
-import { renderWithProviders } from '@/design-system/test-utils.tsx'
-import { I18nProvider } from '@/i18n/I18nProvider.tsx'
 import type { KeyValueStore } from '@/data/kv.ts'
 
-import { DeckScreen } from './DeckScreen.tsx'
 import {
   __QUEUE_KEY as QUEUE_KEY,
   enqueue,
@@ -87,19 +89,6 @@ beforeEach(() => {
     delete: () => ({ eq: () => ({ eq: async () => ({ error: null }) }) }),
   })
 })
-
-function renderDeck() {
-  const client = new QueryClient({
-    defaultOptions: { queries: { retry: false, gcTime: 0 } },
-  })
-  return renderWithProviders(
-    <QueryClientProvider client={client}>
-      <I18nProvider locale="es-AR">
-        <DeckScreen categorySlug="tattoo" userId="user-1" />
-      </I18nProvider>
-    </QueryClientProvider>,
-  )
-}
 
 describe('la cola de interacciones', () => {
   it('encola antes de intentar la red', async () => {
@@ -214,117 +203,5 @@ describe('la cola de interacciones', () => {
     const store = memoryStore()
     store.data.set(QUEUE_KEY, '{esto no es json')
     expect(await readQueue(store)).toEqual([])
-  })
-})
-
-describe('DeckScreen', () => {
-  it('muestra el skeleton mientras carga y después las tarjetas', async () => {
-    renderDeck()
-    expect(screen.getByTestId('deck-loading')).toBeTruthy()
-    await waitFor(() => expect(screen.getByTestId('deck-cards')).toBeTruthy())
-  })
-
-  it('monta como mucho 3 tarjetas', async () => {
-    mockRpc.mockResolvedValue({
-      data: Array.from({ length: 12 }, (_, index) =>
-        feedRow(index, `art-${index % 3}`),
-      ),
-      error: null,
-    })
-    renderDeck()
-    await waitFor(() => expect(screen.getByTestId('deck-cards')).toBeTruthy())
-    // El presupuesto de performance dice 3 montadas. Más tarjetas montadas es
-    // más memoria de imagen sin nada que nadie vea.
-    expect(screen.getAllByLabelText(/Línea fina/).length).toBeLessThanOrEqual(3)
-  })
-
-  it('marca los registros ficticios en la tarjeta, no solo en el perfil', async () => {
-    // El nombre de un fixture ya no lleva prefijo, así que la ÚNICA cosa que
-    // impide leer una tarjeta de prueba como un artista real es esta insignia.
-    // Ver content-policy §4.3.
-    mockRpc.mockResolvedValue({
-      data: [{ ...feedRow(1, 'uno'), professional_is_fixture: true }],
-      error: null,
-    })
-    renderDeck()
-    await waitFor(() => expect(screen.getByTestId('deck-cards')).toBeTruthy())
-    expect(
-      screen.getAllByTestId('artwork-fixture-badge').length,
-    ).toBeGreaterThan(0)
-  })
-
-  it('no marca a un profesional real', async () => {
-    renderDeck()
-    await waitFor(() => expect(screen.getByTestId('deck-cards')).toBeTruthy())
-    expect(screen.queryByTestId('artwork-fixture-badge')).toBeNull()
-  })
-
-  it('tiene un botón con etiqueta por cada gesto', async () => {
-    // El innegociable #6: el swipe nunca es la única forma.
-    renderDeck()
-    await waitFor(() => expect(screen.getByTestId('deck-cards')).toBeTruthy())
-    for (const testID of ['deck-like', 'deck-save', 'deck-pass', 'deck-undo']) {
-      expect(screen.getByTestId(testID)).toBeTruthy()
-    }
-    expect(screen.getByLabelText('Me gusta')).toBeTruthy()
-    expect(screen.getByLabelText('Paso')).toBeTruthy()
-  })
-
-  it('deshacer arranca deshabilitado y se habilita después de decidir', async () => {
-    renderDeck()
-    await waitFor(() => expect(screen.getByTestId('deck-cards')).toBeTruthy())
-
-    const undo = screen.getByTestId('deck-undo')
-    expect(undo.props.accessibilityState.disabled).toBe(true)
-
-    fireEvent.press(screen.getByTestId('deck-pass'))
-    await waitFor(() =>
-      expect(
-        screen.getByTestId('deck-undo').props.accessibilityState.disabled,
-      ).toBe(false),
-    )
-  })
-
-  it('deshacer devuelve la obra al mazo', async () => {
-    // Una decisión de una décima de segundo se equivoca. Sin deshacer, el mazo
-    // castiga el error con contenido perdido.
-    renderDeck()
-    await waitFor(() => expect(screen.getByTestId('deck-cards')).toBeTruthy())
-
-    const primera = screen.getByTestId('deck-card-top').props.accessibilityLabel
-    fireEvent.press(screen.getByTestId('deck-pass'))
-    await waitFor(() =>
-      expect(
-        screen.getByTestId('deck-card-top').props.accessibilityLabel,
-      ).not.toBe(primera),
-    )
-
-    fireEvent.press(screen.getByTestId('deck-undo'))
-    await waitFor(() =>
-      expect(screen.getByTestId('deck-card-top').props.accessibilityLabel).toBe(
-        primera,
-      ),
-    )
-  })
-
-  it('muestra el estado vacío con una salida cuando no queda obra', async () => {
-    mockRpc.mockResolvedValue({ data: [], error: null })
-    renderDeck()
-    await waitFor(() => expect(screen.getByTestId('deck-empty')).toBeTruthy())
-    expect(screen.getByText('Buscar de nuevo')).toBeTruthy()
-  })
-
-  it('muestra error con reintentar y nunca el mensaje crudo', async () => {
-    mockRpc.mockResolvedValue({
-      data: null,
-      error: {
-        code: '42501',
-        message: 'permission denied for table portfolio_items',
-      },
-    })
-    renderDeck()
-    await waitFor(() => expect(screen.getByTestId('deck-error')).toBeTruthy())
-    expect(screen.queryByText(/permission denied/i)).toBeNull()
-    expect(screen.getByText('Reintentar')).toBeTruthy()
   })
 })

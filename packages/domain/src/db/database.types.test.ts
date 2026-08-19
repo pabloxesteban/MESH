@@ -134,7 +134,7 @@ describe('el esquema y el dominio no se separaron', () => {
     // que la suite reporte el archivo, y para que `Reconciliacion` esté usada.
     const reconciliacion = {} as Reconciliacion
     expect(reconciliacion).toBeDefined()
-    expect(KNOWN_TABLES).toHaveLength(20)
+    expect(KNOWN_TABLES).toHaveLength(21)
   })
 
   const enums: ReadonlyArray<

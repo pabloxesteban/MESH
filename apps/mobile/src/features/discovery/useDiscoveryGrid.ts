@@ -34,8 +34,9 @@ export interface GridState {
 export function useDiscoveryGrid(
   categorySlug: string,
   userId: string | null,
+  initialStyle: string | null = null,
 ): GridState {
-  const [activeStyle, setActiveStyle] = useState<string | null>(null)
+  const [activeStyle, setActiveStyle] = useState<string | null>(initialStyle)
 
   const query = useInfiniteQuery({
     queryKey: ['discovery-grid', categorySlug, userId],

@@ -11,6 +11,9 @@
   },
   "include": [
     "app/**/*.ts",
+    "preview-entry.tsx",
+    "preview/**/*.ts",
+    "preview/**/*.tsx",
     "app/**/*.tsx",
     "src/**/*.ts",
     "src/**/*.tsx",

@@ -44,7 +44,7 @@ const deviceMock = jest.requireMock('../location/device.ts') as {
 
 function renderScreen(
   overrides: Partial<{
-    onCreated: (id: string) => void
+    onCreated: (id: string, styleSlug: string) => void
     onCancel: () => void
   }> = {},
 ) {
@@ -111,7 +111,11 @@ describe('QuickSearchScreen', () => {
     )
     fireEvent.press(screen.getByTestId('quick-search-submit'))
 
-    await waitFor(() => expect(onCreated).toHaveBeenCalledWith('proj-1'))
+    // Llega con el estilo detectado: es lo que necesita Explorar para abrir
+    // filtrado. Ver MESH-DESIGN-DECISIONS D-010.
+    await waitFor(() =>
+      expect(onCreated).toHaveBeenCalledWith('proj-1', 'fine-line'),
+    )
     expect(classifyMock).toHaveBeenCalledWith({
       uri: 'file:///a.jpg',
       categorySlug: 'tattoo',
@@ -157,7 +161,7 @@ describe('QuickSearchScreen', () => {
     expect(onCreated).not.toHaveBeenCalled()
 
     fireEvent.press(screen.getByTestId('quick-search-continue'))
-    expect(onCreated).toHaveBeenCalledWith('proj-1')
+    expect(onCreated).toHaveBeenCalledWith('proj-1', 'fine-line')
   })
 
   it('un error muestra un mensaje, no la excepción cruda', async () => {

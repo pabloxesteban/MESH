@@ -55,10 +55,17 @@ Y la consecuencia estructural: **las pestañas dependen de la intención.**
 
 | | Busca | Ofrece |
 |---|---|---|
-| Inicio | El mazo de obra | El mazo de búsquedas |
-| Segunda | Búsqueda por fotos | Tu estudio |
-| Tercera | Matches, con los chats | Chats |
+| Inicio | La grilla de artistas | El mazo de búsquedas |
+| Segunda | Explorar — toda la obra | Tu estudio |
+| Tercera | Chats | Chats |
 | Cuarta | Perfil | Perfil |
+
+> **Actualizado el 2026-08-19.** La columna de quien busca cambió: el mazo de
+> obra y la pestaña de encajes salieron de la app, y Explorar pasó a ser una
+> pestaña. Ver [D-010](../design/MESH-DESIGN-DECISIONS.md). Lo que este ADR
+> decide —que hay dos lados, que una búsqueda es privada hasta que su dueña la
+> abra, y que el artista manda interés en vez de escribir— no cambió. La
+> columna de quien ofrece tampoco.
 
 La intención se cambia desde Perfil. Una elección de la primera pantalla que no
 se puede deshacer no es una preferencia, es una trampa.

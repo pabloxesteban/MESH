@@ -138,24 +138,3 @@ export function mediaUrl(path: string, size: 'sm' | 'md' | 'lg'): string {
   )
   return supabase.storage.from('portfolio').getPublicUrl(resized).data.publicUrl
 }
-
-/**
- * Cuántas decisiones tomó esta persona.
- *
- * Un solo número, con `head: true` — no baja ni una fila. Decide con qué modo
- * abre Descubrir: mientras MESH todavía no la conoce, el mazo, porque es la
- * única superficie que le enseña; después, la grilla. Ver
- * docs/design/MESH-DESIGN-DECISIONS.md D-009.
- *
- * RLS ya restringe `interactions` a las filas propias, así que no lleva filtro
- * por usuario: repetirlo acá invitaría a creer que la seguridad vive en el
- * cliente.
- */
-export async function fetchDecisionCount(): Promise<number> {
-  const { count, error } = await supabase
-    .from('interactions')
-    .select('*', { count: 'exact', head: true })
-
-  if (error != null) throw error
-  return count ?? 0
-}

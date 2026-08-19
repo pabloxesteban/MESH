@@ -1,46 +1,40 @@
 import { router } from 'expo-router'
 
-import { ChatsScreen } from '@/features/chat/ChatsScreen.tsx'
-import { useOnboardingIntent } from '@/features/account/useIntent.ts'
 import { useSession } from '@/features/auth/SessionProvider.tsx'
-import { MatchesScreen } from '@/features/matches/MatchesScreen.tsx'
-import { todayIso } from '@/data/today.ts'
+import { useOnboardingIntent } from '@/features/account/useIntent.ts'
+import { ChatsScreen } from '@/features/chat/ChatsScreen.tsx'
 
 /**
- * La tercera pestaña. Para quien busca son sus encajes, con los chats arriba.
- * Para quien ofrece son los chats y nada más: un tatuador no tiene "matches"
- * con otros tatuadores, y mostrarle una lista vacía de gente que no le sirve
- * sería peor que no tener la pantalla. Ver ADR-014.
+ * La tercera pestaña: los chats, para los dos lados.
+ *
+ * Antes eran los encajes con los chats arriba. Los encajes se fueron con el
+ * motor de recomendación de la app (ver MESH-DESIGN-DECISIONS D-010) y quedó lo
+ * único que no se puede esconder: si alguien te escribió, tenés que verlo.
+ *
+ * El nombre del archivo queda por compatibilidad de rutas; lo que muestra es
+ * Chats.
  */
-export default function ThirdTabRoute() {
+export default function ChatsRoute() {
   const { userId } = useSession()
   const intent = useOnboardingIntent()
 
-  function openChat(conversationId: string, title: string) {
-    router.push(`/chat/${conversationId}?title=${encodeURIComponent(title)}`)
-  }
-
-  if (intent === 'offering') {
-    return (
-      <ChatsScreen
-        onOpenChat={userId != null ? openChat : undefined}
-        onOpenDeck={() => router.replace('/')}
-      />
-    )
-  }
-
   return (
-    <MatchesScreen
-      userId={userId}
-      today={todayIso()}
-      onExplore={() => router.replace('/')}
-      onOpenProfile={(slug) => router.push(`/artista/${slug}`)}
-      {...(userId != null
-        ? {
-            onSearchByPhotos: () => router.push('/buscar'),
-            onOpenChat: openChat,
-          }
+    <ChatsScreen
+      intent={intent}
+      onOpenChat={
+        userId != null
+          ? (conversationId: string, title: string) =>
+              router.push(
+                `/chat/${conversationId}?title=${encodeURIComponent(title)}`,
+              )
+          : undefined
+      }
+      // Quién se interesó en tu búsqueda es del lado de quien busca: un artista
+      // no tiene búsquedas propias en las que alguien pueda interesarse.
+      {...(intent === 'looking'
+        ? { onOpenArtist: (slug: string) => router.push(`/artista/${slug}`) }
         : {})}
+      onOpenHome={() => router.replace('/')}
     />
   )
 }

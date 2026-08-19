@@ -11,9 +11,11 @@ pestañas · **Fecha:** 2026-08-17 · **Responsables:** ux-product-designer, mob
 > razonamiento sobre deep links, y el criterio de **cuatro pestañas y no seis**.
 >
 > Lo que cambió: las pestañas dependen de a qué vino la persona
-> ([ADR-014](ADR-014-two-sided.md)) y hoy son Inicio · Búsqueda · Matches ·
+> ([ADR-014](ADR-014-two-sided.md)) y hoy son Inicio · Explorar · Chats ·
 > Perfil para quien busca, e Inicio · Estudio · Chats · Perfil para quien
-> ofrece. La búsqueda dejó de ser una pestaña de proyectos.
+> ofrece. La búsqueda dejó de ser una pestaña de proyectos, y **el mazo y los
+> encajes salieron de la app de quien busca** — ver
+> [D-010](../design/MESH-DESIGN-DECISIONS.md).
 >
 > Un ADR no se edita después de aceptado salvo para cambiar su estado; esta
 > nota es exactamente eso, y el contenido de abajo queda como historia.

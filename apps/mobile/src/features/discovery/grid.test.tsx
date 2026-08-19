@@ -1,37 +1,29 @@
 /**
- * La grilla de descubrimiento y el modo con el que abre Inicio.
+ * Explorar: la grilla de toda la obra.
  *
- * Lo que importa verificar acá no es cómo se ve: es que **el modo con el que
- * abre salga de un dato** y no de un default escondido, y que la grilla pida
- * el feed con lo ya visto. Esas dos son las decisiones de producto; el resto es
- * composición.
+ * Lo que importa verificar acá no es cómo se ve. Es que la grilla pida el feed
+ * **con lo ya visto** —esconderlo haría que quien marcó obra no la encuentre—,
+ * que cada obra termine en una persona, y que el filtro por estilo tenga
+ * salida. El resto es composición.
  */
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { fireEvent, render, screen, waitFor } from '@testing-library/react-native'
 
-import { READY_MIN_INTERACTIONS } from '@mesh/domain'
-
 import { MotionProvider, ThemeProvider } from '@/design-system/index.ts'
 import { I18nProvider } from '@/i18n/I18nProvider.tsx'
 
-import { DiscoveryScreen } from './DiscoveryScreen.tsx'
+import { ExploreScreen } from './ExploreScreen.tsx'
 import { splitIntoColumns } from './ArtworkGrid.tsx'
-import { fetchDecisionCount, fetchDiscoveryFeed, type FeedItem } from './queries.ts'
+import { fetchDiscoveryFeed, type FeedItem } from './queries.ts'
 
 jest.mock('./queries.ts', () => ({
   ...jest.requireActual('./queries.ts'),
   fetchDiscoveryFeed: jest.fn(),
-  fetchDecisionCount: jest.fn(),
   mediaUrl: (path: string) => `https://ejemplo.test/${path}`,
-}))
-jest.mock('./interactions.ts', () => ({
-  recordInteraction: jest.fn().mockResolvedValue(undefined),
-  undoInteraction: jest.fn().mockResolvedValue(undefined),
 }))
 
 const feedMock = fetchDiscoveryFeed as jest.Mock
-const countMock = fetchDecisionCount as jest.Mock
 
 function obra(id: string, patch: Partial<FeedItem> = {}): FeedItem {
   return {
@@ -53,7 +45,7 @@ function obra(id: string, patch: Partial<FeedItem> = {}): FeedItem {
   }
 }
 
-function renderDiscovery(onOpenProfile = jest.fn()) {
+function renderExplore(onOpenProfile = jest.fn()) {
   const client = new QueryClient({
     defaultOptions: { queries: { retry: false, gcTime: 0 } },
   })
@@ -62,10 +54,10 @@ function renderDiscovery(onOpenProfile = jest.fn()) {
       <ThemeProvider>
         <MotionProvider>
           <I18nProvider locale="es-AR">
-            <DiscoveryScreen
+            <ExploreScreen
               categorySlug="tattoo"
               userId="u1"
-              onOpenProfile={onOpenProfile}
+              onOpenArtist={onOpenProfile}
             />
           </I18nProvider>
         </MotionProvider>
@@ -78,7 +70,6 @@ function renderDiscovery(onOpenProfile = jest.fn()) {
 beforeEach(() => {
   jest.clearAllMocks()
   feedMock.mockResolvedValue({ items: [obra('a'), obra('b')], nextCursor: null })
-  countMock.mockResolvedValue(READY_MIN_INTERACTIONS)
 })
 
 describe('splitIntoColumns', () => {
@@ -111,45 +102,9 @@ describe('splitIntoColumns', () => {
   })
 })
 
-describe('con qué modo abre Inicio', () => {
-  it('sin decisiones suficientes abre en el mazo, y dice por qué', async () => {
-    countMock.mockResolvedValue(READY_MIN_INTERACTIONS - 1)
-    renderDiscovery()
-
-    // El mazo es la única superficie que le enseña a MESH. Abrir en la grilla
-    // con un gusto vacío dejaría al motor sin datos para siempre.
-    await waitFor(() =>
-      expect(screen.getByTestId('discovery-learning')).toBeTruthy(),
-    )
-    expect(screen.queryByTestId('discovery-grid')).toBeNull()
-  })
-
-  it('con el gusto ya formado abre en la grilla, sin el aviso', async () => {
-    countMock.mockResolvedValue(READY_MIN_INTERACTIONS)
-    renderDiscovery()
-
-    await waitFor(() => expect(screen.getByTestId('discovery-grid')).toBeTruthy())
-    expect(screen.queryByTestId('discovery-learning')).toBeNull()
-  })
-
-  it('el modo se puede cambiar a mano, y la elección manda', async () => {
-    countMock.mockResolvedValue(READY_MIN_INTERACTIONS - 1)
-    renderDiscovery()
-    await waitFor(() =>
-      expect(screen.getByTestId('discovery-mode-grid')).toBeTruthy(),
-    )
-
-    fireEvent.press(screen.getByTestId('discovery-mode-grid'))
-
-    await waitFor(() => expect(screen.getByTestId('discovery-grid')).toBeTruthy())
-    // El aviso desaparece: ya no está abriendo en el mazo, lo eligió.
-    expect(screen.queryByTestId('discovery-learning')).toBeNull()
-  })
-})
-
-describe('grilla', () => {
+describe('Explorar', () => {
   it('pide el feed CON lo ya visto', async () => {
-    renderDiscovery()
+    renderExplore()
     await waitFor(() => expect(feedMock).toHaveBeenCalled())
 
     // Sin esto, quien marcó treinta obras abre Descubrir y no encuentra
@@ -158,7 +113,7 @@ describe('grilla', () => {
   })
 
   it('tocar una obra lleva a su artista', async () => {
-    const onOpenProfile = renderDiscovery()
+    const onOpenProfile = renderExplore()
     await waitFor(() => expect(screen.getByTestId('discovery-tile-a')).toBeTruthy())
 
     fireEvent.press(screen.getByTestId('discovery-tile-a'))
@@ -169,7 +124,7 @@ describe('grilla', () => {
   })
 
   it('la obra no muestra el nombre del artista, pero sí lo anuncia', async () => {
-    renderDiscovery()
+    renderExplore()
     await waitFor(() => expect(screen.getByTestId('discovery-tile-a')).toBeTruthy())
 
     // Con un pie por obra la grilla se vuelve una lista de gente. Ver
@@ -189,12 +144,12 @@ describe('grilla', () => {
       ],
       nextCursor: null,
     })
-    renderDiscovery()
+    renderExplore()
     await waitFor(() =>
-      expect(screen.getByTestId('discovery-filter-blackwork')).toBeTruthy(),
+      expect(screen.getByTestId('explore-filter-blackwork')).toBeTruthy(),
     )
 
-    fireEvent.press(screen.getByTestId('discovery-filter-blackwork'))
+    fireEvent.press(screen.getByTestId('explore-filter-blackwork'))
     await waitFor(() =>
       expect(screen.getByTestId('discovery-tile-b')).toBeTruthy(),
     )
@@ -206,19 +161,53 @@ describe('grilla', () => {
       items: [obra('a', { styles: [{ slug: 'fine-line', weight: 1 }] })],
       nextCursor: null,
     })
-    renderDiscovery()
+    renderExplore()
     await waitFor(() =>
-      expect(screen.getByTestId('discovery-filter-fine-line')).toBeTruthy(),
+      expect(screen.getByTestId('explore-filter-fine-line')).toBeTruthy(),
     )
     // Un chip que no filtra nada es una promesa vacía.
-    expect(screen.queryByTestId('discovery-filter-blackwork')).toBeNull()
+    expect(screen.queryByTestId('explore-filter-blackwork')).toBeNull()
   })
 
   it('sin catálogo ofrece una salida', async () => {
     feedMock.mockResolvedValue({ items: [], nextCursor: null })
-    renderDiscovery()
-    await waitFor(() =>
-      expect(screen.getByTestId('discovery-grid-empty')).toBeTruthy(),
+    renderExplore()
+    await waitFor(() => expect(screen.getByTestId('explore-empty')).toBeTruthy())
+  })
+
+  it('abre filtrado cuando llega desde buscar con una foto', async () => {
+    feedMock.mockResolvedValue({
+      items: [
+        obra('a', { styles: [{ slug: 'fine-line', weight: 1 }] }),
+        obra('b', { styles: [{ slug: 'blackwork', weight: 1 }] }),
+      ],
+      nextCursor: null,
+    })
+    const client = new QueryClient({
+      defaultOptions: { queries: { retry: false, gcTime: 0 } },
+    })
+    render(
+      <QueryClientProvider client={client}>
+        <ThemeProvider>
+          <MotionProvider>
+            <I18nProvider locale="es-AR">
+              <ExploreScreen
+                categorySlug="tattoo"
+                userId="u1"
+                onOpenArtist={jest.fn()}
+                initialStyle="blackwork"
+              />
+            </I18nProvider>
+          </MotionProvider>
+        </ThemeProvider>
+      </QueryClientProvider>,
     )
+
+    // Es a dónde termina el camino con IA: la referencia se clasificó y
+    // Explorar abre mostrando eso, no una lista de encajes.
+    await waitFor(() =>
+      expect(screen.getByTestId('discovery-tile-b')).toBeTruthy(),
+    )
+    expect(screen.queryByTestId('discovery-tile-a')).toBeNull()
   })
 })

@@ -88,6 +88,21 @@ export const esAR = {
   'discovery.action.save': 'Guardar',
   'discovery.action.pass': 'Paso',
   'discovery.action.undo': 'Deshacer',
+  // --- artistas cerca tuyo (Inicio) ---
+  'artists.card.open': 'Ver el perfil de {nombre}',
+  'artists.card.km': 'a {km} km',
+  'artists.card.noLocation': 'No publicó su ubicación',
+  'artists.location.body':
+    'Con tu ubicación activada ordenamos por cercanía y te decimos a cuántos kilómetros está cada uno. Sin eso la lista igual se ve, en otro orden.',
+  'artists.location.action': 'Activar mi ubicación',
+  'artists.empty.title': 'Todavía no hay nadie dado de alta',
+  'artists.empty.body':
+    'Cuando se registren tatuadores, acá vas a ver a los que trabajan cerca tuyo. Mientras tanto podés mirar obra.',
+  'artists.empty.action': 'Ir a explorar',
+  // --- explorar ---
+  'explore.byPhotos': 'Buscar con una foto',
+  'explore.title': 'Explorar',
+  'explore.subtitle': 'Toda la obra, esté cerca o lejos.',
   'discovery.tile.open': 'Ver la obra de {nombre}',
   'discovery.mode.grid': 'Grilla',
   'discovery.mode.deck': 'De a una',
@@ -107,47 +122,11 @@ export const esAR = {
   'discovery.passed': 'Pasaste este trabajo',
 
   // --- gusto -----------------------------------------------------------------
-  'taste.progress.title': 'Todavía te estamos conociendo',
-  'taste.progress.body':
-    'Con {faltan} decisiones más podemos armar tu perfil. Van {total} en total, y no es un número al azar: menos que eso no alcanza para decir nada honesto.',
-  'taste.progress.empty.title': 'Tu perfil todavía no existe',
-  'taste.progress.empty.body':
-    'Se arma solo con lo que marcás. No hay cuestionario ni test de personalidad.',
-  'taste.progress.action': 'Seguir explorando',
-  'taste.ready.title': 'Tu gusto',
-  'taste.ready.body':
-    'Esto salió de {n} decisiones tuyas. Debajo de cada estilo está de dónde salió.',
-  'taste.evidence.likes': '{n} me gusta',
-  'taste.evidence.saves': '{n} guardados',
-  'taste.strength.high': 'Muy presente en lo que elegís',
-  'taste.strength.medium': 'Presente en lo que elegís',
-  'taste.strength.low': 'Apenas presente en lo que elegís',
-  'taste.reset.explanation':
-    'Podés borrar todo lo que aprendimos. Se van tus decisiones y tu perfil, y el mazo arranca de cero.',
-  'taste.reset.action': 'Borrar mi gusto',
-  'taste.reset.confirm': 'Tocá de nuevo para borrarlo',
 
   // --- matches ---------------------------------------------------------------
-  'matches.title': 'Chats',
-  'matches.band.strong': 'Encaje fuerte',
-  'matches.band.good': 'Buen encaje',
-  'matches.band.possible': 'Posible encaje',
-  'matches.notReady.title': 'Todavía no',
-  'matches.notReady.body':
-    'Nos faltan {faltan} decisiones tuyas para poder decir algo que valga. Antes de eso sería adivinar.',
-  'matches.notReady.action': 'Ir al mazo',
-  'matches.empty.title': 'Todavía no encontramos a alguien que encaje',
-  'matches.empty.body':
-    'Seguí explorando y vamos a ir entendiendo mejor tu gusto. Preferimos una lista corta y honesta a una rellenada.',
-  'matches.empty.action': 'Seguir explorando',
 
   // Plantillas de razón. Conjunto cerrado: una razón solo existe si el
   // componente que la respalda efectivamente aportó al puntaje.
-  'match.reason.markedStyle': 'Marcaste varios trabajos de {termino}',
-  'match.reason.worksBoth': 'Trabaja {termino} y {termino2}',
-  'match.reason.location': 'En {termino}',
-  'match.reason.price': 'Su rango entra en tu presupuesto',
-  'match.reason.availability': 'Está tomando turnos',
 
   // --- perfil ----------------------------------------------------------------
   'profile.styles': 'Trabaja',
@@ -344,15 +323,6 @@ export const esAR = {
     'No reconocimos el estilo en esa foto. Probá con otra.',
   'quickSearch.uploadsFailed':
     'Subimos {ok} de {total} fotos. Igual buscamos con lo que tenemos.',
-  'matches.notReady.searchByPhotos': 'O buscá por fotos',
-  'matches.empty.searchByPhotos': 'Probar con otras fotos',
-  'matches.location.prompt.title': '¿A cuántos km te queda?',
-  'matches.location.prompt.body':
-    'Activá tu ubicación y te mostramos la distancia real a cada estudio publicado.',
-  'matches.location.prompt.action': 'Activar ubicación',
-  'matches.location.prompt.denied':
-    'No pudimos usar tu ubicación. Podés activarla en Ajustes cuando quieras.',
-  'matches.distance': '≈{km} km',
   // --- onboarding ---
   'onboarding.title': '¿A qué viniste?',
   'onboarding.body':
@@ -368,6 +338,7 @@ export const esAR = {
   'tabs.search': 'Buscar',
   'tabs.matches': 'Matches',
   'tabs.profile': 'Perfil',
+  'tabs.explore': 'Explorar',
   'tabs.studio': 'Estudio',
   'tabs.chats': 'Chats',
   // --- el mazo del artista (búsquedas abiertas) ---
@@ -422,7 +393,6 @@ export const esAR = {
   'account.radius.km': '{km} km',
   'account.radius.unlimited': 'Sin límite',
   'account.more': 'Más',
-  'account.taste': 'Tu gusto',
   'account.studio': 'Tu estudio',
   'account.saved': 'Guardado',
   // --- chat ---
@@ -430,6 +400,7 @@ export const esAR = {
   'chat.empty.title': 'Todavía no escribiste a nadie',
   'chat.empty.body':
     'Cuando le escribas a alguien desde su perfil, la conversación aparece acá.',
+  'chat.empty.action': 'Ver artistas cerca tuyo',
   'chat.open': 'Abrir chat',
   'chat.send': 'Enviar',
   'chat.placeholder': 'Escribí tu mensaje',

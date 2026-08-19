@@ -1102,6 +1102,20 @@ export type Database = {
         }
         Returns: string
       }
+      get_artist_grid: {
+        Args: { p_category_slug: string; p_limit?: number; p_pieces?: number }
+        Returns: {
+          avatar_path: string
+          display_name: string
+          is_fixture: boolean
+          neighborhood_slug: string
+          pieces: Json
+          professional_id: string
+          slug: string
+          studio_lat: number
+          studio_lng: number
+        }[]
+      }
       get_discovery_feed: {
         Args: {
           p_category_slug: string

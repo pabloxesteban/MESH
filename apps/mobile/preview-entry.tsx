@@ -16,6 +16,7 @@ import {
   useThemePreference,
 } from '@/design-system/index.ts'
 import { AccountScreen } from '@/features/account/AccountScreen.tsx'
+import { ArtistsScreen } from '@/features/artists/ArtistsScreen.tsx'
 import { useOnboardingIntent } from '@/features/account/useIntent.ts'
 import { fetchOwnedProfessional } from '@/features/artist/queries.ts'
 import { StudioScreen } from '@/features/artist/StudioScreen.tsx'
@@ -25,13 +26,9 @@ import { SearchDeckScreen } from '@/features/demand/SearchDeckScreen.tsx'
 import { useOpenChat } from '@/features/chat/useOpenChat.ts'
 import { OnboardingGate } from '@/features/onboarding/OnboardingGate.tsx'
 import { ContactScreen } from '@/features/contact/ContactScreen.tsx'
-import { DiscoveryScreen } from '@/features/discovery/DiscoveryScreen.tsx'
-import { MatchesScreen } from '@/features/matches/MatchesScreen.tsx'
-import type { ProjectBriefInput } from '@/features/matches/useMatches.ts'
+import { ExploreScreen } from '@/features/discovery/ExploreScreen.tsx'
 import { QuickSearchScreen } from '@/features/quick-search/QuickSearchScreen.tsx'
-import { fetchProject } from '@/features/projects/queries.ts'
 import { ProfileScreen } from '@/features/profile/ProfileScreen.tsx'
-import { TasteScreen } from '@/features/taste/TasteScreen.tsx'
 import { I18nProvider } from '@/i18n/I18nProvider.tsx'
 
 import DesignSystemGallery from './app/galeria.tsx'
@@ -67,7 +64,7 @@ const USUARIO = 'preview-user'
 
 type Pestana =
   | 'inicio'
-  | 'buscar'
+  | 'explorar'
   | 'estudio'
   | 'para-vos'
   | 'perfil'
@@ -93,8 +90,8 @@ function pestanasPara(ofrece: boolean): ReadonlyArray<{
     { id: 'inicio', label: 'Inicio' },
     ofrece
       ? { id: 'estudio' as const, label: 'Estudio' }
-      : { id: 'buscar' as const, label: 'Buscar' },
-    { id: 'para-vos', label: ofrece ? 'Chats' : 'Matches' },
+      : { id: 'explorar' as const, label: 'Explorar' },
+    { id: 'para-vos', label: 'Chats' },
     { id: 'perfil', label: 'Perfil' },
     { id: 'galeria', label: 'Diseño' },
     // El playground entra al preview para poder MIRAR las direcciones
@@ -175,7 +172,6 @@ function Shell({ abrirEstudio }: { abrirEstudio: boolean }) {
   const [perfil, setPerfil] = useState<string | null>(null)
   const [contacto, setContacto] = useState<string | null>(null)
   const [estudio, setEstudio] = useState(abrirEstudio)
-  const [gusto, setGusto] = useState(false)
   const [chat, setChat] = useState<{ id: string; titulo: string } | null>(null)
   const abrirChat = useOpenChat(USUARIO, (id, titulo) =>
     setChat({ id, titulo }),
@@ -183,8 +179,10 @@ function Shell({ abrirEstudio }: { abrirEstudio: boolean }) {
   // Resultado de "buscar por fotos": un ProjectBriefInput armado a partir del
   // proyecto liviano que creó QuickSearchScreen. `null` mientras se busca o
   // mientras no hay ninguna búsqueda activa.
-  const [resultadoBusqueda, setResultadoBusqueda] =
-    useState<ProjectBriefInput | null>(null)
+  // "Buscar con una foto" dejó de ser pestaña: se abre desde Explorar y
+  // termina en Explorar, filtrado por el estilo que detectó la IA.
+  const [buscando, setBuscando] = useState(false)
+  const [estiloBuscado, setEstiloBuscado] = useState<string | null>(null)
 
   const contenido = (() => {
     if (chat != null) {
@@ -200,23 +198,19 @@ function Shell({ abrirEstudio }: { abrirEstudio: boolean }) {
     if (estudio) {
       return <StudioScreen userId={USUARIO} onBack={() => setEstudio(false)} />
     }
-    if (gusto) {
-      return (
-        <TasteScreen userId={USUARIO} onExplore={() => setGusto(false)} />
-      )
-    }
     if (contacto != null) {
       return <ContactScreen slug={contacto} onBack={() => setContacto(null)} />
     }
-    if (resultadoBusqueda != null) {
+    if (buscando) {
       return (
-        <MatchesScreen
+        <QuickSearchScreen
           userId={USUARIO}
-          today={HOY}
-          project={resultadoBusqueda}
-          onExplore={() => setResultadoBusqueda(null)}
-          onOpenProfile={(slug) => setPerfil(slug)}
-          onOpenChat={(id, titulo) => setChat({ id, titulo })}
+          onCreated={(_projectId, styleSlug) => {
+            setEstiloBuscado(styleSlug)
+            setBuscando(false)
+            setPestana('explorar')
+          }}
+          onCancel={() => setBuscando(false)}
         />
       )
     }
@@ -242,10 +236,21 @@ function Shell({ abrirEstudio }: { abrirEstudio: boolean }) {
             onOpenStudio={() => setPestana('estudio')}
           />
         ) : (
-          <DiscoveryScreen
+          <ArtistsScreen
             categorySlug="tattoo"
             userId={USUARIO}
-            onOpenProfile={(slug) => setPerfil(slug)}
+            onOpenArtist={(slug) => setPerfil(slug)}
+            onExplore={() => setPestana('explorar')}
+          />
+        )
+      case 'explorar':
+        return (
+          <ExploreScreen
+            categorySlug="tattoo"
+            userId={USUARIO}
+            onOpenArtist={(slug) => setPerfil(slug)}
+            onSearchByPhotos={() => setBuscando(true)}
+            {...(estiloBuscado != null ? { initialStyle: estiloBuscado } : {})}
           />
         )
       case 'estudio':
@@ -254,45 +259,20 @@ function Shell({ abrirEstudio }: { abrirEstudio: boolean }) {
         return (
           <AccountScreen
             userId={USUARIO}
-            onOpenTaste={() => setGusto(true)}
             onOpenStudio={() => setEstudio(true)}
           />
         )
       case 'para-vos':
-        return ofrece ? (
-          <ChatsScreen
-            onOpenChat={(id, titulo) => setChat({ id, titulo })}
-            onOpenDeck={() => setPestana('inicio')}
-          />
-        ) : (
-          <MatchesScreen
-            userId={USUARIO}
-            today={HOY}
-            onExplore={() => setPestana('inicio')}
-            onOpenProfile={(slug) => setPerfil(slug)}
-            onOpenChat={(id, titulo) => setChat({ id, titulo })}
-          />
-        )
-      case 'buscar':
         return (
-          <QuickSearchScreen
-            userId={USUARIO}
-            onCreated={(projectId) => {
-              void (async () => {
-                const project = await fetchProject(projectId)
-                if (project == null) return
-                setResultadoBusqueda({
-                  id: project.id,
-                  styles: project.styles,
-                  ...(project.locationSlug != null
-                    ? { locationSlug: project.locationSlug }
-                    : {}),
-                })
-              })()
-            }}
-            onCancel={() => setPestana('inicio')}
+          <ChatsScreen
+            intent={intent}
+            onOpenChat={(id, titulo) => setChat({ id, titulo })}
+            // Quién se interesó en tu búsqueda es del lado de quien busca.
+            {...(ofrece ? {} : { onOpenArtist: (slug: string) => setPerfil(slug) })}
+            onOpenHome={() => setPestana('inicio')}
           />
         )
+
       case 'galeria':
         return (
           <ScrollView>
@@ -313,10 +293,9 @@ function Shell({ abrirEstudio }: { abrirEstudio: boolean }) {
         onCambiar={(id) => {
           setPerfil(null)
           setContacto(null)
-          setResultadoBusqueda(null)
+          setBuscando(false)
           setChat(null)
           setEstudio(false)
-          setGusto(false)
           setPestana(id)
         }}
       />

@@ -11,13 +11,18 @@ Ese hueco es el producto. Pinterest te dice qué te gusta. Instagram te dice a
 quién seguís. Airtasker te dice quién puede completar una tarea. Ninguno te dice
 *quién es la persona indicada para eso que te gusta*.
 
-MESH aprende tu gusto visual a partir de los trabajos con los que interactuás y
-después te recomienda a la gente detrás de esos trabajos — y te explica por qué.
+MESH muestra **quién trabaja cerca tuyo**, con una muestra de su obra, y **toda
+la obra que hay** para buscar ideas. Cada obra termina en la persona que la
+hizo, y esa persona está a un mensaje.
 
-**Estado:** V1 en planificación. Este repositorio contiene por ahora la
-especificación de producto, arquitectura, seguridad y diseño. Todavía no se
-escribió código de aplicación. Ver [`docs/`](docs/) y
-[`docs/decisions/`](docs/decisions/).
+**Estado:** V1 en construcción. La app existe: cuatro pestañas, catálogo,
+chat, alta propia de artistas y clasificación de fotos con IA. Ver
+[`docs/`](docs/) y [`docs/decisions/`](docs/decisions/).
+
+**Lo que MESH ya no hace:** deslizar obra para aprender tu gusto y puntuar
+encajes. Existió, se sacó, y por qué está escrito en
+[D-010](docs/design/MESH-DESIGN-DECISIONS.md). Los motores de gusto y matching
+siguen en `packages/domain` con sus tests, sin superficie que los ejecute.
 
 **Idioma:** la documentación está en español rioplatense. El código —tablas,
 columnas, tokens, slugs, identificadores— está en inglés. Los strings de UI
@@ -27,8 +32,13 @@ tienen `es-AR` como locale de origen.
 
 ## La hipótesis que se está testeando
 
-> La gente descubre tatuadores de manera más efectiva cuando MESH aprende su
-> gusto visual y le recomienda profesionales en base a ese gusto.
+> La gente descubre tatuadores de manera más efectiva cuando puede ver, en un
+> solo lugar, quién trabaja cerca suyo y qué hizo cada uno.
+
+La hipótesis original decía "cuando MESH aprende su gusto visual y le recomienda
+profesionales en base a ese gusto". Se cambió el 2026-08-19: con quince artistas,
+recomendar es prometer una precisión que no hay. Ver
+[D-010](docs/design/MESH-DESIGN-DECISIONS.md).
 
 V1 es un instrumento de validación, no una plataforma. Es deliberadamente:
 
@@ -125,7 +135,7 @@ Por qué esto y no más paquetes: ver
 
 | Capa | Elección | Por qué |
 |---|---|---|
-| Cliente | Expo (React Native) + TypeScript | Un solo código, updates OTA para un producto de validación, ecosistema maduro de gestos y animación (Reanimated + Gesture Handler) para el mazo de descubrimiento |
+| Cliente | Expo (React Native) + TypeScript | Un solo código, updates OTA para un producto de validación, ecosistema maduro de gestos y animación (Reanimated + Gesture Handler) |
 | Ruteo | Expo Router | Basado en archivos, rutas tipadas, deep links incluidos — hacen falta para `mesh://artist/:slug` |
 | Backend | Supabase | Postgres + Auth + Storage + RLS en uno solo, sin servidor que operar en un proyecto de una persona |
 | Base de datos | PostgreSQL | La taxonomía (categoría → estilo → profesional → obra) es genuinamente relacional; RLS da autorización por fila en la base, no en el código de la app |

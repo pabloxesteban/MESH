@@ -1,6 +1,17 @@
 # MESH — Motor de gusto y matching
 
-**Estado:** Propuesto · **Responsable:** matching-engineer · **Versión de algoritmo:** `taste/1` · `match/2`
+**Estado:** Implementado, sin superficie · **Responsable:** matching-engineer ·
+**Versión de algoritmo:** `taste/1` · `match/2`
+
+> **Leé esto primero.** Desde el 2026-08-19 **ninguna pantalla de quien busca
+> ejecuta estos motores**: el mazo y la pestaña de encajes salieron de la app
+> ([D-010](../design/MESH-DESIGN-DECISIONS.md)). El código sigue en
+> `packages/domain`, versionado, con sus tests y sus fixtures verdes, y este
+> documento sigue siendo su especificación — pero hoy describe una capacidad
+> apagada, no algo que la gente esté usando. Sin mazo tampoco se escriben
+> `interactions`, así que el vector de gusto no tiene de dónde salir. Volver a
+> encenderlo es agregar una superficie que lo alimente, y es una decisión de
+> producto: escribila antes de codearla.
 
 Este documento es la especificación de referencia. La implementación en
 `packages/domain/src/matching/` tiene que coincidir exactamente con él, y los

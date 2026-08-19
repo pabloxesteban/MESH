@@ -8,7 +8,6 @@ export default function PerfilRoute() {
   return (
     <AccountScreen
       userId={userId}
-      onOpenTaste={() => router.push('/gusto')}
       onOpenStudio={() => router.push('/estudio')}
     />
   )

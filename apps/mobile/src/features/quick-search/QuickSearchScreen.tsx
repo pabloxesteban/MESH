@@ -49,7 +49,12 @@ const MAX_PHOTOS = 4
 
 export interface QuickSearchScreenProps {
   userId: string
-  onCreated: (projectId: string) => void
+  /**
+   * La búsqueda ya existe. Llega con el estilo que la IA detectó, porque a
+   * dónde lleva este camino ahora es a Explorar filtrado por ese estilo — antes
+   * era una lista de encajes, y los encajes ya no existen (ver D-010).
+   */
+  onCreated: (projectId: string, styleSlug: string) => void
   onCancel: () => void
 }
 
@@ -77,6 +82,7 @@ export function QuickSearchScreen({
   const [pending, setPending] = useState<{
     readonly projectId: string
     readonly failedUploads: number
+    readonly styleSlug: string
   } | null>(null)
 
   const canSubmit = images.length > 0 && !isSubmitting
@@ -118,9 +124,9 @@ export function QuickSearchScreen({
       track({ name: 'search_opened', props: { is_open: openToPros } })
 
       if (result.failedUploads > 0) {
-        setPending(result)
+        setPending({ ...result, styleSlug })
       } else {
-        onCreated(result.projectId)
+        onCreated(result.projectId, styleSlug)
       }
     } catch {
       setError(t('quickSearch.error'))
@@ -247,7 +253,7 @@ export function QuickSearchScreen({
             </Text>
             <Button
               label={t('common.continue')}
-              onPress={() => onCreated(pending.projectId)}
+              onPress={() => onCreated(pending.projectId, pending.styleSlug)}
               fullWidth
               testID="quick-search-continue"
             />

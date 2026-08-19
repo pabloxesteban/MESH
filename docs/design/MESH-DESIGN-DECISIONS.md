@@ -253,6 +253,10 @@ confianza media, falta verificar".
 
 ## D-008 · "Explorar" no es una pestaña
 
+> **Reemplazada por D-010.** Explorar es una pestaña desde el 2026-08-19. Se
+> deja escrita porque el razonamiento sigue siendo válido para lo que era Inicio
+> entonces: una sola grilla de obra no se parte en dos pestañas.
+
 **Fecha:** 2026-08-19 · **Cerraba una pendiente que bloqueaba implementar.**
 
 El recorrido nuevo nombra seis pasos —descubrir, explorar, entender, confiar,
@@ -275,6 +279,11 @@ principio de que ningún modo es secundario.
 ---
 
 ## D-009 · Inicio tiene dos modos, y el default sale de un dato
+
+> **Reemplazada por D-010.** El mazo salió de la app de quien busca, así que
+> Inicio dejó de tener modos. Lo que esta decisión encontró —que una grilla no
+> alimenta el motor de gusto— no dejó de ser cierto: en D-010 pasó de problema a
+> costo asumido, y está escrito ahí.
 
 **Fecha:** 2026-08-19 · **Origen:** un problema que apareció al implementar.
 
@@ -312,6 +321,78 @@ ahí, y desaparece apenas la persona elige a mano.
 
 ---
 
+## D-010 · No hay mazo ni encajes. Inicio es una grilla de artistas y Explorar es una pestaña.
+
+**Fecha:** 2026-08-19 · **Origen:** decisión de producto. **Reemplaza a D-008 y
+a D-009.**
+
+MESH abría con un mazo de obra que se desliza y tenía una pestaña de encajes.
+Las dos se van.
+
+**Decidido.** La app de quien busca tiene tres superficies de contenido y
+ninguna se desliza para decidir:
+
+- **Inicio** — una grilla de artistas. Cada tarjeta es un carrusel chico de su
+  obra, y debajo el nombre, la foto de perfil y la ubicación. Contesta **quién
+  tatúa cerca mío**.
+- **Explorar** — la grilla de toda la obra de todo el que se haya registrado,
+  esté cerca o lejos. Contesta **qué me quiero tatuar**. La referencia es
+  Tattodo, no Pinterest: la diferencia es que acá cada obra termina en la
+  persona que la hizo, y esa persona está a un mensaje.
+- **Chats** — nada más.
+
+**Por qué.** El mazo pedía una decisión por obra antes de dar nada a cambio, y
+lo que devolvía —un encaje puntuado— es una promesa que una app con quince
+artistas no puede cumplir sin inventar. Una grilla de artistas no promete nada
+que no muestre: son las personas que hay, con su trabajo, ordenadas por
+cercanía.
+
+**Qué se pierde, y hay que decirlo.** El mazo era la única superficie que
+escribía `interactions`, y `interactions` es lo que alimenta el vector de gusto.
+Sin mazo, **el motor de gusto y el de matching quedan sin entrada: nada en la
+app de quien busca los ejecuta hoy.** Los dos siguen en `packages/domain` con
+sus tests verdes, versionados y sin tocar, porque la decisión que se tomó es de
+producto y no de arquitectura, y volver a darles una entrada es agregar una
+superficie, no reescribir un motor. Lo que **no** se hizo es dejarlos
+enchufados a media máquina: un motor de gusto alimentado por nada devolvería
+encajes vacíos, y eso sería peor que no tenerlo.
+
+**Reemplaza a D-008** ("Explorar es un verbo, no un lugar"). Aquella decisión
+era correcta cuando Inicio era una sola grilla de obra: una segunda pestaña
+habría partido la misma superficie en dos. Ahora Inicio y Explorar no son la
+misma superficie con otro filtro —una muestra personas cerca, la otra obra de
+todos lados— y separarlas es lo que las hace legibles. Se sigue respetando el
+límite de cuatro pestañas.
+
+**Reemplaza a D-009** ("Inicio tiene dos modos"). El problema que D-009
+resolvía —que la grilla no le enseña nada a MESH— dejó de existir junto con lo
+que aprendía.
+
+**Dos cosas que solo aparecieron al mirar la pantalla armada.** La tarjeta de
+Inicio llevaba además las tres etiquetas de estilo del artista: en la grilla se
+leen como una carta de colores que le compite a la obra, que es justo lo que la
+tarjeta vino a mostrar. Salieron de la tarjeta y siguen en el perfil, bajo
+"Trabaja", donde hay lugar. Y la pestaña Chats, que era del artista y ahora es
+de los dos lados, le decía a quien busca *"vos no podés escribir primero"* —la
+regla del artista, invertida— y lo mandaba al mazo de búsquedas. El vacío ahora
+depende de la intención.
+
+**Rechazado: dejar el mazo escondido en Perfil.** Una superficie que nadie abre
+igual hay que mantenerla, testearla y explicarla. Si el mazo vuelve, vuelve
+como decisión, no como resto.
+
+**Rechazado: un botón de me gusta sobre las obras de Explorar.** Es la misma
+razón de D-009: cromo flotante sobre la obra, y es exactamente lo que haría que
+Explorar se lea como Pinterest.
+
+**El riesgo, escrito.** Inicio depende de que haya artistas dados de alta cerca
+de quien mira. Con quince, casi nadie tiene a alguien "cerca", así que la
+ubicación ordena pero no filtra: **nunca se esconde a nadie por distancia**, y
+quien no publicó dónde trabaja aparece igual, al final. El día que el catálogo
+crezca, filtrar por radio es una decisión nueva y hay que tomarla mirando datos.
+
+---
+
 ## Pendiente, y dicho como pendiente
 
 Nada de esto está implementado en las pantallas de producción todavía. Lo que
@@ -327,10 +408,12 @@ Lo que falta, en orden:
    horizontal, match, perfil, portafolio.
 3. Transición obra → artista con elemento compartido, prototipada en el
    playground antes de tocar producción.
-4. ~~Rehacer Descubrir con la grilla de D.~~ **Hecho** — ver D-009. Falta la
-   transición desde la grilla, que hoy es una navegación común.
+4. ~~Rehacer Descubrir con la grilla de D.~~ **Hecho** — hoy es la pestaña
+   Explorar (D-010). Falta la transición desde la grilla, que sigue siendo una
+   navegación común.
 5. Rehacer Perfil con la hoja de C.
-6. Reemplazar la explicación de gusto por la cartela de B.
+6. ~~Reemplazar la explicación de gusto por la cartela de B.~~ **Sin objeto por
+   ahora:** no hay pantalla de gusto (D-010).
 7. Volver a pasar el barrido de accesibilidad y el de tipografía dinámica —
    la densidad de D usa tipografía chica y eso hay que verificarlo en el tamaño
    accesible más grande, no suponerlo.
@@ -342,7 +425,8 @@ arriba de todo que dice qué de él sobrevive (Expo Router, deep links, cuatro y
 no seis) y qué no (la barra Descubrir/Matches/Proyectos/Vos).
 `docs/architecture/navigation.md` se reescribió con la barra que existe.
 
-**"Explorar"** se cerró en D-008: es un verbo, no un lugar.
+**"Explorar"** se cerró en D-008 y se volvió a abrir en D-010: hoy es una
+pestaña, porque Inicio dejó de ser una grilla de obra.
 
 ### Lo que la implementación dejó pendiente
 
@@ -356,3 +440,10 @@ no seis) y qué no (la barra Descubrir/Matches/Proyectos/Vos).
   está implementado y testeado.
 - **El filtro por estilo filtra lo que bajó, no el catálogo.** Con pocos
   artistas alcanza; cuando el catálogo crezca hay que empujarlo al RPC.
+- **Inicio baja hasta 100 artistas en una página.** El orden por cercanía vive
+  en `packages/domain` para poder testearlo, y para ordenar hay que tener todo.
+  Con quince artistas sobra; con quinientos hay que decidir entre bajar el orden
+  a SQL —y perder los tests unitarios— o paginar por una grilla espacial.
+- **Inicio no tiene filtro por estilo.** Explorar sí. Si aparece la necesidad,
+  el dato existe: `professional_styles` está ahí, solo que el RPC de la grilla
+  dejó de bajarlo cuando la tarjeta dejó de mostrarlo.

@@ -5,14 +5,20 @@ Leé esto antes de cambiar nada. Es corto a propósito.
 ## Qué es MESH
 
 MESH ayuda a la gente a descubrir a la persona indicada para hacer realidad una
-idea. Aprende el gusto visual a partir de decisiones de me gusta / guardar /
-paso y recomienda profesionales, con una explicación. V1: tatuadores, Buenos
-Aires / CABA, sin reservas, sin pagos. El catálogo arranca con 8–15 artistas
-reales curados desde `content/artists/`, y **desde la app cualquier artista
-puede darse de alta solo** — ver [ADR-013](docs/decisions/ADR-013-artist-self-signup.md),
+idea. Muestra **quién trabaja cerca tuyo**, con una muestra de su obra, y
+**toda la obra que hay** para buscar ideas. V1: tatuadores, Buenos Aires /
+CABA, sin reservas, sin pagos. El catálogo arranca con 8–15 artistas reales
+curados desde `content/artists/`, y **desde la app cualquier artista puede darse
+de alta solo** — ver [ADR-013](docs/decisions/ADR-013-artist-self-signup.md),
 que documenta qué se pierde al abrirlo y cómo se vuelve a cerrar. El contacto
 va por chat propio con los artistas que tienen su perfil reclamado o creado, y
 por WhatsApp/Instagram con el resto.
+
+MESH **no** desliza obra para aprender tu gusto ni puntúa encajes: eso existió y
+se sacó. Los motores de gusto y matching siguen en `packages/domain`,
+versionados y con sus tests, pero hoy **ninguna pantalla de quien busca los
+ejecuta** — ver [D-010](docs/design/MESH-DESIGN-DECISIONS.md). Volver a
+enchufarlos es una decisión de producto, y se escribe antes de codearla.
 
 ## Innegociables
 
@@ -85,10 +91,14 @@ depende de a qué vino la persona. Ver
 
 | | Busca a alguien | Ofrece un servicio |
 |---|---|---|
-| **Inicio** | Obra, en dos modos: el mazo —que es lo que le enseña a MESH— y una grilla para comparar. Con cuál abre lo decide cuántas decisiones hay, no una preferencia escondida. | El mazo de búsquedas de gente. Un tatuador no quiere deslizar obra de otros tatuadores. |
-| **Segunda** | **Búsqueda**: subís fotos y la IA detecta el estilo. Ver [ADR-011](docs/decisions/ADR-011-photo-classification.md). | **Estudio**: tu perfil, tus estilos, tu ubicación, tu obra. |
-| **Tercera** | **Matches**: los encajes, con los chats arriba y quién se interesó en tu búsqueda. | **Chats**: nada más. MESH no le recomienda tatuadores a un tatuador. |
+| **Inicio** | La grilla de artistas: un carrusel chico de la obra de cada uno y, debajo, nombre, foto y ubicación. Contesta *quién tatúa cerca mío*. Ordena por cercanía, **nunca filtra por ella**. | El mazo de búsquedas de gente. Un tatuador no quiere deslizar obra de otros tatuadores. |
+| **Segunda** | **Explorar**: toda la obra de todos los que se registraron, cerca o lejos. Contesta *qué me quiero tatuar*. Buscar por fotos con IA se entra desde acá — ver [ADR-011](docs/decisions/ADR-011-photo-classification.md). | **Estudio**: tu perfil, tus estilos, tu ubicación, tu obra. |
+| **Tercera** | **Chats** | **Chats**: nada más. MESH no le recomienda tatuadores a un tatuador. |
 | **Cuarta** | **Perfil** | **Perfil** |
+
+Ni Inicio ni Explorar terminan en una obra: **las dos terminan en una persona**,
+y esa persona está a un mensaje. Una grilla que se pueda recorrer sin llegar
+nunca a alguien sería otra app.
 
 Al registrarse se pregunta una sola vez si la persona ofrece un servicio o está
 buscando. Es una preferencia de arranque, **no** un rol excluyente, y se cambia
@@ -97,7 +107,8 @@ es una preferencia, es una trampa. Elegir "ofrezco" lleva al estudio, donde se
 crea el perfil propio o se canjea el código si MESH armó uno; la pregunta por sí
 sola no da de alta a nadie.
 
-"Tu gusto" no es una pestaña: se visita cada tanto, no cada sesión.
+El estudio no es una pestaña para quien busca: se visita cada tanto, no cada
+sesión, y se llega desde Perfil.
 
 **Una búsqueda es privada salvo que su dueña la abra.** Las fotos de referencia
 que alguien sube son suyas; que un tatuador las vea es una decisión explícita,

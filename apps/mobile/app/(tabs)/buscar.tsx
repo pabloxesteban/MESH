@@ -6,9 +6,9 @@ import { QuickSearchScreen } from '@/features/quick-search/QuickSearchScreen.tsx
 export default function QuickSearchRoute() {
   const { userId } = useSession()
 
-  // La ruta solo se ofrece con sesión — el botón que lleva acá vive en Matches,
-  // que ya requiere sesión para verse. Si de algún modo se llega sin userId,
-  // no hay nada que crear: se vuelve.
+  // La ruta solo se ofrece con sesión — el botón que lleva acá vive en
+  // Explorar, que ya requiere sesión para verse. Si de algún modo se llega sin
+  // userId, no hay nada que crear: se vuelve.
   if (userId == null) {
     router.back()
     return null
@@ -17,8 +17,11 @@ export default function QuickSearchRoute() {
   return (
     <QuickSearchScreen
       userId={userId}
-      onCreated={(projectId) =>
-        router.replace(`/proyectos/${projectId}/matches`)
+      // Termina en Explorar filtrado por el estilo que detectó la IA. Antes
+      // terminaba en una lista de encajes; ahora termina en obra, que es lo que
+      // la persona fue a ver. Ver MESH-DESIGN-DECISIONS D-010.
+      onCreated={(_projectId, styleSlug) =>
+        router.replace(`/(tabs)/explorar?estilo=${styleSlug}`)
       }
       onCancel={() => router.back()}
     />

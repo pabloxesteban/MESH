@@ -27,7 +27,6 @@ function renderScreen() {
   const client = new QueryClient({
     defaultOptions: { queries: { retry: false, gcTime: 0 } },
   })
-  const onOpenTaste = jest.fn()
   const onOpenStudio = jest.fn()
   render(
     <QueryClientProvider client={client}>
@@ -36,7 +35,6 @@ function renderScreen() {
           <I18nProvider locale="es-AR">
             <AccountScreen
               userId="u1"
-              onOpenTaste={onOpenTaste}
               onOpenStudio={onOpenStudio}
             />
           </I18nProvider>
@@ -44,7 +42,7 @@ function renderScreen() {
       </ThemeProvider>
     </QueryClientProvider>,
   )
-  return { onOpenTaste, onOpenStudio }
+  return { onOpenStudio }
 }
 
 beforeEach(() => {
@@ -108,13 +106,11 @@ describe('AccountScreen', () => {
   })
 
   it('lleva a gusto y a estudio', async () => {
-    const { onOpenTaste, onOpenStudio } = renderScreen()
+    const { onOpenStudio } = renderScreen()
     await waitFor(() =>
       expect(screen.getByTestId('account-content')).toBeTruthy(),
     )
 
-    fireEvent.press(screen.getByTestId('account-taste'))
-    expect(onOpenTaste).toHaveBeenCalled()
 
     fireEvent.press(screen.getByTestId('account-studio'))
     expect(onOpenStudio).toHaveBeenCalled()

@@ -20,6 +20,7 @@ import { MotionProvider, ThemeProvider } from '@/design-system/index.ts'
 import { I18nProvider } from '@/i18n/I18nProvider.tsx'
 
 import { ChatScreen } from './ChatScreen.tsx'
+import { ChatsScreen } from './ChatsScreen.tsx'
 import { ConversationList } from './ConversationList.tsx'
 import {
   fetchConversations,
@@ -209,5 +210,57 @@ describe('ChatScreen', () => {
       expect(screen.getByTestId('chat-send-error')).toBeTruthy(),
     )
     expect(screen.queryByText(/PGRST301/)).toBeNull()
+  })
+})
+
+describe('el vacío de Chats no es el mismo de los dos lados', () => {
+  beforeEach(() => {
+    conversationsMock.mockResolvedValue([])
+  })
+
+  it('a quien busca le dice que puede escribir, y lo lleva a los artistas', async () => {
+    renderScreen(
+      <ChatsScreen
+        intent="looking"
+        onOpenChat={jest.fn()}
+        onOpenHome={jest.fn()}
+      />,
+    )
+    await waitFor(() => expect(screen.getByTestId('chats-empty')).toBeTruthy())
+
+    // Decirle "no podés escribir primero" a quien busca sería mentirle sobre
+    // lo único que sí puede hacer.
+    expect(screen.getByText('Todavía no escribiste a nadie')).toBeTruthy()
+    expect(screen.getByText('Ver artistas cerca tuyo')).toBeTruthy()
+  })
+
+  it('al artista le dice que no escribe primero, y lo lleva a su mazo', async () => {
+    renderScreen(
+      <ChatsScreen
+        intent="offering"
+        onOpenChat={jest.fn()}
+        onOpenHome={jest.fn()}
+      />,
+    )
+    await waitFor(() => expect(screen.getByTestId('chats-empty')).toBeTruthy())
+
+    // La regla de ADR-012, dicha donde se nota.
+    expect(screen.getByText('Todavía no te escribió nadie')).toBeTruthy()
+    expect(screen.getByText('Ver quién está buscando')).toBeTruthy()
+  })
+
+  it('la salida del vacío existe en los dos lados', async () => {
+    const onOpenHome = jest.fn()
+    renderScreen(
+      <ChatsScreen
+        intent="looking"
+        onOpenChat={jest.fn()}
+        onOpenHome={onOpenHome}
+      />,
+    )
+    await waitFor(() => expect(screen.getByTestId('chats-empty')).toBeTruthy())
+
+    fireEvent.press(screen.getByText('Ver artistas cerca tuyo'))
+    expect(onOpenHome).toHaveBeenCalled()
   })
 })
