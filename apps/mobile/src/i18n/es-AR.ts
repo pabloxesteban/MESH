@@ -114,7 +114,7 @@ export const esAR = {
   'taste.reset.confirm': 'Tocá de nuevo para borrarlo',
 
   // --- matches ---------------------------------------------------------------
-  'matches.title': 'Para vos',
+  'matches.title': 'Chats',
   'matches.band.strong': 'Encaje fuerte',
   'matches.band.good': 'Buen encaje',
   'matches.band.possible': 'Posible encaje',
@@ -250,7 +250,23 @@ export const esAR = {
   'studio.title': 'Tu estudio',
   'studio.eyebrow': 'TU PERFIL',
   'studio.unpublished': 'Todavía no está publicado. Lo publicamos nosotros.',
-  'studio.claim.title': 'Reclamá tu perfil',
+  'studio.create.title': 'Creá tu perfil',
+  'studio.create.body':
+    'Tu nombre y por dónde te escriben. El resto lo cargás después.',
+  'studio.create.name': 'Nombre o nombre de tu estudio',
+  'studio.create.instagram': 'Instagram',
+  'studio.create.whatsapp': 'WhatsApp',
+  'studio.create.contact.hint':
+    'Con uno alcanza. Es por donde te va a escribir la gente.',
+  'studio.create.submit': 'Crear mi perfil',
+  'studio.create.failed': 'No se pudo crear el perfil. Probá de nuevo.',
+  'studio.styles.title': 'Tus estilos',
+  'studio.styles.body':
+    'Hasta tres, en orden. Sin esto no aparecés cuando alguien busca lo que hacés.',
+  'studio.styles.save': 'Guardar estilos',
+  'studio.styles.saved': 'Listo, quedaron guardados',
+  'studio.styles.failed': 'No se pudieron guardar. Probá de nuevo.',
+  'studio.claim.title': '¿Te pasamos un código?',
   'studio.claim.body':
     'Si armamos tu perfil, te pasamos un código de ocho caracteres. Con eso ' +
     'pasás a manejar tu portafolio desde acá.',
@@ -274,7 +290,7 @@ export const esAR = {
   'studio.piece.removed': 'La sacamos',
   'studio.entry.label': '¿Tatuás?',
   'studio.entry.hint':
-    'Si armamos tu perfil, con tu código pasás a manejar tu portafolio.',
+    'Creá tu perfil y subí tus trabajos para que te encuentren.',
   'studio.entry.action': 'Ir a mi estudio',
   'studio.location.title': 'Ubicación de tu estudio',
   'studio.location.body':

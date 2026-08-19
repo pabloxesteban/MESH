@@ -11,8 +11,10 @@
  * de las tres porque ninguna es más dueña que las otras.
  */
 
-import { matchNeighborhood, type GeoCoordinates } from '@mesh/domain'
+import type { GeoCoordinates } from '@mesh/domain'
 import * as Location from 'expo-location'
+
+import { resolveNeighborhood } from './geocode.ts'
 
 export interface DeviceLocation {
   readonly coordinates: GeoCoordinates
@@ -31,38 +33,6 @@ export interface DeviceLocation {
 export async function hasDeviceLocationPermission(): Promise<boolean> {
   const { status } = await Location.getForegroundPermissionsAsync()
   return status === 'granted'
-}
-
-/**
- * Coordenadas → barrio, con el geocoder del sistema operativo.
- *
- * El geocoder es del SO y no nuestro a propósito: no tenemos coordenadas de
- * barrio verificadas (`locations.lat`/`lng` sigue vacía, ver ADR-010), así que
- * cualquier cálculo propio sería una estimación inventada. iOS y Android
- * ponen el barrio en campos distintos, por eso se prueban varios.
- */
-async function resolveNeighborhood(
-  coordinates: GeoCoordinates,
-): Promise<string | null> {
-  try {
-    const results = await Location.reverseGeocodeAsync({
-      latitude: coordinates.lat,
-      longitude: coordinates.lng,
-    })
-    const first = results[0]
-    if (first == null) return null
-
-    return (
-      matchNeighborhood(
-        [first.district, first.subregion, first.city, first.name],
-        'caba',
-      )?.slug ?? null
-    )
-  } catch {
-    // Un geocoder que falla no rompe la búsqueda: se sigue sin barrio, con el
-    // componente de ubicación omitido.
-    return null
-  }
 }
 
 async function read(): Promise<DeviceLocation> {

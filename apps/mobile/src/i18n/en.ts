@@ -97,7 +97,7 @@ export const en: Readonly<Record<TranslationKey, string>> = {
   'taste.reset.action': 'Delete my taste',
   'taste.reset.confirm': 'Tap again to delete it',
 
-  'matches.title': 'For you',
+  'matches.title': 'Chats',
   'matches.band.strong': 'Strong fit',
   'matches.band.good': 'Good fit',
   'matches.band.possible': 'Possible fit',
@@ -224,7 +224,23 @@ export const en: Readonly<Record<TranslationKey, string>> = {
   'studio.title': 'Your studio',
   'studio.eyebrow': 'YOUR PROFILE',
   'studio.unpublished': 'Not published yet. We publish it.',
-  'studio.claim.title': 'Claim your profile',
+  'studio.create.title': 'Create your profile',
+  'studio.create.body':
+    'Your name and how people reach you. The rest comes later.',
+  'studio.create.name': 'Your name or your studio name',
+  'studio.create.instagram': 'Instagram',
+  'studio.create.whatsapp': 'WhatsApp',
+  'studio.create.contact.hint':
+    'One is enough. This is how people will write to you.',
+  'studio.create.submit': 'Create my profile',
+  'studio.create.failed': "Couldn't create the profile. Try again.",
+  'studio.styles.title': 'Your styles',
+  'studio.styles.body':
+    "Up to three, in order. Without this you won't show up when someone looks for what you do.",
+  'studio.styles.save': 'Save styles',
+  'studio.styles.saved': 'Saved',
+  'studio.styles.failed': "Couldn't save them. Try again.",
+  'studio.claim.title': 'Did we send you a code?',
   'studio.claim.body':
     'If we built your profile, we send you an eight-character code. That code ' +
     'lets you manage your portfolio from here.',
@@ -248,7 +264,7 @@ export const en: Readonly<Record<TranslationKey, string>> = {
   'studio.piece.removed': 'Removed',
   'studio.entry.label': 'Do you tattoo?',
   'studio.entry.hint':
-    'If we built your profile, your code lets you manage your portfolio.',
+    'Create your profile and upload your work so people can find you.',
   'studio.entry.action': 'Go to my studio',
   'studio.location.title': 'Your studio location',
   'studio.location.body':

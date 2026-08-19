@@ -7,9 +7,12 @@ Leé esto antes de cambiar nada. Es corto a propósito.
 MESH ayuda a la gente a descubrir a la persona indicada para hacer realidad una
 idea. Aprende el gusto visual a partir de decisiones de me gusta / guardar /
 paso y recomienda profesionales, con una explicación. V1: tatuadores, Buenos
-Aires / CABA, 8–15 artistas reales curados, sin reservas, sin pagos. El
-contacto va por chat propio con los artistas que reclamaron su perfil, y por
-WhatsApp/Instagram con el resto.
+Aires / CABA, sin reservas, sin pagos. El catálogo arranca con 8–15 artistas
+reales curados desde `content/artists/`, y **desde la app cualquier artista
+puede darse de alta solo** — ver [ADR-013](docs/decisions/ADR-013-artist-self-signup.md),
+que documenta qué se pierde al abrirlo y cómo se vuelve a cerrar. El contacto
+va por chat propio con los artistas que tienen su perfil reclamado o creado, y
+por WhatsApp/Instagram con el resto.
 
 ## Innegociables
 
@@ -86,8 +89,9 @@ un menú que hay que estudiar en vez de un lugar donde la mano ya sabe ir.
 "Tu gusto" y "Tu estudio" no son pestañas: se visitan cada tanto, no cada
 sesión. Al registrarse se pregunta una sola vez si la persona ofrece un
 servicio o está buscando — es una preferencia de arranque, **no** un rol
-excluyente, y elegir "ofrezco" lleva a canjear el código de artista, no da de
-alta a nadie.
+excluyente. Elegir "ofrezco" lleva al estudio, donde se crea el perfil propio o
+se canjea el código si MESH armó uno; la pregunta por sí sola no da de alta a
+nadie.
 
 ## Antes de cambiar algo
 

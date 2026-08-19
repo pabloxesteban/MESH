@@ -12,8 +12,9 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 import { Box, Button, Text } from '@/design-system/index.ts'
 import { setAnalyticsOptIn } from '@/analytics/track.ts'
-import { supabase } from '@/data/supabase.ts'
 import { useT } from '@/i18n/I18nProvider.tsx'
+
+import { fetchAnalyticsOptIn, updateAnalyticsOptIn } from './queries.ts'
 
 export function AnalyticsToggle({ userId }: { userId: string | null }) {
   const t = useT()
@@ -22,14 +23,7 @@ export function AnalyticsToggle({ userId }: { userId: string | null }) {
   const preference = useQuery({
     queryKey: ['analytics-opt-in', userId],
     enabled: userId != null,
-    queryFn: async () => {
-      const { data } = await supabase
-        .from('profiles')
-        .select('analytics_opt_in')
-        .eq('id', userId as string)
-        .maybeSingle()
-      return data?.analytics_opt_in ?? true
-    },
+    queryFn: () => fetchAnalyticsOptIn(userId as string),
   })
 
   const update = useMutation({
@@ -37,10 +31,7 @@ export function AnalyticsToggle({ userId }: { userId: string | null }) {
       // Primero el efecto local, después la escritura. Si la red falla, lo
       // importante —que deje de recolectar— ya pasó.
       await setAnalyticsOptIn(next)
-      await supabase
-        .from('profiles')
-        .update({ analytics_opt_in: next })
-        .eq('id', userId as string)
+      await updateAnalyticsOptIn(userId as string, next)
       return next
     },
     onSuccess: () =>

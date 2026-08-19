@@ -9,17 +9,17 @@
 import type { AvailabilityStatus, Professional } from '@mesh/domain'
 
 import {
-  PREVIEW_ARTISTS,
+  previewArtists,
   previewLocation,
   previewProfessionalId,
   previewStudioCoordinatesOf,
 } from '../../../preview/store.ts'
 
-// Función y no una constante a nivel de módulo: `studioCoordinates` puede
-// cambiar en medio de la sesión de preview (el estudio recién publicó su
-// ubicación), y una constante horneada en el import no se enteraría.
+// Función y no una constante a nivel de módulo: el catálogo cambia en medio de
+// la sesión de preview —el estudio recién publicó su ubicación, o tu propio
+// perfil recién se creó— y una constante horneada en el import no se enteraría.
 function catalog(): readonly Professional[] {
-  return PREVIEW_ARTISTS.map((artist) => ({
+  return previewArtists().map((artist) => ({
     id: previewProfessionalId(artist.slug),
     slug: artist.slug,
     categorySlug: 'tattoo' as const,

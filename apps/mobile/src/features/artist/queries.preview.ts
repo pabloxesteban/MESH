@@ -1,23 +1,27 @@
 /**
  * Versión de preview de `queries.ts`. Ver apps/mobile/preview/store.ts.
  *
- * El estudio anda de verdad en el preview: se reclama con un código, se sube
- * una foto y la pieza aparece en el mazo. Lo que NO se prueba acá es lo único
- * que importa de seguridad —que un artista no pueda escribir en el perfil de
- * otro—, porque eso lo decide RLS y acá no hay base. Está en
- * supabase/tests/25_artist_ownership.sql y en tests/integration.
+ * El estudio anda de verdad en el preview: se crea el perfil o se reclama uno
+ * con código, se declaran estilos, se publica la ubicación y se sube una foto
+ * que aparece en el mazo. Lo que NO se prueba acá es lo único que importa de
+ * seguridad —que un artista no pueda escribir en el perfil de otro—, porque eso
+ * lo decide RLS y acá no hay base. Está en
+ * supabase/tests/25_artist_ownership.sql, supabase/tests/26_artist_self_signup.sql
+ * y en tests/integration.
  */
 
 import type { GeoCoordinates } from '@mesh/domain'
 
 import {
-  PREVIEW_ARTISTS,
   addPreviewPiece,
   claimPreviewProfessional,
-  previewOwnedProfessional,
+  createPreviewProfessional,
+  previewOwnProfile,
+  previewOwnStyleSlugs,
   previewPiecesOf,
   previewStudioCoordinatesOf,
   removePreviewPiece,
+  setPreviewOwnStyles,
   setPreviewStudioLocation,
 } from '../../../preview/store.ts'
 import { weightsFor } from './weights.ts'
@@ -28,6 +32,7 @@ export interface OwnedProfessional {
   readonly displayName: string
   readonly isPublished: boolean
   readonly studioCoordinates: GeoCoordinates | null
+  readonly styleSlugs: readonly string[]
 }
 
 export interface OwnedPiece {
@@ -38,23 +43,37 @@ export interface OwnedPiece {
 }
 
 export async function fetchOwnedProfessional(): Promise<OwnedProfessional | null> {
-  const slug = previewOwnedProfessional()
-  if (slug == null) return null
-  const artist = PREVIEW_ARTISTS.find((a) => a.slug === slug)
-  if (artist == null) return null
+  const own = previewOwnProfile()
+  if (own == null) return null
   return {
-    id: `preview-${artist.slug}`,
-    slug: artist.slug,
-    displayName: artist.displayName,
+    id: `preview-${own.slug}`,
+    slug: own.slug,
+    displayName: own.displayName,
     isPublished: true,
-    studioCoordinates: previewStudioCoordinatesOf(artist.slug),
+    studioCoordinates: previewStudioCoordinatesOf(own.slug),
+    styleSlugs: previewOwnStyleSlugs(),
   }
+}
+
+export async function createOwnProfessional(input: {
+  displayName: string
+  instagram?: string | undefined
+  whatsapp?: string | undefined
+}): Promise<string> {
+  return createPreviewProfessional(input)
+}
+
+export async function setOwnStyles(
+  styleSlugs: readonly string[],
+): Promise<void> {
+  setPreviewOwnStyles(styleSlugs)
 }
 
 export async function setStudioLocation(
   coordinates: GeoCoordinates,
+  neighborhoodSlug?: string | null,
 ): Promise<void> {
-  setPreviewStudioLocation(coordinates)
+  setPreviewStudioLocation(coordinates, neighborhoodSlug)
 }
 
 export async function fetchOwnedPieces(

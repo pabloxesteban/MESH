@@ -85,9 +85,15 @@ Hasta 2026-08-18 el catálogo lo escribía **solo** el service role desde
 `tools/seed`. Ahora un artista puede subir y sacar piezas de su propio
 portafolio desde la app.
 
-**Esto no deja de ser un catálogo curado.** Nadie se da de alta solo. El perfil
-lo armamos nosotros, con su consentimiento registrado acá, y recién después le
-entregamos un código de ocho caracteres:
+**Desde 2026-08-19 esto ya no es un catálogo exclusivamente curado.** Un
+artista puede darse de alta solo desde la app, sin que nadie le entregue nada.
+Ver [ADR-013](../decisions/ADR-013-artist-self-signup.md): qué se pierde al
+abrirlo, qué falta antes de lanzarlo (moderación, denuncia, despublicación) y
+cómo se vuelve a cerrar.
+
+Lo que sigue es el **otro** camino, el que no se tocó: para un perfil que
+armamos nosotros, con su consentimiento registrado acá, le entregamos un código
+de ocho caracteres:
 
 ```bash
 npm run content:claim -- --slug briza-maldonado

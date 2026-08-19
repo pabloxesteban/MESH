@@ -18,6 +18,8 @@ export interface OwnedProfessional {
   readonly displayName: string
   readonly isPublished: boolean
   readonly studioCoordinates: GeoCoordinates | null
+  /** Los estilos que el artista declaró. Distintos de los de cada pieza. */
+  readonly styleSlugs: readonly string[]
 }
 
 export interface OwnedPiece {
@@ -36,7 +38,9 @@ export interface OwnedPiece {
 export async function fetchOwnedProfessional(): Promise<OwnedProfessional | null> {
   const { data, error } = await supabase
     .from('professionals')
-    .select('id, slug, display_name, is_published, studio_lat, studio_lng')
+    .select(
+      'id, slug, display_name, is_published, studio_lat, studio_lng, professional_styles ( styles ( slug ) )',
+    )
     .not('owner_user_id', 'is', null)
     .limit(1)
     .maybeSingle()
@@ -53,16 +57,62 @@ export async function fetchOwnedProfessional(): Promise<OwnedProfessional | null
       data.studio_lat == null || data.studio_lng == null
         ? null
         : { lat: data.studio_lat, lng: data.studio_lng },
+    styleSlugs: (
+      (data.professional_styles ?? []) as Array<{
+        styles: { slug: string } | null
+      }>
+    )
+      .map((entry) => entry.styles?.slug)
+      .filter((slug): slug is string => slug != null),
   }
+}
+
+/**
+ * Crea el perfil de artista de quien llama. Devuelve el slug.
+ *
+ * Un camino distinto del código de reclamo, no un reemplazo: un perfil que
+ * MESH armó se sigue reclamando con `claimProfessional`. Ver ADR-013.
+ */
+export async function createOwnProfessional(input: {
+  displayName: string
+  instagram?: string | undefined
+  whatsapp?: string | undefined
+}): Promise<string> {
+  const { data, error } = await supabase.rpc('create_own_professional', {
+    p_display_name: input.displayName,
+    ...(input.instagram != null ? { p_instagram: input.instagram } : {}),
+    ...(input.whatsapp != null ? { p_whatsapp: input.whatsapp } : {}),
+  })
+  if (error != null) throw error
+  return String(data)
+}
+
+/**
+ * Reemplaza los estilos declarados del perfil propio.
+ *
+ * Sin esto el componente Estilo del matching —que pesa 0,70— le da cero al
+ * artista: existe en el catálogo y no aparece nunca en los resultados.
+ */
+export async function setOwnStyles(
+  styleSlugs: readonly string[],
+): Promise<void> {
+  const { error } = await supabase.rpc('set_own_styles', {
+    p_style_slugs: [...styleSlugs],
+  })
+  if (error != null) throw error
 }
 
 /** Publica (o actualiza) la ubicación real del estudio. Solo la fila propia. */
 export async function setStudioLocation(
   coordinates: GeoCoordinates,
+  neighborhoodSlug?: string | null,
 ): Promise<void> {
   const { error } = await supabase.rpc('set_studio_location', {
     p_lat: coordinates.lat,
     p_lng: coordinates.lng,
+    ...(neighborhoodSlug != null
+      ? { p_neighborhood_slug: neighborhoodSlug }
+      : {}),
   })
   if (error != null) throw error
 }

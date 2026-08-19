@@ -1052,6 +1052,14 @@ export type Database = {
     }
     Functions: {
       claim_professional: { Args: { p_code: string }; Returns: string }
+      create_own_professional: {
+        Args: {
+          p_display_name: string
+          p_instagram?: string
+          p_whatsapp?: string
+        }
+        Returns: string
+      }
       get_discovery_feed: {
         Args: { p_category_slug: string; p_cursor?: string; p_limit?: number }
         Returns: {
@@ -1088,8 +1096,9 @@ export type Database = {
         Args: { p_components: Json; p_reasons: Json }
         Returns: boolean
       }
+      set_own_styles: { Args: { p_style_slugs: string[] }; Returns: undefined }
       set_studio_location: {
-        Args: { p_lat: number; p_lng: number }
+        Args: { p_lat: number; p_lng: number; p_neighborhood_slug?: string }
         Returns: undefined
       }
     }

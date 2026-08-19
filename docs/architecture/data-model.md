@@ -271,8 +271,10 @@ publicación de realtime, que respeta RLS. Ver
 | `onboarding_intent` | `onboarding_intent` NULL | `offering` / `looking`. Preferencia de arranque, **no** un rol excluyente. NULL = no contestó |
 | `search_radius_km` | integer NULL | CHECK 1–200. NULL = sin límite. Nunca esconde a un profesional sin coordenadas publicadas |
 
-Elegir `offering` lleva a canjear el código de artista; no da de alta a nadie.
-El catálogo sigue siendo curado.
+Elegir `offering` lleva al estudio: crear el perfil propio, o canjear el código
+si MESH armó uno. Es una preferencia de arranque y nada más — la que crea el
+perfil es la persona, tocando el botón. Ver
+[ADR-013](../decisions/ADR-013-artist-self-signup.md).
 
 ## 4. Índices
 
@@ -329,12 +331,37 @@ tabla que el cliente no puede ver. Ver
 `supabase/migrations/20260818000300_artist_portfolio.sql` y
 `supabase/tests/25_artist_ownership.sql`.
 
-**`set_studio_location(p_lat, p_lng)`** — `SECURITY DEFINER`, `search_path`
-fijado, owner-scoped por `owner_user_id = auth.uid()`. Escribe
-`studio_lat`/`studio_lng` solo en la fila propia. Angosta a propósito: dos
-columnas, nada más — una política de UPDATE general sobre `professionals`
-abriría precio, disponibilidad y estilos con el mismo `with check`. Ver
-`supabase/migrations/20260818000400_studio_location.sql`.
+**`set_studio_location(p_lat, p_lng, p_neighborhood_slug)`** — `SECURITY
+DEFINER`, `search_path` fijado, owner-scoped por `owner_user_id = auth.uid()`.
+Escribe `studio_lat`/`studio_lng` y, si el barrio se reconoció contra
+`locations`, también `location_id`. Angosta a propósito: tres columnas, nada
+más — una política de UPDATE general sobre `professionals` abriría precio,
+disponibilidad y estilos con el mismo `with check`. El barrio lo resuelve el
+geocoder del sistema operativo en el cliente y llega como slug; un slug que no
+existe se descarta y **no borra el barrio que ya estaba**, porque un geocoder
+puede fallar una vez y perder un dato bueno por eso sería peor. Ver
+`supabase/migrations/20260818000400_studio_location.sql` y
+`supabase/migrations/20260819000400_artist_self_signup.sql`.
+
+**`create_own_professional(p_display_name, p_instagram, p_whatsapp)`** —
+`SECURITY DEFINER`, `search_path` fijado. Crea el perfil de artista de quien
+llama y devuelve el slug. DEFINER y no una política de INSERT porque
+`owner_user_id`, `category_id`, `is_published` e `is_fixture` los tiene que
+fijar el servidor: con una política los mandaría el cliente, y `is_fixture:
+true` dejaría a cualquiera marcarse como registro de prueba. Uno por persona,
+impuesto por el índice único parcial `professionals_one_per_owner`. El slug se
+deriva del nombre —minúsculas, sin acentos, sin nada que no sea alfanumérico— y
+los repetidos se numeran. Ver
+[ADR-013](../decisions/ADR-013-artist-self-signup.md).
+
+**`set_own_styles(p_style_slugs[])`** — `SECURITY DEFINER`, `search_path`
+fijado, owner-scoped. Reemplaza el conjunto entero de `professional_styles` del
+perfil propio; los primeros tres quedan `is_primary` (el tope lo impone
+`enforce_primary_style_cap`). Un slug inexistente falla con `23503` en vez de
+saltearse: guardar en silencio menos estilos de los que la persona eligió es
+peor que fallar. Sin esto un perfil creado desde la app saca cero en el
+componente Estilo del matching, que pesa 0,70 — existe en el catálogo y no
+aparece nunca.
 
 **`get_style_examples(p_category_slug)`** — `SECURITY INVOKER`, `search_path`
 fijado. Una foto real y publicada por estilo, la de mayor peso declarado

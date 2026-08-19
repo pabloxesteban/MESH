@@ -33,6 +33,7 @@ import { QuickSearchScreen } from '@/features/quick-search/QuickSearchScreen.tsx
 import { AccountScreen } from '@/features/account/AccountScreen.tsx'
 import { IntentScreen } from '@/features/onboarding/IntentScreen.tsx'
 import { ChatScreen } from '@/features/chat/ChatScreen.tsx'
+import { StudioScreen } from '@/features/artist/StudioScreen.tsx'
 
 const mockRpc = jest.fn()
 jest.mock('@/data/supabase.ts', () => ({
@@ -92,6 +93,31 @@ jest.mock('@/features/location/device.ts', () => ({
   currentDeviceLocation: jest.fn().mockResolvedValue(null),
   requestDeviceLocation: jest.fn().mockResolvedValue(null),
 }))
+jest.mock('@/features/artist/queries.ts', () => ({
+  fetchOwnedProfessional: jest.fn().mockResolvedValue(null),
+  fetchOwnedPieces: jest.fn().mockResolvedValue([]),
+  claimProfessional: jest.fn(),
+  createOwnProfessional: jest.fn(),
+  setOwnStyles: jest.fn(),
+  setStudioLocation: jest.fn(),
+  addPiece: jest.fn(),
+  removePiece: jest.fn(),
+}))
+jest.mock('@/features/artist/gps.ts', () => ({
+  readDeviceGps: jest
+    .fn()
+    .mockResolvedValue({
+      granted: false,
+      coordinates: null,
+      neighborhoodSlug: null,
+    }),
+}))
+jest.mock('@/features/artist/upload.ts', () => ({
+  uploadPortfolioPiece: jest.fn(),
+}))
+jest.mock('expo-image-picker', () => ({
+  launchImageLibraryAsync: jest.fn().mockResolvedValue({ canceled: true }),
+}))
 jest.mock('@/features/quick-search/classify.ts', () => ({
   classifyReferencePhoto: jest.fn().mockResolvedValue('fine-line'),
 }))
@@ -107,6 +133,7 @@ jest.mock('expo-location', () => ({
 
 import { fetchProfile } from '@/features/profile/queries.ts'
 import { fetchCatalog } from '@/features/matches/queries.ts'
+import { fetchOwnedProfessional } from '@/features/artist/queries.ts'
 
 const HOY = '2026-08-18'
 
@@ -450,6 +477,31 @@ describe('barrido de accesibilidad y callejones', () => {
     )
     sweep('chat · vacío')
     sweepDynamicType('chat · vacío')
+  })
+
+  it('el estudio, sin perfil todavía', async () => {
+    ;(fetchOwnedProfessional as jest.Mock).mockResolvedValue(null)
+    render(<StudioScreen userId="u1" onBack={jest.fn()} />)
+    await waitFor(() => expect(screen.getByTestId('studio-create')).toBeTruthy())
+    sweep('estudio · sin perfil')
+    sweepDynamicType('estudio · sin perfil')
+  })
+
+  it('el estudio, con perfil propio y sin piezas', async () => {
+    ;(fetchOwnedProfessional as jest.Mock).mockResolvedValue({
+      id: 'p1',
+      slug: 'pablo-esteban',
+      displayName: 'Pablo Esteban',
+      isPublished: true,
+      studioCoordinates: null,
+      styleSlugs: [],
+    })
+    render(<StudioScreen userId="u1" onBack={jest.fn()} />)
+    await waitFor(() =>
+      expect(screen.getByTestId('studio-content')).toBeTruthy(),
+    )
+    sweep('estudio · con perfil')
+    sweepDynamicType('estudio · con perfil')
   })
 
   it('buscar por fotos', () => {

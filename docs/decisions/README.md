@@ -24,3 +24,6 @@ todo el repositorio.
 | [008](ADR-008-design-system.md) | Design system dentro de la app, impuesto por lint | Propuesto |
 | [009](ADR-009-almacenamiento-local.md) | `expo-sqlite/kv-store` en vez de MMKV, para no salir de Expo Go | **Aceptado** |
 | [010](ADR-010-color-system.md) | El color es información: paleta generada en OKLCH, una familia por familia de estilo | **Aceptado** |
+| [011](ADR-011-photo-classification.md) | La única IA del producto: clasificar la foto de referencia contra un vocabulario cerrado | **Aceptado** |
+| [012](ADR-012-chat.md) | Chat propio adentro de MESH; revierte el descarte de mensajería de ADR-003 | **Aceptado** |
+| [013](ADR-013-artist-self-signup.md) | Alta propia de artista desde la app; el catálogo deja de ser exclusivamente curado | **Aceptado** |

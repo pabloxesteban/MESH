@@ -47,8 +47,21 @@ preview.
 | Color, contraste, tipografía, espaciado | Hápticos |
 | Los dos temas en una pantalla real | Gestos nativos y su física |
 | El flujo completo: mazo → gusto → encajes → perfil | Performance real |
+| El modo artista entero: alta propia, estilos, ubicación, subir obra | Que un artista no pueda escribir en el perfil de otro |
 | Que el motor de gusto y el ranking dan lo que se espera | Offline y la cola de interacciones |
 | Áreas táctiles y etiquetas de accesibilidad | RLS, permisos, paginación contra la base |
+
+El modo artista anda de punta a punta en el preview: en **Perfil → Tu estudio**
+se crea un perfil propio con nombre y contacto (o se canjea `BRIZA123`, un
+código de mentira que solo existe acá), se declaran estilos, se publica una
+ubicación fija de ejemplo y se sube una foto que aparece en el mazo. El único
+perfil con coordenadas es el propio: el catálogo horneado no trae GPS de nadie,
+porque nadie lo dio.
+
+Lo que el preview **no** prueba de todo eso es justamente lo que importa de
+seguridad —que un artista no pueda escribir en el perfil de otro—, porque eso lo
+decide RLS y acá no hay base. Está en `supabase/tests/25_artist_ownership.sql`,
+`supabase/tests/26_artist_self_signup.sql` y en `tests/integration/`.
 
 **Un preview que se ve bien no dice que la app esté bien.** react-native-web es
 una traducción. Antes de un release hay que abrirla en un dispositivo con Expo

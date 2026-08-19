@@ -24,8 +24,10 @@ import { readDeviceGps } from './gps.ts'
 import {
   addPiece,
   claimProfessional,
+  createOwnProfessional,
   fetchOwnedPieces,
   fetchOwnedProfessional,
+  setOwnStyles,
   setStudioLocation,
 } from './queries.ts'
 import { weightsFor, MAX_STYLES_PER_PIECE } from './weights.ts'
@@ -51,6 +53,21 @@ const claimMock = claimProfessional as jest.Mock
 const addPieceMock = addPiece as jest.Mock
 const setLocationMock = setStudioLocation as jest.Mock
 const readGpsMock = readDeviceGps as jest.Mock
+const createMock = createOwnProfessional as jest.Mock
+const setStylesMock = setOwnStyles as jest.Mock
+
+/** Un perfil propio ya cargado. Los tests que lo pisan solo cambian lo suyo. */
+function ownedProfile(patch: Record<string, unknown> = {}) {
+  return {
+    id: 'p1',
+    slug: 'briza',
+    displayName: 'Briza Maldonado',
+    isPublished: true,
+    studioCoordinates: null,
+    styleSlugs: [],
+    ...patch,
+  }
+}
 
 function renderStudio() {
   const client = new QueryClient({
@@ -96,10 +113,11 @@ describe('weightsFor', () => {
 })
 
 describe('StudioScreen', () => {
-  it('sin perfil reclamado pide el código', async () => {
+  it('sin perfil ofrece crear el propio y también canjear un código', async () => {
     fetchProfileMock.mockResolvedValue(null)
     renderStudio()
-    await waitFor(() => expect(screen.getByTestId('studio-claim')).toBeTruthy())
+    await waitFor(() => expect(screen.getByTestId('studio-create')).toBeTruthy())
+    expect(screen.getByTestId('studio-claim')).toBeTruthy()
   })
 
   it('un código inválido no muestra el error crudo de la base', async () => {
@@ -131,13 +149,139 @@ describe('StudioScreen', () => {
     expect(input.props.value).toBe('BRIZA123')
   })
 
-  it('no deja subir sin elegir al menos un estilo', async () => {
-    fetchProfileMock.mockResolvedValue({
-      id: 'p1',
-      slug: 'briza',
-      displayName: 'Briza Maldonado',
-      isPublished: true,
+  describe('alta propia', () => {
+    beforeEach(() => {
+      fetchProfileMock.mockResolvedValue(null)
     })
+
+    it('no deja crear sin nombre ni sin un canal de contacto', async () => {
+      renderStudio()
+      await waitFor(() =>
+        expect(screen.getByTestId('studio-create')).toBeTruthy(),
+      )
+
+      const submit = screen.getByTestId('studio-create-submit')
+      expect(submit.props.accessibilityState.disabled).toBe(true)
+
+      // Con nombre pero sin contacto sigue bloqueado: la base rechaza un perfil
+      // publicado al que no se le puede escribir, y enterarse recién al tocar
+      // sería enterarse tarde.
+      fireEvent.changeText(
+        screen.getByTestId('studio-create-name'),
+        'Pablo Esteban',
+      )
+      expect(submit.props.accessibilityState.disabled).toBe(true)
+
+      fireEvent.changeText(
+        screen.getByTestId('studio-create-instagram'),
+        'pablo.tattoo',
+      )
+      expect(submit.props.accessibilityState.disabled).toBe(false)
+    })
+
+    it('manda el nombre y el contacto, y saca la arroba del handle', async () => {
+      createMock.mockResolvedValue('pablo-esteban')
+      renderStudio()
+      await waitFor(() =>
+        expect(screen.getByTestId('studio-create')).toBeTruthy(),
+      )
+
+      fireEvent.changeText(
+        screen.getByTestId('studio-create-name'),
+        'Pablo Esteban',
+      )
+      fireEvent.changeText(
+        screen.getByTestId('studio-create-instagram'),
+        '@pablo.tattoo',
+      )
+      fireEvent.press(screen.getByTestId('studio-create-submit'))
+
+      await waitFor(() => expect(createMock).toHaveBeenCalled())
+      expect(createMock.mock.calls[0]?.[0]).toEqual({
+        displayName: 'Pablo Esteban',
+        instagram: 'pablo.tattoo',
+      })
+    })
+
+    it('un error de la base no se muestra crudo', async () => {
+      createMock.mockRejectedValue(
+        new Error('duplicate key value violates unique constraint (23505)'),
+      )
+      renderStudio()
+      await waitFor(() =>
+        expect(screen.getByTestId('studio-create')).toBeTruthy(),
+      )
+
+      fireEvent.changeText(screen.getByTestId('studio-create-name'), 'Pablo')
+      fireEvent.changeText(
+        screen.getByTestId('studio-create-whatsapp'),
+        '+5491100000000',
+      )
+      fireEvent.press(screen.getByTestId('studio-create-submit'))
+
+      await waitFor(() =>
+        expect(screen.getByTestId('studio-create-error')).toBeTruthy(),
+      )
+      expect(screen.queryByText(/23505/)).toBeNull()
+      expect(screen.queryByText(/unique constraint/)).toBeNull()
+    })
+  })
+
+  describe('estilos propios', () => {
+    it('sin cambios no muestra el botón de guardar', async () => {
+      fetchProfileMock.mockResolvedValue(
+        ownedProfile({ styleSlugs: ['fine-line'] }),
+      )
+      renderStudio()
+      await waitFor(() =>
+        expect(screen.getByTestId('studio-own-styles')).toBeTruthy(),
+      )
+      // Un botón siempre visible sobre algo ya guardado invita a tocarlo por
+      // las dudas, y cada toque es una escritura.
+      expect(screen.queryByTestId('studio-styles-save')).toBeNull()
+    })
+
+    it('guarda los estilos en el orden en que se tocaron', async () => {
+      fetchProfileMock.mockResolvedValue(ownedProfile())
+      setStylesMock.mockResolvedValue(undefined)
+      renderStudio()
+      await waitFor(() =>
+        expect(screen.getByTestId('studio-own-styles')).toBeTruthy(),
+      )
+
+      fireEvent.press(screen.getByTestId('studio-own-style-blackwork'))
+      fireEvent.press(screen.getByTestId('studio-own-style-fine-line'))
+      fireEvent.press(screen.getByTestId('studio-styles-save'))
+
+      await waitFor(() => expect(setStylesMock).toHaveBeenCalled())
+      expect(setStylesMock.mock.calls[0]?.[0]).toEqual([
+        'blackwork',
+        'fine-line',
+      ])
+    })
+
+    it('los estilos de la pieza son otro selector, y no se pisan', async () => {
+      fetchProfileMock.mockResolvedValue(ownedProfile())
+      addPieceMock.mockResolvedValue('pieza-1')
+      renderStudio()
+      await waitFor(() =>
+        expect(screen.getByTestId('studio-content')).toBeTruthy(),
+      )
+
+      fireEvent.press(screen.getByTestId('studio-own-style-blackwork'))
+      fireEvent.press(screen.getByTestId('studio-style-lettering'))
+      fireEvent.press(screen.getByTestId('studio-pick'))
+
+      await waitFor(() => expect(addPieceMock).toHaveBeenCalled())
+      expect(addPieceMock.mock.calls[0]?.[0]).toMatchObject({
+        styleSlugsInOrder: ['lettering'],
+      })
+      expect(setStylesMock).not.toHaveBeenCalled()
+    })
+  })
+
+  it('no deja subir sin elegir al menos un estilo', async () => {
+    fetchProfileMock.mockResolvedValue(ownedProfile())
     renderStudio()
     await waitFor(() =>
       expect(screen.getByTestId('studio-content')).toBeTruthy(),
@@ -150,12 +294,7 @@ describe('StudioScreen', () => {
   })
 
   it('sube y etiqueta en el orden en que se tocaron los estilos', async () => {
-    fetchProfileMock.mockResolvedValue({
-      id: 'p1',
-      slug: 'briza',
-      displayName: 'Briza Maldonado',
-      isPublished: true,
-    })
+    fetchProfileMock.mockResolvedValue(ownedProfile())
     addPieceMock.mockResolvedValue('pieza-1')
     renderStudio()
     await waitFor(() =>
@@ -176,12 +315,7 @@ describe('StudioScreen', () => {
   })
 
   it('muestra las piezas ya subidas con sus estilos', async () => {
-    fetchProfileMock.mockResolvedValue({
-      id: 'p1',
-      slug: 'briza',
-      displayName: 'Briza Maldonado',
-      isPublished: true,
-    })
+    fetchProfileMock.mockResolvedValue(ownedProfile())
     fetchPiecesMock.mockResolvedValue([
       {
         id: 'pieza-1',
@@ -203,17 +337,15 @@ describe('StudioScreen', () => {
 
   describe('ubicación del estudio', () => {
     beforeEach(() => {
-      fetchProfileMock.mockResolvedValue({
-        id: 'p1',
-        slug: 'briza',
-        displayName: 'Briza Maldonado',
-        isPublished: true,
-        studioCoordinates: null,
-      })
+      fetchProfileMock.mockResolvedValue(ownedProfile())
     })
 
     it('sin permiso muestra el error, sin pasar a confirmación', async () => {
-      readGpsMock.mockResolvedValue({ granted: false, coordinates: null })
+      readGpsMock.mockResolvedValue({
+        granted: false,
+        coordinates: null,
+        neighborhoodSlug: null,
+      })
       renderStudio()
       await waitFor(() =>
         expect(screen.getByTestId('studio-content')).toBeTruthy(),
@@ -232,6 +364,7 @@ describe('StudioScreen', () => {
       readGpsMock.mockResolvedValue({
         granted: true,
         coordinates: { lat: -34.5875, lng: -58.4371 },
+        neighborhoodSlug: 'palermo',
       })
       renderStudio()
       await waitFor(() =>
@@ -254,6 +387,7 @@ describe('StudioScreen', () => {
       readGpsMock.mockResolvedValue({
         granted: true,
         coordinates: { lat: -34.5875, lng: -58.4371 },
+        neighborhoodSlug: 'palermo',
       })
       setLocationMock.mockResolvedValue(undefined)
       renderStudio()
@@ -268,10 +402,13 @@ describe('StudioScreen', () => {
       fireEvent.press(screen.getByTestId('studio-location-confirm-submit'))
 
       await waitFor(() =>
-        expect(setLocationMock).toHaveBeenCalledWith({
-          lat: -34.5875,
-          lng: -58.4371,
-        }),
+        expect(setLocationMock).toHaveBeenCalledWith(
+          { lat: -34.5875, lng: -58.4371 },
+          // El barrio va junto con las coordenadas: es lo que puntúa el
+          // componente de Ubicación del matching, y sin esto un artista que se
+          // dio de alta solo nunca lo tendría.
+          'palermo',
+        ),
       )
     })
   })

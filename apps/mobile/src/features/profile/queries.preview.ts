@@ -7,6 +7,8 @@ import type { AvailabilityStatus, Professional } from '@mesh/domain'
 import {
   artistBySlug,
   previewLocation,
+  previewOwnedProfessional,
+  previewPiecesOf,
   previewProfessionalId,
   previewStudioCoordinatesOf,
 } from '../../../preview/store.ts'
@@ -67,16 +69,34 @@ export async function fetchProfile(slug: string): Promise<ProfileData | null> {
     // En el preview se puede chatear con cualquiera: no hay dueños reales,
     // y el punto es poder recorrer el flujo.
     canChat: true,
-    pieces: artist.pieces.map((piece) => ({
-      id: piece.id,
-      mediaPath: piece.id,
-      blurhash: null,
-      width: piece.width,
-      height: piece.height,
-      caption: piece.caption,
-      year: piece.year,
-      isFeatured: piece.featured,
-      styles: piece.styles.map((style) => style.slug),
-    })),
+    // Lo que subiste desde el estudio va primero, y solo en tu propio perfil:
+    // el catálogo horneado no cambia, y ver la foto recién subida acá es lo que
+    // cierra el flujo de "la subí" a "así se ve".
+    pieces: [
+      ...(previewOwnedProfessional() === slug ? previewPiecesOf() : []).map(
+        (piece) => ({
+          id: piece.id,
+          mediaPath: piece.id,
+          blurhash: null,
+          width: null,
+          height: null,
+          caption: null,
+          year: null,
+          isFeatured: piece.featured,
+          styles: piece.styles.map((style) => style.slug),
+        }),
+      ),
+      ...artist.pieces.map((piece) => ({
+        id: piece.id,
+        mediaPath: piece.id,
+        blurhash: null,
+        width: piece.width,
+        height: piece.height,
+        caption: piece.caption,
+        year: piece.year,
+        isFeatured: piece.featured,
+        styles: piece.styles.map((style) => style.slug),
+      })),
+    ],
   }
 }

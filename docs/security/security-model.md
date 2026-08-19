@@ -115,25 +115,44 @@ valor— cuesta más en usuarios reales de lo que ahorra en abuso a esta escala.
 | `analytics_events` | ✗ | propios (`user_id = auth.uid()`) | ✗ | ✗ |
 | `audit_events` | ✗ | ✗ | ✗ | ✗ (sin políticas — solo service role) |
 
-**El catálogo curado sigue siendo de solo lectura para el cliente**, con dos
-excepciones angostas y deliberadas: un artista que reclamó su perfil (código
-de un solo uso, `claim_professional()`) puede escribir su propio portafolio
-(`portfolio_items`, `portfolio_item_styles`) por política normal, y puede
-actualizar la ubicación real de su estudio por `set_studio_location()`. Las
-dos veces la propiedad se resuelve por `owner_user_id = auth.uid()`, nunca por
-algo que el cliente provee. Ver
-`supabase/migrations/20260818000300_artist_portfolio.sql`,
-`supabase/migrations/20260818000400_studio_location.sql` y
-`supabase/tests/25_artist_ownership.sql`.
+**`professionals` sigue sin política de INSERT ni de UPDATE para el cliente**,
+ni siquiera para el dueño. Todo lo que un artista escribe sobre su propia fila
+pasa por una RPC `SECURITY DEFINER` angosta, owner-scoped por `owner_user_id =
+auth.uid()`:
 
-`professionals` no tiene política de UPDATE ni para el dueño: la fila tiene
-precio, disponibilidad y estilos además de la ubicación del estudio, y una
-sola política de update abriría todo eso con un `with check` que solo
-debería cubrir dos columnas. `set_studio_location()` es SECURITY DEFINER
-angosta a propósito — toca esas dos columnas y nada más — en vez de un
-`grant update` por columnas, que ya se probó y se descartó en el flujo de
-reclamo (rompe cualquier `select *`; ver el comentario de
-`professional_claims` en la migración de portfolio).
+| RPC | Qué toca |
+|---|---|
+| `claim_professional(code)` | `owner_user_id`, `claimed_at`, sobre un perfil que MESH armó |
+| `create_own_professional(nombre, ig, wa)` | crea la fila entera, con las columnas sensibles fijadas por el servidor |
+| `set_own_styles(slugs[])` | `professional_styles` del perfil propio |
+| `set_studio_location(lat, lng, barrio)` | `studio_lat`, `studio_lng`, `location_id` |
+
+El portafolio (`portfolio_items`, `portfolio_item_styles`) sí se escribe por
+política normal, con la propiedad resuelta por el mismo predicado.
+
+Por qué RPCs y no políticas: la fila de `professionals` tiene precio,
+disponibilidad, `is_published` e `is_fixture` además de lo que el dueño edita.
+Una sola política de update abriría todo eso con un `with check` que solo
+debería cubrir tres columnas, y una política de insert dejaría al cliente
+mandar `is_fixture: true` — o sea, marcarse como registro de prueba y saltearse
+los cortes que dependen de esa columna. Un `grant update` por columnas ya se
+probó y se descartó en el flujo de reclamo (rompe cualquier `select *`; ver el
+comentario de `professional_claims` en la migración de portfolio).
+
+Una persona tiene como mucho un perfil, y eso lo impone la base
+(`professionals_one_per_owner`, índice único parcial), no el cliente. Ver
+`supabase/migrations/20260818000300_artist_portfolio.sql`,
+`supabase/migrations/20260818000400_studio_location.sql`,
+`supabase/migrations/20260819000400_artist_self_signup.sql`,
+`supabase/tests/25_artist_ownership.sql`,
+`supabase/tests/26_artist_self_signup.sql` y
+[ADR-013](../decisions/ADR-013-artist-self-signup.md).
+
+**Lo que esto abre, dicho sin vueltas:** hasta acá nadie podía crear una fila de
+`professionals` desde el cliente, y el catálogo era curado por definición. Ya no.
+No hay moderación, ni denuncia, ni camino de despublicación. Es un riesgo
+aceptado a sabiendas con el producto sin lanzar, y la vuelta atrás es una línea
+—sacarle el `grant execute` a `create_own_professional`—, no una migración.
 
 El SELECT de `media_assets` es el caso sutil: un `using (true)` ingenuo filtraría
 las rutas de storage de las imágenes de referencia privadas de otras personas —

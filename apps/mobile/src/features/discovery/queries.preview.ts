@@ -75,7 +75,7 @@ export async function fetchDiscoveryFeed(
   _categorySlug: string,
   cursor: string | null,
 ): Promise<FeedPage> {
-  const { previewInteractions, previewOwnedProfessional, previewPiecesOf } =
+  const { previewInteractions, previewOwnProfile, previewPiecesOf } =
     await import('../../../preview/store.ts')
   const seen = new Set(
     previewInteractions().map((entry) => entry.portfolioItemId),
@@ -83,9 +83,7 @@ export async function fetchDiscoveryFeed(
 
   // Lo que se sube desde el estudio entra al mazo. Es la mitad que hace que el
   // flujo se pueda evaluar: subir una foto y no verla aparecer no prueba nada.
-  const propio = previewOwnedProfessional()
-  const artista =
-    propio != null ? PREVIEW_ARTISTS.find((a) => a.slug === propio) : undefined
+  const artista = previewOwnProfile()
 
   const subidas: FeedItem[] =
     artista == null

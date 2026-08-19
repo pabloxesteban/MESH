@@ -41,7 +41,7 @@ export function resetPreviewInteractions(): void {
 }
 
 export function artistBySlug(slug: string): PreviewArtist | undefined {
-  return PREVIEW_ARTISTS.find((artist) => artist.slug === slug)
+  return previewArtists().find((artist) => artist.slug === slug)
 }
 
 export function artistOfPiece(pieceId: string): PreviewArtist | undefined {
@@ -74,10 +74,11 @@ export function registerPreviewMedia(id: string, dataUri: string): void {
 
 // --- estudio -----------------------------------------------------------------
 //
-// El preview deja recorrer el modo artista: reclamar un perfil con un código,
-// subir una foto, y verla aparecer en el mazo. Lo que NO prueba es lo único que
-// importa de seguridad —que un artista no pueda escribir en el perfil de otro—,
-// porque eso lo decide RLS y acá no hay base.
+// El preview deja recorrer el modo artista entero: darse de alta, declarar
+// estilos, publicar la ubicación del estudio, subir una foto, y verla aparecer
+// en el mazo. Lo que NO prueba es lo único que importa de seguridad —que un
+// artista no pueda escribir en el perfil de otro—, porque eso lo decide RLS y
+// acá no hay base.
 //
 // Los códigos están a la vista, en el código fuente de un archivo que se
 // publica. Es correcto: en el preview no hay nada que proteger. En la app de
@@ -89,7 +90,23 @@ const PREVIEW_CODES: Readonly<Record<string, string>> = {
   AGUJA456: 'fixture-aguja-fina',
 }
 
-let ownedSlug: string | null = null
+export interface PreviewOwnProfile {
+  readonly slug: string
+  readonly displayName: string
+  /**
+   * `true` solo si el perfil salió del catálogo horneado. Un perfil que una
+   * persona creó desde la app NO es un registro de prueba, ni acá ni en la
+   * base: marcarlo así sería mentir en la dirección contraria. Ver ADR-013.
+   */
+  readonly isFixture: boolean
+  readonly instagramHandle: string | null
+  readonly whatsappE164: string | null
+}
+
+let ownProfile: PreviewOwnProfile | null = null
+
+/** `null` mientras el artista no declaró estilos: entonces valen los horneados. */
+let ownStyleSlugs: readonly string[] | null = null
 
 export interface PreviewOwnPiece {
   readonly id: string
@@ -102,12 +119,89 @@ const ownPieces: PreviewOwnPiece[] = []
 export function claimPreviewProfessional(code: string): string | null {
   const slug = PREVIEW_CODES[code.toUpperCase().trim()]
   if (slug == null) return null
-  ownedSlug = slug
+  const artist = PREVIEW_ARTISTS.find((candidate) => candidate.slug === slug)
+  if (artist == null) return null
+  ownProfile = {
+    slug: artist.slug,
+    displayName: artist.displayName,
+    isFixture: artist.isFixture,
+    instagramHandle: artist.instagramHandle,
+    whatsappE164: artist.whatsappE164,
+  }
   return slug
 }
 
+/**
+ * El mismo slug que derivaría `create_own_professional` en Postgres.
+ *
+ * Repetir la derivación es duplicación, sí — pero la alternativa es que el
+ * preview muestre una ruta distinta de la que la app va a mostrar, y la ruta
+ * es lo que después se comparte. Si cambia una, tiene que cambiar la otra.
+ */
+function previewSlugify(displayName: string): string {
+  const base = displayName
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 40)
+  return base === '' ? 'artista' : base
+}
+
+export function createPreviewProfessional(input: {
+  displayName: string
+  instagram?: string | undefined
+  whatsapp?: string | undefined
+}): string {
+  // Los mismos tres rechazos que la función de Postgres, para que el preview
+  // falle donde la app real falla y no un paso después.
+  if (ownProfile != null) throw new Error('ya tenés un perfil')
+  if (input.displayName.trim() === '') throw new Error('hace falta un nombre')
+  if (
+    (input.instagram ?? '').trim() === '' &&
+    (input.whatsapp ?? '').trim() === ''
+  ) {
+    throw new Error('hace falta al menos un canal de contacto')
+  }
+
+  const base = previewSlugify(input.displayName)
+  let slug = base
+  let intento = 1
+  while (PREVIEW_ARTISTS.some((artist) => artist.slug === slug)) {
+    intento += 1
+    slug = `${base}-${String(intento)}`
+  }
+
+  ownProfile = {
+    slug,
+    displayName: input.displayName.trim(),
+    isFixture: false,
+    instagramHandle: (input.instagram ?? '').trim() || null,
+    whatsappE164: (input.whatsapp ?? '').trim() || null,
+  }
+  ownStyleSlugs = []
+  return slug
+}
+
+export function previewOwnProfile(): PreviewOwnProfile | null {
+  return ownProfile
+}
+
 export function previewOwnedProfessional(): string | null {
-  return ownedSlug
+  return ownProfile?.slug ?? null
+}
+
+/** Los estilos declarados: los que se eligieron, o los horneados si no se tocó. */
+export function previewOwnStyleSlugs(): readonly string[] {
+  if (ownStyleSlugs != null) return ownStyleSlugs
+  const artist = ownProfile == null ? undefined : bakedArtist(ownProfile.slug)
+  return (artist?.styles ?? []).map((style) => style.styleSlug)
+}
+
+export function setPreviewOwnStyles(slugs: readonly string[]): void {
+  if (ownProfile == null) throw new Error('no tenés un perfil')
+  ownStyleSlugs = [...slugs]
 }
 
 export function previewPiecesOf(): readonly PreviewOwnPiece[] {
@@ -130,23 +224,78 @@ export function previewProfessionalId(slug: string): string {
 
 // --- ubicación del estudio ----------------------------------------------------
 //
-// Igual que `ownPieces`: solo el perfil reclamado puede tener una. El
-// catálogo horneado no trae coordenadas para el resto de los artistas — son
-// fixtures, y no inventamos una GPS que nadie dio. El único que puede
-// aparecer con distancia en el preview es el perfil que reclamaste y le
-// pusiste ubicación a mano, con el mismo botón que en la app real.
+// Igual que `ownPieces`: solo el perfil propio puede tener una. El catálogo
+// horneado no trae coordenadas para el resto de los artistas — son fixtures, y
+// no inventamos una GPS que nadie dio. El único que puede aparecer con
+// distancia en el preview es tu propio perfil, con el mismo botón que en la
+// app real.
 
 const studioLocations = new Map<string, GeoCoordinates>()
+let ownNeighborhood: string | null = null
 
-export function setPreviewStudioLocation(coordinates: GeoCoordinates): void {
-  if (ownedSlug == null) return
-  studioLocations.set(ownedSlug, coordinates)
+export function setPreviewStudioLocation(
+  coordinates: GeoCoordinates,
+  neighborhoodSlug?: string | null,
+): void {
+  if (ownProfile == null) return
+  studioLocations.set(ownProfile.slug, coordinates)
+  // Un barrio no reconocido no borra el que ya estaba, igual que en
+  // `set_studio_location`.
+  ownNeighborhood = neighborhoodSlug ?? ownNeighborhood
 }
 
 export function previewStudioCoordinatesOf(
   slug: string,
 ): GeoCoordinates | null {
   return studioLocations.get(slug) ?? null
+}
+
+// --- el catálogo, con tu perfil adentro ---------------------------------------
+//
+// `PREVIEW_ARTISTS` es data horneada e inmutable. Tu propio perfil cambia en
+// medio de la sesión, así que el catálogo que ven el mazo, los encajes y las
+// pantallas de perfil se arma cada vez en vez de hornearse en el import.
+
+function bakedArtist(slug: string): PreviewArtist | undefined {
+  return PREVIEW_ARTISTS.find((artist) => artist.slug === slug)
+}
+
+/** El catálogo horneado más —o pisado por— el perfil propio de esta sesión. */
+export function previewArtists(): readonly PreviewArtist[] {
+  if (ownProfile == null) return PREVIEW_ARTISTS
+
+  const baked = bakedArtist(ownProfile.slug)
+  const styles = previewOwnStyleSlugs().map((styleSlug, index) => ({
+    styleSlug,
+    proficiency: 1,
+    isPrimary: index < 3,
+  }))
+
+  const mine: PreviewArtist = {
+    ...(baked ?? {
+      slug: ownProfile.slug,
+      displayName: ownProfile.displayName,
+      isFixture: false,
+      bio: null,
+      location: null,
+      travels: false,
+      styles: [],
+      price: null,
+      availability: null,
+      instagramHandle: null,
+      whatsappE164: null,
+      pieces: [],
+    }),
+    slug: ownProfile.slug,
+    displayName: ownProfile.displayName,
+    isFixture: ownProfile.isFixture,
+    instagramHandle: ownProfile.instagramHandle,
+    whatsappE164: ownProfile.whatsappE164,
+    styles,
+    location: ownNeighborhood ?? baked?.location ?? null,
+  }
+
+  return [mine, ...PREVIEW_ARTISTS.filter((a) => a.slug !== ownProfile?.slug)]
 }
 
 // --- ubicación de quien busca --------------------------------------------------

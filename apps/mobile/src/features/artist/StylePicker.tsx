@@ -13,13 +13,34 @@ import { STYLES } from '@mesh/domain'
 import { useT } from '@/i18n/I18nProvider.tsx'
 import type { TranslationKey } from '@/i18n/index.ts'
 
+/**
+ * Cuántos estilos declara un artista para sí.
+ *
+ * Tres y no más porque tres es lo que la base marca como primarios
+ * (`enforce_primary_style_cap`): con un cuarto, el cuarto entraría al perfil
+ * sin ser primario y la pantalla no tendría forma de mostrar esa diferencia
+ * sin explicar el esquema. Ver supabase/migrations/20260817000500_professionals.sql.
+ */
+export const MAX_OWN_STYLES = 3
+
 export interface StylePickerProps {
   selected: readonly string[]
   max: number
   onChange: (next: readonly string[]) => void
+  /**
+   * Prefijo de los testID. Hay dos selectores en la misma pantalla —los
+   * estilos del artista y los de la pieza que está subiendo— y sin esto los
+   * dos responderían al mismo identificador.
+   */
+  testIDPrefix?: string
 }
 
-export function StylePicker({ selected, max, onChange }: StylePickerProps) {
+export function StylePicker({
+  selected,
+  max,
+  onChange,
+  testIDPrefix = 'studio-style',
+}: StylePickerProps) {
   const t = useT()
 
   return (
@@ -49,7 +70,7 @@ export function StylePicker({ selected, max, onChange }: StylePickerProps) {
                     : [...selected, style.slug],
                 )
               }
-              testID={`studio-style-${style.slug}`}
+              testID={`${testIDPrefix}-${style.slug}`}
             />
           )
         })}
