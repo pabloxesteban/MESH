@@ -13,7 +13,12 @@
  */
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { fireEvent, render, screen, waitFor } from '@testing-library/react-native'
+import {
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from '@testing-library/react-native'
 
 import { MotionProvider, ThemeProvider } from '@/design-system/index.ts'
 import { I18nProvider } from '@/i18n/I18nProvider.tsx'
@@ -25,12 +30,17 @@ import { dismissInterest, fetchSearchInterests } from './interests.ts'
 
 jest.mock('./queries.ts')
 jest.mock('./interests.ts')
+jest.mock('../brief/queries.ts', () => ({
+  sendProposal: jest.fn().mockResolvedValue(undefined),
+}))
 
 const feedMock = fetchOpenSearchFeed as jest.Mock
 const decideMock = decideOnSearch as jest.Mock
 const undoMock = undoDecision as jest.Mock
 const interestsMock = fetchSearchInterests as jest.Mock
 const dismissMock = dismissInterest as jest.Mock
+const sendProposalMock = jest.requireMock('../brief/queries.ts')
+  .sendProposal as jest.Mock
 
 function busqueda(patch: Record<string, unknown> = {}) {
   return {
@@ -120,7 +130,9 @@ describe('mazo de búsquedas', () => {
     expect(Object.keys(busqueda())).not.toContain('displayName')
   })
 
-  it('me interesa manda el interés con el profesional propio', async () => {
+  it('me interesa abre la propuesta, y no decide nada todavía', async () => {
+    // Desde ADR-020 interesarse no es un booleano: la base rechaza un interés
+    // sin precio, así que la tarjeta no se puede decidir con un toque.
     renderDeck()
     await waitFor(() =>
       expect(screen.getByTestId('demand-card-top')).toBeTruthy(),
@@ -128,8 +140,59 @@ describe('mazo de búsquedas', () => {
 
     fireEvent.press(screen.getByTestId('demand-interest'))
 
+    expect(screen.getByTestId('proposal-composer')).toBeTruthy()
+    expect(decideMock).not.toHaveBeenCalled()
+  })
+
+  it('cancelar la propuesta deja la búsqueda donde estaba', async () => {
+    renderDeck()
+    await waitFor(() =>
+      expect(screen.getByTestId('demand-card-top')).toBeTruthy(),
+    )
+
+    fireEvent.press(screen.getByTestId('demand-interest'))
+    fireEvent.press(screen.getByTestId('proposal-cancel'))
+
+    expect(screen.queryByTestId('proposal-composer')).toBeNull()
+    expect(screen.getByTestId('demand-card-top')).toBeTruthy()
+    expect(decideMock).not.toHaveBeenCalled()
+  })
+
+  it('mandar la propuesta es lo que saca la tarjeta del mazo', async () => {
+    renderDeck()
+    await waitFor(() =>
+      expect(screen.getByTestId('demand-card-top')).toBeTruthy(),
+    )
+
+    fireEvent.press(screen.getByTestId('demand-interest'))
+    fireEvent.changeText(screen.getByTestId('proposal-min'), '80000')
+    fireEvent.changeText(screen.getByTestId('proposal-max'), '120000')
+    fireEvent.press(screen.getByTestId('proposal-sessions-2'))
+    fireEvent.press(screen.getByTestId('proposal-submit'))
+
+    await waitFor(() => expect(sendProposalMock).toHaveBeenCalled())
+    expect(sendProposalMock.mock.calls[0]?.[0]).toMatchObject({
+      projectId: 'proj-1',
+      professionalId: 'pro-1',
+      // Se escribe en pesos y se guarda en centavos.
+      priceMinCents: 8000000,
+      priceMaxCents: 12000000,
+      sessions: 2,
+    })
     await waitFor(() => expect(decideMock).toHaveBeenCalled())
     expect(decideMock.mock.calls[0]).toEqual(['proj-1', 'pro-1', 'interest'])
+  })
+
+  it('sin rango no se puede mandar', async () => {
+    renderDeck()
+    await waitFor(() =>
+      expect(screen.getByTestId('demand-card-top')).toBeTruthy(),
+    )
+    fireEvent.press(screen.getByTestId('demand-interest'))
+
+    expect(
+      screen.getByTestId('proposal-submit').props['accessibilityState'],
+    ).toMatchObject({ disabled: true })
   })
 
   it('paso se guarda igual, para que el mazo no repita', async () => {
@@ -156,6 +219,9 @@ describe('mazo de búsquedas', () => {
     ).toBe(true)
 
     fireEvent.press(screen.getByTestId('demand-interest'))
+    fireEvent.changeText(screen.getByTestId('proposal-min'), '80000')
+    fireEvent.changeText(screen.getByTestId('proposal-max'), '120000')
+    fireEvent.press(screen.getByTestId('proposal-submit'))
     await waitFor(() => expect(decideMock).toHaveBeenCalled())
 
     fireEvent.press(screen.getByTestId('demand-undo'))
@@ -174,6 +240,9 @@ describe('mazo de búsquedas', () => {
     )
 
     fireEvent.press(screen.getByTestId('demand-interest'))
+    fireEvent.changeText(screen.getByTestId('proposal-min'), '80000')
+    fireEvent.changeText(screen.getByTestId('proposal-max'), '120000')
+    fireEvent.press(screen.getByTestId('proposal-submit'))
 
     // Mostrarla dos veces es preferible a decirle a alguien que mandó un
     // interés que nunca salió.
@@ -207,6 +276,12 @@ describe('interesados en tu búsqueda', () => {
         professionalSlug: 'artista-fina',
         professionalName: 'Artista Fina',
         createdAt: '2026-08-18T12:00:00Z',
+        priceMinCents: 8000000,
+        priceMaxCents: 12000000,
+        priceCurrency: 'ARS',
+        sessions: 2,
+        note: null,
+        sampleMediaPath: null,
       },
     ])
     renderInterests()
@@ -228,6 +303,12 @@ describe('interesados en tu búsqueda', () => {
         professionalSlug: 'artista-fina',
         professionalName: 'Artista Fina',
         createdAt: '2026-08-18T12:00:00Z',
+        priceMinCents: 8000000,
+        priceMaxCents: 12000000,
+        priceCurrency: 'ARS',
+        sessions: 2,
+        note: null,
+        sampleMediaPath: null,
       },
     ])
     dismissMock.mockResolvedValue(undefined)

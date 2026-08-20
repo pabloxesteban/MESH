@@ -1507,23 +1507,6 @@ export type Database = {
           saves_since: number
         }[]
       }
-      get_project_proposals: {
-        Args: { p_project_id: string }
-        Returns: {
-          created_at: string
-          interest_id: string
-          is_fixture: boolean
-          note: string
-          price_currency: string
-          price_max_cents: number
-          price_min_cents: number
-          professional_display_name: string
-          professional_id: string
-          professional_slug: string
-          sample_media_path: string
-          sessions: number
-        }[]
-      }
       get_review_summary: {
         Args: { p_professional_id: string }
         Returns: {
@@ -1559,11 +1542,17 @@ export type Database = {
         Returns: {
           created_at: string
           interest_id: string
+          note: string
+          price_currency: string
+          price_max_cents: number
+          price_min_cents: number
           professional_display_name: string
           professional_id: string
           professional_slug: string
           project_id: string
           project_title: string
+          sample_media_path: string
+          sessions: number
         }[]
       }
       get_style_examples: {

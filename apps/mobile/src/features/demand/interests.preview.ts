@@ -20,6 +20,12 @@ export interface SearchInterest {
   readonly professionalSlug: string
   readonly professionalName: string
   readonly createdAt: string
+  readonly priceMinCents: number
+  readonly priceMaxCents: number
+  readonly priceCurrency: string
+  readonly sessions: number
+  readonly note: string | null
+  readonly sampleMediaPath: string | null
 }
 
 export async function fetchSearchInterests(
@@ -35,6 +41,14 @@ export async function fetchSearchInterests(
       professionalSlug: entry.professionalSlug,
       professionalName: entry.professionalName,
       createdAt: entry.createdAt,
+      priceMinCents: entry.priceMinCents,
+      priceMaxCents: entry.priceMaxCents,
+      priceCurrency: 'ARS',
+      sessions: entry.sessions,
+      note: entry.note,
+      // El catálogo del preview no cuelga obra del perfil propio hasta que se
+      // sube una, y la lista funciona igual sin ella.
+      sampleMediaPath: null,
     }))
 }
 

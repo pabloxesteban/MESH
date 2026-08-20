@@ -16,6 +16,19 @@ export interface SearchInterest {
   readonly professionalSlug: string
   readonly professionalName: string
   readonly createdAt: string
+  /**
+   * La propuesta. **Nunca es null**: desde ADR-020 un interés sin rango de
+   * precio y sin sesiones no existe — lo impide una restricción de la tabla, no
+   * una validación de pantalla.
+   */
+  readonly priceMinCents: number
+  readonly priceMaxCents: number
+  readonly priceCurrency: string
+  readonly sessions: number
+  /** La condición, si la escribió: "estimado, lo confirmo al verte". */
+  readonly note: string | null
+  /** Una obra del artista, para poder decidir mirando y no leyendo. */
+  readonly sampleMediaPath: string | null
 }
 
 /** Sin `projectId`, los de todas las búsquedas propias. */
@@ -36,6 +49,12 @@ export async function fetchSearchInterests(
     professionalSlug: row.professional_slug,
     professionalName: row.professional_display_name,
     createdAt: row.created_at,
+    priceMinCents: row.price_min_cents,
+    priceMaxCents: row.price_max_cents,
+    priceCurrency: row.price_currency,
+    sessions: row.sessions,
+    note: row.note,
+    sampleMediaPath: row.sample_media_path,
   }))
 }
 

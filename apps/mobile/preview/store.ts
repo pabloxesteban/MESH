@@ -654,7 +654,23 @@ export function nextPreviewTimestamp(): string {
 
 export type PreviewVerdict = 'interest' | 'pass'
 
-const decisiones = new Map<string, PreviewVerdict>()
+/**
+ * Lo que el artista respondió sobre una búsqueda.
+ *
+ * Un `interest` **siempre** trae propuesta, igual que en la base: desde ADR-020
+ * la restricción `project_interests_proposal_shape` no deja existir un interés
+ * sin rango ni sesiones. El preview lo respeta para no mostrar una forma que la
+ * app real rechaza.
+ */
+export interface PreviewDecision {
+  readonly verdict: PreviewVerdict
+  readonly priceMinCents: number | null
+  readonly priceMaxCents: number | null
+  readonly sessions: number | null
+  readonly note: string | null
+}
+
+const decisiones = new Map<string, PreviewDecision>()
 
 /**
  * Las búsquedas que este artista todavía no decidió, y que piden algún estilo
@@ -673,8 +689,20 @@ export function previewOpenSearches(): readonly PreviewOpenSearch[] {
 export function decidePreviewSearch(
   projectId: string,
   verdict: PreviewVerdict,
+  propuesta?: {
+    priceMinCents: number
+    priceMaxCents: number
+    sessions: number
+    note: string | null
+  },
 ): void {
-  decisiones.set(projectId, verdict)
+  decisiones.set(projectId, {
+    verdict,
+    priceMinCents: propuesta?.priceMinCents ?? null,
+    priceMaxCents: propuesta?.priceMaxCents ?? null,
+    sessions: propuesta?.sessions ?? null,
+    note: propuesta?.note ?? null,
+  })
 }
 
 export function undoPreviewSearchDecision(projectId: string): void {
@@ -696,6 +724,10 @@ export function previewSearchInterests(): readonly {
   professionalSlug: string
   professionalName: string
   createdAt: string
+  priceMinCents: number
+  priceMaxCents: number
+  sessions: number
+  note: string | null
 }[] {
   const own = previewOwnProfile()
   if (own == null) return []
@@ -703,17 +735,26 @@ export function previewSearchInterests(): readonly {
   return [...busquedasPropias, ...BUSQUEDAS_HORNEADAS]
     .filter(
       (search) =>
-        decisiones.get(search.projectId) === 'interest' &&
+        decisiones.get(search.projectId)?.verdict === 'interest' &&
         busquedasPropias.some((mia) => mia.projectId === search.projectId),
     )
-    .map((search) => ({
-      interestId: `preview-interest-${search.projectId}`,
-      projectId: search.projectId,
-      projectTitle: search.title,
-      professionalSlug: own.slug,
-      professionalName: own.displayName,
-      createdAt: search.createdAt,
-    }))
+    .map((search) => {
+      const decision = decisiones.get(search.projectId)
+      return {
+        interestId: `preview-interest-${search.projectId}`,
+        projectId: search.projectId,
+        projectTitle: search.title,
+        professionalSlug: own.slug,
+        professionalName: own.displayName,
+        createdAt: search.createdAt,
+        // Los `?? 0` no se alcanzan: el filtro de arriba ya dejó solo intereses,
+        // y un interés sin propuesta no se puede crear.
+        priceMinCents: decision?.priceMinCents ?? 0,
+        priceMaxCents: decision?.priceMaxCents ?? 0,
+        sessions: decision?.sessions ?? 1,
+        note: decision?.note ?? null,
+      }
+    })
 }
 
 export function dismissPreviewInterest(interestId: string): void {

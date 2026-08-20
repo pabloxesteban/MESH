@@ -8,8 +8,10 @@
  *   exactamente la que el clasificador puede devolver, y una lista escrita dos
  *   veces se separa a la primera edición.
  * - **Los rasgos de una búsqueda** los escribe su dueña, y solo ella los lee.
- * - **Las propuestas** las escribe el artista y las lee la dueña, vía
- *   `get_project_proposals` — que no devuelve un `pass` jamás.
+ * - **La propuesta** la escribe el artista acá y la lee la dueña desde
+ *   `features/demand/interests.ts`, que es donde ya vivía la lista de quién le
+ *   respondió. Una segunda lista con los mismos datos habría sido la que nadie
+ *   abre.
  *
  * Ver ADR-020.
  */
@@ -23,21 +25,6 @@ export interface Trait {
   readonly slug: string
   readonly dimension: TraitDimension
   readonly nameKey: string
-}
-
-export interface Proposal {
-  readonly interestId: string
-  readonly professionalId: string
-  readonly professionalSlug: string
-  readonly professionalName: string
-  readonly isFixture: boolean
-  readonly priceMinCents: number
-  readonly priceMaxCents: number
-  readonly priceCurrency: string
-  readonly sessions: number
-  readonly note: string | null
-  readonly createdAt: string
-  readonly sampleMediaPath: string | null
 }
 
 /** El vocabulario de una categoría, en el orden en que se muestra. */
@@ -115,31 +102,6 @@ export async function fetchOpenSearchTraits(
   return (data ?? []).map((row) => ({
     dimension: row.dimension as TraitDimension,
     slug: row.slug,
-  }))
-}
-
-/** Las propuestas que recibió una búsqueda propia. */
-export async function fetchProposals(
-  projectId: string,
-): Promise<readonly Proposal[]> {
-  const { data, error } = await supabase.rpc('get_project_proposals', {
-    p_project_id: projectId,
-  })
-  if (error != null) throw error
-
-  return (data ?? []).map((row) => ({
-    interestId: row.interest_id,
-    professionalId: row.professional_id,
-    professionalSlug: row.professional_slug,
-    professionalName: row.professional_display_name,
-    isFixture: row.is_fixture,
-    priceMinCents: row.price_min_cents,
-    priceMaxCents: row.price_max_cents,
-    priceCurrency: row.price_currency,
-    sessions: row.sessions,
-    note: row.note,
-    createdAt: row.created_at,
-    sampleMediaPath: row.sample_media_path,
   }))
 }
 

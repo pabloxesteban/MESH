@@ -15,7 +15,7 @@
 -- Ver ADR-020.
 
 begin;
-select plan(17);
+select plan(18);
 
 -- --- fixtures (como postgres) ------------------------------------------------
 
@@ -193,7 +193,7 @@ select is(
 );
 
 select is(
-  (select count(*)::int from public.get_project_proposals(
+  (select count(*)::int from public.get_search_interests(
      'ffffffff-0000-0000-0000-0000000000b1')),
   0,
   'ni las propuestas de una búsqueda que no es suya'
@@ -206,24 +206,32 @@ set local request.jwt.claims =
 
 -- Una propuesta, no dos: el `pass` de B no aparece.
 select is(
-  (select count(*)::int from public.get_project_proposals(
+  (select count(*)::int from public.get_search_interests(
      'ffffffff-0000-0000-0000-0000000000b1')),
   1,
   'la persona ve la propuesta, y solo la propuesta'
 );
 
 select is(
-  (select price_max_cents from public.get_project_proposals(
+  (select price_max_cents from public.get_search_interests(
      'ffffffff-0000-0000-0000-0000000000b1')),
   12000000,
   'con el número que escribió el artista'
 );
 
 select is(
-  (select note from public.get_project_proposals(
+  (select note from public.get_search_interests(
      'ffffffff-0000-0000-0000-0000000000b1')),
   'Estimado. Lo confirmo cuando vea la piel',
   'y con su condición'
+);
+
+-- Sin argumento, todas las búsquedas propias: es la lista que la persona mira
+-- en Chats, que no razona por proyecto sino por "quién me respondió".
+select is(
+  (select count(*)::int from public.get_search_interests()),
+  1,
+  'y la lista sin filtrar trae lo mismo'
 );
 
 reset role;

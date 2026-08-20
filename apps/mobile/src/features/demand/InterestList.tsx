@@ -25,7 +25,9 @@ import {
   spacing,
   useTheme,
 } from '@/design-system/index.ts'
-import { useT } from '@/i18n/I18nProvider.tsx'
+import { useI18n } from '@/i18n/I18nProvider.tsx'
+
+import { formatMoney } from '../profile/format.ts'
 
 import { dismissInterest, fetchSearchInterests } from './interests.ts'
 
@@ -34,7 +36,7 @@ export function InterestList({
 }: {
   onOpenProfile: (professionalSlug: string) => void
 }) {
-  const t = useT()
+  const { t, locale } = useI18n()
   const theme = useTheme()
   const client = useQueryClient()
 
@@ -55,7 +57,7 @@ export function InterestList({
   return (
     <Box gap="xs" testID="interest-list">
       <Text role="label" color="textSecondary">
-        {t('demand.interests.title')}
+        {t('proposal.title')}
       </Text>
 
       {items.map((interest) => (
@@ -77,9 +79,42 @@ export function InterestList({
               nombre: interest.professionalName,
             })}
             testID={`interest-open-${interest.interestId}`}
-            style={{ flex: 1, minHeight: MIN_TOUCH_TARGET, justifyContent: 'center' }}
+            style={{
+              flex: 1,
+              minHeight: MIN_TOUCH_TARGET,
+              justifyContent: 'center',
+            }}
           >
             <Text role="body">{interest.professionalName}</Text>
+            {/* **El número, arriba de todo lo demás.** Es el dato por el que
+                esta persona va a escribir o no. Antes acá había un nombre y una
+                lista de nombres no se puede comparar. Ver ADR-020. */}
+            <Text role="body" testID={`interest-price-${interest.interestId}`}>
+              {t('proposal.range', {
+                min: formatMoney(
+                  interest.priceMinCents,
+                  interest.priceCurrency,
+                  locale,
+                ),
+                max: formatMoney(
+                  interest.priceMaxCents,
+                  interest.priceCurrency,
+                  locale,
+                ),
+              })}
+              {' · '}
+              {t(
+                interest.sessions === 1
+                  ? 'proposal.sessions.one'
+                  : 'proposal.sessions',
+                { n: String(interest.sessions) },
+              )}
+            </Text>
+            {interest.note != null ? (
+              <Text role="micro" color="textSecondary" numberOfLines={2}>
+                {interest.note}
+              </Text>
+            ) : null}
             <Text role="micro" color="textTertiary" numberOfLines={1}>
               {interest.projectTitle}
             </Text>

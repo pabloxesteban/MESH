@@ -124,6 +124,21 @@ odia.
 - Un artista que respondió y se arrepiente borra su propuesta, igual que hoy
   borra su interés — y la búsqueda le vuelve al mazo.
 
+## Dónde vive cada parte
+
+| Qué | Dónde |
+|---|---|
+| Lee la foto | `supabase/functions/read-reference/` — antes `classify-style` |
+| Vocabulario de rasgos | `packages/domain/src/taxonomy/taxonomy.ts` → `supabase/seed.sql` |
+| El brief que se revisa | `apps/mobile/src/features/brief/BriefEditor.tsx`, dentro de «Buscar con una foto» |
+| El artista responde | `apps/mobile/src/features/brief/ProposalComposer.tsx`, dentro del mazo |
+| La persona compara | `apps/mobile/src/features/demand/InterestList.tsx`, en Chats |
+
+La propuesta viaja adentro de `get_search_interests`, que ya era la lista de
+"quién me respondió". No se agregó una función aparte: la persona no razona por
+proyecto sino por quién le contestó, y una segunda lista con los mismos datos
+habría sido la que nadie abre.
+
 ## Referencias
 
 - `supabase/migrations/20260820000500_brief.sql`

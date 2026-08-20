@@ -181,51 +181,59 @@ comment on column public.project_interests.price_min_cents is
 -- --- lo que ve la persona -----------------------------------------------------
 
 /**
- * Las propuestas que recibió una búsqueda propia.
+ * `get_search_interests`, ahora con la propuesta adentro.
  *
- * Existe como función y no como consulta directa porque junta tres tablas que
- * la persona no puede leer entera —`professionals` sí, pero conviene devolver
- * una forma fija— y porque acá se decide **qué se muestra de cada artista**:
- * nombre, slug, si es un registro de prueba, y su obra destacada. Nada más.
+ * Se reemplaza en vez de agregar una función nueva: la persona no razona por
+ * proyecto sino por "quién me respondió", y esta ya era esa lista — con id de
+ * búsqueda opcional para cuando sí quiera mirar una sola. Una segunda función
+ * que devolviera lo mismo más tres columnas habría quedado como la que nadie
+ * usa.
  *
- * `security definer` con el filtro de dueño adentro: sin ese filtro, la función
- * sería una forma de leer las propuestas de cualquiera.
+ * `drop` antes del `create`: Postgres no deja cambiar el tipo de retorno de una
+ * función existente.
+ *
+ * Sigue sin devolver un `pass`, y ahora tampoco devuelve una propuesta sin
+ * precio, porque esa fila ya no puede existir.
  */
-create or replace function public.get_project_proposals(p_project_id uuid)
+drop function public.get_search_interests(uuid);
+
+create function public.get_search_interests(p_project_id uuid default null)
 returns table (
   interest_id uuid,
+  project_id uuid,
+  project_title text,
   professional_id uuid,
   professional_slug text,
   professional_display_name text,
-  is_fixture boolean,
+  created_at timestamptz,
   price_min_cents integer,
   price_max_cents integer,
   price_currency char(3),
   sessions smallint,
   note text,
-  created_at timestamptz,
+  -- Una obra del artista, para poder decidir mirando y no leyendo. La destacada
+  -- si la hay, y si no la más nueva.
   sample_media_path text
 )
 language sql
-stable
-security definer
+security invoker
 set search_path = ''
+stable
 as $$
   select
     pi.id,
+    p.id,
+    p.title,
     pro.id,
-    pro.slug,
+    pro.slug::text,
     pro.display_name,
-    pro.is_fixture,
+    pi.created_at,
     pi.price_min_cents,
     pi.price_max_cents,
     pi.price_currency,
     pi.sessions,
     pi.note,
-    pi.created_at,
     (
-      -- Una obra para poder decidir mirando y no leyendo. La destacada si la
-      -- hay, y si no la más nueva.
       select ma.path
       from public.portfolio_items item
       join public.media_assets ma on ma.id = item.media_id
@@ -234,22 +242,21 @@ as $$
       limit 1
     )
   from public.project_interests pi
-  join public.projects p on p.id = pi.project_id
   join public.professionals pro on pro.id = pi.professional_id
-  where pi.project_id = p_project_id
-    -- El dueño y nadie más.
-    and p.user_id = (select auth.uid())
-    -- Un `pass` no se le muestra a nadie, nunca. Ver ADR-014.
+  join public.projects p on p.id = pi.project_id
+  where (p_project_id is null or pi.project_id = p_project_id)
+    -- Los dos predicados son redundantes con las políticas, y están escritos
+    -- igual: si algún día alguien afloja una, esta consulta no se abre sola.
     and pi.verdict = 'interest'
-    and pro.is_published
-  order by pi.created_at desc, pi.id;
+    and p.user_id = (select auth.uid())
+  order by pi.created_at desc;
 $$;
 
-revoke all on function public.get_project_proposals(uuid) from public, anon;
-grant execute on function public.get_project_proposals(uuid) to authenticated;
+revoke all on function public.get_search_interests(uuid) from public, anon;
+grant execute on function public.get_search_interests(uuid) to authenticated;
 
-comment on function public.get_project_proposals is
-  'Las propuestas de una búsqueda propia, con una obra de cada artista. Ver ADR-020.';
+comment on function public.get_search_interests is
+  'Las propuestas que recibieron las búsquedas propias. Sin `pass`, y sin identidades de más. Ver ADR-020.';
 
 -- --- los rasgos de una búsqueda abierta, para el artista ----------------------
 

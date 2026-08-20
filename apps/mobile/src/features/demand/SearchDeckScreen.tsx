@@ -18,6 +18,7 @@
  * todavía, y la pantalla lo dice sin disfrazarlo de "volvé pronto".
  */
 
+import { useState } from 'react'
 import { View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
@@ -41,6 +42,7 @@ import { useT } from '@/i18n/I18nProvider.tsx'
 import { SwipeCard, type SwipeDirection } from '../discovery/SwipeCard.tsx'
 import { SearchCard } from './SearchCard.tsx'
 import type { Verdict } from './queries.ts'
+import { ProposalComposer } from '../brief/ProposalComposer.tsx'
 import { useSearchDeck } from './useSearchDeck.ts'
 
 export interface SearchDeckScreenProps {
@@ -65,6 +67,12 @@ export function SearchDeckScreen({
   const theme = useTheme()
   const insets = useSafeAreaInsets()
   const deck = useSearchDeck(categorySlug, professionalId)
+  // La búsqueda a la que se le está escribiendo una propuesta. Mientras hay
+  // una, la tarjeta NO se decidió: cancelar la deja donde estaba.
+  const [proponiendo, setProponiendo] = useState<{
+    projectId: string
+    title: string
+  } | null>(null)
 
   function decide(verdict: Verdict, via: 'gesture' | 'button') {
     const search = deck.top
@@ -80,7 +88,17 @@ export function SearchDeckScreen({
     // El háptico confirma lo que le llega a otra persona. Pasar no vibra:
     // pasar es lo que más se hace, y vibrar en cada paso convierte la
     // confirmación en ruido de fondo.
-    if (verdict === 'interest') haptic('like')
+    // **Interesarse ya no es un booleano.** Desde ADR-020 se responde con una
+    // propuesta, y la base rechaza un interés sin precio — así que la tarjeta
+    // no se decide todavía: se abre el compositor. Pasar sigue siendo un toque.
+    if (verdict === 'interest') {
+      haptic('like')
+      if (search != null) {
+        setProponiendo({ projectId: search.projectId, title: search.title })
+      }
+      return
+    }
+
     deck.decide(verdict)
   }
 
@@ -206,24 +224,44 @@ export function SearchDeckScreen({
 
       <View style={{ flex: 1, paddingHorizontal: SCREEN_GUTTER }}>{body}</View>
 
-      <DeckControls
-        disabled={deck.top == null}
-        canUndo={deck.canUndo}
-        onDecide={(verdict) => decide(verdict, 'button')}
-        onUndo={() => {
-          const undone = deck.undoTarget
-          if (undone != null) {
-            track({
-              name: 'search_undone',
-              props: {
-                project_id: undone.projectId,
-                previous_verdict: undone.verdict,
-              },
-            })
-          }
-          deck.undo()
-        }}
-      />
+      {/* La propuesta reemplaza a los controles mientras se escribe: son dos
+          decisiones distintas y tenerlas juntas invita a deslizar sin querer
+          sobre un formulario a medio llenar. */}
+      {proponiendo != null && professionalId != null ? (
+        <Box paddingX="lg" paddingY="sm">
+          <ProposalComposer
+            projectId={proponiendo.projectId}
+            professionalId={professionalId}
+            searchTitle={proponiendo.title}
+            onSent={() => {
+              setProponiendo(null)
+              // Recién ahora la tarjeta se va: lo que la saca del mazo es la
+              // propuesta mandada, no el gesto.
+              deck.decide('interest')
+            }}
+            onCancel={() => setProponiendo(null)}
+          />
+        </Box>
+      ) : (
+        <DeckControls
+          disabled={deck.top == null}
+          canUndo={deck.canUndo}
+          onDecide={(verdict) => decide(verdict, 'button')}
+          onUndo={() => {
+            const undone = deck.undoTarget
+            if (undone != null) {
+              track({
+                name: 'search_undone',
+                props: {
+                  project_id: undone.projectId,
+                  previous_verdict: undone.verdict,
+                },
+              })
+            }
+            deck.undo()
+          }}
+        />
+      )}
     </View>
   )
 }

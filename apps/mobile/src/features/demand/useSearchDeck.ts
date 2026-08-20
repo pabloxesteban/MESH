@@ -49,9 +49,10 @@ export function useSearchDeck(
 ): SearchDeckState {
   const queryClient = useQueryClient()
   const [decidedIds, setDecidedIds] = useState<readonly string[]>([])
-  const [last, setLast] = useState<
-    { search: OpenSearch; verdict: Verdict } | null
-  >(null)
+  const [last, setLast] = useState<{
+    search: OpenSearch
+    verdict: Verdict
+  } | null>(null)
 
   const query = useInfiniteQuery({
     queryKey: ['open-searches', categorySlug, professionalId],

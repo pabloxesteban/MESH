@@ -11,12 +11,9 @@
 
 import { TRAITS } from '@mesh/domain'
 
-import {
-  previewProfessionalId,
-  previewOwnProfile,
-} from '../../../preview/store.ts'
+import { decidePreviewSearch } from '../../../preview/store.ts'
 
-import type { Proposal, Trait } from './queries.ts'
+import type { Trait } from './queries.ts'
 
 /** El id sintético de un rasgo. Estable, porque sale del slug. */
 function traitId(slug: string): string {
@@ -64,15 +61,14 @@ export async function fetchOpenSearchTraits(
   }))
 }
 
-const propuestas = new Map<string, Proposal[]>()
-let contador = 0
-
-export async function fetchProposals(
-  projectId: string,
-): Promise<readonly Proposal[]> {
-  return propuestas.get(projectId) ?? []
-}
-
+/**
+ * El artista responde con una propuesta.
+ *
+ * Se guarda en el store junto con la decisión, y no en un Map aparte: la lista
+ * que la persona mira sale de `previewSearchInterests()`, así que una propuesta
+ * guardada en otro lado no llegaría nunca a la pantalla — que es justo el
+ * circuito que el preview existe para poder recorrer.
+ */
 export async function sendProposal(input: {
   projectId: string
   professionalId: string
@@ -81,29 +77,10 @@ export async function sendProposal(input: {
   sessions: number
   note: string | null
 }): Promise<void> {
-  const own = previewOwnProfile()
-  contador += 1
-
-  const lista = propuestas.get(input.projectId) ?? []
-  lista.unshift({
-    interestId: `preview-proposal-${String(contador)}`,
-    professionalId: input.professionalId,
-    professionalSlug: own?.slug ?? 'artista',
-    professionalName: own?.displayName ?? 'Artista',
-    isFixture: own?.isFixture ?? false,
+  decidePreviewSearch(input.projectId, 'interest', {
     priceMinCents: input.priceMinCents,
     priceMaxCents: input.priceMaxCents,
-    priceCurrency: 'ARS',
     sessions: input.sessions,
     note: input.note,
-    // Un contador y no un reloj: dos corridas del preview tienen que dar el
-    // mismo orden.
-    createdAt: `2026-08-20T00:00:${String(contador).padStart(2, '0')}Z`,
-    sampleMediaPath: null,
   })
-  propuestas.set(input.projectId, lista)
-
-  // Se usa para que el id del profesional no quede sin referenciar: en el
-  // preview hay un solo perfil con dueño y es el que responde.
-  void previewProfessionalId(own?.slug ?? 'artista')
 }
