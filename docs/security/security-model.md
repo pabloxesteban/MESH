@@ -113,8 +113,15 @@ valor— cuesta más en usuarios reales de lo que ahorra en abuso a esta escala.
 | `conversations` | participante (la persona, o el dueño del perfil) | la persona, y solo contra un perfil publicado **y** reclamado | ✗ (solo vía `mark_conversation_read()`) | ✗ |
 | `messages` | participante del hilo padre | participante, y `sender_user_id = auth.uid()` | ✗ | ✗ |
 | `project_interests` | el artista dueño (todas las suyas) · la persona (solo `verdict = 'interest'`) | el artista dueño, con perfil publicado y sobre una búsqueda abierta | ✗ | las dos partes |
+| `saved_items` | propios | propios (`user_id = auth.uid()`) | ✗ (guardar es insert, desguardar es delete) | propios |
 | `analytics_events` | ✗ | propios (`user_id = auth.uid()`) | ✗ | ✗ |
 | `audit_events` | ✗ | ✗ | ✗ | ✗ (sin políticas — solo service role) |
+
+**Nadie cuenta corazones ajenos.** `saved_items` no tiene ninguna política que
+le deje a un artista ver quién guardó su obra, ni cuántos lo hicieron. No es una
+omisión: un contador público convierte guardar en una métrica, y de ahí a la
+notificación carnada hay un paso. Ver ADR-016; está verificado en
+`supabase/tests/48_saved_items.sql`, donde el dueño del perfil cuenta cero.
 
 **`professionals` sigue sin política de INSERT ni de UPDATE para el cliente**,
 ni siquiera para el dueño. Todo lo que un artista escribe sobre su propia fila

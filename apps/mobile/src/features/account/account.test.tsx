@@ -37,6 +37,7 @@ function renderScreen() {
             <AccountScreen
               userId="u1"
               onOpenStudio={onOpenStudio}
+              onOpenSaved={jest.fn()}
               isAnonymous
               email={null}
               onCreateAccount={onCreateAccount}

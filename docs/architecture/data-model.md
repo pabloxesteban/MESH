@@ -232,6 +232,22 @@ el esquema para agregarse después.
 
 ### Conversaciones
 
+**`saved_items`** — una obra que alguien guardó con el corazón. Privada de
+punta a punta: las tres políticas filtran por `auth.uid()` y **no existe
+ninguna consulta que cuente guardados ajenos**, ni siquiera para el artista
+dueño de la obra. Ver [ADR-016](../decisions/ADR-016-saved-items.md).
+
+| Columna | Tipo | Notas |
+|---|---|---|
+| `user_id` | uuid NOT NULL | → `auth.users` ON DELETE CASCADE |
+| `portfolio_item_id` | uuid NOT NULL | → `portfolio_items` ON DELETE CASCADE |
+| `created_at` | timestamptz NOT NULL | orden de la pantalla de Guardados |
+
+`unique (user_id, portfolio_item_id)`: guardar dos veces la misma obra es
+guardarla una vez. Sin UPDATE — desguardar es borrar la fila, no apagar un
+booleano, porque un booleano deja la fila de quien se arrepintió y esa fila es
+la que después alguien cuenta como interés.
+
 **`conversations`** — un hilo entre una persona y un artista con perfil
 reclamado.
 

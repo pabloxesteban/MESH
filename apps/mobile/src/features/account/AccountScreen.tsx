@@ -46,6 +46,7 @@ export interface AccountScreenProps {
       Así el preview puede montarla sin `SessionProvider`. */
   userId: string | null
   onOpenStudio: () => void
+  onOpenSaved: () => void
   /** Hay sesión pero no cuenta. Nunca "no hay sesión": ver ADR-002. */
   isAnonymous: boolean
   email: string | null
@@ -57,6 +58,7 @@ export interface AccountScreenProps {
 export function AccountScreen({
   userId,
   onOpenStudio,
+  onOpenSaved,
   isAnonymous,
   email,
   onCreateAccount,
@@ -206,6 +208,15 @@ export function AccountScreen({
           {/* El estudio se ofrece siempre, no solo a quien eligió "ofrezco":
               los roles no son excluyentes, y alguien que entró buscando puede
               recibir su código después. */}
+          {/* Guardados primero: lo usa cualquiera, y el estudio lo usa el 1,5%
+              que tatúa. */}
+          <Button
+            label={t('saved.entry')}
+            variant="secondary"
+            onPress={onOpenSaved}
+            fullWidth
+            testID="account-saved"
+          />
           <Button
             label={t('account.studio')}
             variant="secondary"

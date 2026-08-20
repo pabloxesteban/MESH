@@ -20,6 +20,7 @@ export default function PerfilRoute() {
       isAnonymous={isAnonymous}
       email={email}
       onOpenStudio={() => router.push('/estudio')}
+      onOpenSaved={() => router.push('/guardados')}
       onCreateAccount={() => router.push('/cuenta/crear')}
       onSignIn={() => router.push('/cuenta/entrar')}
       onSignOut={() => void signOut()}

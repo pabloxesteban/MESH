@@ -193,6 +193,16 @@ export const esAR = {
   'profile.fixture': 'Registro de prueba. No es una persona real.',
   'profile.fixture.noContact':
     'A un registro de prueba no se le puede escribir. En un perfil real, acá está el botón para empezar la conversación.',
+
+  'saved.title': 'Guardados',
+  'saved.add': 'Guardar esta obra',
+  'saved.remove': 'Sacar de guardados',
+  'saved.empty.title': 'Todavía no guardaste nada',
+  'saved.empty.body':
+    'El corazón abajo de cada obra la deja acá, para volver a mirarla cuando quieras. Nadie más ve lo que guardás.',
+  'saved.empty.action': 'Ir a Explorar',
+  'saved.entry': 'Lo que guardaste',
+  'saved.count': '{n} obra(s)',
   'common.fixture': 'Ficticio',
 
   // --- contacto --------------------------------------------------------------

@@ -44,8 +44,6 @@ if (process.env.MESH_PREVIEW === '1') {
       'src/features/demand/interests.ts',
       'src/features/discovery/queries.ts',
       'src/features/discovery/interactions.ts',
-      'src/features/taste/queries.ts',
-      'src/features/matches/queries.ts',
       'src/features/location/device.ts',
       'src/features/profile/queries.ts',
       'src/features/settings/queries.ts',
@@ -56,6 +54,7 @@ if (process.env.MESH_PREVIEW === '1') {
       'src/features/projects/queries.ts',
       'src/features/projects/upload.ts',
       'src/features/quick-search/classify.ts',
+      'src/features/saved/queries.ts',
     ].map((relative) => path.join(projectRoot, relative)),
   )
 

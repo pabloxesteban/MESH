@@ -22,6 +22,7 @@ import {
 import { AccountScreen } from '@/features/account/AccountScreen.tsx'
 import { AuthForm } from '@/features/auth/AuthForm.tsx'
 import { NewPasswordScreen } from '@/features/auth/NewPasswordScreen.tsx'
+import { SavedScreen } from '@/features/saved/SavedScreen.tsx'
 import { ArtistsScreen } from '@/features/artists/ArtistsScreen.tsx'
 import { useOnboardingIntent } from '@/features/account/useIntent.ts'
 import { fetchOwnedProfessional } from '@/features/artist/queries.ts'
@@ -193,9 +194,26 @@ function Shell({ abrirEstudio }: { abrirEstudio: boolean }) {
   const [cuenta, setCuenta] = useState<
     'crear' | 'entrar' | 'contrasena-nueva' | null
   >(null)
+  const [guardados, setGuardados] = useState(false)
   const [estiloBuscado, setEstiloBuscado] = useState<string | null>(null)
 
   const contenido = (() => {
+    if (guardados) {
+      return (
+        <SavedScreen
+          userId={USUARIO}
+          onOpenArtist={(slug) => {
+            setGuardados(false)
+            setPerfil(slug)
+          }}
+          onExplore={() => {
+            setGuardados(false)
+            setPestana('explorar')
+          }}
+          onBack={() => setGuardados(false)}
+        />
+      )
+    }
     if (cuenta === 'contrasena-nueva') {
       // A esta pantalla se llega desde el correo, no desde un botón. Acá está
       // colgada de "olvidé mi contraseña" para poder mirarla.
@@ -296,6 +314,7 @@ function Shell({ abrirEstudio }: { abrirEstudio: boolean }) {
           onBack={() => setPerfil(null)}
           onContact={(slug) => setContacto(slug)}
           onChat={abrirChat.open}
+          userId={USUARIO}
         />
       )
     }
@@ -337,6 +356,7 @@ function Shell({ abrirEstudio }: { abrirEstudio: boolean }) {
           <AccountScreen
             userId={USUARIO}
             onOpenStudio={() => setEstudio(true)}
+            onOpenSaved={() => setGuardados(true)}
             // Anónimo a propósito: es el estado en el que se ve la puerta a
             // crear cuenta, que es lo que hay que poder mirar.
             isAnonymous
@@ -383,6 +403,7 @@ function Shell({ abrirEstudio }: { abrirEstudio: boolean }) {
           setChat(null)
           setEstudio(false)
           setCuenta(null)
+          setGuardados(false)
           setPestana(id)
         }}
       />

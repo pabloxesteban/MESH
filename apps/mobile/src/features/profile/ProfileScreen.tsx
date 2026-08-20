@@ -52,6 +52,8 @@ import { locationLabel } from '@mesh/domain'
 
 import { ErrorView } from '@/components/ErrorView.tsx'
 import { FixtureBadge } from '@/components/FixtureBadge.tsx'
+import { SaveHeart } from '@/features/saved/SaveHeart.tsx'
+import { useSaved } from '@/features/saved/useSaved.ts'
 import { mediaUrl } from '@/features/discovery/queries.ts'
 import { GrowingArtwork } from '@/features/transitions/GrowingArtwork.tsx'
 import { ratioOf } from '@/features/transitions/geometry.ts'
@@ -67,6 +69,8 @@ export interface ProfileScreenProps {
   today: string
   onBack: () => void
   onContact: (slug: string) => void
+  /** Quién está mirando. `null` deja los corazones afuera. */
+  userId?: string | null
   /** Ausente cuando no se puede chatear: perfil sin reclamar, o sin sesión. */
   onChat?: ((professionalId: string, name: string) => void) | undefined
 }
@@ -77,6 +81,7 @@ export function ProfileScreen({
   onBack,
   onContact,
   onChat,
+  userId = null,
 }: ProfileScreenProps) {
   const { t, locale } = useI18n()
   const theme = useTheme()
@@ -110,6 +115,10 @@ export function ProfileScreen({
     queryKey: ['profile', slug],
     queryFn: () => fetchProfile(slug),
   })
+
+  // Los corazones. Se piden una vez por perfil y no una vez por obra: doce
+  // consultas para dibujar doce corazones sería pagar la red por decoración.
+  const saved = useSaved(userId)
 
   // Los estados de error traen su propia salida adentro de `ErrorView`. Dos
   // "Volver" en la misma pantalla no son dos salidas: son una pregunta sobre
@@ -172,7 +181,12 @@ export function ProfileScreen({
         {/* Invisible mientras la copia viaja: si los dos se vieran a la vez,
             la transición mostraría el truco. */}
         {hero != null ? (
-          <Hero piece={hero} hidden={entrance.growing != null} />
+          <Hero
+            piece={hero}
+            hidden={entrance.growing != null}
+            saved={userId != null ? saved.isSaved(hero.id) : null}
+            onToggleSaved={() => saved.toggle(hero.id)}
+          />
         ) : null}
 
         <Box gap="xs">
@@ -275,7 +289,11 @@ export function ProfileScreen({
 
         {rest.length > 0 ? (
           <Section title={t('profile.portfolio')}>
-            <Grid pieces={rest} />
+            <Grid
+              pieces={rest}
+              isSaved={userId == null ? null : saved.isSaved}
+              onToggleSaved={saved.toggle}
+            />
           </Section>
         ) : null}
 
@@ -438,27 +456,60 @@ function BackControl({
   )
 }
 
-function Hero({ piece, hidden }: { piece: PortfolioPiece; hidden: boolean }) {
+function Hero({
+  piece,
+  hidden,
+  saved,
+  onToggleSaved,
+}: {
+  piece: PortfolioPiece
+  hidden: boolean
+  /** `null` cuando no hay sesión: sin dónde guardarlo, no se ofrece. */
+  saved: boolean | null
+  onToggleSaved: () => void
+}) {
   const theme = useTheme()
   const aspectRatio = ratioOf(piece.width, piece.height)
 
   return (
-    <Image
-      // `lg` solo acá: es la única imagen a ancho completo de la pantalla.
-      source={mediaUrl(piece.mediaPath, 'lg')}
-      placeholder={piece.blurhash != null ? { blurhash: piece.blurhash } : null}
-      placeholderContentFit="cover"
-      contentFit="cover"
-      transition={0}
-      accessible={false}
-      style={{
-        width: '100%',
-        aspectRatio,
-        borderRadius: radius.lg,
-        backgroundColor: theme.surfaceRaised,
-        opacity: hidden ? 0 : 1,
-      }}
-    />
+    <View>
+      <Image
+        // `lg` solo acá: es la única imagen a ancho completo de la pantalla.
+        source={mediaUrl(piece.mediaPath, 'lg')}
+        placeholder={
+          piece.blurhash != null ? { blurhash: piece.blurhash } : null
+        }
+        placeholderContentFit="cover"
+        contentFit="cover"
+        transition={0}
+        accessible={false}
+        style={{
+          width: '100%',
+          aspectRatio,
+          borderRadius: radius.lg,
+          backgroundColor: theme.surfaceRaised,
+          opacity: hidden ? 0 : 1,
+        }}
+      />
+      {/* Abajo a la derecha, encima de la obra. Ponerlo debajo empujaría el
+          nombre del artista fuera de la primera pantalla, y el nombre es lo
+          que contesta a quién estás mirando. */}
+      {saved != null && !hidden ? (
+        <View
+          style={{
+            position: 'absolute',
+            right: spacing.xs,
+            bottom: spacing.xs,
+          }}
+        >
+          <SaveHeart
+            isSaved={saved}
+            onToggle={onToggleSaved}
+            testID="profile-hero-heart"
+          />
+        </View>
+      ) : null}
+    </View>
   )
 }
 
@@ -469,7 +520,16 @@ function Hero({ piece, hidden }: { piece: PortfolioPiece; hidden: boolean }) {
  * cargan las imágenes. Con altura derivada de cada foto, cada llegada
  * reacomodaría lo que ya se está mirando.
  */
-function Grid({ pieces }: { pieces: readonly PortfolioPiece[] }) {
+function Grid({
+  pieces,
+  isSaved,
+  onToggleSaved,
+}: {
+  pieces: readonly PortfolioPiece[]
+  /** `null` cuando no hay sesión: sin dónde guardarlo, no se ofrece. */
+  isSaved: ((portfolioItemId: string) => boolean) | null
+  onToggleSaved: (portfolioItemId: string) => void
+}) {
   const theme = useTheme()
   const { width } = useWindowDimensions()
   const columnWidth = (width - SCREEN_GUTTER * 2 - spacing.xxs) / 2
@@ -477,28 +537,44 @@ function Grid({ pieces }: { pieces: readonly PortfolioPiece[] }) {
   return (
     <Box direction="row" gap="xxs" wrap>
       {pieces.map((piece) => (
-        <Image
-          key={piece.id}
-          // `sm` en la grilla: una miniatura de 190pt no necesita 1600px.
-          source={mediaUrl(piece.mediaPath, 'sm')}
-          placeholder={
-            piece.blurhash != null ? { blurhash: piece.blurhash } : null
-          }
-          placeholderContentFit="cover"
-          contentFit="cover"
-          recyclingKey={piece.id}
-          transition={0}
-          accessible
-          accessibilityRole="image"
-          accessibilityLabel={piece.caption ?? ''}
-          testID={`profile-piece-${piece.id}`}
-          style={{
-            width: columnWidth,
-            aspectRatio: 1,
-            borderRadius: radius.md,
-            backgroundColor: theme.surfaceRaised,
-          }}
-        />
+        <View key={piece.id} style={{ width: columnWidth }}>
+          <Image
+            // `sm` en la grilla: una miniatura de 190pt no necesita 1600px.
+            source={mediaUrl(piece.mediaPath, 'sm')}
+            placeholder={
+              piece.blurhash != null ? { blurhash: piece.blurhash } : null
+            }
+            placeholderContentFit="cover"
+            contentFit="cover"
+            recyclingKey={piece.id}
+            transition={0}
+            accessible
+            accessibilityRole="image"
+            accessibilityLabel={piece.caption ?? ''}
+            testID={`profile-piece-${piece.id}`}
+            style={{
+              width: columnWidth,
+              aspectRatio: 1,
+              borderRadius: radius.md,
+              backgroundColor: theme.surfaceRaised,
+            }}
+          />
+          {isSaved != null ? (
+            <View
+              style={{
+                position: 'absolute',
+                right: spacing.xxs,
+                bottom: spacing.xxs,
+              }}
+            >
+              <SaveHeart
+                isSaved={isSaved(piece.id)}
+                onToggle={() => onToggleSaved(piece.id)}
+                testID={`profile-piece-heart-${piece.id}`}
+              />
+            </View>
+          ) : null}
+        </View>
       ))}
     </Box>
   )

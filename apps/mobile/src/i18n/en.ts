@@ -161,6 +161,16 @@ export const en: Readonly<Record<TranslationKey, string>> = {
   'profile.fixture': 'Test record. Not a real person.',
   'profile.fixture.noContact':
     'You cannot message a test record. On a real profile, the button to start the conversation is here.',
+
+  'saved.title': 'Saved',
+  'saved.add': 'Save this piece',
+  'saved.remove': 'Remove from saved',
+  'saved.empty.title': "You haven't saved anything yet",
+  'saved.empty.body':
+    'The heart under each piece brings it here, to look at again whenever you want. Nobody else sees what you save.',
+  'saved.empty.action': 'Go to Explore',
+  'saved.entry': 'What you saved',
+  'saved.count': '{n} piece(s)',
   'common.fixture': 'Test',
 
   'contact.title': 'Write to {nombre}',

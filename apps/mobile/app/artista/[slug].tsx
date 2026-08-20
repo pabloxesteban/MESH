@@ -27,6 +27,7 @@ export default function ProfileRoute() {
       today={todayIso()}
       onBack={() => router.back()}
       onContact={(artistSlug) => router.push(`/contacto/${artistSlug}`)}
+      userId={userId}
       {...(userId != null ? { onChat: chat.open } : {})}
     />
   )

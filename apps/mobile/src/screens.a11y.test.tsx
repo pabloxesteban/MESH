@@ -37,6 +37,7 @@ import { SearchDeckScreen } from '@/features/demand/SearchDeckScreen.tsx'
 import { ChatsScreen } from '@/features/chat/ChatsScreen.tsx'
 import { AuthForm } from '@/features/auth/AuthForm.tsx'
 import { NewPasswordScreen } from '@/features/auth/NewPasswordScreen.tsx'
+import { SavedScreen } from '@/features/saved/SavedScreen.tsx'
 
 const mockRpc = jest.fn()
 jest.mock('@/data/supabase.ts', () => ({
@@ -65,6 +66,12 @@ jest.mock('@/features/artists/queries.ts', () => ({
   fetchArtistGrid: jest.fn().mockResolvedValue([]),
   avatarUrl: (path: string) => `https://ejemplo.test/${path}`,
   mediaUrl: (path: string) => `https://ejemplo.test/${path}`,
+}))
+jest.mock('@/features/saved/queries.ts', () => ({
+  fetchSaved: jest.fn().mockResolvedValue([]),
+  fetchSavedIds: jest.fn().mockResolvedValue(new Set()),
+  savePiece: jest.fn(),
+  unsavePiece: jest.fn(),
 }))
 jest.mock('@/features/settings/AnalyticsToggle.tsx', () => ({
   AnalyticsToggle: () => null,
@@ -472,6 +479,7 @@ describe('barrido de accesibilidad y callejones', () => {
       <AccountScreen
         userId="u1"
         onOpenStudio={jest.fn()}
+        onOpenSaved={jest.fn()}
         isAnonymous
         email={null}
         onCreateAccount={jest.fn()}
@@ -493,6 +501,7 @@ describe('barrido de accesibilidad y callejones', () => {
       <AccountScreen
         userId="u1"
         onOpenStudio={jest.fn()}
+        onOpenSaved={jest.fn()}
         isAnonymous={false}
         email="vos@ejemplo.com"
         onCreateAccount={jest.fn()}
@@ -654,6 +663,20 @@ describe('barrido de accesibilidad y callejones', () => {
     )
     sweep('crear cuenta')
     sweepDynamicType('crear cuenta')
+  })
+
+  it('guardados, sin nada guardado todavía', async () => {
+    render(
+      <SavedScreen
+        userId="u1"
+        onOpenArtist={jest.fn()}
+        onExplore={jest.fn()}
+        onBack={jest.fn()}
+      />,
+    )
+    await waitFor(() => expect(screen.getByTestId('saved-empty')).toBeTruthy())
+    sweep('guardados · vacío')
+    sweepDynamicType('guardados · vacío')
   })
 
   it('contraseña nueva, después del enlace del correo', () => {
