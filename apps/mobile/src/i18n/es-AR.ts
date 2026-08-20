@@ -191,6 +191,8 @@ export const esAR = {
   'profile.back': 'Volver',
   'profile.contact': 'Escribirle',
   'profile.fixture': 'Registro de prueba. No es una persona real.',
+  'profile.fixture.noContact':
+    'A un registro de prueba no se le puede escribir. En un perfil real, acá está el botón para empezar la conversación.',
   'common.fixture': 'Ficticio',
 
   // --- contacto --------------------------------------------------------------

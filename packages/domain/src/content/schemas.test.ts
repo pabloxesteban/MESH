@@ -133,9 +133,10 @@ describe('artistSchema', () => {
 
 describe('artistSchema · reglas de fixture', () => {
   // La garantía es que nadie confunda un registro de prueba con una persona.
-  // Hasta 2026-08-18 la daba un prefijo en el nombre; ahora la dan el slug, el
-  // nombre, la insignia de la UI y el bloqueo del contacto. Estos tests cubren
-  // las dos primeras. Ver content-policy §4.
+  // Hasta 2026-08-18 la daba un prefijo en el nombre; hasta 2026-08-20, además,
+  // el nombre no podía parecer humano. Hoy la dan el slug, la insignia de la UI,
+  // el contacto cortado y el rechazo en producción — ninguna de las cuales se
+  // puede desactivar editando un YAML. Ver content-policy §4.
 
   const fixture = {
     ...validArtist,
@@ -161,16 +162,24 @@ describe('artistSchema · reglas de fixture', () => {
     expect(JSON.stringify(result.error?.issues)).toContain('is_fixture')
   })
 
-  it('rechaza un fixture con nombre de persona', () => {
+  it('un fixture SÍ puede llamarse como una persona', () => {
+    // Se prohibía, y el resultado fue un catálogo de prueba llamado "Aguja
+    // Fina", "Tinta Negra", "Acuarela": una lista de técnicas donde tenía que
+    // haber gente. La app se veía como una carta de estilos, que es justo lo
+    // contrario de para lo que existen los fixtures.
+    //
+    // Lo que impide confundirlo con alguien real no era nunca el nombre: es
+    // `is_fixture`, que viene de la base y no de un YAML editable, más la
+    // insignia en toda superficie, el contacto cortado y el rechazo en
+    // producción. Ver content-policy §4.
     const result = artistSchema.safeParse({
       ...fixture,
       display_name: 'Sofía Ramírez',
     })
-    expect(result.success).toBe(false)
-    expect(JSON.stringify(result.error?.issues)).toContain('Sofía Ramírez')
+    expect(result.success).toBe(true)
   })
 
-  it('deja pasar nombres de dos palabras del vocabulario de tatuaje', () => {
+  it('los nombres viejos, de estilo, siguen siendo válidos', () => {
     for (const nombre of ['Vieja Escuela', 'Aguja Fina', 'Punto y Línea']) {
       const result = artistSchema.safeParse({
         ...fixture,

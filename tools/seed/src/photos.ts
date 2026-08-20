@@ -35,8 +35,19 @@ import { parse } from 'yaml'
 
 const CONTENT_ROOT = resolve(import.meta.dirname, '../../../content/artists')
 
-/** 4:5, que es la proporción con la que la grilla dibuja cada obra. */
-const RECORTE = { width: 1200, height: 1500 } as const
+/**
+ * Cota de tamaño, **sin recorte**.
+ *
+ * Antes esto recortaba todo a 4:5 y el resultado se vio recién en la grilla de
+ * Explorar: quince artistas, ochenta y ocho obras, y todas exactamente del
+ * mismo alto. La grilla existe para respetar la forma real de cada obra —
+ * recortar todo a la misma caja es mentir sobre la obra, y además borra la
+ * textura de mosaico que hace que se lea como un muro de trabajo.
+ *
+ * `fit: 'inside'` conserva la relación de aspecto y solo achica lo que no
+ * entra.
+ */
+const COTA = { width: 1200, height: 1800 } as const
 
 interface Manifiesto {
   readonly source?: string
@@ -75,15 +86,13 @@ async function main(): Promise<void> {
         })
         if (!res.ok) throw new Error(`HTTP ${res.status}`)
         mkdirSync(join(CONTENT_ROOT, dir, 'media'), { recursive: true })
-        // Se normaliza acá y no después: el recorte decide qué se ve en la
-        // grilla, y hacerlo en la bajada es lo que hace que dos corridas den
-        // el mismo archivo. `attention` recorta hacia la zona con más
-        // detalle, que en una foto de un tatuaje es el tatuaje.
+        // Se normaliza acá y no después: es lo que hace que dos corridas den
+        // el mismo archivo.
         const bytes = await sharp(Buffer.from(await res.arrayBuffer()))
           .rotate()
-          .resize(RECORTE.width, RECORTE.height, {
-            fit: 'cover',
-            position: 'attention',
+          .resize(COTA.width, COTA.height, {
+            fit: 'inside',
+            withoutEnlargement: true,
           })
           .jpeg({ quality: 84 })
           .toBuffer()

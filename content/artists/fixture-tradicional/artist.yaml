@@ -1,12 +1,12 @@
 # Artista fixture. Ver consent.md.
 slug: fixture-tradicional
-display_name: 'Tradicional'
+display_name: 'Gonzalo Prieto'
 category: tattoo
 location: almagro
 is_fixture: true
 
 bio: >-
-  Flash clásico: golondrinas, anclas, corazones. Contorno negro cerrado y cinco colores.
+  Flash clásico: golondrinas, anclas, corazones. Contorno negro cerrado y cinco colores, como se hizo siempre.
 
 styles:
   - { slug: traditional, proficiency: 1.0, primary: true }

@@ -1,12 +1,12 @@
 # Artista fixture. Ver consent.md.
 slug: fixture-punto-y-linea
-display_name: 'Punto y Línea'
+display_name: 'Ezequiel Duarte'
 category: tattoo
 location: san-telmo
 is_fixture: true
 
 bio: >-
-  Puntillismo y geometría. Sombras hechas de densidad, nunca de relleno.
+  Puntillismo y línea recta. Toda la densidad la hace el punto, no la sombra.
 
 styles:
   - { slug: dotwork, proficiency: 1.0, primary: true }

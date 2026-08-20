@@ -1,12 +1,12 @@
 # Artista fixture. Ver consent.md.
 slug: fixture-fileteado
-display_name: 'Fileteado'
+display_name: 'Rubén Colombo'
 category: tattoo
 location: la-plata
 is_fixture: true
 
 bio: >-
-  Filete porteño llevado a la piel: volutas, simetría y bandas con texto.
+  Fileteado porteño: volutas, cintas y sombra doble. Lo aprendí pintando carteles antes que piel.
 
 styles:
   - { slug: fileteado-porteno, proficiency: 1.0, primary: true }

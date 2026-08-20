@@ -1,4 +1,4 @@
-# Consentimiento — Tinta Negra
+# Consentimiento — Camila Ordóñez (perfil de prueba)
 
 **Este es un artista fixture.** No existe ninguna persona detrás de este
 registro, así que no hay consentimiento humano que registrar: hay una

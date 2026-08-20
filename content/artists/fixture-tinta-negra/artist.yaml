@@ -1,12 +1,12 @@
 # Artista fixture. Ver consent.md.
 slug: fixture-tinta-negra
-display_name: 'Tinta Negra'
+display_name: 'Camila Ordóñez'
 category: tattoo
 location: vicente-lopez
 is_fixture: true
 
 bio: >-
-  Masas negras y contraste alto. Piezas grandes que ocupan todo el brazo.
+  Negro sólido y superficies grandes. Volumen sin contorno, y sesiones largas.
 
 styles:
   - { slug: blackwork, proficiency: 1.0, primary: true }

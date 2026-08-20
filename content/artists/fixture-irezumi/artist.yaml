@@ -1,12 +1,12 @@
 # Artista fixture. Ver consent.md.
 slug: fixture-irezumi
-display_name: 'Irezumi'
+display_name: 'Kenji Alvarado'
 category: tattoo
 location: villa-crespo
 is_fixture: true
 
 bio: >-
-  Composiciones tradicionales japonesas: ondas, fondo lleno, piezas por partes.
+  Trabajo el japonés tradicional: composiciones que siguen el cuerpo, con fondo de viento y agua.
 
 styles:
   - { slug: japanese, proficiency: 1.0, primary: true }

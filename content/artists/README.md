@@ -33,10 +33,12 @@ slugs de estilo son estables y nunca se traducen.
 
    Lo que hace que esto no sea atribuirle obra ajena a nadie es la regla 5: el
    perfil es inconfundiblemente ficticio, y nunca llega a producción.
-5. **Los fixtures son inconfundibles:** `is_fixture: true` y el nombre con
-   prefijo de slug `fixture-`, un nombre que no se lea como el de una persona,
-   una insignia visible en toda pantalla que los muestre, y el contacto
-   bloqueado. **La carga a producción los saltea y los nombra uno por uno** —
+5. **Los fixtures son inconfundibles:** `is_fixture: true`, slug con prefijo
+   `fixture-`, una insignia visible en toda pantalla que los muestre, y el
+   contacto bloqueado. **El nombre puede ser el de una persona** —inventada— y
+   desde 2026-08-20 lo es: cuando se llamaban por su técnica, el catálogo se
+   leía como una carta de estilos en vez de como gente, y un fixture que impide
+   ver cómo se va a ver la app no sirve para nada. Ver content-policy §4. **La carga a producción los saltea y los nombra uno por uno** —
    antes abortaba la corrida, y como los diez fixtures viven en este repo, eso
    volvía inusable el camino de producción.
 

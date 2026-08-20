@@ -625,3 +625,34 @@ pestaña, porque Inicio dejó de ser una grilla de obra.
 - **Inicio no tiene filtro por estilo.** Explorar sí. Si aparece la necesidad,
   el dato existe: `professional_styles` está ahí, solo que el RPC de la grilla
   dejó de bajarlo cuando la tarjeta dejó de mostrarlo.
+
+## D-013 — Explorar va en tres columnas, con paralaje al scrollear
+
+**Fecha:** 2026-08-20 · **Estado:** Aceptado
+
+Explorar tenía dos columnas. Con dos, cada obra es grande y pide contemplación;
+la grilla existe para **comparar**, y comparar necesita ver muchas a la vez.
+Tres entran en 390pt sin que ninguna deje de leerse. Cuatro no.
+
+Al scrollear, las columnas impares suben un poco y las pares bajan un poco. Es
+paralaje **ligado al scroll**, no una animación que corre sola: una grilla que
+se mueve sin que la toques compite con la obra, que es lo único que tiene que
+llamar la atención ahí. Se apaga entero con reducción de movimiento.
+
+El corrimiento **satura** a los 18pt. Sin techo, en un feed largo la primera
+columna terminaría cientos de píxeles más arriba que la segunda y la grilla se
+leería como rota. Hay tests de las dos cosas — la saturación y las direcciones
+opuestas — porque ninguna se ve en una captura.
+
+**Lo que costó:** la transición obra → artista mide el rectángulo de la obra
+desde el árbol de layout, donde un `translateY` de Reanimated no figura. Con el
+techo en 18pt el error de origen es imperceptible; si algún día crece, hay que
+sumarle el corrimiento a la medición.
+
+### Y las fotos dejaron de recortarse
+
+Las fotos del catálogo de prueba se bajaban recortadas a 4:5, todas iguales.
+Con tres columnas quedó a la vista: ochenta y ocho obras exactamente del mismo
+alto. La grilla existe para respetar la forma real de cada obra, y recortar todo
+a la misma caja es mentir sobre la obra además de borrar la textura de mosaico.
+Ahora se bajan con la relación de aspecto intacta.

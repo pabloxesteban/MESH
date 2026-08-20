@@ -1,12 +1,12 @@
 # Artista fixture. Ver consent.md.
 slug: fixture-vieja-escuela
-display_name: 'Vieja Escuela'
+display_name: 'Marisa Cattaneo'
 category: tattoo
 location: san-isidro
 is_fixture: true
 
 bio: >-
-  Contorno grueso, paleta corta, formas que se leen de lejos.
+  Old school con la paleta corta de siempre. Diseño sobre papel primero, y recién ahí a la piel.
 
 styles:
   - { slug: old-school, proficiency: 1.0, primary: true }

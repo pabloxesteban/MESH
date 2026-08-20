@@ -1,12 +1,12 @@
 # Artista fixture. Ver consent.md.
 slug: fixture-neotradicional
-display_name: 'Neotradicional'
+display_name: 'Paula Vignoli'
 category: tattoo
 location: belgrano
 is_fixture: true
 
 bio: >-
-  Paleta cerrada y contorno grueso. Figuras de siempre —rosas, dagas, panteras— dibujadas con sombra moderna.
+  Paleta cerrada y contorno grueso. Las figuras de siempre —rosas, dagas, panteras— con sombra de ahora.
 
 styles:
   - { slug: neo-traditional, proficiency: 1.0, primary: true }

@@ -64,9 +64,10 @@ Pueden existir fixtures de desarrollo para poder construir la app antes de que
 llegue el contenido real, pero tienen que ser inconfundibles:
 
 1. `is_fixture = true` en `professionals` y `portfolio_items`.
-2. **El slug** usa un prefijo reservado — `fixture-…` — y el `display_name`
-   nunca puede leerse como el nombre de una persona. El validador rechaza las
-   dos cosas.
+2. **El slug** usa un prefijo reservado — `fixture-…`, rechazado por el
+   validador si falta. El `display_name` **no** se valida: un fixture puede
+   llamarse como una persona, y desde 2026-08-20 se llama así a propósito. Ver
+   "Por qué el nombre dejó de ser la marca", abajo.
 3. **Toda superficie que renderiza un fixture monta una insignia visible.** No
    solo el perfil: la tarjeta del mazo y la de encajes también. Esto es una
    garantía de renderizado, no una recomendación — una pantalla nueva que
@@ -169,6 +170,38 @@ contacto está cortado explícitamente.
 Reemplazar un fixture con contenido real tiene que ser la edición de un solo
 archivo más una nueva corrida del seeder — nada en la app puede hardcodear un id
 de fixture.
+
+### Por qué el nombre dejó de ser la marca (2026-08-20)
+
+La regla 2 pedía además que el `display_name` no se leyera como el de una
+persona. Con quince fixtures cargados y fotos reales, el costo se hizo evidente
+al abrir la app: el catálogo se llamaba **Aguja Fina, Tinta Negra, Acuarela,
+Irezumi, Grises**. Es una lista de técnicas donde tiene que haber gente.
+
+Y no es un detalle estético. Inicio existe para contestar *quién tatúa cerca
+mío*; una lista de nombres de estilo la convierte en un índice de estilos, que
+es lo que hace Explorar. La pantalla dejaba de ser lo que es.
+
+Los fixtures existen para poder mirar la app antes de que haya contenido real.
+Un fixture que impide ver cómo se va a ver la app no está haciendo su trabajo.
+
+**Lo que impide confundir un fixture con alguien real nunca fue el nombre.** Son
+cuatro cosas, y ninguna se desactiva editando un YAML:
+
+| | Se puede evitar editando contenido |
+|---|---|
+| `is_fixture` viene de la base | No |
+| Insignia visible en toda superficie | No — es una garantía de renderizado |
+| Contacto cortado antes de armar el mensaje | No |
+| Producción rechaza la carga | No |
+| ~~Nombre no humano~~ | Sí, era una línea de YAML |
+
+La regla que se cayó era la única floja de las cinco, y la que más costaba.
+
+**Lo que sí sigue prohibido:** usar el nombre de una persona real, viva o
+muerta, con o sin su obra. Los nombres son inventados. Si alguno coincidiera con
+el de alguien real es casualidad, y el registro no afirma nada sobre esa
+persona — así queda escrito en cada `consent.md`.
 
 ## 5. Estructura del contenido
 

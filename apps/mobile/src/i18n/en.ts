@@ -159,6 +159,8 @@ export const en: Readonly<Record<TranslationKey, string>> = {
   'profile.back': 'Back',
   'profile.contact': 'Write to them',
   'profile.fixture': 'Test record. Not a real person.',
+  'profile.fixture.noContact':
+    'You cannot message a test record. On a real profile, the button to start the conversation is here.',
   'common.fixture': 'Test',
 
   'contact.title': 'Write to {nombre}',

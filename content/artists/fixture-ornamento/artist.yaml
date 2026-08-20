@@ -1,12 +1,12 @@
 # Artista fixture. Ver consent.md.
 slug: fixture-ornamento
-display_name: 'Ornamento'
+display_name: 'Sofía Marchetti'
 category: tattoo
 location: nunez
 is_fixture: true
 
 bio: >-
-  Mandalas, encajes y simetría. Piezas grandes que siguen la forma del cuerpo.
+  Mandalas, encajes y simetría. Piezas grandes que se dibujan sobre el cuerpo, no sobre el papel.
 
 styles:
   - { slug: ornamental, proficiency: 1.0, primary: true }

@@ -214,18 +214,35 @@ console.log(
 // --- verificación: abrirlo -----------------------------------------------
 
 /**
- * Texto que tiene que aparecer sí o sí.
+ * Nombres de artista que tienen que aparecer sí o sí.
  *
- * Dos canarios, y ninguno depende del idioma. El primero sale del catálogo
- * horneado: si aparece el nombre de un artista, el bundle cargó, el store de
- * preview resolvió y una tarjeta se pintó. El segundo sale de la interfaz.
+ * Salen del catálogo horneado, no de un literal: si aparece el nombre de un
+ * artista, el bundle cargó, el store de preview resolvió y una tarjeta se
+ * pintó. Y no dependen del idioma — el navegador headless corre en inglés y la
+ * app traduce, así que un canario de i18n verificaría el locale, no el preview.
  *
- * La versión anterior de este canario era un texto de i18n, y fallaba con el
- * preview perfectamente sano: el navegador headless corre en inglés y la app
- * traduce. Un canario que depende del locale del verificador no verifica el
- * preview, verifica el locale.
+ * **Se leen del catálogo y no se escriben acá.** Estaban escritos a mano
+ * ('Tinta Negra', 'Irezumi') y el día que los fixtures se renombraron el
+ * verificador falló con un preview perfectamente sano. Un canario que hay que
+ * mantener a mano termina mintiendo.
  */
-const CANARIOS = ['Tinta Negra', 'Irezumi']
+function canariosDelCatalogo() {
+  const generado = readFileSync(
+    resolve(ROOT, 'apps/mobile/preview/data.generated.ts'),
+    'utf8',
+  )
+  const nombres = [...generado.matchAll(/displayName: '([^']+)'/g)].map(
+    (m) => m[1],
+  )
+  if (nombres.length === 0) {
+    throw new Error(
+      'El catálogo del preview no tiene ningún artista. Corré `npm run preview:data`.',
+    )
+  }
+  return nombres.slice(0, 3)
+}
+
+const CANARIOS = canariosDelCatalogo()
 
 /**
  * Mínimo de texto visible.

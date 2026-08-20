@@ -1,12 +1,12 @@
 # Artista fixture. Ver consent.md.
 slug: fixture-retrato
-display_name: 'Retrato'
+display_name: 'Nahuel Ibarrola'
 category: tattoo
 location: villa-lugano
 is_fixture: true
 
 bio: >-
-  Volumen sin contorno. Trabaja en negro y gris, con sesiones largas.
+  Retrato en negro y gris. Necesito una foto con buena luz y trabajamos el encuadre juntos.
 
 styles:
   - { slug: realism, proficiency: 1.0, primary: true }

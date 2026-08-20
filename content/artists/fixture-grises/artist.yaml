@@ -1,12 +1,12 @@
 # Artista fixture. Ver consent.md.
 slug: fixture-grises
-display_name: 'Grises'
+display_name: 'Tomás Aguerre'
 category: tattoo
 location: caballito
 is_fixture: true
 
 bio: >-
-  Solo negro diluido. Retrato y ornamento con transiciones largas, sin una gota de color.
+  Solo negro diluido. Retrato y ornamento con transiciones largas, en sesiones que no apuro.
 
 styles:
   - { slug: black-and-grey, proficiency: 1.0, primary: true }

@@ -1,12 +1,12 @@
 # Artista fixture. Ver consent.md.
 slug: fixture-caligrafia
-display_name: 'Caligrafía'
+display_name: 'Iván Pessoa'
 category: tattoo
 location: moron
 is_fixture: true
 
 bio: >-
-  Solo letra. Trazo modulado, con pluma antes que con máquina.
+  Letra dibujada a mano, nunca una tipografía bajada. Antes de tatuar te muestro el trazo en papel.
 
 styles:
   - { slug: lettering, proficiency: 1.0, primary: true }

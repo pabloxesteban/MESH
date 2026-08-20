@@ -1,12 +1,12 @@
 # Artista fixture. Ver consent.md.
 slug: fixture-minimo
-display_name: 'Mínimo'
+display_name: 'Lucía Bertorello'
 category: tattoo
 location: colegiales
 is_fixture: true
 
 bio: >-
-  Piezas chicas, mucho aire alrededor. Nada más grande que una moneda.
+  Piezas chicas, mucho blanco alrededor. Nada más grande que una moneda, y esa es la gracia.
 
 styles:
   - { slug: minimalist, proficiency: 1.0, primary: true }

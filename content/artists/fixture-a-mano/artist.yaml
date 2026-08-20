@@ -1,12 +1,12 @@
 # Artista fixture. Ver consent.md.
 slug: fixture-a-mano
-display_name: 'A Mano'
+display_name: 'Milena Ostrovsky'
 category: tattoo
 location: chacarita
 is_fixture: true
 
 bio: >-
-  Sin máquina. Punto a punto, con la irregularidad a la vista.
+  Trabajo sin máquina, punto a punto. La irregularidad de la mano queda a la vista y es parte de lo que estás eligiendo.
 
 styles:
   - { slug: handpoke, proficiency: 1.0, primary: true }

@@ -29,6 +29,13 @@ export const STYLE_WEIGHT_TOLERANCE = 0.001
  * este prefijo sola: la dan las tres cosas juntas de content-policy §4 — el
  * slug, la insignia visible en TODA superficie que renderiza un fixture, y el
  * bloqueo del contacto.
+ *
+ * **El `display_name` ya no se valida** (2026-08-20). Hasta acá un fixture no
+ * podía llamarse como una persona, y el resultado fue un catálogo llamado
+ * "Aguja Fina", "Tinta Negra", "Acuarela": una lista de técnicas donde tenía
+ * que haber gente. Se veía como una carta de estilos, no como una app de
+ * tatuadores, y eso arruinaba justo aquello para lo que existen los fixtures.
+ * Ver content-policy §4.
  */
 export const FIXTURE_SLUG_PREFIX = 'fixture-'
 
@@ -38,51 +45,6 @@ const slug = z
     /^[a-z0-9]+(?:-[a-z0-9]+)*$/,
     'Debe ser un slug en minúscula con guiones',
   )
-
-/**
- * ¿Este nombre se lee como "Nombre Apellido"?
- *
- * Dos o más palabras capitalizadas seguidas, sin nexos. "Tinta Negra" y "Vieja
- * Escuela" pasarían, así que además se exige que ninguna palabra sea una
- * palabra común del vocabulario de tatuaje que usan los fixtures. La lista es
- * corta a propósito: no intenta ser un detector de nombres, intenta que nadie
- * llame "Sofía Ramírez" a un registro de prueba sin que el build lo note.
- */
-const FIXTURE_VOCABULARY = new Set([
-  'tinta',
-  'negra',
-  'negro',
-  'aguja',
-  'fina',
-  'fino',
-  'punto',
-  'linea',
-  'línea',
-  'acuarela',
-  'irezumi',
-  'retrato',
-  'vieja',
-  'escuela',
-  'caligrafia',
-  'caligrafía',
-  'fileteado',
-  'mano',
-  'sombra',
-  'trazo',
-  'color',
-  'prueba',
-  'demo',
-  'fixture',
-])
-
-function looksLikeAPersonName(displayName: string): boolean {
-  const words = displayName.split(/\s+/u).filter((word) => word.length > 0)
-  const capitalized = words.filter((word) => /^\p{Lu}\p{L}+$/u.test(word))
-  if (capitalized.length < 2) return false
-  return capitalized.every(
-    (word) => !FIXTURE_VOCABULARY.has(word.toLocaleLowerCase('es-AR')),
-  )
-}
 
 const categorySlug = z.literal('tattoo')
 
@@ -190,25 +152,6 @@ export const artistSchema = z
           `true. La carga a producción rechaza fixtures, y esta fila pasaría.`,
       })
     }
-    // El nombre de un fixture no puede parecer el de una persona. La heurística
-    // es deliberadamente tosca — dos o más palabras capitalizadas seguidas es
-    // la forma de "Nombre Apellido" — y por eso solo se aplica a fixtures,
-    // donde un falso positivo cuesta renombrar un archivo de prueba y un falso
-    // negativo cuesta que alguien le escriba a una persona que no existe.
-    if (
-      artist.is_fixture === true &&
-      looksLikeAPersonName(artist.display_name)
-    ) {
-      ctx.addIssue({
-        code: 'custom',
-        path: ['display_name'],
-        message:
-          `"${artist.display_name}" se lee como el nombre de una persona. Un ` +
-          `fixture tiene que llamarse por lo que muestra ("Irezumi", "Tinta ` +
-          `Negra"), no como alguien a quien se le podría escribir.`,
-      })
-    }
-
     if (!isKnownLocation(artist.location)) {
       ctx.addIssue({
         code: 'custom',

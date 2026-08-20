@@ -8,13 +8,23 @@
  */
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { fireEvent, render, screen, waitFor } from '@testing-library/react-native'
+import {
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from '@testing-library/react-native'
 
 import { MotionProvider, ThemeProvider } from '@/design-system/index.ts'
 import { I18nProvider } from '@/i18n/I18nProvider.tsx'
 
 import { ExploreScreen } from './ExploreScreen.tsx'
-import { splitIntoColumns } from './ArtworkGrid.tsx'
+import {
+  COLUMNS,
+  driftDirection,
+  driftFor,
+  splitIntoColumns,
+} from './ArtworkGrid.tsx'
 import { fetchDiscoveryFeed, type FeedItem } from './queries.ts'
 
 jest.mock('./queries.ts', () => ({
@@ -69,36 +79,81 @@ function renderExplore(onOpenProfile = jest.fn()) {
 
 beforeEach(() => {
   jest.clearAllMocks()
-  feedMock.mockResolvedValue({ items: [obra('a'), obra('b')], nextCursor: null })
+  feedMock.mockResolvedValue({
+    items: [obra('a'), obra('b')],
+    nextCursor: null,
+  })
 })
 
 describe('splitIntoColumns', () => {
-  it('no pierde ni repite ninguna obra', () => {
-    const items = ['a', 'b', 'c', 'd', 'e'].map((id) => obra(id))
-    const [left, right] = splitIntoColumns(items)
-    const ids = [...left, ...right].map((item) => item.portfolioItemId).sort()
-    expect(ids).toEqual(['a', 'b', 'c', 'd', 'e'])
+  it('son tres columnas', () => {
+    expect(COLUMNS).toBe(3)
+    expect(splitIntoColumns([obra('a')])).toHaveLength(3)
   })
 
-  it('reparte por altura, no alternando', () => {
-    // Una obra muy alta seguida de tres bajas: alternar dejaría una columna
-    // mucho más larga que la otra, que es exactamente lo que se ve mal.
+  it('no pierde ni repite ninguna obra', () => {
+    const items = ['a', 'b', 'c', 'd', 'e', 'f', 'g'].map((id) => obra(id))
+    const ids = splitIntoColumns(items)
+      .flat()
+      .map((item) => item.portfolioItemId)
+      .sort()
+    expect(ids).toEqual(['a', 'b', 'c', 'd', 'e', 'f', 'g'])
+  })
+
+  it('reparte a la columna más corta, no alternando', () => {
+    // Una obra muy alta y después bajas: alternar dejaría una columna mucho
+    // más larga que las otras, que es exactamente lo que se ve mal.
     const items = [
       obra('alta', { mediaWidth: 400, mediaHeight: 1600 }),
       obra('b1', { mediaWidth: 1000, mediaHeight: 500 }),
       obra('b2', { mediaWidth: 1000, mediaHeight: 500 }),
       obra('b3', { mediaWidth: 1000, mediaHeight: 500 }),
     ]
-    const [left, right] = splitIntoColumns(items)
-    expect(left.map((i) => i.portfolioItemId)).toEqual(['alta'])
-    expect(right.map((i) => i.portfolioItemId)).toEqual(['b1', 'b2', 'b3'])
+    const [primera, segunda, tercera] = splitIntoColumns(items)
+    expect(primera?.map((i) => i.portfolioItemId)).toEqual(['alta'])
+    expect(segunda?.map((i) => i.portfolioItemId)).toEqual(['b1', 'b3'])
+    expect(tercera?.map((i) => i.portfolioItemId)).toEqual(['b2'])
   })
 
   it('una obra sin medidas no rompe el reparto', () => {
-    const [left, right] = splitIntoColumns([
+    const columnas = splitIntoColumns([
       obra('x', { mediaWidth: null, mediaHeight: null }),
     ])
-    expect([...left, ...right]).toHaveLength(1)
+    expect(columnas.flat()).toHaveLength(1)
+  })
+})
+
+describe('el desplazamiento de las columnas', () => {
+  it('alterna de a una: la primera sube, la segunda baja, la tercera sube', () => {
+    // Es literalmente lo que se pidió, y es lo que hace que el efecto se note.
+    // Si dos columnas vecinas fueran en la misma dirección no habría paralaje
+    // entre ellas: se moverían juntas y no se vería nada.
+    expect([0, 1, 2].map(driftDirection)).toEqual([-1, 1, -1])
+  })
+
+  it('arriba de todo las columnas están parejas', () => {
+    expect([0, 1, 2].map((i) => driftFor(0, i))).toEqual([0, 0, 0])
+  })
+
+  it('satura: por más que se scrollee, no se descuelgan', () => {
+    // Sin techo, en un feed largo la primera columna terminaría cientos de
+    // píxeles más arriba que la segunda y la grilla se leería como rota.
+    const lejos = [0, 1, 2].map((i) => driftFor(100_000, i))
+    const bastante = [0, 1, 2].map((i) => driftFor(900, i))
+    expect(lejos).toEqual(bastante)
+    expect(Math.max(...lejos.map(Math.abs))).toBeLessThanOrEqual(20)
+  })
+
+  it('crece con el scroll y en direcciones opuestas', () => {
+    expect(driftFor(450, 0)).toBeLessThan(driftFor(0, 0))
+    expect(driftFor(450, 1)).toBeGreaterThan(driftFor(0, 1))
+    expect(Math.abs(driftFor(450, 0))).toBeLessThan(Math.abs(driftFor(900, 0)))
+  })
+
+  it('un scroll negativo (rebote) no corre nada', () => {
+    // iOS deja tirar hacia abajo desde arriba de todo. Sin el piso, las
+    // columnas se separarían al revés justo mientras se ve el rebote.
+    expect([0, 1, 2].map((i) => driftFor(-300, i))).toEqual([0, 0, 0])
   })
 })
 
@@ -114,7 +169,9 @@ describe('Explorar', () => {
 
   it('tocar una obra lleva a su artista', async () => {
     const onOpenProfile = renderExplore()
-    await waitFor(() => expect(screen.getByTestId('discovery-tile-a')).toBeTruthy())
+    await waitFor(() =>
+      expect(screen.getByTestId('discovery-tile-a')).toBeTruthy(),
+    )
 
     fireEvent.press(screen.getByTestId('discovery-tile-a'))
 
@@ -125,7 +182,9 @@ describe('Explorar', () => {
 
   it('la obra no muestra el nombre del artista, pero sí lo anuncia', async () => {
     renderExplore()
-    await waitFor(() => expect(screen.getByTestId('discovery-tile-a')).toBeTruthy())
+    await waitFor(() =>
+      expect(screen.getByTestId('discovery-tile-a')).toBeTruthy(),
+    )
 
     // Con un pie por obra la grilla se vuelve una lista de gente. Ver
     // MESH-VISUAL-DIRECTION-2 §4.
@@ -172,7 +231,9 @@ describe('Explorar', () => {
   it('sin catálogo ofrece una salida', async () => {
     feedMock.mockResolvedValue({ items: [], nextCursor: null })
     renderExplore()
-    await waitFor(() => expect(screen.getByTestId('explore-empty')).toBeTruthy())
+    await waitFor(() =>
+      expect(screen.getByTestId('explore-empty')).toBeTruthy(),
+    )
   })
 
   it('abre filtrado cuando llega desde buscar con una foto', async () => {

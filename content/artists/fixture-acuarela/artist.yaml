@@ -1,12 +1,12 @@
 # Artista fixture. Ver consent.md.
 slug: fixture-acuarela
-display_name: 'Acuarela'
+display_name: 'Bruno Arrieta'
 category: tattoo
 location: quilmes
 is_fixture: true
 
 bio: >-
-  Manchas de color que se superponen, sin contorno que las cierre.
+  Color aguado, sin contorno negro. Me gusta que la tinta parezca que sigue corriendo debajo de la piel.
 
 styles:
   - { slug: watercolor, proficiency: 1.0, primary: true }

@@ -1,4 +1,4 @@
-# Consentimiento — Grises
+# Consentimiento — Tomás Aguerre (perfil de prueba)
 
 **Este es un artista fixture.** No existe ninguna persona detrás de este
 registro, así que no hay consentimiento humano que registrar: hay una
@@ -6,8 +6,14 @@ declaración de que el registro es sintético.
 
 - Tipo: fixture de desarrollo
 - Creado: 2026-08-20
-- Nombre: no se lee como el de una persona. Es una etiqueta, y así lo exige la
-  regla 4 de `content/artists/README.md`.
+- Nombre: **inventado, y sí se lee como el de una persona.** Es a propósito
+  desde 2026-08-20: cuando los fixtures se llamaban por su técnica —"Aguja
+  Fina", "Tinta Negra"— el catálogo se leía como una carta de estilos y no como
+  una app de tatuadores. Lo que impide confundirlo con alguien real no es el
+  nombre: es `is_fixture`, que viene de la base, más la insignia en toda
+  pantalla, el contacto cortado y el rechazo en producción. Ver content-policy §4.
+  Si este nombre coincidiera con el de una persona real, es casualidad y no hay
+  ninguna afirmación sobre ella acá.
 - Bio, precio y disponibilidad: escritos para que la pantalla tenga algo
   verosímil que mostrar. **No describen a nadie.** No hay ninguna persona a la
   que le puedan atribuirse.

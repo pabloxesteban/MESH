@@ -279,30 +279,47 @@ export function ProfileScreen({
           </Section>
         ) : null}
 
-        {/* El chat va primero cuando existe, y el contacto externo queda de
-            secundario: escribir adentro de MESH no obliga a nadie a dar su
-            número. Cuando el perfil no está reclamado el chat no aparece —
-            no ofrecemos un canal que no llega a ninguna parte. */}
-        {onChat != null && canChat && !professional.isFixture ? (
-          <Button
-            label={t('chat.open')}
-            onPress={() => onChat(professional.id, professional.displayName)}
-            fullWidth
-            testID="profile-chat"
-          />
-        ) : null}
+        {/* A un registro de prueba no se le escribe, y eso se DICE acá.
 
-        <Button
-          label={t('profile.contact')}
-          variant={
-            onChat != null && canChat && !professional.isFixture
-              ? 'secondary'
-              : 'primary'
-          }
-          onPress={() => onContact(professional.slug)}
-          fullWidth
-          testID="profile-contact"
-        />
+            Antes los dos botones aparecían igual y "Escribirle" llevaba a una
+            pantalla que cortaba el contacto. Funcionaba, pero se enteraba
+            después de tocar, y la ausencia del botón de chat se leía como que
+            la app no tiene chat. El corte de `ContactScreen` sigue estando:
+            esto es lo que se ve, aquello es lo que garantiza. */}
+        {professional.isFixture ? (
+          <Text
+            role="body"
+            color="textSecondary"
+            testID="profile-fixture-nochat"
+          >
+            {t('profile.fixture.noContact')}
+          </Text>
+        ) : (
+          <>
+            {/* El chat va primero cuando existe, y el contacto externo queda de
+                secundario: escribir adentro de MESH no obliga a nadie a dar su
+                número. Cuando el perfil no está reclamado el chat no aparece —
+                no ofrecemos un canal que no llega a ninguna parte. */}
+            {onChat != null && canChat ? (
+              <Button
+                label={t('chat.open')}
+                onPress={() =>
+                  onChat(professional.id, professional.displayName)
+                }
+                fullWidth
+                testID="profile-chat"
+              />
+            ) : null}
+
+            <Button
+              label={t('profile.contact')}
+              variant={onChat != null && canChat ? 'secondary' : 'primary'}
+              onPress={() => onContact(professional.slug)}
+              fullWidth
+              testID="profile-contact"
+            />
+          </>
+        )}
       </Box>
     )
   })()
