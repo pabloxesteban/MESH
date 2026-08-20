@@ -16,7 +16,7 @@
  */
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { screen, waitFor } from '@testing-library/react-native'
+import { fireEvent, screen, waitFor } from '@testing-library/react-native'
 import type { ReactElement } from 'react'
 
 import { renderWithProviders } from '@/design-system/test-utils.tsx'
@@ -89,6 +89,16 @@ jest.mock('@/features/chat/queries.ts', () => ({
   sendMessage: jest.fn().mockResolvedValue(undefined),
   markConversationRead: jest.fn().mockResolvedValue(undefined),
   subscribeToMessages: jest.fn().mockReturnValue(() => undefined),
+}))
+jest.mock('@/features/reviews/queries.ts', () => ({
+  fetchReviews: jest.fn().mockResolvedValue([]),
+  fetchReviewSummary: jest.fn().mockResolvedValue({ count: 0, average: null }),
+  fetchReviewableAppointments: jest.fn().mockResolvedValue([]),
+  createReview: jest.fn(),
+  reviewMediaUrl: (path: string) => `https://ejemplo.test/${path}`,
+}))
+jest.mock('@/features/reviews/upload.ts', () => ({
+  uploadReviewPhoto: jest.fn(),
 }))
 jest.mock('@/features/scheduling/queries.ts', () => ({
   ...jest.requireActual('@/features/scheduling/queries.ts'),
@@ -173,6 +183,7 @@ import {
   fetchOwnProfessionalForConversation,
   fetchWeeklyRules,
 } from '@/features/scheduling/queries.ts'
+import { fetchReviewableAppointments } from '@/features/reviews/queries.ts'
 import { fetchArtistGrid } from '@/features/artists/queries.ts'
 import { fetchOwnedProfessional } from '@/features/artist/queries.ts'
 import { fetchOpenSearchFeed } from '@/features/demand/queries.ts'
@@ -583,6 +594,54 @@ describe('barrido de accesibilidad y callejones', () => {
     expect(screen.getByTestId('schedule-open')).toBeTruthy()
     sweep('chat del artista · con turno')
     sweepDynamicType('chat del artista · con turno')
+  })
+
+  // La pantalla de dejar una reseña vive dentro del turno pasado, así que el
+  // barrido la alcanza desde el chat: estrellas tocables, campo de comentario y
+  // el aviso de que la foto se publica.
+  it('chat, con un turno pasado listo para reseñar', async () => {
+    const hace = new Date()
+    hace.setDate(hace.getDate() - 5)
+    const desde = new Date(hace)
+    desde.setHours(desde.getHours() - 2)
+    ;(fetchAppointments as jest.Mock).mockResolvedValue([
+      {
+        id: 'a9',
+        startsAt: desde.toISOString(),
+        endsAt: hace.toISOString(),
+        status: 'scheduled',
+        note: null,
+        professionalId: 'p1',
+        conversationId: 'c1',
+      },
+    ])
+    ;(fetchReviewableAppointments as jest.Mock).mockResolvedValue([
+      {
+        appointmentId: 'a9',
+        professionalId: 'p1',
+        professionalSlug: 'aguja-fina',
+        professionalName: 'Aguja Fina',
+        conversationId: 'c1',
+        endsAt: hace.toISOString(),
+      },
+    ])
+
+    render(
+      <ChatScreen
+        conversationId="c1"
+        userId="u1"
+        title="Aguja Fina"
+        onBack={jest.fn()}
+      />,
+    )
+    await waitFor(() =>
+      expect(screen.getByTestId('appointment-review')).toBeTruthy(),
+    )
+    fireEvent.press(screen.getByTestId('appointment-review'))
+    expect(screen.getByTestId('leave-review')).toBeTruthy()
+
+    sweep('chat · dejar reseña')
+    sweepDynamicType('chat · dejar reseña')
   })
 
   it('el estudio, sin perfil todavía', async () => {

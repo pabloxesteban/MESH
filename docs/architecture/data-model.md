@@ -263,8 +263,36 @@ quedan fuera del índice parcial, así que cancelar libera el horario al instant
 sin borrar el historial.
 
 **No hay estado "completado":** que un turno ya pasó se deriva de `ends_at`. Un
-estado que nadie marca queda para siempre en su valor inicial, mintiendo — y
-las reseñas se van a apoyar en esto.
+estado que nadie marca queda para siempre en su valor inicial, mintiendo — y las
+reseñas se apoyan exactamente en esto.
+
+**Un turno que ya pasó no se cancela.** `cancel_appointment()` lo rechaza con
+`22023`. Es una enmienda a ADR-018 hecha desde las reseñas: cancelar el pasado
+borraría la reseña que nació de ese turno, por el `on delete cascade`. Ver
+[ADR-019](../decisions/ADR-019-reviews.md).
+
+**`reviews`** — una reseña, colgada del turno que la habilita.
+
+| Columna | Tipo | Notas |
+|---|---|---|
+| `appointment_id` | uuid NOT NULL UNIQUE | → `appointments` ON DELETE CASCADE |
+| `professional_id` | uuid NOT NULL | copiado del turno, verificado por la política |
+| `user_id` | uuid NOT NULL | → `profiles` ON DELETE CASCADE |
+| `rating` | smallint NOT NULL | `between 1 and 5`; lo único obligatorio |
+| `body` | text | 1 a 1000; opcional |
+| `media_id` | uuid | → `media_assets` ON DELETE SET NULL; bucket `reviews` |
+| `created_at` | timestamptz NOT NULL | |
+| `updated_at` | timestamptz | lo pone un trigger; la pantalla dice "Editada" |
+
+Tres cosas que definen la tabla:
+
+- **El candado vive en la política de INSERT**: turno propio, con ese artista,
+  no cancelado y con `ends_at < now()`.
+- **La SELECT de la tabla es solo lo propio**, porque la fila lleva `user_id`.
+  Lo público sale de `get_reviews()`, que no devuelve quién escribió cada una.
+- **El artista no aparece en ninguna política de escritura**: no la escribe, no
+  la edita, no la borra, y tampoco lee la tabla. Cuenta y promedio salen de
+  `get_review_summary()`, que calcula al leer — no hay ningún agregado guardado.
 
 **`saved_items`** — una obra que alguien guardó con el corazón. Privada de
 punta a punta: las tres políticas filtran por `auth.uid()` y **no existe

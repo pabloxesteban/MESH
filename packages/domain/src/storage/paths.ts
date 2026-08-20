@@ -39,7 +39,7 @@ export const MAX_PROJECT_REFERENCES = 10
 /** Máximo de proyectos sin archivar por persona. */
 export const MAX_LIVE_PROJECTS = 20
 
-export type Bucket = 'portfolio' | 'references' | 'avatars'
+export type Bucket = 'portfolio' | 'references' | 'avatars' | 'reviews'
 
 /**
  * Extensión canónica por MIME. La extensión se deriva del content-type
@@ -106,6 +106,25 @@ export function portfolioPath(
 
 /** Ruta de una imagen de referencia de proyecto. Privada, del dueño. */
 export function referencePath(
+  userId: string,
+  mediaId: string,
+  mimeType: UploadMimeType,
+): string {
+  requireUuid(userId, 'El id de usuario')
+  requireUuid(mediaId, 'El id de la media')
+  return `${userId}/${mediaId}.${EXTENSION_BY_MIME[mimeType]}`
+}
+
+/**
+ * Ruta de la foto de una reseña.
+ *
+ * Misma forma que una referencia y bucket distinto, y la diferencia importa:
+ * `references` es privado —es la foto que alguien sacó en su casa— y `reviews`
+ * es de lectura pública, porque se muestra en el perfil del artista. Quien
+ * adjunta una foto a una reseña la está publicando, y por eso la pantalla lo
+ * dice antes de subirla.
+ */
+export function reviewPath(
   userId: string,
   mediaId: string,
   mimeType: UploadMimeType,

@@ -95,6 +95,7 @@ export {
   isUploadMimeType,
   portfolioPath,
   referencePath,
+  reviewPath,
   validateUpload,
 } from './storage/paths.ts'
 export type {

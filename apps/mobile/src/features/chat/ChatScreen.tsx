@@ -37,6 +37,7 @@ import {
   fetchAppointments,
   fetchOwnProfessionalForConversation,
 } from '@/features/scheduling/queries.ts'
+import { fetchReviewableAppointments } from '@/features/reviews/queries.ts'
 
 import {
   fetchMessages,
@@ -91,6 +92,16 @@ export function ChatScreen({
     queryFn: () => fetchOwnProfessionalForConversation(conversationId, userId),
   })
   const ownProfessionalId = propio.data ?? null
+
+  // Qué turnos de esta persona se pueden reseñar. La lista la arma la base, que
+  // es donde vive el candado: turno propio, ya pasado y sin reseñar.
+  const resenables = useQuery({
+    queryKey: ['reviewable'],
+    queryFn: fetchReviewableAppointments,
+  })
+  const puedeResenar = new Set(
+    (resenables.data ?? []).map((turno) => turno.appointmentId),
+  )
 
   // El canal se abre al entrar y se cierra al salir. Sin el cleanup, cada
   // visita deja una suscripción viva y el mismo mensaje llega N veces.
@@ -188,6 +199,8 @@ export function ChatScreen({
               <AppointmentCard
                 key={turno.id}
                 appointment={turno}
+                reviewable={puedeResenar.has(turno.id)}
+                userId={userId}
                 testID={`appointment-${turno.id}`}
               />
             ))}

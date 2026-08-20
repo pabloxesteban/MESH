@@ -74,6 +74,7 @@ const KNOWN_TABLES = [
   'project_references',
   'project_styles',
   'projects',
+  'reviews',
   'saved_items',
   'styles',
   'taste_profiles',
@@ -138,7 +139,7 @@ describe('el esquema y el dominio no se separaron', () => {
     // que la suite reporte el archivo, y para que `Reconciliacion` esté usada.
     const reconciliacion = {} as Reconciliacion
     expect(reconciliacion).toBeDefined()
-    expect(KNOWN_TABLES).toHaveLength(25)
+    expect(KNOWN_TABLES).toHaveLength(26)
   })
 
   const enums: ReadonlyArray<

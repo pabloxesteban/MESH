@@ -217,6 +217,32 @@ export const en: Readonly<Record<TranslationKey, string>> = {
   'calendar.title': 'Upcoming hours',
   'calendar.empty': 'They have not published their hours yet.',
   'calendar.free': '{n} free',
+  'calendar.free.one': '1 free',
+
+  // --- reviews ---------------------------------------------------------------
+  'reviews.title': 'What people said',
+  'reviews.empty':
+    'No reviews yet. They show up here when someone gets tattooed and tells how it went.',
+  'reviews.summary': '{promedio} out of 5 · {n} reviews',
+  'reviews.summary.one': '{promedio} out of 5 · 1 review',
+  'reviews.when': 'Appointment on {fecha}',
+  'reviews.edited': 'Edited',
+  'reviews.photo': 'Photo uploaded by the person who left the review',
+  'reviews.stars.value': '{n} out of 5 stars',
+  'reviews.stars.pick': 'Give {n} stars',
+  'reviews.leave': 'Leave a review',
+  'reviews.leave.title': 'How did it go?',
+  'reviews.leave.hint':
+    'Read by anyone considering this artist. The stars are enough; the rest adds.',
+  'reviews.leave.body': 'Tell how it went',
+  'reviews.leave.photo': 'Add a photo',
+  'reviews.leave.photo.public':
+    'The photo will show on the artist profile, along with your review.',
+  'reviews.leave.photo.attached': 'The photo you are about to publish',
+  'reviews.leave.photo.remove': 'Remove the photo',
+  'reviews.leave.submit': 'Publish',
+  'reviews.error.send': 'Could not publish the review. Try again.',
+  'reviews.error.photo': 'Could not upload the photo. Try another one.',
   'common.fixture': 'Test',
 
   'contact.title': 'Write to {nombre}',

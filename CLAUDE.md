@@ -25,15 +25,20 @@ enchufarlos es una decisión de producto, y se escribe antes de codearla.
 Dos cosas que hasta el 2026-08-20 estaban explícitamente afuera y **ya no lo
 están**:
 
-- **Reservas y pagos.** Se decidió abrirlas. Todavía no existen: no hay esquema,
-  no hay pantallas, y el botón del perfil sigue abriendo una consulta por chat.
-  Cuando se construyan, van con su ADR — y con el innegociable 3 vigente, que es
-  donde más se nota: una agenda es exactamente el lugar donde se cuelan la
-  escasez y la urgencia falsas.
-- **Guardar obra y artistas.** ADR-003 lo había descartado y
-  [D-010](docs/design/MESH-DESIGN-DECISIONS.md) lo dejó afuera al sacar el mazo.
-  Revertirlo necesita un ADR que revierta a ADR-003, como hizo
-  [ADR-012](docs/decisions/ADR-012-chat.md) con la mensajería.
+- **Turnos.** Ya existen. El artista carga su horario semanal en el Estudio, el
+  turno se asigna desde el chat, y en el perfil se ve cuántos huecos le quedan
+  esta semana — el número, nunca cuáles. Ver
+  [ADR-018](docs/decisions/ADR-018-availability.md). **Pagos y seña siguen
+  afuera**: un turno no cuesta nada y no bloquea nada. Cuando haya plata de por
+  medio va con su ADR, y con el innegociable 3 encima: una agenda con seña es
+  exactamente donde se cuelan la escasez y la urgencia falsas.
+- **Guardar obra.** Ya existe: un corazón abajo de cada obra, y una pantalla de
+  Guardados. Ver [ADR-016](docs/decisions/ADR-016-saved-items.md) y
+  [ADR-017](docs/decisions/ADR-017-saved-ranking.md).
+- **Reseñas.** Ya existen, y con un candado: solo reseña quien tuvo un turno con
+  ese artista y ese turno ya pasó. El artista no las escribe, no las edita, no
+  las borra y no sabe quién las dejó. Ver
+  [ADR-019](docs/decisions/ADR-019-reviews.md).
 
 Sigue afuera, sin cambios: abrir a otras categorías o a otras ciudades, y volver
 a enchufar el gusto y el matching a una pantalla.
@@ -53,6 +58,12 @@ a enchufar el gusto y el matching a una pantalla.
 2. **Nunca inventar.** Nada de reseñas, testimonios, disponibilidad, precios,
    estadísticas de reservas ni razones de match inventadas. Una razón solo se
    puede mostrar si el término que describe efectivamente aportó al puntaje.
+
+   Desde el 2026-08-20 hay reseñas y disponibilidad **reales**, y la regla no
+   cambió: lo prohibido es inventarlas. Una reseña solo existe colgada de un
+   turno que ocurrió, el promedio se calcula al leer en vez de guardarse, y un
+   perfil sin reseñas lo dice con palabras en vez de dibujar cinco estrellas
+   vacías. Los registros de prueba no llevan ninguna.
 3. **Nada de dark patterns.** Ni rachas, ni puntos, ni niveles, ni escasez o
    urgencia falsas, ni límites artificiales. Nunca.
 

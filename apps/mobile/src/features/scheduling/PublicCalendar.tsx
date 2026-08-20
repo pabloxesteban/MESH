@@ -110,7 +110,11 @@ export function PublicCalendar({ professionalId }: PublicCalendarProps) {
             {/* El número de huecos, no los horarios: cuáles son se acuerdan
                 hablando, que es de donde sale el turno. */}
             <Text role="micro" color={libres > 0 ? 'accent' : 'textTertiary'}>
-              {libres > 0 ? t('calendar.free', { n: String(libres) }) : '—'}
+              {libres === 0
+                ? '—'
+                : t(libres === 1 ? 'calendar.free.one' : 'calendar.free', {
+                    n: String(libres),
+                  })}
             </Text>
           </Box>
         ))}

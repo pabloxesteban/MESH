@@ -7,6 +7,7 @@ import {
   isUploadMimeType,
   portfolioPath,
   referencePath,
+  reviewPath,
   StoragePathError,
   validateUpload,
 } from './paths.ts'
@@ -21,6 +22,13 @@ describe('rutas de storage', () => {
       `${USER}/${MEDIA}.webp`,
     )
     expect(avatarPath(USER, MEDIA, 'image/jpeg')).toBe(`${USER}/${MEDIA}.jpg`)
+    expect(reviewPath(USER, MEDIA, 'image/jpeg')).toBe(`${USER}/${MEDIA}.jpg`)
+  })
+
+  it('la foto de una reseña también se rechaza si el id no es un UUID', () => {
+    expect(() => reviewPath('../otro', MEDIA, 'image/jpeg')).toThrow(
+      StoragePathError,
+    )
   })
 
   it('deriva la extensión del MIME, no del nombre que trajo el archivo', () => {

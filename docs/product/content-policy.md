@@ -25,6 +25,24 @@ MESH nunca puede generar, inventar, estimar ni inferir:
 Si falta un campo, la sección no se renderiza. Una sección ausente es honesta;
 una suposición verosímil es una mentira con mejor tipografía.
 
+**Desde el 2026-08-20 existen reseñas reales, y la regla no cambió.** Lo
+prohibido es *inventarlas*. Una reseña en MESH solo puede existir colgada de un
+turno que ocurrió: la política de `reviews` exige un turno propio, con ese
+artista, no cancelado y ya terminado — ver
+[ADR-019](../decisions/ADR-019-reviews.md). Nadie las escribe por nadie, y el
+promedio se calcula al leer en vez de guardarse, para que no haya ningún número
+sobre una persona que pueda quedar desactualizado.
+
+Dos consecuencias operativas:
+
+- **Los registros de prueba no llevan reseñas, nunca.** No tuvieron turnos, así
+  que ni siquiera se pueden escribir; y el perfil no dibuja la sección para
+  ellos, para que quince perfiles ficticios sin reseñas no hagan parecer que
+  nadie reseña nunca.
+- **El seeder no carga reseñas.** No hay campo en el archivo de contenido y no
+  debe haberlo. Si algún día hay que migrar reseñas de otra plataforma, es una
+  decisión con su propio ADR y con consentimiento de quien las escribió.
+
 ## 2. El consentimiento es requisito de inclusión
 
 Un artista solo puede aparecer en MESH después de dar consentimiento explícito y

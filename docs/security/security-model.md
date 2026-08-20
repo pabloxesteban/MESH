@@ -116,6 +116,7 @@ valor— cuesta más en usuarios reales de lo que ahorra en abuso a esta escala.
 | `saved_items` | propios | propios (`user_id = auth.uid()`) | ✗ (guardar es insert, desguardar es delete) | propios |
 | `availability_rules`, `availability_exceptions` | de cualquier profesional **publicado** | el dueño del perfil | ✗ | el dueño |
 | `appointments` | las dos partes | ✗ (solo vía `schedule_appointment()`) | ✗ (solo vía `cancel_appointment()`) | ✗ |
+| `reviews` | **solo las propias** (lo público sale de `get_reviews()`) | quien tuvo un turno propio, con ese artista, no cancelado y ya terminado | la autora, con las columnas de origen congeladas por trigger | la autora |
 | `analytics_events` | ✗ | propios (`user_id = auth.uid()`) | ✗ | ✗ |
 | `audit_events` | ✗ | ✗ | ✗ | ✗ (sin políticas — solo service role) |
 
@@ -145,6 +146,21 @@ ninguna conversación. Un hueco ocupado no dice de quién es. Ver ADR-018.
 pasan por funciones, porque los invariantes son varios —la conversación tiene
 que ser del artista, el cliente sale de ahí y no de un parámetro, el pasado no
 se agenda— y no todos caben en un `with check`.
+
+**Una reseña dice que pasó, no quién.** `reviews` lleva `user_id`, así que la
+política de SELECT de la tabla es solo lo propio; lo público sale de
+`get_reviews()`, `security definer`, con columnas elegidas a mano y **sin
+ninguna que identifique a nadie**. La reseña de un tatuaje dice dónde estuvo una
+persona y qué se hizo en el cuerpo: firmarla es una decisión suya y nadie la
+tomó. Verificado en `supabase/tests/51_reviews.sql`, que falla si alguien le
+agrega una columna de identidad.
+
+**El artista no puede tocar la reseña que le dejaron.** No aparece en ninguna
+política de escritura de `reviews`, y tampoco lee la tabla. La puerta de atrás
+—cancelar el turno del que nació la reseña, que la borraría por `on delete
+cascade`— está cerrada: `cancel_appointment()` rechaza cancelar un turno que ya
+terminó. Es una enmienda a ADR-018 hecha desde ADR-019, y los dos tests que la
+sostienen están en `51_reviews.sql`.
 
 **`professionals` sigue sin política de INSERT ni de UPDATE para el cliente**,
 ni siquiera para el dueño. Todo lo que un artista escribe sobre su propia fila
@@ -276,6 +292,7 @@ forma más común de tener una suite de RLS que no prueba nada.
 | `portfolio` | lectura pública | solo service role | `portfolio/{professional_slug}/{item_id}/{size}.webp` |
 | `references` | privado | solo dueño | `references/{user_id}/{uuid}.webp` |
 | `avatars` | lectura pública | solo dueño | `avatars/{user_id}/{uuid}.webp` |
+| `reviews` | lectura pública | solo dueño | `reviews/{user_id}/{uuid}.jpg` |
 
 Las políticas de storage de los buckets escribibles por el dueño verifican
 `(storage.foldername(name))[1] = auth.uid()::text` — el primer segmento de la
@@ -286,9 +303,15 @@ Los objetos privados se sirven vía URLs firmadas de vida corta (≤ 1 hora)
 generadas a demanda. Las URLs firmadas nunca se persisten, nunca se loguean y
 nunca van en un deep link.
 
-`portfolio` no tiene ninguna política de escritura: lo escribe el service role,
-que pasa por encima de RLS. Ninguno de los tres buckets tiene política de
-UPDATE — reemplazar una imagen es subir una nueva y borrar la vieja, porque un
+**`reviews` es de lectura pública y eso es una decisión, no un descuido**: la
+foto se muestra en el perfil del artista. Por eso la pantalla lo dice antes de
+subir nada, y por eso la recodificación que limpia el EXIF importa más acá que
+en ningún otro lado — es una foto sacada en el estudio, con las coordenadas del
+estudio adentro.
+
+`portfolio` no tiene ninguna política de escritura para el cliente: lo escribe
+el service role y, desde ADR-013, el artista dueño del slug. Ningún bucket tiene
+política de UPDATE — reemplazar una imagen es subir una nueva y borrar la vieja, porque un
 update cambiaría los bytes debajo de una fila de `media_assets` que ya registró
 un checksum.
 

@@ -8,9 +8,15 @@
  *
  * Cancelar libera el horario en el mismo instante —la restricción de exclusión
  * ignora los cancelados— pero la fila queda. Ver ADR-018.
+ *
+ * **Un turno que ya pasó no se cancela**, y por eso el botón desaparece. La
+ * base también lo rechaza (ver ADR-019): cancelar el pasado sería la forma de
+ * hacer desaparecer una reseña. En su lugar aparece dejarla, si quien mira es
+ * quien se tatuó y todavía no la escribió.
  */
 
 import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useState } from 'react'
 
 import { View } from 'react-native'
 
@@ -23,18 +29,34 @@ import {
   useTheme,
 } from '@/design-system/index.ts'
 import { useI18n } from '@/i18n/I18nProvider.tsx'
+import { LeaveReview } from '@/features/reviews/LeaveReview.tsx'
 
 import { cancelAppointment, type Appointment } from './queries.ts'
 
 export interface AppointmentCardProps {
   appointment: Appointment
+  /**
+   * Si este turno se puede reseñar. Lo dice la base —ver
+   * `get_reviewable_appointments`— y no se recalcula acá: el candado de quién
+   * puede reseñar vive en la política de `reviews`, y una segunda copia en
+   * TypeScript es una copia que se desactualiza.
+   */
+  reviewable?: boolean
+  /** Quién mira. Hace falta para escribir la reseña; `null` para el artista. */
+  userId?: string | null
   testID?: string
 }
 
-export function AppointmentCard({ appointment, testID }: AppointmentCardProps) {
+export function AppointmentCard({
+  appointment,
+  reviewable = false,
+  userId = null,
+  testID,
+}: AppointmentCardProps) {
   const { t, locale } = useI18n()
   const theme = useTheme()
   const client = useQueryClient()
+  const [resenando, setResenando] = useState(false)
 
   const cancelar = useMutation({
     mutationFn: () => cancelAppointment(appointment.id),
@@ -46,6 +68,7 @@ export function AppointmentCard({ appointment, testID }: AppointmentCardProps) {
 
   const cuando = new Date(appointment.startsAt)
   const hasta = new Date(appointment.endsAt)
+  const yaPaso = hasta.getTime() < Date.now()
 
   /**
    * La hora en reloj de 24, siempre.
@@ -93,14 +116,37 @@ export function AppointmentCard({ appointment, testID }: AppointmentCardProps) {
           {appointment.note}
         </Text>
       ) : null}
-      <Button
-        label={t('appointment.cancel')}
-        variant="ghost"
-        size="sm"
-        loading={cancelar.isPending}
-        onPress={() => cancelar.mutate()}
-        testID="appointment-cancel"
-      />
+
+      {yaPaso ? null : (
+        <Button
+          label={t('appointment.cancel')}
+          variant="ghost"
+          size="sm"
+          loading={cancelar.isPending}
+          onPress={() => cancelar.mutate()}
+          testID="appointment-cancel"
+        />
+      )}
+
+      {yaPaso && reviewable && userId != null ? (
+        resenando ? (
+          <LeaveReview
+            appointmentId={appointment.id}
+            professionalId={appointment.professionalId}
+            userId={userId}
+            onDone={() => setResenando(false)}
+            onCancel={() => setResenando(false)}
+          />
+        ) : (
+          <Button
+            label={t('reviews.leave')}
+            variant="secondary"
+            size="sm"
+            onPress={() => setResenando(true)}
+            testID="appointment-review"
+          />
+        )
+      ) : null}
     </View>
   )
 }

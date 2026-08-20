@@ -1131,6 +1131,71 @@ export type Database = {
           },
         ]
       }
+      reviews: {
+        Row: {
+          appointment_id: string
+          body: string | null
+          created_at: string
+          id: string
+          media_id: string | null
+          professional_id: string
+          rating: number
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          appointment_id: string
+          body?: string | null
+          created_at?: string
+          id?: string
+          media_id?: string | null
+          professional_id: string
+          rating: number
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          appointment_id?: string
+          body?: string | null
+          created_at?: string
+          id?: string
+          media_id?: string | null
+          professional_id?: string
+          rating?: number
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reviews_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: true
+            referencedRelation: "appointments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reviews_media_id_fkey"
+            columns: ["media_id"]
+            isOneToOne: false
+            referencedRelation: "media_assets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reviews_professional_id_fkey"
+            columns: ["professional_id"]
+            isOneToOne: false
+            referencedRelation: "professionals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reviews_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       saved_items: {
         Row: {
           created_at: string
@@ -1347,6 +1412,36 @@ export type Database = {
           portfolio_item_id: string
           saves: number
           saves_since: number
+        }[]
+      }
+      get_review_summary: {
+        Args: { p_professional_id: string }
+        Returns: {
+          average: number
+          reviews_count: number
+        }[]
+      }
+      get_reviewable_appointments: {
+        Args: never
+        Returns: {
+          appointment_id: string
+          conversation_id: string
+          ends_at: string
+          professional_display_name: string
+          professional_id: string
+          professional_slug: string
+        }[]
+      }
+      get_reviews: {
+        Args: { p_limit?: number; p_offset?: number; p_professional_id: string }
+        Returns: {
+          appointment_ends_at: string
+          body: string
+          created_at: string
+          edited: boolean
+          id: string
+          media_path: string
+          rating: number
         }[]
       }
       get_search_interests: {

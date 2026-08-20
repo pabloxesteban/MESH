@@ -167,7 +167,9 @@ Detalle: [`docs/security/security-model.md`](docs/security/security-model.md),
 Cada artista en MESH es una persona real que dio consentimiento explícito y
 registrado para que aparezcan su nombre, su trabajo y sus datos de contacto.
 Nada de scraping. Nada de reseñas, testimonios, disponibilidad, precios ni
-estadísticas de reservas inventados. Los fixtures de desarrollo están marcados
+estadísticas de reservas inventados — las reseñas que existen son reales y
+cuelgan de un turno que ocurrió (ver ADR-019); los registros de prueba no
+tienen ninguna. Los fixtures de desarrollo están marcados
 con `is_fixture` en la base y señalizados visualmente en builds no productivos,
 para que nunca se puedan confundir con personas reales.
 

@@ -54,6 +54,7 @@ import { ErrorView } from '@/components/ErrorView.tsx'
 import { FixtureBadge } from '@/components/FixtureBadge.tsx'
 import { SaveHeart } from '@/features/saved/SaveHeart.tsx'
 import { PublicCalendar } from '@/features/scheduling/PublicCalendar.tsx'
+import { ReviewList } from '@/features/reviews/ReviewList.tsx'
 import { useSaved } from '@/features/saved/useSaved.ts'
 import { mediaUrl } from '@/features/discovery/queries.ts'
 import { GrowingArtwork } from '@/features/transitions/GrowingArtwork.tsx'
@@ -269,6 +270,15 @@ export function ProfileScreen({
             Solo para perfiles reales: un fixture no tiene agenda. */}
         {!professional.isFixture ? (
           <PublicCalendar professionalId={professional.id} />
+        ) : null}
+
+        {/* Las reseñas van arriba del precio y de la obra a propósito: es lo
+            que decide si la persona sigue leyendo. Solo para perfiles reales —
+            un registro de prueba no tuvo turnos, así que no puede tener
+            reseñas, y mostrar la sección vacía en quince perfiles ficticios
+            haría parecer que nadie reseña nunca. */}
+        {!professional.isFixture ? (
+          <ReviewList professionalId={professional.id} />
         ) : null}
 
         {professional.price != null ? (

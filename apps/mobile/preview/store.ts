@@ -427,8 +427,47 @@ export function openPreviewConversation(professionalId: string): string {
       readAt: null,
     })
     messagesByConversation.set(id, [])
+    sembrarTurnoPasado(id, professionalId)
   }
   return id
+}
+
+/**
+ * **Andamio del preview, no comportamiento del producto.**
+ *
+ * Reseñar exige un turno propio que ya pasó, y en el preview no hay forma de
+ * conseguir uno: agendar rechaza el pasado, igual que la base. Sin esto, la
+ * mitad de las reseñas —dejarlas— no se puede mirar nunca.
+ *
+ * Se siembra un turno de hace tres días al abrir un chat con **tu propio
+ * perfil**, que es el mismo truco que usan las búsquedas y el interés: el
+ * preview tiene un solo perfil con dueño, así que recorrer las dos puntas es
+ * hablar con vos mismo.
+ *
+ * En la app real nadie siembra nada: el turno lo da el artista desde el chat, y
+ * pasa cuando pasa.
+ */
+function sembrarTurnoPasado(
+  conversationId: string,
+  professionalId: string,
+): void {
+  const own = previewOwnProfile()
+  if (own == null || professionalId !== previewProfessionalId(own.slug)) return
+
+  const inicio = new Date()
+  inicio.setDate(inicio.getDate() - 3)
+  inicio.setHours(15, 0, 0, 0)
+  const fin = new Date(inicio)
+  fin.setHours(17, 0, 0, 0)
+
+  turnos.push({
+    id: idAlmanaque('appointment'),
+    professionalId,
+    conversationId,
+    startsAt: inicio.toISOString(),
+    endsAt: fin.toISOString(),
+    note: 'Fine line en el antebrazo',
+  })
 }
 
 export function previewConversations(): readonly PreviewConversation[] {
@@ -866,4 +905,97 @@ export function previewConversationProfessional(
   conversationId: string,
 ): string | null {
   return conversations.get(conversationId)?.professionalId ?? null
+}
+
+// --- reseñas ------------------------------------------------------------------
+
+export interface PreviewReview {
+  readonly id: string
+  readonly appointmentId: string
+  readonly professionalId: string
+  readonly rating: number
+  readonly body: string | null
+  readonly mediaPath: string | null
+  readonly appointmentEndsAt: string
+  readonly createdAt: string
+}
+
+// Arranca vacío, y eso es la mitad de lo que hay que poder mirar: un perfil sin
+// reseñas tiene que decirlo con palabras y no mostrar cinco estrellas vacías.
+const resenas: PreviewReview[] = []
+let contadorResenas = 0
+
+export function previewReviewsOf(
+  professionalId: string,
+): readonly PreviewReview[] {
+  return resenas
+    .filter((r) => r.professionalId === professionalId)
+    .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+}
+
+export function previewReviewSummaryOf(professionalId: string): {
+  count: number
+  average: number | null
+} {
+  const propias = resenas.filter((r) => r.professionalId === professionalId)
+  if (propias.length === 0) return { count: 0, average: null }
+  const suma = propias.reduce((total, r) => total + r.rating, 0)
+  return {
+    count: propias.length,
+    // Un decimal, igual que `round(avg(rating), 1)` en Postgres.
+    average: Math.round((suma / propias.length) * 10) / 10,
+  }
+}
+
+/**
+ * Los turnos propios que ya pasaron y no tienen reseña.
+ *
+ * En el preview "propio" es cualquier turno que exista, porque hay una sola
+ * persona usando la app. El candado de verdad está en la política de `reviews`
+ * y se testea en `supabase/tests/51_reviews.sql`.
+ */
+export function previewReviewableAppointments(): readonly {
+  appointmentId: string
+  professionalId: string
+  conversationId: string | null
+  endsAt: string
+}[] {
+  const ahora = new Date().toISOString()
+  return turnos
+    .filter(
+      (turno) =>
+        turno.endsAt < ahora &&
+        !resenas.some((r) => r.appointmentId === turno.id),
+    )
+    .map((turno) => ({
+      appointmentId: turno.id,
+      professionalId: turno.professionalId,
+      conversationId: turno.conversationId,
+      endsAt: turno.endsAt,
+    }))
+}
+
+export function addPreviewReview(input: {
+  appointmentId: string
+  professionalId: string
+  rating: number
+  body: string | null
+  mediaPath: string | null
+}): void {
+  const turno = turnos.find((t) => t.id === input.appointmentId)
+  if (turno == null) throw new Error('ese turno no existe')
+
+  contadorResenas += 1
+  resenas.push({
+    id: `preview-review-${String(contadorResenas)}`,
+    appointmentId: input.appointmentId,
+    professionalId: input.professionalId,
+    rating: input.rating,
+    body: input.body,
+    mediaPath: input.mediaPath,
+    appointmentEndsAt: turno.endsAt,
+    // Un contador y no un reloj: dos corridas del preview tienen que dar el
+    // mismo orden. Mismo criterio que los mensajes.
+    createdAt: `2026-08-20T00:00:${String(contadorResenas).padStart(2, '0')}Z`,
+  })
 }

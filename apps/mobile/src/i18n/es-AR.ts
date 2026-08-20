@@ -247,6 +247,35 @@ export const esAR = {
   'calendar.title': 'Próximos horarios',
   'calendar.empty': 'Todavía no publicó sus horarios.',
   'calendar.free': '{n} libres',
+  'calendar.free.one': '1 libre',
+
+  // --- reseñas ---------------------------------------------------------------
+  // Se escriben desde el turno que las habilita, y se leen en el perfil. Ver
+  // ADR-019. Nada acá promete nada sobre el artista: lo que hay es lo que
+  // alguien dijo después de haber estado.
+  'reviews.title': 'Lo que dijeron',
+  'reviews.empty':
+    'Todavía nadie dejó una reseña. Aparecen acá cuando alguien se tatúa y cuenta cómo fue.',
+  'reviews.summary': '{promedio} de 5 · {n} reseñas',
+  'reviews.summary.one': '{promedio} de 5 · 1 reseña',
+  'reviews.when': 'Turno del {fecha}',
+  'reviews.edited': 'Editada',
+  'reviews.photo': 'Foto que subió quien dejó la reseña',
+  'reviews.stars.value': '{n} de 5 estrellas',
+  'reviews.stars.pick': 'Poner {n} estrellas',
+  'reviews.leave': 'Dejar una reseña',
+  'reviews.leave.title': '¿Cómo fue?',
+  'reviews.leave.hint':
+    'Lo lee quien esté pensando en tatuarse con esta persona. Las estrellas alcanzan; lo demás suma.',
+  'reviews.leave.body': 'Contá cómo fue',
+  'reviews.leave.photo': 'Agregar una foto',
+  'reviews.leave.photo.public':
+    'La foto se va a ver en el perfil del artista, junto con tu reseña.',
+  'reviews.leave.photo.attached': 'La foto que vas a publicar',
+  'reviews.leave.photo.remove': 'Sacar la foto',
+  'reviews.leave.submit': 'Publicar',
+  'reviews.error.send': 'No se pudo publicar la reseña. Probá de nuevo.',
+  'reviews.error.photo': 'No se pudo subir la foto. Probá con otra.',
   'common.fixture': 'Ficticio',
 
   // --- contacto --------------------------------------------------------------
