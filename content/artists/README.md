@@ -8,6 +8,7 @@ contenido malformado aborta la corrida **antes** de que se escriba nada.
   artist.yaml       identidad, bio, ubicación, estilos, precio, disponibilidad, redes
   portfolio.yaml    una entrada por pieza: archivo, epígrafe, año, estilos + pesos
   consent.md        registro de consentimiento — requerido, sin esto no se carga
+  photos.yaml       solo fixtures: de dónde salió cada foto de banco
   media/            imágenes fuente (en .gitignore — los originales quedan con el artista)
 ```
 
@@ -22,7 +23,17 @@ slugs de estilo son estables y nunca se traducen.
    indicación explícita.
 3. **Nunca inventar** una bio, un precio, disponibilidad, una reseña o una
    credencial. Un campo que falta no renderiza nada.
-4. **Los fixtures son inconfundibles:** `is_fixture: true` y el nombre con
+4. **Las fotos de un fixture no son obra de nadie, y se dice de dónde salieron.**
+   Un fixture puede tener fotos de banco en vez de placeholders abstractos, para
+   que la grilla se pueda mirar con algo que se parezca a un tatuaje. `photos.yaml`
+   guarda de cada archivo su id, su autor, su página de origen y la licencia —
+   aunque la licencia no obligue a atribuir, el registro va igual, porque acá
+   nunca se pierde de dónde salió una imagen. Los binarios no se versionan: se
+   bajan con `npm run content:photos`.
+
+   Lo que hace que esto no sea atribuirle obra ajena a nadie es la regla 5: el
+   perfil es inconfundiblemente ficticio, y nunca llega a producción.
+5. **Los fixtures son inconfundibles:** `is_fixture: true` y el nombre con
    prefijo de slug `fixture-`, un nombre que no se lea como el de una persona,
    una insignia visible en toda pantalla que los muestre, y el contacto
    bloqueado. **La carga a producción los saltea y los nombra uno por uno** —
@@ -88,6 +99,22 @@ borradores:** el validador (`content:validate`), el seeder (`content:seed`) y el
 generador de datos del preview (`preview:data`). El tercero se olvidó la primera
 vez, y el síntoma fue el preview reventando contra una foto que todavía no
 existía. Si aparece un cuarto consumidor, este es su recordatorio.
+
+## Las fotos de los fixtures
+
+```bash
+npm run content:photos             # baja lo que falte, según photos.yaml
+npm run content:photos -- --force  # vuelve a bajar todo
+npm run content:fixtures           # dibuja placeholders SOLO donde falta un archivo
+```
+
+`content:fixtures` **no pisa un archivo que ya existe**: antes regeneraba a
+ciegas y eso borraba las fotos bajadas dejando la app en formas geométricas otra
+vez, sin decir nada. `--force` sigue estando para cuando se quiera justamente
+eso.
+
+Si una foto desapareció del origen, `content:photos` lo avisa y sigue; el
+placeholder abstracto es el piso del que nadie se cae.
 
 ## Verificar antes de commitear
 

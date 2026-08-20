@@ -128,3 +128,45 @@ test('los dos guards se componen: --only sobre un fixture, en producción', () =
     ['fixture-uno'],
   )
 })
+
+test('generar un placeholder no pisa una foto que ya está', async () => {
+  // El defecto que esto evita: `content:fixtures` regeneraba a ciegas, así que
+  // correrlo después de `content:photos` borraba las ochenta y ocho fotos
+  // bajadas y devolvía la app a formas geométricas — en silencio, y sin que el
+  // número de imágenes cambiara para delatarlo.
+  const { mkdtempSync, writeFileSync, readFileSync, mkdirSync } =
+    await import('node:fs')
+  const { tmpdir } = await import('node:os')
+  const { join } = await import('node:path')
+  const { writeFixtureImage } = await import('./make-fixtures.ts')
+
+  const raiz = mkdtempSync(join(tmpdir(), 'mesh-fixture-'))
+  process.env['MESH_CONTENT_ROOT'] = raiz
+  mkdirSync(join(raiz, 'fixture-prueba', 'media'), { recursive: true })
+  const destino = join(raiz, 'fixture-prueba', 'media', '01.jpg')
+  writeFileSync(destino, 'la foto de verdad')
+
+  const escribio = await writeFixtureImage(
+    'fixture-prueba',
+    '01.jpg',
+    0,
+    'fine-line',
+  )
+
+  assert.equal(escribio, false, 'dijo que escribió algo que no tenía que tocar')
+  assert.equal(readFileSync(destino, 'utf8'), 'la foto de verdad')
+
+  // Y no escribió en el repositorio de verdad. La primera versión de este test
+  // sí lo hizo —`MESH_CONTENT_ROOT` se leía una sola vez al cargar el módulo,
+  // así que llegaba tarde— y dejó un JPEG suelto en `content/artists/`.
+  const { existsSync } = await import('node:fs')
+  assert.equal(
+    existsSync(
+      join(import.meta.dirname, '../../../content/artists/fixture-prueba'),
+    ),
+    false,
+    'el test escribió dentro del contenido real',
+  )
+
+  delete process.env['MESH_CONTENT_ROOT']
+})

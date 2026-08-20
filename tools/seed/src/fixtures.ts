@@ -13,6 +13,10 @@ import { validateAll } from './validate.ts'
 import { writeFixtureImage } from './make-fixtures.ts'
 
 async function main(): Promise<void> {
+  // `--force` regenera aunque ya haya un archivo. Sin él, una foto bajada con
+  // `content:photos` se respeta: pisarla en silencio dejaría la app en formas
+  // geométricas sin que nadie se entere de por qué.
+  const force = process.argv.includes('--force')
   const { bundles } = validateAll()
 
   // La validación puede fallar justamente porque faltan las imágenes, así que
@@ -31,6 +35,7 @@ async function main(): Promise<void> {
   )
 
   let written = 0
+  let kept = 0
   for (const dir of dirs) {
     let artist: { is_fixture?: boolean }
     let portfolio: {
@@ -56,18 +61,23 @@ async function main(): Promise<void> {
       const dominante = [...(item.styles ?? [])].sort(
         (a, b) => Number(b.weight ?? 0) - Number(a.weight ?? 0),
       )[0]
-      await writeFixtureImage(
+      const nuevo = await writeFixtureImage(
         dir,
         item.file,
         index,
         dominante?.slug ?? 'fine-line',
+        force,
       )
-      written += 1
+      if (nuevo) written += 1
+      else kept += 1
     }
   }
 
   console.log(
     `✓ ${written} imagen(es) fixture generadas.` +
+      (kept > 0
+        ? ` ${kept} ya existían y se dejaron como estaban (--force las regenera).`
+        : '') +
       (bundles.length > 0
         ? ''
         : ' Corré `npm run content:validate` para verificar.'),

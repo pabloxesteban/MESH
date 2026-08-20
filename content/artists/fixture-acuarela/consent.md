@@ -6,10 +6,24 @@ declaración de que el registro es sintético.
 
 - Tipo: fixture de desarrollo
 - Creado: 2026-08-18
-- Imágenes: placeholders abstractos generados por `npm run content:fixtures`.
-  Ninguna es una fotografía de un tatuaje real, de nadie. Cada una se dibuja
-  según el estilo que la pieza declara, para que el mazo se pueda evaluar de
-  verdad — pero son formas geométricas, no obra.
+- Imágenes: **6 fotografías de banco**, de Pixabay, bajo la Pixabay Content
+  License, que permite este uso sin atribución. `photos.yaml` guarda de cada
+  una su id, su autor y la página de origen — el registro está igual, aunque la
+  licencia no lo exija.
+
+  **Estas fotos no son la obra de este perfil, y no son la obra de nadie de
+  MESH.** Son tatuajes reales fotografiados por terceros, elegidos para que la
+  grilla se pueda mirar con algo que se parezca a un tatuaje en vez de a una
+  forma geométrica. Que el perfil sea inconfundiblemente ficticio —nombre que
+  no es el de una persona, insignia en toda pantalla, contacto bloqueado, y
+  producción rechazada— es lo que hace que esto no sea atribuirle obra ajena a
+  nadie.
+
+  Autores de las fotos: BiancaVanDijk, Mart_pictures, SAVA86, liamrobinson, mumtahas_mandala.
+
+  Se bajan con `npm run content:photos` y no se versionan. Si alguna deja de
+  estar en el origen, `npm run content:fixtures` le dibuja el placeholder
+  abstracto de siempre.
 - Carga a producción: **rechazada**. `assertNoFixturesInProduction()` corta la
   corrida si alguna fila tiene `is_fixture: true`.
 

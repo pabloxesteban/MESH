@@ -23,11 +23,28 @@
  * Uso: npm run fixtures -w @mesh/seed
  */
 
-import { mkdirSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, writeFileSync } from 'node:fs'
 import { dirname, join, resolve } from 'node:path'
 import sharp from 'sharp'
 
-const CONTENT_ROOT = resolve(import.meta.dirname, '../../../content/artists')
+/**
+ * Dónde vive el contenido.
+ *
+ * Se resuelve **en cada llamada** y no una vez al cargar el módulo:
+ * `MESH_CONTENT_ROOT` existe para que un test pueda escribir en un directorio
+ * temporal, y con una constante de módulo eso dependía de que nadie hubiera
+ * importado este archivo antes de definirla. Cuando falló, el test escribió un
+ * JPEG dentro de `content/artists/` del repositorio de verdad.
+ *
+ * En una corrida real la variable no está definida y esto es la ruta de
+ * siempre.
+ */
+function contentRoot(): string {
+  return (
+    process.env['MESH_CONTENT_ROOT'] ??
+    resolve(import.meta.dirname, '../../../content/artists')
+  )
+}
 
 /**
  * Paleta deliberadamente lejos de la de MESH.
@@ -330,12 +347,21 @@ const SHAPES: ReadonlyArray<readonly [number, number]> = [
   [1200, 1600],
 ]
 
+/**
+ * Dibuja un placeholder abstracto para una pieza fixture.
+ *
+ * **No pisa un archivo que ya existe** salvo que se lo pida con `force`. Desde
+ * que los fixtures pueden tener fotos de banco (ver `photos.yaml` y
+ * `content:photos`), regenerar a ciegas borraba ochenta y ocho fotos ya
+ * bajadas y dejaba la app en formas geométricas otra vez — sin decir nada.
+ */
 export async function writeFixtureImage(
   artistSlug: string,
   fileName: string,
   index: number,
   styleSlug: string,
-): Promise<void> {
+  force = false,
+): Promise<boolean> {
   const shape = SHAPES[index % SHAPES.length] ?? SHAPES[0]
   const [width, height] = shape as readonly [number, number]
 
@@ -351,9 +377,12 @@ export async function writeFixtureImage(
         font-family="monospace" font-size="26" fill="${ink}" opacity="0.55">FIXTURE</text>
 </svg>`
 
-  const path = join(CONTENT_ROOT, artistSlug, 'media', fileName)
+  const path = join(contentRoot(), artistSlug, 'media', fileName)
+  if (!force && existsSync(path)) return false
+
   mkdirSync(dirname(path), { recursive: true })
 
   const bytes = await sharp(Buffer.from(svg)).jpeg({ quality: 88 }).toBuffer()
   writeFileSync(path, bytes)
+  return true
 }
