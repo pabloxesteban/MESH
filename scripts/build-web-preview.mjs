@@ -30,6 +30,12 @@
  * Uso:
  *   node scripts/build-web-preview.mjs
  *
+ * Con las herramientas de diseño (galería del design system y playground):
+ *   EXPO_PUBLIC_PREVIEW_DEV=1 node scripts/build-web-preview.mjs
+ *
+ * Sin esa variable, la barra muestra **las cuatro pestañas de la app y nada
+ * más**. Ver docs/design/preview.md.
+ *
  * Salida: /tmp/mesh-web/preview.html
  */
 

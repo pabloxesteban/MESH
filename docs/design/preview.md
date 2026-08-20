@@ -40,6 +40,29 @@ docena de features importan `'./queries.ts'`, así que reescribir por el
 especificador arrastraría también a proyectos y a auth, que no tienen versión de
 preview.
 
+## Las pestañas son las de la app
+
+El preview muestra **exactamente las cuatro pestañas de la app** — Inicio, la
+segunda según la intención (Explorar o Estudio), Chats y Perfil — más el botón
+de tema, que es una herramienta de revisión y no una pestaña.
+
+Es a propósito y no es cosmético: la barra es lo primero que se lee de un
+producto, y "cuatro y ninguna más" es una decisión de MESH. Un preview con seis
+no muestra la app, muestra otra cosa, y quien lo abre para opinar opina sobre
+esa otra cosa.
+
+**Diseño y Lab** —la galería del design system y el playground de direcciones
+visuales— son herramientas. Siguen existiendo y se piden al construir:
+
+```bash
+EXPO_PUBLIC_PREVIEW_DEV=1 npm run web:preview
+```
+
+Se decide al construir y no con un `?dev=1` en la URL porque el preview
+publicado se sirve dentro de un iframe, donde la query string de afuera no
+llega: andaría en el archivo suelto y no en el enlace, que es justo donde se
+mira.
+
 ## Qué prueba, y qué no
 
 | Sí | No |

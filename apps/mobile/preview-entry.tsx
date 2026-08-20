@@ -82,10 +82,27 @@ type Pestana =
  * igual que en `app/(tabs)/_layout.tsx`. Ver ADR-014. Si esto y aquello se
  * separan, el preview deja de mostrar la app que existe.
  *
- * "Diseño" es la galería del design system: no es producto, es una
- * herramienta para mirar tokens y componentes en una pantalla real. Vive acá
- * y no en la app.
+ * **Por defecto son exactamente las cuatro de la app**, y eso importa: un
+ * preview con seis pestañas no muestra la app, muestra otra cosa. La barra es
+ * lo primero que se lee de un producto, y "cuatro y ninguna más" es una
+ * decisión de MESH — con seis pasa a ser un menú que hay que estudiar en vez de
+ * un lugar donde la mano ya sabe ir.
+ *
+ * Diseño y Lab son **herramientas**, no producto: la galería del design system
+ * y el playground de direcciones visuales. Sirven para mirar tokens,
+ * componentes y prototipos en una pantalla de teléfono real, que es la única
+ * forma honesta de compararlos. Viven acá y no en la app, y desde ahora
+ * aparecen solo si se pide:
+ *
+ *     EXPO_PUBLIC_PREVIEW_DEV=1 npm run web:preview
+ *
+ * Se decide al construir y no con un parámetro en la URL a propósito: el
+ * preview publicado se sirve dentro de un iframe, donde la query string de
+ * afuera no llega, así que un `?dev=1` andaría en el archivo suelto y no en el
+ * enlace — que es justo donde se mira.
  */
+const DEV = process.env['EXPO_PUBLIC_PREVIEW_DEV'] === '1'
+
 function pestanasPara(ofrece: boolean): ReadonlyArray<{
   id: Pestana
   label: string
@@ -97,11 +114,12 @@ function pestanasPara(ofrece: boolean): ReadonlyArray<{
       : { id: 'explorar' as const, label: 'Explorar' },
     { id: 'para-vos', label: 'Chats' },
     { id: 'perfil', label: 'Perfil' },
-    { id: 'galeria', label: 'Diseño' },
-    // El playground entra al preview para poder MIRAR las direcciones
-    // visuales en una pantalla de teléfono real, que es la única forma
-    // honesta de compararlas. No es producto y no viaja en el bundle nativo.
-    { id: 'lab', label: 'Lab' },
+    ...(DEV
+      ? ([
+          { id: 'galeria' as const, label: 'Diseño' },
+          { id: 'lab' as const, label: 'Lab' },
+        ] as const)
+      : []),
   ]
 }
 
@@ -470,8 +488,11 @@ function TabBar({
           borderLeftColor: theme.borderSubtle,
         }}
       >
+        {/* La palabra entera y no "Cla" / "Osc": al lado de cuatro pestañas,
+            tres letras en mayúscula se leen como una quinta pestaña cortada.
+            Dice a qué tema vas a pasar, no en cuál estás. */}
         <Text role="micro" color="textSecondary">
-          {preference === 'light' ? 'Osc' : 'Cla'}
+          {preference === 'light' ? 'Oscuro' : 'Claro'}
         </Text>
       </Pressable>
     </Box>
