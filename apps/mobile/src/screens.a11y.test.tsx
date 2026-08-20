@@ -165,7 +165,10 @@ jest.mock('@/features/demand/interests.ts', () => ({
   dismissInterest: jest.fn(),
 }))
 jest.mock('@/features/quick-search/classify.ts', () => ({
-  classifyReferencePhoto: jest.fn().mockResolvedValue('fine-line'),
+  readReferencePhoto: jest.fn().mockResolvedValue({
+    styleSlug: 'fine-line',
+    traits: [{ dimension: 'body_area', slug: 'antebrazo' }],
+  }),
 }))
 jest.mock('expo-location', () => ({
   getForegroundPermissionsAsync: jest

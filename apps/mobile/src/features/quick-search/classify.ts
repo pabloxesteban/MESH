@@ -1,10 +1,13 @@
 /**
- * Clasifica la foto de referencia contra la taxonomía de estilos.
+ * Lee la foto de referencia contra la taxonomía y devuelve un brief.
  *
  * La ÚNICA llamada a un modelo de IA de toda la app, y angosta a propósito:
- * interpreta una foto, no decide a quién mostrar. `null` cuando el modelo no
- * reconoce ningún estilo de la lista — nunca se fuerza un resultado. Ver
- * `supabase/functions/classify-style/` y ADR-011.
+ * interpreta una foto, no decide a quién mostrar. Ver
+ * `supabase/functions/read-reference/` y ADR-011 · ADR-020.
+ *
+ * **Todo campo puede volver `null`**, y eso es una garantía, no una limitación:
+ * una foto de un diseño en papel no tiene zona del cuerpo y ninguna foto tiene
+ * escala. Un tamaño adivinado le cambia el precio a alguien.
  */
 
 import { manipulateToJpeg } from '../projects/upload.ts'
@@ -12,14 +15,25 @@ import { supabase } from '../../data/supabase.ts'
 
 export class ClassifyError extends Error {}
 
-export async function classifyReferencePhoto(input: {
+/** Un rasgo leído: la dimensión y el slug, los dos del vocabulario cerrado. */
+export interface ReadTrait {
+  readonly dimension: string
+  readonly slug: string
+}
+
+export interface ReferenceReading {
+  readonly styleSlug: string | null
+  readonly traits: readonly ReadTrait[]
+}
+
+export async function readReferencePhoto(input: {
   uri: string
   categorySlug: string
-}): Promise<string | null> {
+}): Promise<ReferenceReading> {
   const cleanUri = await manipulateToJpeg(input.uri)
   const base64 = await toBase64(cleanUri)
 
-  const { data, error } = await supabase.functions.invoke('classify-style', {
+  const { data, error } = await supabase.functions.invoke('read-reference', {
     body: {
       image: base64,
       mimeType: 'image/jpeg',
@@ -31,8 +45,18 @@ export async function classifyReferencePhoto(input: {
     throw new ClassifyError(error.message)
   }
 
-  const styleSlug = (data as { styleSlug: string | null } | null)?.styleSlug
-  return styleSlug ?? null
+  const payload = data as {
+    styleSlug?: string | null
+    traits?: readonly ReadTrait[]
+  } | null
+
+  return {
+    styleSlug: payload?.styleSlug ?? null,
+    // Una función vieja desplegada devuelve solo `styleSlug`. Sin este `?? []`
+    // la pantalla se rompería contra un despliegue a medio actualizar, que es
+    // exactamente cuando menos hay que romperse.
+    traits: payload?.traits ?? [],
+  }
 }
 
 /**
@@ -47,7 +71,8 @@ async function toBase64(uri: string): Promise<string> {
 
   return new Promise((resolve, reject) => {
     const reader = new FileReader()
-    reader.onerror = () => reject(reader.error ?? new Error('no se pudo leer la imagen'))
+    reader.onerror = () =>
+      reject(reader.error ?? new Error('no se pudo leer la imagen'))
     reader.onload = () => {
       const result = String(reader.result)
       const commaIndex = result.indexOf(',')

@@ -449,7 +449,59 @@ export const esAR = {
     'No reconocimos tu barrio, así que buscamos en toda la ciudad.',
   'quickSearch.location.denied':
     'Sin tu ubicación buscamos en toda la ciudad. Podés activarla en Ajustes.',
-  'quickSearch.submit': 'Buscar',
+  'quickSearch.submit': 'Publicar la búsqueda',
+  'quickSearch.read': 'Leer las fotos',
+
+  // --- el brief -------------------------------------------------------------
+  // Lo que la IA leyó de la foto, para revisar antes de publicar. Ver ADR-020.
+  'brief.title': 'Esto es lo que entendimos',
+  'brief.read': 'Salieron {n} de tu foto. Cambiá lo que no sea así.',
+  'brief.readNone':
+    'De tu foto no pudimos sacar nada con seguridad. Completalo vos.',
+  'brief.style': 'Estilo',
+  'brief.bodyArea': 'Dónde va',
+  'brief.size': 'Qué tamaño',
+  'brief.palette': 'Con qué paleta',
+
+  // El vocabulario de rasgos. Los slugs son estables; esto es lo que se lee.
+  'trait.tattoo.antebrazo': 'Antebrazo',
+  'trait.tattoo.brazo': 'Brazo',
+  'trait.tattoo.hombro': 'Hombro',
+  'trait.tattoo.espalda': 'Espalda',
+  'trait.tattoo.pecho': 'Pecho',
+  'trait.tattoo.costillas': 'Costillas',
+  'trait.tattoo.pierna': 'Pierna',
+  'trait.tattoo.tobillo': 'Tobillo',
+  'trait.tattoo.mano': 'Mano',
+  'trait.tattoo.cuello': 'Cuello',
+  'trait.tattoo.mini': 'Mini, hasta 5 cm',
+  'trait.tattoo.chico': 'Chico, 5 a 10 cm',
+  'trait.tattoo.mediano': 'Mediano, 10 a 20 cm',
+  'trait.tattoo.grande': 'Grande, más de 20 cm',
+  'trait.tattoo.gran-formato': 'Gran formato o manga',
+  'trait.tattoo.negro': 'Negro',
+  'trait.tattoo.negro-y-gris': 'Negro y gris',
+  'trait.tattoo.color': 'Color',
+
+  // --- la propuesta del artista ---------------------------------------------
+  'proposal.title': 'Lo que te respondieron',
+  'proposal.empty':
+    'Todavía no te respondió nadie. Aparecen acá cuando un tatuador manda su propuesta.',
+  'proposal.range': '{min} a {max}',
+  'proposal.sessions': '{n} sesiones',
+  'proposal.sessions.one': '1 sesión',
+  'proposal.open': 'Escribirle',
+  'proposal.send': 'Responder con una propuesta',
+  'proposal.send.title': 'Tu propuesta',
+  'proposal.send.hint':
+    'El rango y las sesiones son lo que la persona necesita para decidir. Si es estimado, decilo en la nota.',
+  'proposal.send.min': 'Desde',
+  'proposal.send.max': 'Hasta',
+  'proposal.send.sessions': 'Sesiones',
+  'proposal.send.note': 'Alguna condición',
+  'proposal.send.submit': 'Mandar la propuesta',
+  'proposal.error.send': 'No se pudo mandar la propuesta. Probá de nuevo.',
+  'proposal.error.range': 'El desde no puede ser mayor que el hasta.',
   'quickSearch.error': 'No pudimos hacer la búsqueda. Probá de nuevo.',
   'quickSearch.unrecognized':
     'No reconocimos el estilo en esa foto. Probá con otra.',

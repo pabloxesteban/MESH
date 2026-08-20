@@ -58,6 +58,7 @@ if (process.env.MESH_PREVIEW === '1') {
       'src/features/saved/ranking.ts',
       'src/features/scheduling/queries.ts',
       'src/features/reviews/queries.ts',
+      'src/features/brief/queries.ts',
       'src/features/reviews/upload.ts',
     ].map((relative) => path.join(projectRoot, relative)),
   )

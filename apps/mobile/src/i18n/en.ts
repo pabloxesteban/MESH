@@ -410,7 +410,57 @@ export const en: Readonly<Record<TranslationKey, string>> = {
     "We didn't recognize your neighbourhood, so we're searching the whole city.",
   'quickSearch.location.denied':
     'Without your location we search the whole city. You can turn it on in Settings.',
-  'quickSearch.submit': 'Search',
+  'quickSearch.submit': 'Publish the search',
+  'quickSearch.read': 'Read the photos',
+
+  // --- the brief ------------------------------------------------------------
+  'brief.title': 'This is what we understood',
+  'brief.read': '{n} came from your photo. Change whatever is off.',
+  'brief.readNone':
+    'We could not read anything from your photo with confidence. Fill it in yourself.',
+  'brief.style': 'Style',
+  'brief.bodyArea': 'Where it goes',
+  'brief.size': 'What size',
+  'brief.palette': 'Which palette',
+
+  'trait.tattoo.antebrazo': 'Forearm',
+  'trait.tattoo.brazo': 'Arm',
+  'trait.tattoo.hombro': 'Shoulder',
+  'trait.tattoo.espalda': 'Back',
+  'trait.tattoo.pecho': 'Chest',
+  'trait.tattoo.costillas': 'Ribs',
+  'trait.tattoo.pierna': 'Leg',
+  'trait.tattoo.tobillo': 'Ankle',
+  'trait.tattoo.mano': 'Hand',
+  'trait.tattoo.cuello': 'Neck',
+  'trait.tattoo.mini': 'Mini, up to 5 cm',
+  'trait.tattoo.chico': 'Small, 5 to 10 cm',
+  'trait.tattoo.mediano': 'Medium, 10 to 20 cm',
+  'trait.tattoo.grande': 'Large, over 20 cm',
+  'trait.tattoo.gran-formato': 'Large scale or sleeve',
+  'trait.tattoo.negro': 'Black',
+  'trait.tattoo.negro-y-gris': 'Black and grey',
+  'trait.tattoo.color': 'Colour',
+
+  // --- the proposal ---------------------------------------------------------
+  'proposal.title': 'What they answered',
+  'proposal.empty':
+    'Nobody has answered yet. Proposals show up here when a tattooer sends one.',
+  'proposal.range': '{min} to {max}',
+  'proposal.sessions': '{n} sessions',
+  'proposal.sessions.one': '1 session',
+  'proposal.open': 'Message them',
+  'proposal.send': 'Answer with a proposal',
+  'proposal.send.title': 'Your proposal',
+  'proposal.send.hint':
+    'The range and the sessions are what the person needs to decide. If it is an estimate, say so in the note.',
+  'proposal.send.min': 'From',
+  'proposal.send.max': 'To',
+  'proposal.send.sessions': 'Sessions',
+  'proposal.send.note': 'Any condition',
+  'proposal.send.submit': 'Send the proposal',
+  'proposal.error.send': 'Could not send the proposal. Try again.',
+  'proposal.error.range': 'The lower end cannot be higher than the upper one.',
   'quickSearch.error': "Couldn't run the search. Try again.",
   'quickSearch.unrecognized':
     "We couldn't recognize the style in that photo. Try another one.",

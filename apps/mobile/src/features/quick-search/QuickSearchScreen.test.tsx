@@ -10,15 +10,34 @@ import { MotionProvider, ThemeProvider } from '@/design-system/index.ts'
 import { I18nProvider } from '@/i18n/I18nProvider.tsx'
 
 import { QuickSearchScreen } from './QuickSearchScreen.tsx'
-import { classifyReferencePhoto } from './classify.ts'
+import { readReferencePhoto } from './classify.ts'
 import { createQuickSearch } from './createQuickSearch.ts'
 
 jest.mock('./createQuickSearch.ts', () => ({
   createQuickSearch: jest.fn(),
 }))
 jest.mock('./classify.ts', () => ({
-  classifyReferencePhoto: jest.fn(),
+  readReferencePhoto: jest.fn(),
 }))
+// El vocabulario sale de la tabla `traits`. Acá se sirve el real, de la misma
+// constante de la que se genera `seed.sql`, para que los chips del test sean
+// los chips de la app.
+jest.mock('../brief/queries.ts', () => {
+  const { TRAITS } = jest.requireActual('@mesh/domain')
+  return {
+    fetchTraits: jest.fn().mockResolvedValue(
+      TRAITS.map(
+        (trait: { slug: string; dimension: string; nameKey: string }) => ({
+          id: `t-${trait.slug}`,
+          slug: trait.slug,
+          dimension: trait.dimension,
+          nameKey: trait.nameKey,
+        }),
+      ),
+    ),
+    setProjectTraits: jest.fn().mockResolvedValue(undefined),
+  }
+})
 jest.mock('../location/device.ts', () => ({
   hasDeviceLocationPermission: jest.fn().mockResolvedValue(false),
   currentDeviceLocation: jest.fn().mockResolvedValue(null),
@@ -34,8 +53,8 @@ jest.mock('expo-image-picker', () => ({
 const createQuickSearchMock = createQuickSearch as jest.MockedFunction<
   typeof createQuickSearch
 >
-const classifyMock = classifyReferencePhoto as jest.MockedFunction<
-  typeof classifyReferencePhoto
+const classifyMock = readReferencePhoto as jest.MockedFunction<
+  typeof readReferencePhoto
 >
 const deviceMock = jest.requireMock('../location/device.ts') as {
   currentDeviceLocation: jest.Mock
@@ -73,17 +92,22 @@ function renderScreen(
 
 beforeEach(() => {
   jest.clearAllMocks()
-  classifyMock.mockResolvedValue('fine-line')
+  classifyMock.mockResolvedValue({
+    styleSlug: 'fine-line',
+    traits: [{ dimension: 'body_area', slug: 'antebrazo' }],
+  })
   deviceMock.currentDeviceLocation.mockResolvedValue(null)
 })
 
 describe('QuickSearchScreen', () => {
-  it('el botón de buscar arranca deshabilitado sin fotos', () => {
+  it('leer arranca deshabilitado sin fotos, y publicar todavía no existe', () => {
     renderScreen()
     expect(
-      screen.getByTestId('quick-search-submit').props.accessibilityState
-        .disabled,
+      screen.getByTestId('quick-search-read').props.accessibilityState.disabled,
     ).toBe(true)
+    // Publicar no aparece hasta que hay algo leído: una pantalla de revisión
+    // sobre nada revisado sería un formulario con otro nombre.
+    expect(screen.queryByTestId('quick-search-submit')).toBeNull()
   })
 
   it('se habilita con al menos una foto, sin pedir nada más', async () => {
@@ -93,12 +117,11 @@ describe('QuickSearchScreen', () => {
       expect(screen.getByTestId('quick-search-photo-0')).toBeTruthy(),
     )
     expect(
-      screen.getByTestId('quick-search-submit').props.accessibilityState
-        .disabled,
+      screen.getByTestId('quick-search-read').props.accessibilityState.disabled,
     ).toBe(false)
   })
 
-  it('busca clasificando la primera foto, sin barrio si no se eligió', async () => {
+  it('lee la primera foto y publica lo revisado, sin barrio si no se eligió', async () => {
     createQuickSearchMock.mockResolvedValue({
       projectId: 'proj-1',
       failedUploads: 0,
@@ -108,6 +131,13 @@ describe('QuickSearchScreen', () => {
     fireEvent.press(screen.getByTestId('quick-search-add-photo'))
     await waitFor(() =>
       expect(screen.getByTestId('quick-search-photo-0')).toBeTruthy(),
+    )
+    fireEvent.press(screen.getByTestId('quick-search-read'))
+
+    // El brief aparece con lo leído antes de publicar nada: es una lectura para
+    // revisar, no un veredicto. Ver ADR-020.
+    await waitFor(() =>
+      expect(screen.getByTestId('quick-search-brief')).toBeTruthy(),
     )
     fireEvent.press(screen.getByTestId('quick-search-submit'))
 
@@ -126,19 +156,79 @@ describe('QuickSearchScreen', () => {
     expect(call?.imageUris).toHaveLength(2)
   })
 
-  it('si no se reconoce ningún estilo, avisa y no inventa uno', async () => {
-    classifyMock.mockResolvedValue(null)
+  it('el brief queda con un rasgo por dimensión, no con dos', async () => {
+    // "Antebrazo y espalda" no es un tatuaje, son dos búsquedas.
+    createQuickSearchMock.mockResolvedValue({
+      projectId: 'proj-1',
+      failedUploads: 0,
+    })
     renderScreen()
 
     fireEvent.press(screen.getByTestId('quick-search-add-photo'))
     await waitFor(() =>
       expect(screen.getByTestId('quick-search-photo-0')).toBeTruthy(),
     )
-    fireEvent.press(screen.getByTestId('quick-search-submit'))
+    fireEvent.press(screen.getByTestId('quick-search-read'))
+    await waitFor(() =>
+      expect(screen.getByTestId('quick-search-brief')).toBeTruthy(),
+    )
+
+    // La IA leyó antebrazo; se toca espalda, que es la misma dimensión.
+    expect(
+      screen.getByTestId('trait-antebrazo').props['accessibilityState'],
+    ).toMatchObject({ selected: true })
+    fireEvent.press(screen.getByTestId('trait-espalda'))
+
+    expect(
+      screen.getByTestId('trait-antebrazo').props['accessibilityState'],
+    ).toMatchObject({ selected: false })
+    expect(
+      screen.getByTestId('trait-espalda').props['accessibilityState'],
+    ).toMatchObject({ selected: true })
+  })
+
+  it('dice cuántos rasgos salieron de la foto, sin atribuirse los demás', async () => {
+    renderScreen()
+    fireEvent.press(screen.getByTestId('quick-search-add-photo'))
+    await waitFor(() =>
+      expect(screen.getByTestId('quick-search-photo-0')).toBeTruthy(),
+    )
+    fireEvent.press(screen.getByTestId('quick-search-read'))
+    await waitFor(() =>
+      expect(screen.getByTestId('quick-search-brief')).toBeTruthy(),
+    )
+
+    // Uno de estilo más uno de zona: dos.
+    expect(
+      screen.getByText('Salieron 2 de tu foto. Cambiá lo que no sea así.'),
+    ).toBeTruthy()
+  })
+
+  it('si no se reconoce nada, igual deja completar el brief a mano', async () => {
+    // Antes esto era un callejón: "no reconocimos el estilo" y de vuelta al
+    // principio. Una foto borrosa dejaba a alguien sin búsqueda.
+    classifyMock.mockResolvedValue({ styleSlug: null, traits: [] })
+    renderScreen()
+
+    fireEvent.press(screen.getByTestId('quick-search-add-photo'))
+    await waitFor(() =>
+      expect(screen.getByTestId('quick-search-photo-0')).toBeTruthy(),
+    )
+    fireEvent.press(screen.getByTestId('quick-search-read'))
 
     await waitFor(() =>
-      expect(screen.getByTestId('quick-search-error')).toBeTruthy(),
+      expect(screen.getByTestId('quick-search-brief')).toBeTruthy(),
     )
+    // Y lo dice, en vez de dejar los campos vacíos como si fuera un error.
+    expect(
+      screen.getByText(
+        'De tu foto no pudimos sacar nada con seguridad. Completalo vos.',
+      ),
+    ).toBeTruthy()
+    // Sin estilo elegido no se publica: es lo único que la búsqueda necesita.
+    expect(
+      screen.getByTestId('quick-search-submit').props['accessibilityState'],
+    ).toMatchObject({ disabled: true })
     expect(createQuickSearchMock).not.toHaveBeenCalled()
   })
 
@@ -152,6 +242,10 @@ describe('QuickSearchScreen', () => {
     fireEvent.press(screen.getByTestId('quick-search-add-photo'))
     await waitFor(() =>
       expect(screen.getByTestId('quick-search-photo-0')).toBeTruthy(),
+    )
+    fireEvent.press(screen.getByTestId('quick-search-read'))
+    await waitFor(() =>
+      expect(screen.getByTestId('quick-search-brief')).toBeTruthy(),
     )
     fireEvent.press(screen.getByTestId('quick-search-submit'))
 
@@ -173,6 +267,10 @@ describe('QuickSearchScreen', () => {
     fireEvent.press(screen.getByTestId('quick-search-add-photo'))
     await waitFor(() =>
       expect(screen.getByTestId('quick-search-photo-0')).toBeTruthy(),
+    )
+    fireEvent.press(screen.getByTestId('quick-search-read'))
+    await waitFor(() =>
+      expect(screen.getByTestId('quick-search-brief')).toBeTruthy(),
     )
     fireEvent.press(screen.getByTestId('quick-search-submit'))
 
@@ -219,6 +317,10 @@ describe('QuickSearchScreen', () => {
     await waitFor(() =>
       expect(screen.getByTestId('quick-search-photo-0')).toBeTruthy(),
     )
+    fireEvent.press(screen.getByTestId('quick-search-read'))
+    await waitFor(() =>
+      expect(screen.getByTestId('quick-search-brief')).toBeTruthy(),
+    )
     fireEvent.press(screen.getByTestId('quick-search-submit'))
 
     await waitFor(() => expect(createQuickSearchMock).toHaveBeenCalled())
@@ -245,10 +347,16 @@ describe('QuickSearchScreen', () => {
     await waitFor(() =>
       expect(screen.getByTestId('quick-search-photo-0')).toBeTruthy(),
     )
+    fireEvent.press(screen.getByTestId('quick-search-read'))
+    await waitFor(() =>
+      expect(screen.getByTestId('quick-search-brief')).toBeTruthy(),
+    )
     fireEvent.press(screen.getByTestId('quick-search-submit'))
 
     await waitFor(() => expect(createQuickSearchMock).toHaveBeenCalled())
-    expect(createQuickSearchMock.mock.calls[0]?.[0]?.locationSlug).toBeUndefined()
+    expect(
+      createQuickSearchMock.mock.calls[0]?.[0]?.locationSlug,
+    ).toBeUndefined()
   })
 
   it('cancelar llama a onCancel', () => {

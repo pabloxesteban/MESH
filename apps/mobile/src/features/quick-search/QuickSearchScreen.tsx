@@ -20,6 +20,7 @@
  */
 
 import { useState } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import * as ImagePicker from 'expo-image-picker'
 import { Image } from 'expo-image'
 import { ScrollView, View } from 'react-native'
@@ -42,7 +43,10 @@ import { useT } from '@/i18n/I18nProvider.tsx'
 import type { TranslationKey } from '@/i18n/index.ts'
 
 import { useDeviceLocation } from '../location/useDeviceLocation.ts'
-import { classifyReferencePhoto } from './classify.ts'
+import { StylePicker } from '../artist/StylePicker.tsx'
+import { BriefEditor } from '../brief/BriefEditor.tsx'
+import { fetchTraits, setProjectTraits } from '../brief/queries.ts'
+import { readReferencePhoto } from './classify.ts'
 import { createQuickSearch } from './createQuickSearch.ts'
 
 const MAX_PHOTOS = 4
@@ -70,6 +74,22 @@ export function QuickSearchScreen({
   const device = useDeviceLocation()
 
   const [images, setImages] = useState<readonly string[]>([])
+  // Dos pasos: primero las fotos, después el brief que salió de ellas. La
+  // lectura de la IA es el puente, y por eso el segundo paso no existe hasta
+  // que hay algo leído — una pantalla de revisión sobre nada revisado sería un
+  // formulario con otro nombre.
+  const [paso, setPaso] = useState<'fotos' | 'brief'>('fotos')
+  const [leyendo, setLeyendo] = useState(false)
+  const [styleSlugs, setStyleSlugs] = useState<readonly string[]>([])
+  const [traitSlugs, setTraitSlugs] = useState<ReadonlySet<string>>(new Set())
+  // Cuántos rasgos salieron de la foto. Se muestra para no atribuirle al
+  // modelo lo que después eligió la persona.
+  const [leidos, setLeidos] = useState(0)
+
+  const vocabulario = useQuery({
+    queryKey: ['traits', 'tattoo'],
+    queryFn: () => fetchTraits('tattoo'),
+  })
   // Apagado. Estas fotos las subió para sí misma; que las vea un tatuador es
   // una decisión suya, y una decisión no se toma por default. Ver ADR-014.
   const [openToPros, setOpenToPros] = useState(false)
@@ -85,24 +105,45 @@ export function QuickSearchScreen({
     readonly styleSlug: string
   } | null>(null)
 
-  const canSubmit = images.length > 0 && !isSubmitting
+  const canSubmit = styleSlugs.length > 0 && !isSubmitting
 
-  const submit = async () => {
-    setIsSubmitting(true)
+  /**
+   * Lee las fotos y pasa al brief.
+   *
+   * Si el modelo no reconoce el estilo NO se corta el camino: se pasa igual al
+   * brief, vacío, para que la persona lo llene a mano. Antes esto era un
+   * callejón —"no reconocimos el estilo" y de vuelta al principio— y una foto
+   * borrosa dejaba a alguien sin búsqueda.
+   */
+  const leer = async () => {
+    setLeyendo(true)
     setError(null)
     try {
       const firstPhoto = images[0]
       if (firstPhoto == null) return
 
-      const styleSlug = await classifyReferencePhoto({
+      const lectura = await readReferencePhoto({
         uri: firstPhoto,
         categorySlug: 'tattoo',
       })
 
-      if (styleSlug == null) {
-        setError(t('quickSearch.unrecognized'))
-        return
-      }
+      setStyleSlugs(lectura.styleSlug == null ? [] : [lectura.styleSlug])
+      setTraitSlugs(new Set(lectura.traits.map((trait) => trait.slug)))
+      setLeidos(lectura.traits.length + (lectura.styleSlug == null ? 0 : 1))
+      setPaso('brief')
+    } catch {
+      setError(t('quickSearch.error'))
+    } finally {
+      setLeyendo(false)
+    }
+  }
+
+  const submit = async () => {
+    setIsSubmitting(true)
+    setError(null)
+    try {
+      const styleSlug = styleSlugs[0]
+      if (styleSlug == null) return
 
       const title = t(`style.tattoo.${styleSlug}` as TranslationKey)
 
@@ -115,11 +156,25 @@ export function QuickSearchScreen({
       const result = await createQuickSearch({
         userId,
         title,
-        styleSlugs: [styleSlug],
+        styleSlugs,
         imageUris: images,
         openToProfessionals: openToPros,
         ...(locationSlug != null ? { locationSlug } : {}),
       })
+
+      // Los rasgos van después de crear el proyecto: son suyos, así que la
+      // política los pide colgados de una búsqueda que ya existe. Si esto
+      // falla, la búsqueda ya está y se puede completar; abortar la habría
+      // perdido entera por tres chips.
+      const elegidos = (vocabulario.data ?? [])
+        .filter((trait) => traitSlugs.has(trait.slug))
+        .map((trait) => trait.id)
+      try {
+        await setProjectTraits(result.projectId, elegidos)
+      } catch {
+        // Silencio a propósito: la búsqueda existe y el brief se puede
+        // completar después. Un error acá no es un error de la persona.
+      }
 
       track({ name: 'search_opened', props: { is_open: openToPros } })
 
@@ -226,6 +281,47 @@ export function QuickSearchScreen({
           </Box>
         </Box>
 
+        {paso === 'brief' ? (
+          <Box gap="md" testID="quick-search-brief">
+            <Box gap="xxs">
+              <Text role="label" color="textSecondary">
+                {t('brief.style')}
+              </Text>
+              <StylePicker
+                selected={styleSlugs}
+                max={1}
+                onChange={setStyleSlugs}
+                testIDPrefix="brief-style"
+              />
+            </Box>
+
+            <BriefEditor
+              traits={vocabulario.data ?? []}
+              selected={traitSlugs}
+              readCount={leidos}
+              onToggle={(slug) =>
+                setTraitSlugs((previo) => {
+                  const siguiente = new Set(previo)
+                  // Uno por dimensión: "antebrazo y espalda" no es un tatuaje,
+                  // son dos búsquedas.
+                  const rasgo = (vocabulario.data ?? []).find(
+                    (item) => item.slug === slug,
+                  )
+                  if (rasgo != null) {
+                    for (const otro of vocabulario.data ?? []) {
+                      if (otro.dimension === rasgo.dimension) {
+                        siguiente.delete(otro.slug)
+                      }
+                    }
+                  }
+                  if (!previo.has(slug)) siguiente.add(slug)
+                  return siguiente
+                })
+              }
+            />
+          </Box>
+        ) : null}
+
         <LocationRow
           status={device.status}
           neighborhoodSlug={device.location?.neighborhoodSlug ?? null}
@@ -260,14 +356,25 @@ export function QuickSearchScreen({
           </Box>
         ) : (
           <Box gap="xs">
-            <Button
-              label={t('quickSearch.submit')}
-              disabled={!canSubmit}
-              loading={isSubmitting}
-              onPress={() => void submit()}
-              fullWidth
-              testID="quick-search-submit"
-            />
+            {paso === 'fotos' ? (
+              <Button
+                label={t('quickSearch.read')}
+                disabled={images.length === 0 || leyendo}
+                loading={leyendo}
+                onPress={() => void leer()}
+                fullWidth
+                testID="quick-search-read"
+              />
+            ) : (
+              <Button
+                label={t('quickSearch.submit')}
+                disabled={!canSubmit}
+                loading={isSubmitting}
+                onPress={() => void submit()}
+                fullWidth
+                testID="quick-search-submit"
+              />
+            )}
             <Button
               label={t('common.cancel')}
               variant="ghost"

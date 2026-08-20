@@ -407,11 +407,11 @@ deno_version = 2
 [edge_runtime.secrets]
 ANTHROPIC_API_KEY = "env(ANTHROPIC_API_KEY)"
 
-# Clasifica una foto de referencia contra la taxonomía de estilos con Claude.
-# Ver supabase/functions/classify-style/index.ts. La función verifica la
-# sesión ella misma, pero `verify_jwt` es una segunda barrera: sin sesión, ni
-# siquiera llega a correr el código.
-[functions.classify-style]
+# Lee una foto de referencia contra la taxonomía: estilo, zona del cuerpo,
+# tamaño y paleta. Ver supabase/functions/read-reference/index.ts. La función
+# verifica la sesión ella misma, pero `verify_jwt` es una segunda barrera: sin
+# sesión, ni siquiera llega a correr el código.
+[functions.read-reference]
 verify_jwt = true
 
 [analytics]

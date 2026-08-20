@@ -1,4 +1,10 @@
-// Clasifica una foto de referencia contra la taxonomía de estilos.
+// Lee una foto de referencia contra la taxonomía: estilo, zona del cuerpo,
+// tamaño y paleta.
+//
+// Antes se llamaba `classify-style` y devolvía un slug. Un estilo solo no es un
+// pedido; "línea fina, antebrazo, chico, negro" sí — y esa diferencia es la que
+// convierte una foto en un brief que un artista puede responder con un precio.
+// Ver ADR-020.
 //
 // Es la ÚNICA parte de MESH que usa un modelo de IA, y adrede es angosta:
 // interpreta lo que alguien subió, no decide a quién le mostramos ni en qué
@@ -17,6 +23,13 @@
 // `styles`. Un modelo que devuelve texto libre podría inventar un estilo que
 // no existe — el `tool_choice` forzado abajo hace eso imposible: la única
 // forma de responder es eligiendo de la lista que le mandamos.
+//
+// Y por qué **todo puede volver `null`**: una foto de un diseño en papel no
+// tiene zona del cuerpo, y ninguna foto tiene escala. Un modelo que adivine
+// "mediano" porque hay que contestar algo estaría inventando un dato sobre el
+// cuerpo de una persona — el innegociable 2, en la superficie donde más fácil
+// se rompe. La lista de rasgos sale de la tabla `traits`, así que otro rubro
+// con otras dimensiones no toca este archivo.
 
 import { createClient } from 'jsr:@supabase/supabase-js@2'
 
@@ -35,7 +48,7 @@ const ANTHROPIC_VERSION = '2023-06-01'
 const MAX_IMAGE_BYTES = 8 * 1024 * 1024
 const ALLOWED_MIME_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp'])
 
-interface ClassifyRequest {
+interface ReadRequest {
   readonly image: string
   readonly mimeType: string
   readonly categorySlug: string
@@ -63,20 +76,57 @@ export function resolveClassifiedSlug(
   return knownSlugs.includes(raw) ? raw : null
 }
 
-export function buildClassificationTool(styleSlugs: readonly string[]) {
+/**
+ * Qué le pedimos al modelo por cada dimensión.
+ *
+ * Las CLAVES son el enum `trait_dimension` de Postgres, que es cerrado y
+ * genérico; los VALORES de cada dimensión salen de la tabla `traits`, o sea de
+ * la categoría. Por eso otro rubro no toca este archivo salvo que invente una
+ * dimensión nueva, que además sería un cambio de esquema.
+ *
+ * Cada pista dice **cuándo contestar `null`**, y eso es lo que más importa: sin
+ * esa instrucción el modelo elige el valor más parecido, porque hay que
+ * contestar algo.
+ */
+const DIMENSION_HINTS: Record<string, string> = {
+  body_area:
+    '¿En qué parte del cuerpo está o iría el tatuaje? Devolvé null si la imagen es un diseño en papel o digital, o si no se ve suficiente cuerpo para saberlo. No adivines por el encuadre.',
+  size: '¿De qué tamaño es? Devolvé null salvo que la imagen dé una referencia real de escala — el tatuaje sobre una parte del cuerpo reconocible, o un objeto al lado. Una foto sola no tiene escala, y un tamaño inventado le cambia el precio a alguien.',
+  palette:
+    '¿Con qué paleta está hecho? Negro sólido, negro y gris con degradados, o color. Devolvé null si la imagen es en blanco y negro por la foto y no por el tatuaje.',
+}
+
+export function buildReadingTool(
+  styleSlugs: readonly string[],
+  traitsByDimension: Readonly<Record<string, readonly string[]>>,
+) {
+  const properties: Record<string, unknown> = {
+    style_slug: {
+      type: ['string', 'null'],
+      enum: [...styleSlugs, null],
+      description:
+        'El estilo de tatuaje que mejor describe la imagen. null si no muestra claramente ninguno de estos, o si no es una referencia de tatuaje.',
+    },
+  }
+
+  for (const [dimension, slugs] of Object.entries(traitsByDimension)) {
+    properties[dimension] = {
+      type: ['string', 'null'],
+      enum: [...slugs, null],
+      description:
+        DIMENSION_HINTS[dimension] ??
+        `Elegí el valor de ${dimension} que corresponda, o null.`,
+    }
+  }
+
   return {
-    name: 'classify_style',
+    name: 'read_reference',
     description:
-      'Elegí el estilo de tatuaje que mejor describe la imagen, de la lista dada. Si la imagen no muestra claramente ninguno de estos estilos, o no es una referencia de tatuaje, devolvé null — no elijas el más parecido a la fuerza.',
+      'Leé la imagen de referencia y describila con el vocabulario dado. Contestá null en cualquier campo que la imagen no permita saber con seguridad — es preferible un campo vacío que un dato inventado, porque cada uno de estos cambia a qué artista le llega el pedido y cuánto le cobran.',
     input_schema: {
       type: 'object',
-      properties: {
-        style_slug: {
-          type: ['string', 'null'],
-          enum: [...styleSlugs, null],
-        },
-      },
-      required: ['style_slug'],
+      properties,
+      required: Object.keys(properties),
     },
   }
 }
@@ -109,7 +159,7 @@ Deno.serve(async (req) => {
     return jsonResponse({ error: 'sesión inválida' }, 401)
   }
 
-  let body: ClassifyRequest
+  let body: ReadRequest
   try {
     body = await req.json()
   } catch {
@@ -147,7 +197,24 @@ Deno.serve(async (req) => {
 
   const styleSlugs = styles.map((row) => String(row.slug))
 
-  const tool = buildClassificationTool(styleSlugs)
+  // Los rasgos de la categoría, agrupados por dimensión. Salen de la tabla,
+  // así que la lista que ve el modelo es exactamente la que la pantalla del
+  // brief le va a ofrecer a la persona para corregir.
+  const { data: traits } = await supabase
+    .from('traits')
+    .select('slug, dimension, categories!inner(slug, is_active)')
+    .eq('categories.slug', body.categorySlug)
+    .eq('categories.is_active', true)
+    .eq('is_active', true)
+    .order('sort_order')
+
+  const traitsByDimension: Record<string, string[]> = {}
+  for (const row of traits ?? []) {
+    const dimension = String(row.dimension)
+    ;(traitsByDimension[dimension] ??= []).push(String(row.slug))
+  }
+
+  const tool = buildReadingTool(styleSlugs, traitsByDimension)
   const styleList = styles
     .map((row) => {
       const aliases = (row.aliases as string[] | null) ?? []
@@ -185,7 +252,14 @@ Deno.serve(async (req) => {
               },
               {
                 type: 'text',
-                text: `Estilos de tatuaje posibles:\n${styleList}\n\n¿Cuál describe mejor esta imagen?`,
+                text: [
+                  `Estilos posibles:\n${styleList}`,
+                  ...Object.entries(traitsByDimension).map(
+                    ([dimension, slugs]) =>
+                      `${dimension} posibles:\n${slugs.join('\n')}`,
+                  ),
+                  'Describí esta imagen con ese vocabulario. Dejá en null todo lo que la imagen no permita saber.',
+                ].join('\n\n'),
               },
             ],
           },
@@ -205,11 +279,19 @@ Deno.serve(async (req) => {
     payload.content as Array<Record<string, unknown>> | undefined
   )?.find((block) => block['type'] === 'tool_use')
 
-  const rawSlug = (toolUse?.['input'] as Record<string, unknown> | undefined)?.[
-    'style_slug'
-  ]
+  const input =
+    (toolUse?.['input'] as Record<string, unknown> | undefined) ?? {}
 
-  const styleSlug = resolveClassifiedSlug(rawSlug, styleSlugs)
+  // Segunda barrera, dimensión por dimensión: nada sale de acá que no estuviera
+  // en la lista que entró. `styleSlug` conserva su nombre en la respuesta
+  // porque es el mismo dato de siempre.
+  const styleSlug = resolveClassifiedSlug(input['style_slug'], styleSlugs)
 
-  return jsonResponse({ styleSlug }, 200)
+  const readTraits: Array<{ dimension: string; slug: string }> = []
+  for (const [dimension, slugs] of Object.entries(traitsByDimension)) {
+    const slug = resolveClassifiedSlug(input[dimension], slugs)
+    if (slug != null) readTraits.push({ dimension, slug })
+  }
+
+  return jsonResponse({ styleSlug, traits: readTraits }, 200)
 })
