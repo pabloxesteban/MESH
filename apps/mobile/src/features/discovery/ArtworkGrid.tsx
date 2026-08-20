@@ -15,20 +15,35 @@
  * cada paso, que es lo que hace que terminen parejas sin medir nada en
  * pantalla.
  *
- * ## El desplazamiento opuesto
+ * ## La respiración de las columnas
  *
- * Al scrollear, las columnas impares suben un poco y las pares bajan un poco.
- * Es paralaje ligado al scroll, **no** una animación que corre sola: una grilla
- * que se mueve sin que la toques es una distracción, y acá lo que tiene que
- * llamar la atención es la obra.
+ * Las tres columnas suben y bajan solas, muy despacio, cada una desfasada un
+ * tercio de ciclo respecto de la anterior. Nunca están las tres en el mismo
+ * lugar del ciclo, y eso es lo que hace que la grilla se sienta viva en vez de
+ * quieta.
  *
- * Está acotado a `MAX_DRIFT` y se apaga entero con reducción de movimiento.
+ * **Es una oscilación continua, no un efecto ligado al scroll.** La primera
+ * versión iba atada al scroll y no se movía sola; se cambió a pedido. Lo que
+ * hace que no moleste al scrollear de verdad es que nunca arranca ni frena: la
+ * misma sinusoide sigue corriendo, y una velocidad constante es invisible al
+ * lado del movimiento del dedo.
+ *
+ * Los tres números están elegidos para eso: `AMPLITUDE` chica, `PERIOD_MS`
+ * largo, y una sinusoide —no un vaivén lineal— porque un vaivén tiene un tirón
+ * en cada punta y una sinusoide no tiene ninguno.
+ *
+ * Se apaga entero con reducción de movimiento.
  */
 
-import { useMemo } from 'react'
+import { useEffect, useMemo } from 'react'
 import { View } from 'react-native'
 import Animated, {
+  Easing,
+  cancelAnimation,
   useAnimatedStyle,
+  useSharedValue,
+  withRepeat,
+  withTiming,
   type SharedValue,
 } from 'react-native-reanimated'
 
@@ -51,17 +66,23 @@ const GAP = spacing.xxs
 export const COLUMNS = 3
 
 /**
- * Cuánto se corre una columna, como mucho, respecto de las vecinas.
+ * Cuánto sube y baja una columna, como máximo, desde su lugar.
  *
- * Chico a propósito: el efecto tiene que notarse sin que se lea como que la
- * grilla está rota. Y acotado, porque la transición obra → artista mide el
- * rectángulo de la obra desde el árbol de layout, donde este desplazamiento no
- * figura — con un valor grande, la copia arrancaría visiblemente corrida.
+ * Ocho puntos: se nota mirando y no se nota leyendo. Chico también porque la
+ * transición obra → artista mide el rectángulo de la obra desde el árbol de
+ * layout, donde este desplazamiento no figura — con un valor grande, la copia
+ * arrancaría visiblemente corrida.
  */
-const MAX_DRIFT = 18
+const AMPLITUDE = 8
 
-/** A cuánto scroll se llega al desplazamiento máximo. */
-const DRIFT_OVER = 900
+/**
+ * Lo que tarda un ciclo entero.
+ *
+ * Veinte segundos. A este tamaño de amplitud son unos 1,6 puntos por segundo:
+ * más lento que cualquier scroll, que es exactamente la condición para que no
+ * compita con él.
+ */
+const PERIOD_MS = 20_000
 
 /**
  * Reparte las obras en columnas balanceadas por altura.
@@ -96,27 +117,38 @@ export function splitIntoColumns(
   return reparto
 }
 
-/** Impares hacia arriba, pares hacia abajo. La primera columna es la 0. */
-export function driftDirection(columnIndex: number): 1 | -1 {
+/**
+ * El desfasaje de una columna, en vueltas de ciclo.
+ *
+ * Un tercio por columna. Con tres columnas eso las deja lo más repartidas
+ * posible: cuando la primera está arriba de todo, la segunda va bajando y la
+ * tercera subiendo. Si el desfasaje fuera medio ciclo, la primera y la tercera
+ * se moverían juntas y el efecto se perdería.
+ */
+export function phaseOf(
+  columnIndex: number,
+  columns: number = COLUMNS,
+): number {
   'worklet'
-  return columnIndex % 2 === 0 ? -1 : 1
+  return (columnIndex % columns) / columns
 }
 
 /**
- * Cuánto se corre una columna para un scroll dado.
+ * Dónde está una columna en su vaivén, para una fase dada del ciclo.
  *
- * Función aparte y no un cálculo adentro del worklet para poder verificar sin
- * navegador las dos cosas que importan: que satura —si creciera sin techo, en
- * un feed largo las columnas terminarían visiblemente descolgadas— y que las
- * vecinas van en direcciones opuestas, que es lo único que hace visible el
- * efecto.
+ * `phase` va de 0 a 1 y vuelve a empezar. Una sinusoide y no un vaivén lineal:
+ * el lineal cambia de dirección de golpe en cada punta, y eso se ve como un
+ * tirón. La sinusoide entra y sale de cada extremo sola.
+ *
+ * Función aparte y no una cuenta adentro del worklet para poder verificar sin
+ * navegador las tres cosas que importan y que no se ven en una captura: que no
+ * se pasa de `AMPLITUDE`, que el ciclo cierra sin salto, y que las columnas
+ * nunca están las tres en el mismo lugar.
  */
-export function driftFor(scrollY: number, columnIndex: number): number {
+export function driftAt(phase: number, columnIndex: number): number {
   'worklet'
-  const avance = Math.min(1, Math.max(0, scrollY / DRIFT_OVER))
-  const corrimiento = avance * MAX_DRIFT * driftDirection(columnIndex)
-  // `0 * -1` es `-0`, que no es igual a `0` para nadie que compare en serio.
-  return corrimiento === 0 ? 0 : corrimiento
+  const vuelta = (phase + phaseOf(columnIndex)) * 2 * Math.PI
+  return Math.sin(vuelta) * AMPLITUDE
 }
 
 export interface ArtworkGridProps {
@@ -124,17 +156,35 @@ export interface ArtworkGridProps {
   onOpen: (item: FeedItem) => void
   /** La obra que está volviendo a su lugar, y por eso no se dibuja todavía. */
   hiddenPieceId?: string | null
-  /** Desplazamiento del scroll. Ausente = sin paralaje. */
-  scrollY?: SharedValue<number> | undefined
 }
 
 export function ArtworkGrid({
   items,
   onOpen,
   hiddenPieceId = null,
-  scrollY,
 }: ArtworkGridProps) {
   const columnas = useMemo(() => splitIntoColumns(items), [items])
+  const { reduceMotion } = useMotion()
+
+  // Un solo reloj para las tres columnas: si cada una tuviera el suyo, se irían
+  // separando de a milisegundos y el desfasaje dejaría de ser el que se eligió.
+  const phase = useSharedValue(0)
+
+  useEffect(() => {
+    if (reduceMotion) {
+      phase.value = 0
+      return
+    }
+    // `Easing.linear` y sin ida y vuelta: la curva la pone la sinusoide, no el
+    // easing. Con un easing encima, el vaivén tendría dos suavizados
+    // superpuestos y se movería a tirones.
+    phase.value = withRepeat(
+      withTiming(1, { duration: PERIOD_MS, easing: Easing.linear }),
+      -1,
+      false,
+    )
+    return () => cancelAnimation(phase)
+  }, [reduceMotion, phase])
 
   return (
     <View
@@ -152,7 +202,7 @@ export function ArtworkGrid({
           items={columna}
           onOpen={onOpen}
           hiddenPieceId={hiddenPieceId}
-          scrollY={scrollY}
+          phase={phase}
         />
       ))}
     </View>
@@ -164,21 +214,17 @@ function Column({
   items,
   onOpen,
   hiddenPieceId,
-  scrollY,
+  phase,
 }: {
   index: number
   items: readonly FeedItem[]
   onOpen: (item: FeedItem) => void
   hiddenPieceId: string | null
-  scrollY: SharedValue<number> | undefined
+  phase: SharedValue<number>
 }) {
-  const { reduceMotion } = useMotion()
-  const activo = scrollY != null && !reduceMotion
-
-  const style = useAnimatedStyle(() => {
-    if (!activo || scrollY == null) return { transform: [{ translateY: 0 }] }
-    return { transform: [{ translateY: driftFor(scrollY.value, index) }] }
-  })
+  const style = useAnimatedStyle(() => ({
+    transform: [{ translateY: driftAt(phase.value, index) }],
+  }))
 
   return (
     <Animated.View style={[{ flex: 1 }, style]}>

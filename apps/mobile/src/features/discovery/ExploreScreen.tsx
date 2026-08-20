@@ -17,12 +17,7 @@
  * lugar en la grilla — si ese lugar todavía se ve. Ver features/transitions.
  */
 
-import { ScrollView, View } from 'react-native'
-import Animated, {
-  runOnJS,
-  useAnimatedScrollHandler,
-  useSharedValue,
-} from 'react-native-reanimated'
+import { ScrollView, View, type NativeScrollEvent } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import {
@@ -82,21 +77,6 @@ export function ExploreScreen({
   const grid = useDiscoveryGrid(categorySlug, userId, initialStyle ?? null)
   const back = useArtworkReturn('explore')
 
-  // El scroll lo leen dos cosas con necesidades opuestas: el paralaje de las
-  // columnas lo quiere en cada cuadro y en el hilo de UI, y `loadMore` lo
-  // quiere lo menos posible y en JavaScript. Por eso el handler es uno solo y
-  // reparte.
-  const scrollY = useSharedValue(0)
-  const alScrollear = useAnimatedScrollHandler({
-    onScroll: (event) => {
-      scrollY.value = event.contentOffset.y
-      const alFinal =
-        event.contentOffset.y + event.layoutMeasurement.height >=
-        event.contentSize.height - LOAD_MORE_MARGIN
-      if (alFinal) runOnJS(grid.loadMore)()
-    },
-  })
-
   const body = (() => {
     if (grid.error != null) {
       return (
@@ -145,7 +125,6 @@ export function ExploreScreen({
         items={grid.items}
         onOpen={(item) => onOpenArtist(item.professionalSlug)}
         hiddenPieceId={back.hiddenPieceId}
-        scrollY={scrollY}
       />
     )
   })()
@@ -154,18 +133,19 @@ export function ExploreScreen({
     // La raíz existe por la vuelta: la copia se posiciona en coordenadas de
     // ventana, y adentro del ScrollView quedaría atada al scroll.
     <View style={{ flex: 1, backgroundColor: theme.surface }}>
-      {/* `Animated.ScrollView` y no `ScrollView`: el paralaje de las columnas
-          se calcula en el hilo de UI, y con un `onScroll` de JavaScript a 200ms
-          se movería a los saltos. El `loadMore` sigue viviendo en JavaScript
-          —no hay nada que apurar ahí— y viaja por `runOnJS`. */}
-      <Animated.ScrollView
+      {/* Un `ScrollView` común: el vaivén de las columnas tiene su propio reloj
+          y no depende del scroll, así que acá no hace falta leerlo en cada
+          cuadro. Lo único que se escucha es el final de la lista. */}
+      <ScrollView
         style={{ flex: 1, backgroundColor: theme.surface }}
         contentContainerStyle={{
           paddingTop: insets.top,
           paddingBottom: insets.bottom + spacing.xxl,
         }}
-        onScroll={alScrollear}
-        scrollEventThrottle={16}
+        onScroll={({ nativeEvent }) => {
+          if (cercaDelFinal(nativeEvent)) grid.loadMore()
+        }}
+        scrollEventThrottle={200}
         testID="screen-explore"
       >
         <Box gap="xs" paddingX="lg" paddingY="sm">
@@ -201,7 +181,7 @@ export function ExploreScreen({
         ) : null}
 
         {body}
-      </Animated.ScrollView>
+      </ScrollView>
 
       {back.shrinking != null ? (
         <GrowingArtwork
@@ -215,6 +195,14 @@ export function ExploreScreen({
         />
       ) : null}
     </View>
+  )
+}
+
+function cercaDelFinal(event: NativeScrollEvent): boolean {
+  const { contentOffset, contentSize, layoutMeasurement } = event
+  return (
+    contentOffset.y + layoutMeasurement.height >=
+    contentSize.height - LOAD_MORE_MARGIN
   )
 }
 

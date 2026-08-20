@@ -19,12 +19,7 @@ import { MotionProvider, ThemeProvider } from '@/design-system/index.ts'
 import { I18nProvider } from '@/i18n/I18nProvider.tsx'
 
 import { ExploreScreen } from './ExploreScreen.tsx'
-import {
-  COLUMNS,
-  driftDirection,
-  driftFor,
-  splitIntoColumns,
-} from './ArtworkGrid.tsx'
+import { COLUMNS, driftAt, phaseOf, splitIntoColumns } from './ArtworkGrid.tsx'
 import { fetchDiscoveryFeed, type FeedItem } from './queries.ts'
 
 jest.mock('./queries.ts', () => ({
@@ -123,37 +118,45 @@ describe('splitIntoColumns', () => {
   })
 })
 
-describe('el desplazamiento de las columnas', () => {
-  it('alterna de a una: la primera sube, la segunda baja, la tercera sube', () => {
-    // Es literalmente lo que se pidió, y es lo que hace que el efecto se note.
-    // Si dos columnas vecinas fueran en la misma dirección no habría paralaje
-    // entre ellas: se moverían juntas y no se vería nada.
-    expect([0, 1, 2].map(driftDirection)).toEqual([-1, 1, -1])
+describe('el vaivén de las columnas', () => {
+  it('las tres están repartidas en el ciclo, no juntas', () => {
+    // Si dos columnas compartieran fase se moverían pegadas y no habría
+    // desfasaje que ver. Un tercio de vuelta cada una es lo más separado que
+    // se puede con tres.
+    expect([0, 1, 2].map((i) => phaseOf(i))).toEqual([0, 1 / 3, 2 / 3])
   })
 
-  it('arriba de todo las columnas están parejas', () => {
-    expect([0, 1, 2].map((i) => driftFor(0, i))).toEqual([0, 0, 0])
+  it('nunca se corre más de lo permitido', () => {
+    // El techo es lo que hace que esto sea un detalle y no un problema: la
+    // grilla nunca se ve descolgada, y la transición obra → artista arranca
+    // como mucho a ocho puntos de donde estaba la obra.
+    let maximo = 0
+    for (let paso = 0; paso <= 200; paso++) {
+      for (const columna of [0, 1, 2]) {
+        maximo = Math.max(maximo, Math.abs(driftAt(paso / 200, columna)))
+      }
+    }
+    expect(maximo).toBeLessThanOrEqual(8.001)
   })
 
-  it('satura: por más que se scrollee, no se descuelgan', () => {
-    // Sin techo, en un feed largo la primera columna terminaría cientos de
-    // píxeles más arriba que la segunda y la grilla se leería como rota.
-    const lejos = [0, 1, 2].map((i) => driftFor(100_000, i))
-    const bastante = [0, 1, 2].map((i) => driftFor(900, i))
-    expect(lejos).toEqual(bastante)
-    expect(Math.max(...lejos.map(Math.abs))).toBeLessThanOrEqual(20)
+  it('el ciclo cierra sin salto', () => {
+    // Es la razón de usar una sinusoide: al volver de 1 a 0 el valor tiene que
+    // ser el mismo, o cada vuelta se vería un tirón.
+    for (const columna of [0, 1, 2]) {
+      expect(driftAt(1, columna)).toBeCloseTo(driftAt(0, columna), 10)
+    }
   })
 
-  it('crece con el scroll y en direcciones opuestas', () => {
-    expect(driftFor(450, 0)).toBeLessThan(driftFor(0, 0))
-    expect(driftFor(450, 1)).toBeGreaterThan(driftFor(0, 1))
-    expect(Math.abs(driftFor(450, 0))).toBeLessThan(Math.abs(driftFor(900, 0)))
+  it('se mueve de verdad a lo largo del ciclo', () => {
+    // Un test que solo mirara el techo pasaría con una función que devuelve
+    // siempre cero.
+    const recorrido = [0, 0.25, 0.5, 0.75].map((p) => driftAt(p, 0))
+    expect(Math.max(...recorrido) - Math.min(...recorrido)).toBeGreaterThan(10)
   })
 
-  it('un scroll negativo (rebote) no corre nada', () => {
-    // iOS deja tirar hacia abajo desde arriba de todo. Sin el piso, las
-    // columnas se separarían al revés justo mientras se ve el rebote.
-    expect([0, 1, 2].map((i) => driftFor(-300, i))).toEqual([0, 0, 0])
+  it('en un mismo instante las columnas están en lugares distintos', () => {
+    const enUnMomento = [0, 1, 2].map((i) => driftAt(0.1, i))
+    expect(new Set(enUnMomento.map((v) => v.toFixed(3))).size).toBe(3)
   })
 })
 

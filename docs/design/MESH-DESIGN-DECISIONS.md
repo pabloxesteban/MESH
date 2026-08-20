@@ -626,7 +626,7 @@ pestaña, porque Inicio dejó de ser una grilla de obra.
   el dato existe: `professional_styles` está ahí, solo que el RPC de la grilla
   dejó de bajarlo cuando la tarjeta dejó de mostrarlo.
 
-## D-013 — Explorar va en tres columnas, con paralaje al scrollear
+## D-013 — Explorar va en tres columnas, y las columnas respiran
 
 **Fecha:** 2026-08-20 · **Estado:** Aceptado
 
@@ -634,19 +634,35 @@ Explorar tenía dos columnas. Con dos, cada obra es grande y pide contemplación
 la grilla existe para **comparar**, y comparar necesita ver muchas a la vez.
 Tres entran en 390pt sin que ninguna deje de leerse. Cuatro no.
 
-Al scrollear, las columnas impares suben un poco y las pares bajan un poco. Es
-paralaje **ligado al scroll**, no una animación que corre sola: una grilla que
-se mueve sin que la toques compite con la obra, que es lo único que tiene que
-llamar la atención ahí. Se apaga entero con reducción de movimiento.
+Las tres columnas **suben y bajan solas**, muy despacio, cada una desfasada un
+tercio de ciclo respecto de la anterior. Nunca están las tres en el mismo lugar
+del ciclo, y eso es lo que hace que la grilla se sienta viva en vez de quieta.
 
-El corrimiento **satura** a los 18pt. Sin techo, en un feed largo la primera
-columna terminaría cientos de píxeles más arriba que la segunda y la grilla se
-leería como rota. Hay tests de las dos cosas — la saturación y las direcciones
-opuestas — porque ninguna se ve en una captura.
+La primera versión iba **atada al scroll** y no se movía sola. Estaba
+argumentada —"una grilla que se mueve sin que la toques compite con la obra"— y
+se cambió a pedido: la respiración es parte de cómo se quiere que se vea la
+app, no un adorno. Queda anotado que el argumento sigue siendo cierto y que lo
+que lo desactiva son los números.
+
+**Los tres números son la decisión, no el efecto:**
+
+| | | Por qué |
+|---|---|---|
+| Amplitud | 8pt | Se nota mirando y no se nota leyendo |
+| Ciclo | 20s | ~1,6pt por segundo: más lento que cualquier scroll |
+| Curva | sinusoide | Un vaivén lineal tiene un tirón en cada punta; la sinusoide entra y sale sola |
+
+Lo que hace que no moleste al scrollear no es que se apague —nunca arranca ni
+frena— sino que a esa velocidad es invisible al lado del movimiento del dedo.
+Se apaga entero con reducción de movimiento.
+
+Hay tests de las tres cosas que no se ven en una captura: que no se pasa de la
+amplitud, que el ciclo cierra sin salto, y que las tres columnas nunca están en
+el mismo lugar.
 
 **Lo que costó:** la transición obra → artista mide el rectángulo de la obra
-desde el árbol de layout, donde un `translateY` de Reanimated no figura. Con el
-techo en 18pt el error de origen es imperceptible; si algún día crece, hay que
+desde el árbol de layout, donde un `translateY` de Reanimated no figura. Con la
+amplitud en 8pt el error de origen es imperceptible; si algún día crece, hay que
 sumarle el corrimiento a la medición.
 
 ### Y las fotos dejaron de recortarse
