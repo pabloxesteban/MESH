@@ -109,10 +109,17 @@ function walk(dir) {
   return out
 }
 
+// El resto del archivo compara estas rutas contra URLs (que siempre usan `/`)
+// y contra fragmentos armados a mano con `/`. `join()` da `\` en Windows, así
+// que sin esto ninguna comparación de más abajo matchea fuera de POSIX.
+function toPosix(path) {
+  return path.split('\\').join('/')
+}
+
 const files = walk(exportDir)
 
 const bundlePath = files.find(
-  (f) => f.includes('/_expo/static/js/web/') && f.endsWith('.js'),
+  (f) => toPosix(f).includes('/_expo/static/js/web/') && f.endsWith('.js'),
 )
 if (bundlePath == null) {
   console.error(
@@ -133,7 +140,7 @@ for (const file of files) {
   const mime = MIME[extname(file)]
   if (mime == null) continue
 
-  const urlPath = '/' + file.slice(exportDir.length + 1)
+  const urlPath = '/' + toPosix(file.slice(exportDir.length + 1))
   if (!bundle.includes(urlPath)) continue
 
   const dataUri = `data:${mime};base64,${readFileSync(file).toString('base64')}`
