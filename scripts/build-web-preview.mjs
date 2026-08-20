@@ -64,7 +64,10 @@ try {
   rmSync(exportDir, { recursive: true, force: true })
   console.log('· exportando con preview-entry.tsx…')
   execFileSync(
-    'npx',
+    // En Windows, `npx` es `npx.cmd`: sin `shell: true`, execFileSync no lo
+    // encuentra aunque esté en el PATH (busca el binario exacto, no pasa por
+    // el resolutor de extensiones de cmd.exe).
+    process.platform === 'win32' ? 'npx.cmd' : 'npx',
     [
       'expo',
       'export',
@@ -77,6 +80,7 @@ try {
     {
       cwd: APP,
       stdio: 'pipe',
+      shell: process.platform === 'win32',
       env: {
         ...process.env,
         // Metro cambia cada `queries.ts` por su `queries.preview.ts`. Sin esto
