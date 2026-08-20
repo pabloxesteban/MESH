@@ -5,6 +5,7 @@ import { renderWithProviders } from '@/design-system/test-utils.tsx'
 import { I18nProvider } from '@/i18n/I18nProvider.tsx'
 
 import { AuthForm } from './AuthForm.tsx'
+import { NewPasswordScreen } from './NewPasswordScreen.tsx'
 import { SessionProvider, useSession } from './SessionProvider.tsx'
 import {
   ensureSession,
@@ -181,6 +182,19 @@ describe('requestPasswordReset', () => {
       messageKey: 'auth.error.rateLimited',
     })
   })
+
+  it('el enlace vuelve a donde la app corre, no a `mesh://` fijo', async () => {
+    // Estaba escrito a mano como 'mesh://auth/callback'. En Expo Go ese
+    // esquema no existe todavía, así que el correo llevaba a la nada — justo
+    // cuando la persona ya no puede entrar de otra forma.
+    mockAuth.resetPasswordForEmail.mockResolvedValue({ error: null })
+    await requestPasswordReset('vos@ejemplo.com')
+
+    expect(mockAuth.resetPasswordForEmail).toHaveBeenCalledWith(
+      'vos@ejemplo.com',
+      { redirectTo: 'exp://192.168.0.10:8081/--/auth/callback' },
+    )
+  })
 })
 
 describe('AuthForm', () => {
@@ -312,6 +326,66 @@ describe('AuthForm con Google', () => {
       </I18nProvider>,
     )
     expect(screen.queryByTestId('auth-google')).toBeNull()
+  })
+})
+
+describe('contraseña nueva', () => {
+  function render(onSubmit = jest.fn().mockResolvedValue({ ok: true })) {
+    const onDone = jest.fn()
+    renderWithProviders(
+      <I18nProvider locale="es-AR">
+        <NewPasswordScreen onSubmit={onSubmit} onDone={onDone} />
+      </I18nProvider>,
+    )
+    return { onSubmit, onDone }
+  }
+
+  it('no deja guardar una contraseña más corta que el mínimo', () => {
+    // El servidor la rechazaría igual; atajarlo acá evita mandar a alguien que
+    // ya está bloqueado de su cuenta a un viaje de ida y vuelta para nada.
+    render()
+    const guardar = screen.getByTestId('new-password-submit')
+    expect(guardar.props.accessibilityState.disabled).toBe(true)
+
+    fireEvent.changeText(
+      screen.getByTestId('new-password-field'),
+      'clave-larga-de-verdad',
+    )
+    expect(guardar.props.accessibilityState.disabled).toBe(false)
+  })
+
+  it('no vuelve a pedir el correo', () => {
+    // La sesión ya está abierta por el canje del código: preguntarlo sería
+    // pedirle a la persona algo que la app ya sabe.
+    render()
+    expect(screen.queryByTestId('auth-email')).toBeNull()
+  })
+
+  it('sigue adelante cuando se guardó', async () => {
+    const { onDone } = render()
+    fireEvent.changeText(
+      screen.getByTestId('new-password-field'),
+      'clave-larga-de-verdad',
+    )
+    fireEvent.press(screen.getByTestId('new-password-submit'))
+    await waitFor(() => expect(onDone).toHaveBeenCalledTimes(1))
+  })
+
+  it('muestra el error y no navega', async () => {
+    const { onDone } = render(
+      jest.fn().mockResolvedValue({
+        ok: false,
+        messageKey: 'auth.error.passwordShort',
+      }),
+    )
+    fireEvent.changeText(
+      screen.getByTestId('new-password-field'),
+      'clave-larga-de-verdad',
+    )
+    fireEvent.press(screen.getByTestId('new-password-submit'))
+
+    await waitFor(() => expect(screen.getByRole('alert')).toBeTruthy())
+    expect(onDone).not.toHaveBeenCalled()
   })
 })
 

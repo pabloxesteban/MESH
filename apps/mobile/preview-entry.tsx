@@ -21,6 +21,7 @@ import {
 } from '@/design-system/index.ts'
 import { AccountScreen } from '@/features/account/AccountScreen.tsx'
 import { AuthForm } from '@/features/auth/AuthForm.tsx'
+import { NewPasswordScreen } from '@/features/auth/NewPasswordScreen.tsx'
 import { ArtistsScreen } from '@/features/artists/ArtistsScreen.tsx'
 import { useOnboardingIntent } from '@/features/account/useIntent.ts'
 import { fetchOwnedProfessional } from '@/features/artist/queries.ts'
@@ -189,10 +190,24 @@ function Shell({ abrirEstudio }: { abrirEstudio: boolean }) {
   const [buscando, setBuscando] = useState(false)
   // Crear cuenta y entrar son rutas en la app; acá son una sobrecapa, que es
   // todo lo que hace falta para MIRARLAS.
-  const [cuenta, setCuenta] = useState<'crear' | 'entrar' | null>(null)
+  const [cuenta, setCuenta] = useState<
+    'crear' | 'entrar' | 'contrasena-nueva' | null
+  >(null)
   const [estiloBuscado, setEstiloBuscado] = useState<string | null>(null)
 
   const contenido = (() => {
+    if (cuenta === 'contrasena-nueva') {
+      // A esta pantalla se llega desde el correo, no desde un botón. Acá está
+      // colgada de "olvidé mi contraseña" para poder mirarla.
+      return (
+        <ScrollView>
+          <NewPasswordScreen
+            onSubmit={async () => ({ ok: true }) as const}
+            onDone={() => setCuenta(null)}
+          />
+        </ScrollView>
+      )
+    }
     if (cuenta != null) {
       // Sin red: el formulario es real, lo que hay detrás no. Alcanza para
       // mirar el orden —Google arriba, correo abajo— y el peso de cada cosa.
@@ -220,6 +235,14 @@ function Shell({ abrirEstudio }: { abrirEstudio: boolean }) {
                 onPress: () =>
                   setCuenta(cuenta === 'crear' ? 'entrar' : 'crear'),
               },
+              ...(cuenta === 'entrar'
+                ? [
+                    {
+                      key: 'auth.signIn.forgot' as const,
+                      onPress: () => setCuenta('contrasena-nueva'),
+                    },
+                  ]
+                : []),
             ]}
           />
         </ScrollView>

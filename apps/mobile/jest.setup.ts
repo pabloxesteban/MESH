@@ -82,6 +82,15 @@ jest.mock('expo-sqlite/kv-store', () => {
   }
 })
 
+// `makeRedirectUri()` necesita el manifiesto de expo-constants para saber el
+// esquema, y en jest no hay app.json montado. Devuelve la forma REAL de Expo Go
+// —`exp://` con la IP de LAN del bundler— y no `mesh://`, para que ningún test
+// se apoye sin querer en el esquema del build propio: el enlace de
+// recuperación tiene que andar en los dos.
+jest.mock('expo-auth-session', () => ({
+  makeRedirectUri: jest.fn(() => 'exp://192.168.0.10:8081/--/auth/callback'),
+}))
+
 // Portapapeles: se verifica QUE se copie el mensaje, no que el sistema lo
 // guarde. Mock explícito para poder afirmar el contenido.
 jest.mock('expo-clipboard', () => ({

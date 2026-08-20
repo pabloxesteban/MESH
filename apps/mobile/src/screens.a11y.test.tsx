@@ -36,6 +36,7 @@ import { StudioScreen } from '@/features/artist/StudioScreen.tsx'
 import { SearchDeckScreen } from '@/features/demand/SearchDeckScreen.tsx'
 import { ChatsScreen } from '@/features/chat/ChatsScreen.tsx'
 import { AuthForm } from '@/features/auth/AuthForm.tsx'
+import { NewPasswordScreen } from '@/features/auth/NewPasswordScreen.tsx'
 
 const mockRpc = jest.fn()
 jest.mock('@/data/supabase.ts', () => ({
@@ -653,5 +654,16 @@ describe('barrido de accesibilidad y callejones', () => {
     )
     sweep('crear cuenta')
     sweepDynamicType('crear cuenta')
+  })
+
+  it('contraseña nueva, después del enlace del correo', () => {
+    render(
+      <NewPasswordScreen
+        onSubmit={jest.fn().mockResolvedValue({ ok: true })}
+        onDone={jest.fn()}
+      />,
+    )
+    sweep('contraseña nueva')
+    sweepDynamicType('contraseña nueva')
   })
 })

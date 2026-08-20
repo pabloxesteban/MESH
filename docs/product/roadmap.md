@@ -678,3 +678,31 @@ Lo que falta, y no se puede hacer desde acá:
    otro ingreso social, así que ofrecer Google la vuelve obligatoria para
    publicar en iOS. Necesita un build propio: no corre en Expo Go. Es el
    próximo paso de esta línea, y es el costo que ADR-002 había anticipado.
+
+### El enlace que no llevaba a ningún lado (2026-08-20)
+
+Con crear cuenta ya alcanzable, quedó a la vista la otra mitad rota:
+**"olvidé mi contraseña" terminaba en la nada.** `resetPasswordForEmail`
+mandaba a `mesh://auth/callback`, esa ruta no existía, y el enlace del correo
+caía en "Unmatched Route". Quien se registró con correo y se olvidó la
+contraseña quedaba afuera de su cuenta para siempre, con su perfil de artista
+adentro. Era un problema teórico mientras registrarse era imposible; dejó de
+serlo el día anterior.
+
+Antes de escribir la ruta medí contra una instancia local qué trae de verdad el
+enlace, porque la documentación describe otro camino (`token_hash`). Lo que
+llega es `mesh://auth/callback?code=<uuid>` y **nada más**: no dice
+`type=recovery`. La única señal de que el enlace era una recuperación —y no un
+ingreso cualquiera— es el evento `PASSWORD_RECOVERY`, que el canje emite *antes*
+de resolver. De ahí la forma de `completeCallback()`: se escucha alrededor del
+canje, y hay un test que falla si el listener se registra después.
+
+Dos cosas más que salieron de medir en vez de suponer:
+
+1. **El enlace solo sirve en el teléfono que lo pidió.** El `code_verifier` de
+   PKCE no viaja. Abrir el correo en la computadora falla con un mensaje en
+   inglés sobre un "code verifier" que no le dice nada a nadie, así que ese
+   caso tiene su propio texto.
+2. **El correo apuntaba a `mesh://` escrito a mano**, y en Expo Go ese esquema
+   no existe: durante todo el desarrollo el enlace no llevaba a ningún lado.
+   Ahora sale de `redirectUri()`, igual que el de Google.

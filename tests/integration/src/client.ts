@@ -52,3 +52,80 @@ export async function signedInAnon(): Promise<{
   }
   return { client, userId: data.user.id }
 }
+
+/**
+ * Un cliente con PKCE y almacenamiento en memoria, igual que el de la app.
+ *
+ * El `flowType: 'pkce'` no es un detalle: el `code_verifier` que guarda acá es
+ * lo que después permite canjear el código del enlace de recuperación. Un
+ * cliente sin PKCE recibiría otra clase de enlace y el test estaría probando un
+ * camino que la app no usa.
+ *
+ * En memoria y no compartido, porque cada instancia es **un teléfono**: dos
+ * clientes distintos es exactamente el caso de abrir el correo en otro
+ * dispositivo.
+ */
+export function pkceClient(): SupabaseClient<Database> {
+  if (ANON_KEY == null) {
+    throw new Error('Falta SUPABASE_ANON_KEY para los tests de integración')
+  }
+  const memoria = new Map<string, string>()
+  return createClient<Database>(SUPABASE_URL, ANON_KEY, {
+    auth: {
+      flowType: 'pkce',
+      persistSession: true,
+      autoRefreshToken: false,
+      storage: {
+        getItem: (key) => memoria.get(key) ?? null,
+        setItem: (key, value) => {
+          memoria.set(key, value)
+        },
+        removeItem: (key) => {
+          memoria.delete(key)
+        },
+      },
+    },
+  })
+}
+
+const MAILPIT = process.env['MAILPIT_URL'] ?? 'http://127.0.0.1:54324'
+
+/**
+ * El último enlace que le llegó a una casilla.
+ *
+ * Se lee el correo de verdad y no se genera el enlace con `generateLink()`:
+ * `generateLink` devuelve un enlace SIN PKCE, así que probaría un camino que la
+ * app no recorre. Lo que decide si alguien recupera su cuenta es el enlace que
+ * efectivamente llega al buzón.
+ */
+export async function lastLinkTo(email: string): Promise<string> {
+  const search = `${MAILPIT}/api/v1/search?query=${encodeURIComponent(`to:${email}`)}&limit=1`
+  const found = (await (await fetch(search)).json()) as {
+    messages?: Array<{ ID: string }>
+  }
+  const id = found.messages?.[0]?.ID
+  if (id == null) throw new Error(`no llegó ningún correo a ${email}`)
+
+  const message = (await (
+    await fetch(`${MAILPIT}/api/v1/message/${id}`)
+  ).json()) as {
+    Text?: string
+    HTML?: string
+  }
+  const link = (`${message.Text ?? ''} ${message.HTML ?? ''}`.match(
+    /https?:\/\/[^\s"'<>]+/g,
+  ) ?? [])[0]
+  if (link == null)
+    throw new Error(`el correo a ${email} no tiene ningún enlace`)
+  return link
+}
+
+/** Sigue el `verify` de GoTrue y devuelve la URL con la que vuelve la app. */
+export async function followVerify(link: string): Promise<string> {
+  const response = await fetch(link, { redirect: 'manual' })
+  const location = response.headers.get('location')
+  if (location == null) {
+    throw new Error(`verify no redirigió (${response.status})`)
+  }
+  return location
+}

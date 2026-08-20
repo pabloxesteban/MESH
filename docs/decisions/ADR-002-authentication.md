@@ -67,6 +67,13 @@ pregunta debería ser visual. Un formulario de registro no es visual.
   disparó. Ver [ADR-015](ADR-015-social-sign-in.md), que además extiende la
   regla de esta ADR al camino social: con sesión anónima se usa
   `linkIdentity()`, que es a OAuth lo que `updateUser()` es al correo.
+- **Recuperar la contraseña es parte de la promesa, no un extra.** Si el
+  `auth.uid()` conserva el perfil de artista y los chats, perder la contraseña
+  es perder todo eso. El enlace vuelve a `auth/callback`, y **la URL con la que
+  vuelve no dice que sea una recuperación** —solo trae `?code=`—: la única
+  señal es el evento `PASSWORD_RECOVERY` que emite el canje. Con PKCE, el
+  enlace solo funciona en el teléfono que lo pidió, y eso se le dice a la
+  persona con esas palabras. Ver `features/auth/recovery.ts`.
 - Los tokens de sesión tienen que estar en `expo-secure-store` desde el día uno,
   porque ahora existe una sesión antes de que la persona haya creado nada
   conscientemente.

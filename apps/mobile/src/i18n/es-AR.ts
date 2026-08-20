@@ -83,6 +83,20 @@ export const esAR = {
   'auth.error.google': 'No se pudo entrar con Google. Probá de nuevo.',
   'auth.error.googleTaken':
     'Esa cuenta de Google ya está asociada a otra cuenta de MESH. Entrá con ella desde acá, o usá otra cuenta de Google.',
+  // La vuelta del enlace de recuperación. Tres errores y no uno solo: para
+  // quien los vive son problemas distintos, y con un mensaje genérico alguien
+  // se queda probando el mismo enlace sin entender por qué no anda.
+  'auth.callback.working': 'Abriendo tu enlace',
+  'auth.error.link': 'Ese enlace no sirvió. Pedí uno nuevo desde Entrar.',
+  'auth.error.linkExpired':
+    'Ese enlace ya venció. Los enlaces duran una hora; pedí uno nuevo.',
+  'auth.error.otherDevice':
+    'Ese enlace tenés que abrirlo en el mismo teléfono donde lo pediste. Pedí uno nuevo desde este.',
+  'auth.newPassword.title': 'Elegí una contraseña nueva',
+  'auth.newPassword.body':
+    'Con esta vas a entrar de ahora en más. La anterior deja de servir.',
+  'auth.newPassword.field': 'Contraseña nueva',
+  'auth.newPassword.submit': 'Guardar y entrar',
   'auth.error.credentials': 'El correo o la contraseña no coinciden.',
   'auth.error.emailInvalid': 'Ese correo no parece válido.',
   'auth.error.passwordShort': 'La contraseña necesita al menos 10 caracteres.',

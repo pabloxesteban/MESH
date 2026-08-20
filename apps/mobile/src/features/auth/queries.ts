@@ -12,6 +12,8 @@ import type { AuthError } from '@supabase/supabase-js'
 import type { TranslationKey } from '../../i18n/index.ts'
 import { supabase } from '../../data/supabase.ts'
 
+import { redirectUri } from './redirect.ts'
+
 export type AuthResult =
   | { readonly ok: true }
   | { readonly ok: false; readonly messageKey: TranslationKey }
@@ -127,13 +129,33 @@ export async function requestPasswordReset(email: string): Promise<AuthResult> {
   const invalid = validate(email)
   if (invalid != null) return { ok: false, messageKey: invalid }
 
+  // `redirectUri()` y no `'mesh://auth/callback'` escrito a mano: en Expo Go la
+  // app vive en `exp://…` y el esquema `mesh://` no existe todavía, así que el
+  // enlace del correo no llevaba a ningún lado — justo cuando la persona ya no
+  // puede entrar de otra forma.
   const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
-    redirectTo: 'mesh://auth/callback',
+    redirectTo: redirectUri(),
   })
   // Un error de tasa sí se muestra: es una instrucción accionable.
   if (error != null && error.status === 429) {
     return { ok: false, messageKey: 'auth.error.rateLimited' }
   }
+  return { ok: true }
+}
+
+/**
+ * La contraseña nueva, ya con la sesión que dejó el enlace.
+ *
+ * `updateUser` y no `signUp`: acá ya hay sesión —la abrió el canje del código—
+ * y el `auth.uid()` es el de siempre. Ver ADR-002.
+ */
+export async function setNewPassword(password: string): Promise<AuthResult> {
+  if (password.length < MIN_PASSWORD_LENGTH) {
+    return { ok: false, messageKey: 'auth.error.passwordShort' }
+  }
+
+  const { error } = await supabase.auth.updateUser({ password })
+  if (error != null) return { ok: false, messageKey: messageKeyFor(error) }
   return { ok: true }
 }
 

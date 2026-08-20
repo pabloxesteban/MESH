@@ -66,6 +66,17 @@ export const en: Readonly<Record<TranslationKey, string>> = {
   'auth.error.google': 'Could not sign in with Google. Try again.',
   'auth.error.googleTaken':
     'That Google account is already linked to another MESH account. Sign in with it here, or use a different Google account.',
+  'auth.callback.working': 'Opening your link',
+  'auth.error.link': 'That link did not work. Request a new one from Sign in.',
+  'auth.error.linkExpired':
+    'That link has expired. Links last one hour; request a new one.',
+  'auth.error.otherDevice':
+    'You need to open that link on the same phone where you requested it. Request a new one from this phone.',
+  'auth.newPassword.title': 'Choose a new password',
+  'auth.newPassword.body':
+    "From now on you'll sign in with this one. The previous one stops working.",
+  'auth.newPassword.field': 'New password',
+  'auth.newPassword.submit': 'Save and sign in',
   'auth.error.credentials': "That email and password don't match.",
   'auth.error.emailInvalid': "That email doesn't look valid.",
   'auth.error.passwordShort': 'The password needs at least 10 characters.',

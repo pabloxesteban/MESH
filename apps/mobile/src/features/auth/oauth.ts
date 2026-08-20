@@ -23,13 +23,13 @@
  * Ver ADR-015 y docs/launch/sso-setup.md.
  */
 
-import * as AuthSession from 'expo-auth-session'
 import * as WebBrowser from 'expo-web-browser'
 
 import type { TranslationKey } from '../../i18n/index.ts'
 import { supabase } from '../../data/supabase.ts'
 
 import type { AuthResult } from './queries.ts'
+import { redirectUri } from './redirect.ts'
 
 /**
  * Qué hacer según la sesión que hay.
@@ -39,17 +39,6 @@ import type { AuthResult } from './queries.ts'
  */
 export function oauthAction(isAnonymous: boolean): 'link' | 'signIn' {
   return isAnonymous ? 'link' : 'signIn'
-}
-
-/**
- * A dónde vuelve el navegador.
- *
- * En Expo Go es un `exp://…`; en un build propio, `mesh://auth/callback`. Los
- * dos tienen que estar en `additional_redirect_urls` de Supabase — es Supabase
- * quien redirige acá, no Google.
- */
-export function redirectUri(): string {
-  return AuthSession.makeRedirectUri({ scheme: 'mesh', path: 'auth/callback' })
 }
 
 /**

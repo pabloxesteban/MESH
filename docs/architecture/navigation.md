@@ -27,6 +27,7 @@ app/
   proyectos/index.tsx            tus búsquedas
   proyectos/nuevo.tsx            crear una búsqueda
   cuenta/*                       crear, entrar, recuperar — se llega desde Perfil
+  auth/callback.tsx              la vuelta del enlace del correo (deep link)
   estudio.tsx                    el estudio por enlace directo, sin pestaña
   galeria.tsx · playground.tsx   herramientas de desarrollo
 ```
@@ -119,6 +120,7 @@ Esquema `mesh://`, más universal/app links sobre un futuro dominio `mesh.app`.
 | `mesh://explore` | Explorar |
 | `mesh://style/{categorySlug}/{styleSlug}` | Explorar, filtrado por ese estilo |
 | `mesh://project/{id}` | Proyecto — **solo si pertenece a la sesión actual** |
+| `mesh://auth/callback?code=…` | La vuelta del enlace de recuperación de contraseña |
 
 Reglas:
 
@@ -127,7 +129,15 @@ Reglas:
    una consulta cruda.
 2. Los deep links nunca pueden llevar tokens, credenciales ni códigos de auth.
    Los callbacks de auth de Supabase usan la ruta dedicada
-   `mesh://auth/callback` y ninguna otra.
+   `mesh://auth/callback` y ninguna otra. Lo que viaja ahí es un código PKCE de
+   un solo uso que **no sirve sin el `code_verifier`**, y ese verifier vive en
+   el llavero del teléfono que pidió el enlace: interceptar la URL no alcanza
+   para entrar a la cuenta.
+
+   En Expo Go el esquema es `exp://…/--/auth/callback`, con la IP de LAN del
+   bundler. `redirectUri()` devuelve el que corresponde en cada caso — escribir
+   `mesh://` a mano dejaba el enlace del correo sin destino durante todo el
+   desarrollo.
 3. Un deep link a un recurso que la sesión no posee resuelve a no encontrado —
    la misma respuesta que un recurso inexistente, para que los links no se puedan
    usar para sondear existencia. RLS lo impone sin importar qué haga el cliente.
