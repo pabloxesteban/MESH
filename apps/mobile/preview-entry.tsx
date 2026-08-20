@@ -165,8 +165,8 @@ function Shell({ abrirEstudio }: { abrirEstudio: boolean }) {
   // El perfil de artista propio, para el mazo de búsquedas. Misma clave que
   // usa el estudio, así que crear el perfil ahí lo actualiza acá.
   const propio = useQuery({
-    queryKey: ['studio', 'professional'],
-    queryFn: fetchOwnedProfessional,
+    queryKey: ['studio', 'professional', USUARIO],
+    queryFn: () => fetchOwnedProfessional(USUARIO),
     enabled: ofrece,
   })
 

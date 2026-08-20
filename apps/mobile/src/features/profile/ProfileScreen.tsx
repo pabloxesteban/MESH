@@ -53,6 +53,7 @@ import { locationLabel } from '@mesh/domain'
 import { ErrorView } from '@/components/ErrorView.tsx'
 import { FixtureBadge } from '@/components/FixtureBadge.tsx'
 import { SaveHeart } from '@/features/saved/SaveHeart.tsx'
+import { PublicCalendar } from '@/features/scheduling/PublicCalendar.tsx'
 import { useSaved } from '@/features/saved/useSaved.ts'
 import { mediaUrl } from '@/features/discovery/queries.ts'
 import { GrowingArtwork } from '@/features/transitions/GrowingArtwork.tsx'
@@ -261,6 +262,13 @@ export function ProfileScreen({
               )}
             </Text>
           </Section>
+        ) : null}
+
+        {/* Contesta "¿tiene lugar esta semana?" antes de escribirle, que es la
+            pregunta que hoy se hace por chat y tarda un día en responderse.
+            Solo para perfiles reales: un fixture no tiene agenda. */}
+        {!professional.isFixture ? (
+          <PublicCalendar professionalId={professional.id} />
         ) : null}
 
         {professional.price != null ? (

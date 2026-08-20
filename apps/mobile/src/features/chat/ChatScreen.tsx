@@ -31,6 +31,13 @@ import {
 import { ErrorView } from '@/components/ErrorView.tsx'
 import { useT } from '@/i18n/I18nProvider.tsx'
 
+import { AppointmentCard } from '@/features/scheduling/AppointmentCard.tsx'
+import { ScheduleFromChat } from '@/features/scheduling/ScheduleFromChat.tsx'
+import {
+  fetchAppointments,
+  fetchOwnProfessionalForConversation,
+} from '@/features/scheduling/queries.ts'
+
 import {
   fetchMessages,
   markConversationRead,
@@ -64,6 +71,26 @@ export function ChatScreen({
     queryKey: ['chat', conversationId],
     queryFn: () => fetchMessages(conversationId),
   })
+
+  // Los turnos de esta conversación. Los ven las dos partes: el que da el turno
+  // y el que lo recibe miran lo mismo.
+  const turnos = useQuery({
+    queryKey: ['appointments'],
+    queryFn: fetchAppointments,
+  })
+  const deEsteChat = (turnos.data ?? []).filter(
+    (turno) => turno.conversationId === conversationId,
+  )
+
+  // Si quien mira es el artista de este hilo. Se pregunta acá y no se recibe
+  // como prop: quien puede dar un turno es el dueño de la agenda, y eso lo dice
+  // la fila del profesional. Una pantalla que lo reciba de afuera se equivoca
+  // en cuanto alguien la use desde otra ruta. Ver ADR-018.
+  const propio = useQuery({
+    queryKey: ['conversation-owner', conversationId, userId],
+    queryFn: () => fetchOwnProfessionalForConversation(conversationId, userId),
+  })
+  const ownProfessionalId = propio.data ?? null
 
   // El canal se abre al entrar y se cierra al salir. Sin el cleanup, cada
   // visita deja una suscripción viva y el mismo mensaje llega N veces.
@@ -152,6 +179,20 @@ export function ChatScreen({
           </Text>
         </Box>
         {body}
+
+        {/* El turno, arriba del compositor y debajo de los mensajes: es el
+            resultado de la charla, y su lugar es al final de ella. */}
+        {deEsteChat.length > 0 ? (
+          <Box paddingY="md" gap="xs">
+            {deEsteChat.map((turno) => (
+              <AppointmentCard
+                key={turno.id}
+                appointment={turno}
+                testID={`appointment-${turno.id}`}
+              />
+            ))}
+          </Box>
+        ) : null}
       </ScrollView>
 
       <View
@@ -161,6 +202,14 @@ export function ChatScreen({
           gap: spacing.xs,
         }}
       >
+        {ownProfessionalId != null ? (
+          <ScheduleFromChat
+            conversationId={conversationId}
+            professionalId={ownProfessionalId}
+            onScheduled={() => setError(null)}
+          />
+        ) : null}
+
         {error != null ? (
           <Text role="micro" color="stateNegative" testID="chat-send-error">
             {error}

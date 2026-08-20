@@ -90,6 +90,20 @@ jest.mock('@/features/chat/queries.ts', () => ({
   markConversationRead: jest.fn().mockResolvedValue(undefined),
   subscribeToMessages: jest.fn().mockReturnValue(() => undefined),
 }))
+jest.mock('@/features/scheduling/queries.ts', () => ({
+  ...jest.requireActual('@/features/scheduling/queries.ts'),
+  fetchWeeklyRules: jest.fn().mockResolvedValue([]),
+  fetchExceptions: jest.fn().mockResolvedValue([]),
+  fetchBusySlots: jest.fn().mockResolvedValue([]),
+  fetchAppointments: jest.fn().mockResolvedValue([]),
+  fetchOwnProfessionalForConversation: jest.fn().mockResolvedValue(null),
+  addWeeklyRule: jest.fn(),
+  removeWeeklyRule: jest.fn(),
+  closeDay: jest.fn(),
+  removeException: jest.fn(),
+  scheduleAppointment: jest.fn(),
+  cancelAppointment: jest.fn(),
+}))
 jest.mock('@/features/location/device.ts', () => ({
   hasDeviceLocationPermission: jest.fn().mockResolvedValue(false),
   currentDeviceLocation: jest.fn().mockResolvedValue(null),
@@ -154,6 +168,11 @@ jest.mock('expo-location', () => ({
 }))
 
 import { fetchProfile } from '@/features/profile/queries.ts'
+import {
+  fetchAppointments,
+  fetchOwnProfessionalForConversation,
+  fetchWeeklyRules,
+} from '@/features/scheduling/queries.ts'
 import { fetchArtistGrid } from '@/features/artists/queries.ts'
 import { fetchOwnedProfessional } from '@/features/artist/queries.ts'
 import { fetchOpenSearchFeed } from '@/features/demand/queries.ts'
@@ -532,6 +551,40 @@ describe('barrido de accesibilidad y callejones', () => {
     sweepDynamicType('chat · vacío')
   })
 
+  // El chat del artista es otra pantalla: aparece el botón de dar un turno, y
+  // aparece el turno ya dado. Las dos cosas son texto nuevo que tiene que
+  // sobrevivir al tamaño de tipografía más grande.
+  it('chat del artista, con un turno dado', async () => {
+    ;(fetchOwnProfessionalForConversation as jest.Mock).mockResolvedValue('p1')
+    ;(fetchAppointments as jest.Mock).mockResolvedValue([
+      {
+        id: 'a1',
+        startsAt: '2026-09-01T17:00:00Z',
+        endsAt: '2026-09-01T19:00:00Z',
+        status: 'scheduled',
+        note: 'Fine line en el antebrazo',
+        professionalId: 'p1',
+        conversationId: 'c1',
+      },
+    ])
+    render(
+      <ChatScreen
+        conversationId="c1"
+        userId="u1"
+        title="Aguja Fina"
+        onBack={jest.fn()}
+      />,
+    )
+    await waitFor(() =>
+      expect(screen.getByTestId('appointment-a1')).toBeTruthy(),
+    )
+    // Que el botón esté es la mitad del caso: sin él, esta pantalla sería la
+    // del cliente y el barrido no cubriría nada nuevo.
+    expect(screen.getByTestId('schedule-open')).toBeTruthy()
+    sweep('chat del artista · con turno')
+    sweepDynamicType('chat del artista · con turno')
+  })
+
   it('el estudio, sin perfil todavía', async () => {
     ;(fetchOwnedProfessional as jest.Mock).mockResolvedValue(null)
     render(<StudioScreen userId="u1" onBack={jest.fn()} />)
@@ -557,6 +610,26 @@ describe('barrido de accesibilidad y callejones', () => {
     )
     sweep('estudio · con perfil')
     sweepDynamicType('estudio · con perfil')
+  })
+
+  it('el estudio, con el horario ya cargado', async () => {
+    ;(fetchOwnedProfessional as jest.Mock).mockResolvedValue({
+      id: 'p1',
+      slug: 'pablo-esteban',
+      displayName: 'Pablo Esteban',
+      isPublished: true,
+      studioCoordinates: null,
+      styleSlugs: [],
+    })
+    ;(fetchWeeklyRules as jest.Mock).mockResolvedValue([
+      { id: 'r1', weekday: 1, startsAt: '14:00', endsAt: '20:00' },
+    ])
+    render(<StudioScreen userId="u1" onBack={jest.fn()} />)
+    await waitFor(() =>
+      expect(screen.getByTestId('availability-rule-r1')).toBeTruthy(),
+    )
+    sweep('estudio · con horario')
+    sweepDynamicType('estudio · con horario')
   })
 
   it('el mazo del artista, sin perfil todavía', async () => {

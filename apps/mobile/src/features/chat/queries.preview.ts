@@ -12,6 +12,7 @@ import {
   openPreviewConversation,
   previewConversations,
   previewMessages,
+  previewSlugOfProfessional,
   markPreviewConversationRead,
 } from '../../../preview/store.ts'
 import type { ChatMessage, ConversationSummary } from './queries.ts'
@@ -20,12 +21,16 @@ export async function fetchConversations(): Promise<
   readonly ConversationSummary[]
 > {
   return previewConversations().map((conversation) => {
-    const artist = artistBySlug(conversation.professionalSlug)
+    // El hilo guarda el id; el slug sale de ahí. Buscar el artista con el id
+    // devolvía `undefined` y la lista mostraba `preview-aguja-fina` donde va
+    // un nombre.
+    const slug = previewSlugOfProfessional(conversation.professionalId)
+    const artist = artistBySlug(slug)
     return {
       id: conversation.id,
-      professionalId: conversation.professionalSlug,
-      professionalSlug: conversation.professionalSlug,
-      professionalName: artist?.displayName ?? conversation.professionalSlug,
+      professionalId: conversation.professionalId,
+      professionalSlug: slug,
+      professionalName: artist?.displayName ?? slug,
       lastMessageAt: conversation.lastMessageAt,
       hasUnread: conversation.hasUnread,
     }
@@ -40,9 +45,9 @@ export async function fetchMessages(
 
 export async function openConversation(
   _userId: string,
-  professionalSlug: string,
+  professionalId: string,
 ): Promise<string> {
-  return openPreviewConversation(professionalSlug)
+  return openPreviewConversation(professionalId)
 }
 
 export async function sendMessage(

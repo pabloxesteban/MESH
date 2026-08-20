@@ -13,7 +13,8 @@ configurar su disponibilidad. Primero tiene que haber un chat y el objetivo es
 que de ese chat se derive al turno asignado y eso quede en el sistema como
 ocupado."*
 
-Esto es el esquema. Las pantallas vienen después.
+Esto empezó siendo el esquema. Las pantallas se agregaron el mismo día y están
+descritas abajo, en «Las tres pantallas».
 
 ## Decisión
 
@@ -85,6 +86,29 @@ columnas —desde y hasta— y ninguna identifica a nadie ni dice de qué es el
 turno. Ver el almanaque de un artista y ver su agenda son cosas distintas, y
 solo la primera es pública.
 
+### 6. Las tres pantallas
+
+Una por cada cosa que alguien hace con un almanaque, y ninguna hace dos.
+
+| Dónde | Quién | Qué hace |
+|---|---|---|
+| **Estudio** → `AvailabilityEditor` | el artista | Carga su horario semanal: elige un día y agrega tramos. Un día a la vez, con dos toques —desde y hasta— y sin teclado: un campo libre acepta "25:70". |
+| **Chat** → `ScheduleFromChat` | el dueño de la agenda | Da el turno. Solo aparece si quien mira es el artista de ese hilo, y eso se pregunta a la base, no se recibe como prop. |
+| **Perfil** → `PublicCalendar` | cualquiera | Cuántos horarios quedan libres los próximos siete días. **El número, nunca los horarios**, y sin botón de reservar: el turno sale de una charla. |
+
+Dos detalles que parecen chicos y no lo son:
+
+- **El botón de dar un turno se decide contra la base.** `ChatScreen` pregunta
+  quién es el dueño del profesional de ese hilo y lo compara con quien mira. La
+  primera versión lo recibía como prop desde la ruta; eso hace que la pantalla
+  esté bien solo si todos sus llamadores aciertan, y basta una ruta nueva para
+  ofrecerle a un cliente un botón que la base va a rechazar con un 42501.
+- **Los horarios que se ofrecen son los libres de verdad**: regla del día, menos
+  las excepciones, menos lo tomado, menos lo que ya pasó si el día es hoy. Si
+  alguien tomó el hueco mientras la hoja estaba abierta, el error vuelve como
+  "ese horario ya está ocupado" y se vuelven a pedir los ocupados — la hoja no
+  se cierra, porque el que está mirando no se equivocó en nada.
+
 ## Lo que NO está
 
 - **Seña y pagos.** El turno se agenda y no cuesta nada. Si hay plata, es otra
@@ -110,3 +134,5 @@ solo la primera es pública.
 - `supabase/migrations/20260820000300_availability.sql`
 - `supabase/tests/49_appointments.sql` — el solapamiento y el aislamiento, como tests
 - `packages/domain/src/scheduling/slots.ts` — el cálculo de huecos
+- `apps/mobile/src/features/scheduling/` — las tres pantallas, el puente de
+  zona horaria (`day.ts`) y sus tests

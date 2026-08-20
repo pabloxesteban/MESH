@@ -38,6 +38,7 @@ import { mediaUrl } from '@/features/discovery/queries.ts'
 import { useT } from '@/i18n/I18nProvider.tsx'
 
 import { StudioSaves } from '@/features/saved/StudioSaves.tsx'
+import { AvailabilityEditor } from '@/features/scheduling/AvailabilityEditor.tsx'
 import type { TranslationKey } from '@/i18n/index.ts'
 
 import { readDeviceGps } from './gps.ts'
@@ -83,9 +84,12 @@ export function StudioScreen({ userId, onBack }: StudioScreenProps) {
   const [createError, setCreateError] = useState<string | null>(null)
   const [stylesError, setStylesError] = useState<string | null>(null)
 
+  // Sin `enabled`: una consulta apagada se queda en `isPending` para siempre y
+  // la pantalla mostraría el esqueleto sin fin. Quien no entró todavía no tiene
+  // estudio, que es exactamente `null`, y `null` ya tiene su pantalla.
   const profile = useQuery({
-    queryKey: ['studio', 'professional'],
-    queryFn: fetchOwnedProfessional,
+    queryKey: ['studio', 'professional', userId],
+    queryFn: () => (userId == null ? null : fetchOwnedProfessional(userId)),
   })
 
   const professional = profile.data ?? null
@@ -298,6 +302,10 @@ export function StudioScreen({ userId, onBack }: StudioScreenProps) {
         {/* Arriba de todo lo editable: es lo único de esta pantalla que cambia
             sin que el artista haga nada, así que es lo que vino a mirar. */}
         {userId != null ? <StudioSaves userId={userId} /> : null}
+
+        {/* El horario va con el resto de lo que el artista configura sobre sí
+            mismo. Ver ADR-018. */}
+        <AvailabilityEditor professionalId={professional.id} />
 
         <OwnStyles
           saved={professional.styleSlugs}

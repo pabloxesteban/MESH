@@ -42,7 +42,9 @@ export interface OwnedPiece {
   readonly styleSlugs: readonly string[]
 }
 
-export async function fetchOwnedProfessional(): Promise<OwnedProfessional | null> {
+export async function fetchOwnedProfessional(
+  _userId: string,
+): Promise<OwnedProfessional | null> {
   const own = previewOwnProfile()
   if (own == null) return null
   return {

@@ -37,9 +37,10 @@ export default function HomeScreen() {
  * no existe.
  */
 function ArtistHome() {
+  const { userId } = useSession()
   const profile = useQuery({
-    queryKey: ['studio', 'professional'],
-    queryFn: fetchOwnedProfessional,
+    queryKey: ['studio', 'professional', userId],
+    queryFn: () => (userId == null ? null : fetchOwnedProfessional(userId)),
   })
 
   return (

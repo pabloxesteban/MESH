@@ -41,7 +41,7 @@ persona — ver [ADR-014](../decisions/ADR-014-two-sided.md).
 | | Busca a alguien | Ofrece un servicio |
 |---|---|---|
 | 1 | **Inicio** — artistas cerca tuyo | **Inicio** — búsquedas de gente |
-| 2 | **Explorar** — toda la obra | **Estudio** — perfil, estilos, obra |
+| 2 | **Explorar** — toda la obra | **Estudio** — perfil, estilos, obra, horario |
 | 3 | **Chats** | **Chats** |
 | 4 | **Perfil** | **Perfil** |
 
@@ -65,7 +65,13 @@ Notas por pestaña:
   registraron, esté cerca o lejos. Cada obra abre a la persona que la hizo —
   una grilla que se pueda recorrer sin llegar nunca a alguien sería otra app.
   Buscar por fotos se entra desde acá.
-- **Chats**, en los dos lados, es solo chats.
+- **Chats**, en los dos lados, es solo chats. Con una sola cosa más, y solo del
+  lado del artista: **el turno sale de acá**. El dueño de la agenda ve un botón
+  para darlo, y el turno dado lo ven los dos con la fecha, el horario y un botón
+  para cancelarlo. Ver [ADR-018](../decisions/ADR-018-availability.md).
+- **El almanaque** no es una pestaña y no debería serlo. Se carga desde el
+  Estudio y se mira desde el perfil del artista, donde dice cuántos horarios le
+  quedan libres esta semana — el número, nunca cuáles.
 - **Perfil** guarda el nombre, la intención, la cuenta y —para quien tatúa— el
   acceso al estudio.
 

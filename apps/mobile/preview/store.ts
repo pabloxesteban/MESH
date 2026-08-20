@@ -222,6 +222,11 @@ export function previewProfessionalId(slug: string): string {
   return `preview-${slug}`
 }
 
+/** El inverso exacto de `previewProfessionalId`. */
+export function previewSlugOfProfessional(id: string): string {
+  return id.startsWith('preview-') ? id.slice('preview-'.length) : id
+}
+
 // --- ubicación del estudio ----------------------------------------------------
 //
 // Igual que `ownPieces`: solo el perfil propio puede tener una. El catálogo
@@ -305,7 +310,10 @@ export function previewArtists(): readonly PreviewArtist[] {
 // vez de simular un valor al azar — determinismo, mismo criterio que el resto
 // del preview.
 
-const PREVIEW_DEVICE_COORDINATES: GeoCoordinates = { lat: -34.5875, lng: -58.4371 }
+const PREVIEW_DEVICE_COORDINATES: GeoCoordinates = {
+  lat: -34.5875,
+  lng: -58.4371,
+}
 
 let deviceLocationGranted = false
 
@@ -323,7 +331,10 @@ export function previewDeviceCoordinates(): GeoCoordinates | null {
  * la distancia mostrada en Matches no salga siempre en cero — sigue siendo
  * un valor fijo y no un GPS real, pero demuestra el cálculo de verdad.
  */
-const PREVIEW_STUDIO_GPS_READING: GeoCoordinates = { lat: -34.6212, lng: -58.3731 }
+const PREVIEW_STUDIO_GPS_READING: GeoCoordinates = {
+  lat: -34.6212,
+  lng: -58.3731,
+}
 
 export function previewStudioGpsReading(): GeoCoordinates {
   return PREVIEW_STUDIO_GPS_READING
@@ -376,7 +387,14 @@ export function updatePreviewAccount(patch: Partial<PreviewAccount>): void {
 
 export interface PreviewConversation {
   readonly id: string
-  readonly professionalSlug: string
+  /**
+   * El **id** del profesional, no su slug. Se llamaba `professionalSlug` y
+   * guardaba un id: quien abre un hilo es `ProfileScreen`, que pasa
+   * `professional.id`, y en el preview eso es `preview-<slug>`. El nombre
+   * mentía y el que lo creía —`artistBySlug`— devolvía `undefined`, así que la
+   * lista de chats mostraba `preview-aguja-fina` en lugar del nombre.
+   */
+  readonly professionalId: string
   lastMessageAt: string | null
   readAt: string | null
   readonly hasUnread: boolean
@@ -391,16 +409,20 @@ interface PreviewMessage {
 
 const conversations = new Map<
   string,
-  { professionalSlug: string; lastMessageAt: string | null; readAt: string | null }
+  {
+    professionalId: string
+    lastMessageAt: string | null
+    readAt: string | null
+  }
 >()
 const messagesByConversation = new Map<string, PreviewMessage[]>()
 let messageCounter = 0
 
-export function openPreviewConversation(professionalSlug: string): string {
-  const id = `preview-chat-${professionalSlug}`
+export function openPreviewConversation(professionalId: string): string {
+  const id = `preview-chat-${professionalId}`
   if (!conversations.has(id)) {
     conversations.set(id, {
-      professionalSlug,
+      professionalId,
       lastMessageAt: null,
       readAt: null,
     })
@@ -413,17 +435,21 @@ export function previewConversations(): readonly PreviewConversation[] {
   return [...conversations.entries()]
     .map(([id, value]) => ({
       id,
-      professionalSlug: value.professionalSlug,
+      professionalId: value.professionalId,
       lastMessageAt: value.lastMessageAt,
       readAt: value.readAt,
       hasUnread:
         value.lastMessageAt != null &&
         (value.readAt == null || value.readAt < value.lastMessageAt),
     }))
-    .sort((a, b) => (b.lastMessageAt ?? '').localeCompare(a.lastMessageAt ?? ''))
+    .sort((a, b) =>
+      (b.lastMessageAt ?? '').localeCompare(a.lastMessageAt ?? ''),
+    )
 }
 
-export function previewMessages(conversationId: string): readonly PreviewMessage[] {
+export function previewMessages(
+  conversationId: string,
+): readonly PreviewMessage[] {
   return messagesByConversation.get(conversationId) ?? []
 }
 
@@ -654,4 +680,190 @@ export function previewSearchInterests(): readonly {
 export function dismissPreviewInterest(interestId: string): void {
   const projectId = interestId.replace('preview-interest-', '')
   decisiones.delete(projectId)
+}
+
+// --- almanaque ----------------------------------------------------------------
+//
+// Horario, excepciones y turnos, en memoria. Arranca **vacío a propósito**: un
+// preview con horarios horneados sería disponibilidad inventada, que es
+// exactamente lo que el innegociable 2 prohíbe mostrar. El almanaque se llena
+// cargándolo desde el Estudio, que es el recorrido que el preview sirve para
+// mirar.
+//
+// El turno sale del chat, y en el preview hay un solo perfil con dueño —el
+// tuyo—, así que para recorrer el circuito completo hay que abrir un chat con
+// tu propio perfil. Es el mismo truco que usa `previewSearchInterests`: raro de
+// contar, y la única forma de ver las dos puntas sin dos teléfonos.
+
+export interface PreviewRule {
+  readonly id: string
+  readonly professionalId: string
+  readonly weekday: number
+  readonly startsAt: string
+  readonly endsAt: string
+}
+
+export interface PreviewException {
+  readonly id: string
+  readonly professionalId: string
+  readonly onDate: string
+  readonly isOpen: boolean
+  readonly startsAt: string | null
+  readonly endsAt: string | null
+}
+
+export interface PreviewAppointment {
+  readonly id: string
+  readonly professionalId: string
+  readonly conversationId: string | null
+  readonly startsAt: string
+  readonly endsAt: string
+  readonly note: string | null
+}
+
+const reglas: PreviewRule[] = []
+const excepciones: PreviewException[] = []
+const turnos: PreviewAppointment[] = []
+let contadorAlmanaque = 0
+
+function idAlmanaque(prefijo: string): string {
+  contadorAlmanaque += 1
+  return `preview-${prefijo}-${String(contadorAlmanaque)}`
+}
+
+export function previewRulesOf(professionalId: string): readonly PreviewRule[] {
+  return reglas
+    .filter((rule) => rule.professionalId === professionalId)
+    .sort(
+      (a, b) => a.weekday - b.weekday || a.startsAt.localeCompare(b.startsAt),
+    )
+}
+
+export function addPreviewRule(
+  professionalId: string,
+  weekday: number,
+  startsAt: string,
+  endsAt: string,
+): void {
+  // Mismo tramo dos veces es el mismo tramo: la tabla real tiene un unique y
+  // el preview tiene que mentir lo menos posible sobre eso.
+  const yaEsta = reglas.some(
+    (rule) =>
+      rule.professionalId === professionalId &&
+      rule.weekday === weekday &&
+      rule.startsAt === startsAt &&
+      rule.endsAt === endsAt,
+  )
+  if (yaEsta) return
+  reglas.push({
+    id: idAlmanaque('rule'),
+    professionalId,
+    weekday,
+    startsAt,
+    endsAt,
+  })
+}
+
+export function removePreviewRule(id: string): void {
+  const index = reglas.findIndex((rule) => rule.id === id)
+  if (index !== -1) reglas.splice(index, 1)
+}
+
+export function previewExceptionsOf(
+  professionalId: string,
+  fromDate: string,
+): readonly PreviewException[] {
+  return excepciones
+    .filter(
+      (item) =>
+        item.professionalId === professionalId && item.onDate >= fromDate,
+    )
+    .sort((a, b) => a.onDate.localeCompare(b.onDate))
+}
+
+export function closePreviewDay(professionalId: string, onDate: string): void {
+  const yaEsta = excepciones.some(
+    (item) => item.professionalId === professionalId && item.onDate === onDate,
+  )
+  if (yaEsta) return
+  excepciones.push({
+    id: idAlmanaque('exception'),
+    professionalId,
+    onDate,
+    isOpen: false,
+    startsAt: null,
+    endsAt: null,
+  })
+}
+
+export function removePreviewException(id: string): void {
+  const index = excepciones.findIndex((item) => item.id === id)
+  if (index !== -1) excepciones.splice(index, 1)
+}
+
+export function previewAppointments(): readonly PreviewAppointment[] {
+  return [...turnos].sort((a, b) => a.startsAt.localeCompare(b.startsAt))
+}
+
+export function previewBusySlots(
+  professionalId: string,
+  from: string,
+  to: string,
+): readonly { startsAt: string; endsAt: string }[] {
+  return turnos
+    .filter(
+      (turno) =>
+        turno.professionalId === professionalId &&
+        turno.endsAt > from &&
+        turno.startsAt < to,
+    )
+    .map((turno) => ({ startsAt: turno.startsAt, endsAt: turno.endsAt }))
+}
+
+/**
+ * Agenda un turno, o dice por qué no.
+ *
+ * Repite las tres reglas que en la base son restricciones —el pasado no se
+ * agenda, el fin va después del inicio, y dos turnos no se pisan— porque un
+ * preview que las deje pasar muestra una pantalla que en la app real da error.
+ */
+export function schedulePreviewAppointment(
+  professionalId: string,
+  conversationId: string,
+  startsAt: string,
+  endsAt: string,
+  note: string | null,
+): 'ok' | 'taken' | 'past' {
+  if (endsAt <= startsAt) return 'past'
+  if (new Date(startsAt).getTime() < Date.now()) return 'past'
+
+  const sePisa = turnos.some(
+    (turno) =>
+      turno.professionalId === professionalId &&
+      turno.startsAt < endsAt &&
+      startsAt < turno.endsAt,
+  )
+  if (sePisa) return 'taken'
+
+  turnos.push({
+    id: idAlmanaque('appointment'),
+    professionalId,
+    conversationId,
+    startsAt,
+    endsAt,
+    note,
+  })
+  return 'ok'
+}
+
+export function cancelPreviewAppointment(id: string): void {
+  const index = turnos.findIndex((turno) => turno.id === id)
+  if (index !== -1) turnos.splice(index, 1)
+}
+
+/** El id del profesional de un hilo, o `null` si el hilo no existe. */
+export function previewConversationProfessional(
+  conversationId: string,
+): string | null {
+  return conversations.get(conversationId)?.professionalId ?? null
 }

@@ -32,16 +32,27 @@ export interface OwnedPiece {
 /**
  * El perfil que esta persona reclamó, o `null`.
  *
- * No filtra por `owner_user_id`: la política ya lo hace, y repetir el filtro
- * acá invitaría a creer que la seguridad vive en el cliente.
+ * **Filtra por `owner_user_id` a propósito, y no alcanza con RLS.** La primera
+ * versión de esto confiaba en la política y pedía "cualquier profesional con
+ * dueño", porque parecía que RLS ya recortaba a lo propio. No lo hace:
+ * `professionals` tiene dos políticas de SELECT permisivas y una de ellas es
+ * `using (is_published)`, así que *todo perfil publicado es legible por
+ * cualquiera*. Sin este filtro, quien no tiene estudio abría el Estudio y veía
+ * el perfil de otro artista — no podría escribirlo, porque ahí sí RLS lo para
+ * con un 42501, pero lo vería.
+ *
+ * La seguridad sigue viviendo en la base. Esto es la consulta diciendo qué
+ * fila quiere, que es otra cosa.
  */
-export async function fetchOwnedProfessional(): Promise<OwnedProfessional | null> {
+export async function fetchOwnedProfessional(
+  userId: string,
+): Promise<OwnedProfessional | null> {
   const { data, error } = await supabase
     .from('professionals')
     .select(
       'id, slug, display_name, is_published, studio_lat, studio_lng, professional_styles ( styles ( slug ) )',
     )
-    .not('owner_user_id', 'is', null)
+    .eq('owner_user_id', userId)
     .limit(1)
     .maybeSingle()
 
