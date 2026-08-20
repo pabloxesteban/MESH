@@ -35,7 +35,12 @@ export const supabase = createClient<Database>(url, anonKey, {
     autoRefreshToken: true,
     persistSession: true,
     // En un cliente nativo no hay una URL de la que sacar la sesión: el enlace
-    // de recuperación entra por deep link y lo maneja `features/auth`.
+    // vuelve por deep link y lo maneja `features/auth`.
     detectSessionInUrl: false,
+    // PKCE y no el flujo implícito: entrar con Google abre el navegador y
+    // vuelve con un `code` que hay que canjear. Sin PKCE volvería con el token
+    // en el fragmento de la URL, que en un teléfono queda en el historial del
+    // navegador y en los logs del sistema. Ver ADR-015.
+    flowType: 'pkce',
   },
 })

@@ -247,6 +247,74 @@ describe('AuthForm', () => {
   })
 })
 
+describe('AuthForm con Google', () => {
+  function render(onGoogle: jest.Mock) {
+    const onDone = jest.fn()
+    renderWithProviders(
+      <I18nProvider locale="es-AR">
+        <AuthForm
+          titleKey="auth.signIn.title"
+          submitKey="auth.signIn.submit"
+          onSubmit={jest.fn().mockResolvedValue({ ok: true })}
+          onGoogle={onGoogle}
+          onDone={onDone}
+        />
+      </I18nProvider>,
+    )
+    return { onDone }
+  }
+
+  it('cancelar no deja ningún cartel de error', async () => {
+    // El defecto que este test caza: tratar "cerró la pestaña" como una falla.
+    // Nada en la pantalla lo distingue de un error de verdad, y le diría a
+    // alguien que algo se rompió justo cuando decidió no seguir.
+    const onGoogle = jest.fn().mockResolvedValue(null)
+    const { onDone } = render(onGoogle)
+
+    fireEvent.press(screen.getByTestId('auth-google'))
+
+    await waitFor(() => expect(onGoogle).toHaveBeenCalledTimes(1))
+    expect(onDone).not.toHaveBeenCalled()
+    expect(screen.queryByRole('alert')).toBeNull()
+  })
+
+  it('avisa cuando esa cuenta de Google ya es de otro', async () => {
+    const { onDone } = render(
+      jest.fn().mockResolvedValue('auth.error.googleTaken'),
+    )
+
+    fireEvent.press(screen.getByTestId('auth-google'))
+
+    await waitFor(() => {
+      expect(screen.getByText(/ya está asociada a otra cuenta/)).toBeTruthy()
+    })
+    expect(onDone).not.toHaveBeenCalled()
+  })
+
+  it('entra cuando sale bien, sin haber pedido correo ni contraseña', async () => {
+    // Es el punto del botón: no hay que llenar nada para llegar adentro.
+    const { onDone } = render(jest.fn().mockResolvedValue('ok'))
+    fireEvent.press(screen.getByTestId('auth-google'))
+    await waitFor(() => expect(onDone).toHaveBeenCalledTimes(1))
+  })
+
+  it('sin `onGoogle` el botón no existe', () => {
+    // Recuperar contraseña comparte este formulario y ahí Google no aplica.
+    renderWithProviders(
+      <I18nProvider locale="es-AR">
+        <AuthForm
+          titleKey="auth.reset.title"
+          submitKey="auth.reset.submit"
+          withPassword={false}
+          onSubmit={jest.fn().mockResolvedValue({ ok: true })}
+          onDone={jest.fn()}
+        />
+      </I18nProvider>,
+    )
+    expect(screen.queryByTestId('auth-google')).toBeNull()
+  })
+})
+
 describe('SessionProvider', () => {
   function Sonda() {
     const { isLoading, isAnonymous, userId, hasError } = useSession()

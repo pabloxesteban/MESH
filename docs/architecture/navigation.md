@@ -26,7 +26,7 @@ app/
   contacto/[slug].tsx            traspaso a WhatsApp / Instagram
   proyectos/index.tsx            tus búsquedas
   proyectos/nuevo.tsx            crear una búsqueda
-  cuenta/*                       crear, entrar, recuperar
+  cuenta/*                       crear, entrar, recuperar — se llega desde Perfil
   estudio.tsx                    el estudio por enlace directo, sin pestaña
   galeria.tsx · playground.tsx   herramientas de desarrollo
 ```
@@ -65,8 +65,14 @@ Notas por pestaña:
   una grilla que se pueda recorrer sin llegar nunca a alguien sería otra app.
   Buscar por fotos se entra desde acá.
 - **Chats**, en los dos lados, es solo chats.
-- **Perfil** guarda el alcance de búsqueda, el tema, la intención y —para quien
-  tatúa— el acceso al estudio.
+- **Perfil** guarda el nombre, la intención, la cuenta y —para quien tatúa— el
+  acceso al estudio.
+
+**Perfil es la única puerta a `cuenta/`**, y por un tiempo no hubo ninguna:
+`app/cuenta/` existía como rutas y ninguna pantalla llevaba ahí, así que crear
+cuenta era código que corría en los tests y que nadie podía alcanzar desde la
+app. Las rutas de `cuenta/` son destinos: se entra desde Perfil y se vuelve a
+Perfil.
 
 
 ## 3. Acceso a las rutas

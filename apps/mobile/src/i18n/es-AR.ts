@@ -40,16 +40,19 @@ export const esAR = {
   // --- auth ------------------------------------------------------------------
   'auth.account.title': 'Tu cuenta',
   'auth.account.anonymous.title': 'Estás sin cuenta',
+  // Dice lo que la cuenta conserva DE VERDAD. Antes prometía "tu gusto y tus
+  // guardados": el gusto se sacó con D-010 y los guardados nunca se
+  // construyeron. Prometer una función que no existe es inventar.
   'auth.account.anonymous.body':
-    'Lo que guardaste y tu gusto viven solo en este teléfono. Con una cuenta los llevás a cualquier otro.',
+    'Tu perfil, tus búsquedas y tus chats viven solo en este teléfono. Con una cuenta los llevás a cualquier otro.',
   'auth.account.email': 'Correo',
   'auth.account.signOut': 'Cerrar sesión',
   'auth.account.signOut.confirm':
-    'Vas a volver a empezar sin cuenta en este teléfono. Lo que guardaste sigue en tu cuenta.',
+    'Vas a volver a empezar sin cuenta en este teléfono. Tu perfil y tus chats siguen en tu cuenta.',
 
   'auth.signUp.title': 'Crear cuenta',
   'auth.signUp.body':
-    'Guardamos tu gusto y tus guardados para que estén en cualquier teléfono.',
+    'Tu perfil, tus búsquedas y tus chats dejan de vivir en un solo teléfono.',
   'auth.signUp.submit': 'Crear cuenta',
   'auth.signUp.toSignIn': 'Ya tengo cuenta',
 
@@ -73,6 +76,13 @@ export const esAR = {
   // Los errores de auth no distinguen "no existe ese correo" de "la contraseña
   // está mal": esa diferencia le confirma a cualquiera si una persona tiene
   // cuenta.
+  'auth.or': 'o',
+  'auth.google': 'Continuar con Google',
+  'auth.google.hint':
+    'Lo que ya hiciste en este teléfono se conserva: entrar con Google no te cambia de usuario.',
+  'auth.error.google': 'No se pudo entrar con Google. Probá de nuevo.',
+  'auth.error.googleTaken':
+    'Esa cuenta de Google ya está asociada a otra cuenta de MESH. Entrá con ella desde acá, o usá otra cuenta de Google.',
   'auth.error.credentials': 'El correo o la contraseña no coinciden.',
   'auth.error.emailInvalid': 'Ese correo no parece válido.',
   'auth.error.passwordShort': 'La contraseña necesita al menos 10 caracteres.',
@@ -105,7 +115,8 @@ export const esAR = {
   'searchLocation.header.none': 'Sin ubicación',
   'searchLocation.header.action': 'Cambiar',
   'searchLocation.device': 'Mi ubicación',
-  'searchLocation.device.hint': 'Ordena por distancia real y te dice a cuántos kilómetros está cada uno.',
+  'searchLocation.device.hint':
+    'Ordena por distancia real y te dice a cuántos kilómetros está cada uno.',
   'searchLocation.device.denied':
     'El permiso está denegado. Se activa desde los ajustes del teléfono.',
   'searchLocation.none': 'Sin ubicación',
@@ -350,8 +361,7 @@ export const esAR = {
   'onboarding.body':
     'Lo preguntamos una sola vez. Elijas lo que elijas vas a poder hacer las dos cosas.',
   'onboarding.looking.title': 'Busco a alguien',
-  'onboarding.looking.body':
-    'Querés tatuarte y buscás a la persona indicada.',
+  'onboarding.looking.body': 'Querés tatuarte y buscás a la persona indicada.',
   'onboarding.offering.title': 'Ofrezco un servicio',
   'onboarding.offering.body':
     'Tatuás y MESH ya armó tu perfil. Te pedimos tu código para que lo manejes vos.',

@@ -35,6 +35,7 @@ import { ChatScreen } from '@/features/chat/ChatScreen.tsx'
 import { StudioScreen } from '@/features/artist/StudioScreen.tsx'
 import { SearchDeckScreen } from '@/features/demand/SearchDeckScreen.tsx'
 import { ChatsScreen } from '@/features/chat/ChatsScreen.tsx'
+import { AuthForm } from '@/features/auth/AuthForm.tsx'
 
 const mockRpc = jest.fn()
 jest.mock('@/data/supabase.ts', () => ({
@@ -97,13 +98,11 @@ jest.mock('@/features/artist/queries.ts', () => ({
   removePiece: jest.fn(),
 }))
 jest.mock('@/features/artist/gps.ts', () => ({
-  readDeviceGps: jest
-    .fn()
-    .mockResolvedValue({
-      granted: false,
-      coordinates: null,
-      neighborhoodSlug: null,
-    }),
+  readDeviceGps: jest.fn().mockResolvedValue({
+    granted: false,
+    coordinates: null,
+    neighborhoodSlug: null,
+  }),
 }))
 jest.mock('@/features/artist/upload.ts', () => ({
   uploadPortfolioPiece: jest.fn(),
@@ -304,7 +303,9 @@ describe('barrido de accesibilidad y callejones', () => {
         onChangeLocation={jest.fn()}
       />,
     )
-    await waitFor(() => expect(screen.getByTestId('artists-empty')).toBeTruthy())
+    await waitFor(() =>
+      expect(screen.getByTestId('artists-empty')).toBeTruthy(),
+    )
     sweep('artistas · vacío')
     sweepDynamicType('artistas · vacío')
   })
@@ -465,18 +466,44 @@ describe('barrido de accesibilidad y callejones', () => {
     sweepDynamicType('onboarding · intención')
   })
 
-  it('perfil', async () => {
+  it('perfil, sin cuenta todavía', async () => {
     render(
       <AccountScreen
         userId="u1"
         onOpenStudio={jest.fn()}
+        isAnonymous
+        email={null}
+        onCreateAccount={jest.fn()}
+        onSignIn={jest.fn()}
+        onSignOut={jest.fn()}
       />,
     )
     await waitFor(() =>
       expect(screen.getByTestId('account-content')).toBeTruthy(),
     )
-    sweep('perfil')
-    sweepDynamicType('perfil')
+    // La puerta a crear cuenta tiene que estar acá: es la única que hay.
+    expect(screen.getByTestId('account-sign-up')).toBeTruthy()
+    sweep('perfil · sin cuenta')
+    sweepDynamicType('perfil · sin cuenta')
+  })
+
+  it('perfil, con cuenta', async () => {
+    render(
+      <AccountScreen
+        userId="u1"
+        onOpenStudio={jest.fn()}
+        isAnonymous={false}
+        email="vos@ejemplo.com"
+        onCreateAccount={jest.fn()}
+        onSignIn={jest.fn()}
+        onSignOut={jest.fn()}
+      />,
+    )
+    await waitFor(() =>
+      expect(screen.getByTestId('account-content')).toBeTruthy(),
+    )
+    sweep('perfil · con cuenta')
+    sweepDynamicType('perfil · con cuenta')
   })
 
   it('chat, vacío', async () => {
@@ -498,7 +525,9 @@ describe('barrido de accesibilidad y callejones', () => {
   it('el estudio, sin perfil todavía', async () => {
     ;(fetchOwnedProfessional as jest.Mock).mockResolvedValue(null)
     render(<StudioScreen userId="u1" onBack={jest.fn()} />)
-    await waitFor(() => expect(screen.getByTestId('studio-create')).toBeTruthy())
+    await waitFor(() =>
+      expect(screen.getByTestId('studio-create')).toBeTruthy(),
+    )
     sweep('estudio · sin perfil')
     sweepDynamicType('estudio · sin perfil')
   })
@@ -605,5 +634,24 @@ describe('barrido de accesibilidad y callejones', () => {
     )
     sweep('buscar por fotos')
     sweepDynamicType('buscar por fotos')
+  })
+
+  it('crear cuenta, con Google arriba del correo', () => {
+    // El botón de Google entra al barrido como cualquier otro: si algún día se
+    // dibuja con el logo y sin texto, "sin nombre accesible" lo agarra acá y no
+    // en la tienda.
+    render(
+      <AuthForm
+        titleKey="auth.signUp.title"
+        bodyKey="auth.signUp.body"
+        submitKey="auth.signUp.submit"
+        onSubmit={jest.fn().mockResolvedValue({ ok: true })}
+        onGoogle={jest.fn().mockResolvedValue('ok')}
+        onDone={jest.fn()}
+        links={[{ key: 'auth.signUp.toSignIn', onPress: jest.fn() }]}
+      />,
+    )
+    sweep('crear cuenta')
+    sweepDynamicType('crear cuenta')
   })
 })

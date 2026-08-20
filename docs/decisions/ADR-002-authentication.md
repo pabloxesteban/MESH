@@ -63,6 +63,10 @@ pregunta debería ser visual. Un formulario de registro no es visual.
 - Apple exige Sign in with Apple **si** se ofrece ingreso social de terceros. V1
   ofrece solo email/contraseña, así que no aplica — pero agregar Google más
   adelante lo dispara, y ese costo pertenece a esa decisión.
+  **Actualizado (2026-08-20):** se agregó Google, así que ese costo ya se
+  disparó. Ver [ADR-015](ADR-015-social-sign-in.md), que además extiende la
+  regla de esta ADR al camino social: con sesión anónima se usa
+  `linkIdentity()`, que es a OAuth lo que `updateUser()` es al correo.
 - Los tokens de sesión tienen que estar en `expo-secure-store` desde el día uno,
   porque ahora existe una sesión antes de que la persona haya creado nada
   conscientemente.

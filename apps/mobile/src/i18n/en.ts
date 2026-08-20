@@ -31,15 +31,15 @@ export const en: Readonly<Record<TranslationKey, string>> = {
   'auth.account.title': 'Your account',
   'auth.account.anonymous.title': "You don't have an account",
   'auth.account.anonymous.body':
-    'What you saved and your taste live only on this phone. With an account you take them anywhere.',
+    'Your profile, your searches and your chats live only on this phone. With an account you take them anywhere.',
   'auth.account.email': 'Email',
   'auth.account.signOut': 'Sign out',
   'auth.account.signOut.confirm':
-    "You'll start over without an account on this phone. What you saved stays in your account.",
+    "You'll start over without an account on this phone. Your profile and your chats stay in your account.",
 
   'auth.signUp.title': 'Create account',
   'auth.signUp.body':
-    'We keep your taste and your saves so they work on any phone.',
+    'Your profile, your searches and your chats stop living on a single phone.',
   'auth.signUp.submit': 'Create account',
   'auth.signUp.toSignIn': 'I already have an account',
 
@@ -59,6 +59,13 @@ export const en: Readonly<Record<TranslationKey, string>> = {
   'auth.field.password': 'Password',
   'auth.field.password.hint': 'At least 10 characters',
 
+  'auth.or': 'or',
+  'auth.google': 'Continue with Google',
+  'auth.google.hint':
+    'What you already did on this phone is kept: signing in with Google does not switch your user.',
+  'auth.error.google': 'Could not sign in with Google. Try again.',
+  'auth.error.googleTaken':
+    'That Google account is already linked to another MESH account. Sign in with it here, or use a different Google account.',
   'auth.error.credentials': "That email and password don't match.",
   'auth.error.emailInvalid': "That email doesn't look valid.",
   'auth.error.passwordShort': 'The password needs at least 10 characters.',
@@ -88,7 +95,8 @@ export const en: Readonly<Record<TranslationKey, string>> = {
   'searchLocation.header.none': 'No location',
   'searchLocation.header.action': 'Change',
   'searchLocation.device': 'My location',
-  'searchLocation.device.hint': 'Orders by real distance and tells you how many kilometres away each one is.',
+  'searchLocation.device.hint':
+    'Orders by real distance and tells you how many kilometres away each one is.',
   'searchLocation.device.denied':
     'Permission is denied. You can turn it on from the phone settings.',
   'searchLocation.none': 'No location',
@@ -123,9 +131,6 @@ export const en: Readonly<Record<TranslationKey, string>> = {
     'While we get to know each other, this is the shape that teaches us most.',
   'discovery.saved': 'Saved',
   'discovery.passed': 'You passed on this work',
-
-
-
 
   'profile.styles': 'Works',
   'profile.price': 'Price range',
@@ -280,7 +285,7 @@ export const en: Readonly<Record<TranslationKey, string>> = {
   'studio.entry.action': 'Go to my studio',
   'studio.location.title': 'Your studio location',
   'studio.location.body':
-    "This way people who search for you see how many kilometers away you are. Nobody sees the exact point on a map, only the distance.",
+    'This way people who search for you see how many kilometers away you are. Nobody sees the exact point on a map, only the distance.',
   'studio.location.button': 'Use my current location',
   'studio.location.button.update': 'Update location',
   'studio.location.set': 'Your studio is published',
@@ -303,7 +308,7 @@ export const en: Readonly<Record<TranslationKey, string>> = {
   'quickSearch.photo.remove': 'Remove photo {n}',
   'quickSearch.location': 'Your location',
   'quickSearch.location.hint':
-    "Turn it on and we search near you first. Optional: we still search without it.",
+    'Turn it on and we search near you first. Optional: we still search without it.',
   'quickSearch.location.action': 'Use my location',
   'quickSearch.location.near': 'Searching near {barrio}',
   'quickSearch.location.unknown':
@@ -316,7 +321,7 @@ export const en: Readonly<Record<TranslationKey, string>> = {
     "We couldn't recognize the style in that photo. Try another one.",
   'quickSearch.uploadsFailed':
     'We uploaded {ok} of {total} photos. Searching with what we have.',
-  'onboarding.title': "What brings you here?",
+  'onboarding.title': 'What brings you here?',
   'onboarding.body':
     "We only ask once. Whatever you pick, you'll still be able to do both.",
   'onboarding.looking.title': "I'm looking for someone",

@@ -1,4 +1,8 @@
-import { QueryClient, QueryClientProvider, useQuery } from '@tanstack/react-query'
+import {
+  QueryClient,
+  QueryClientProvider,
+  useQuery,
+} from '@tanstack/react-query'
 import { registerRootComponent } from 'expo'
 import { useFonts } from 'expo-font'
 import { StatusBar } from 'expo-status-bar'
@@ -16,6 +20,7 @@ import {
   useThemePreference,
 } from '@/design-system/index.ts'
 import { AccountScreen } from '@/features/account/AccountScreen.tsx'
+import { AuthForm } from '@/features/auth/AuthForm.tsx'
 import { ArtistsScreen } from '@/features/artists/ArtistsScreen.tsx'
 import { useOnboardingIntent } from '@/features/account/useIntent.ts'
 import { fetchOwnedProfessional } from '@/features/artist/queries.ts'
@@ -66,13 +71,7 @@ const HOY = '2026-08-18'
 const USUARIO = 'preview-user'
 
 type Pestana =
-  | 'inicio'
-  | 'explorar'
-  | 'estudio'
-  | 'para-vos'
-  | 'perfil'
-  | 'galeria'
-  | 'lab'
+  'inicio' | 'explorar' | 'estudio' | 'para-vos' | 'perfil' | 'galeria' | 'lab'
 
 /**
  * Las cuatro pestañas de la app, más una que no existe en el teléfono.
@@ -188,9 +187,44 @@ function Shell({ abrirEstudio }: { abrirEstudio: boolean }) {
   // "Buscar con una foto" dejó de ser pestaña: se abre desde Explorar y
   // termina en Explorar, filtrado por el estilo que detectó la IA.
   const [buscando, setBuscando] = useState(false)
+  // Crear cuenta y entrar son rutas en la app; acá son una sobrecapa, que es
+  // todo lo que hace falta para MIRARLAS.
+  const [cuenta, setCuenta] = useState<'crear' | 'entrar' | null>(null)
   const [estiloBuscado, setEstiloBuscado] = useState<string | null>(null)
 
   const contenido = (() => {
+    if (cuenta != null) {
+      // Sin red: el formulario es real, lo que hay detrás no. Alcanza para
+      // mirar el orden —Google arriba, correo abajo— y el peso de cada cosa.
+      return (
+        <ScrollView>
+          <AuthForm
+            titleKey={
+              cuenta === 'crear' ? 'auth.signUp.title' : 'auth.signIn.title'
+            }
+            {...(cuenta === 'crear'
+              ? { bodyKey: 'auth.signUp.body' as const }
+              : {})}
+            submitKey={
+              cuenta === 'crear' ? 'auth.signUp.submit' : 'auth.signIn.submit'
+            }
+            onSubmit={async () => ({ ok: true }) as const}
+            onGoogle={async () => 'ok' as const}
+            onDone={() => setCuenta(null)}
+            links={[
+              {
+                key:
+                  cuenta === 'crear'
+                    ? 'auth.signUp.toSignIn'
+                    : 'auth.signIn.toSignUp',
+                onPress: () =>
+                  setCuenta(cuenta === 'crear' ? 'entrar' : 'crear'),
+              },
+            ]}
+          />
+        </ScrollView>
+      )
+    }
     if (chat != null) {
       return (
         <ChatScreen
@@ -272,12 +306,21 @@ function Shell({ abrirEstudio }: { abrirEstudio: boolean }) {
           />
         )
       case 'estudio':
-        return <StudioScreen userId={USUARIO} onBack={() => setPestana('inicio')} />
+        return (
+          <StudioScreen userId={USUARIO} onBack={() => setPestana('inicio')} />
+        )
       case 'perfil':
         return (
           <AccountScreen
             userId={USUARIO}
             onOpenStudio={() => setEstudio(true)}
+            // Anónimo a propósito: es el estado en el que se ve la puerta a
+            // crear cuenta, que es lo que hay que poder mirar.
+            isAnonymous
+            email={null}
+            onCreateAccount={() => setCuenta('crear')}
+            onSignIn={() => setCuenta('entrar')}
+            onSignOut={() => undefined}
           />
         )
       case 'para-vos':
@@ -286,7 +329,9 @@ function Shell({ abrirEstudio }: { abrirEstudio: boolean }) {
             intent={intent}
             onOpenChat={(id, titulo) => setChat({ id, titulo })}
             // Quién se interesó en tu búsqueda es del lado de quien busca.
-            {...(ofrece ? {} : { onOpenArtist: (slug: string) => setPerfil(slug) })}
+            {...(ofrece
+              ? {}
+              : { onOpenArtist: (slug: string) => setPerfil(slug) })}
             onOpenHome={() => setPestana('inicio')}
           />
         )
@@ -314,6 +359,7 @@ function Shell({ abrirEstudio }: { abrirEstudio: boolean }) {
           setBuscando(false)
           setChat(null)
           setEstudio(false)
+          setCuenta(null)
           setPestana(id)
         }}
       />

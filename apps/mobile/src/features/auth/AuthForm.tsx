@@ -4,6 +4,11 @@
  * Los tres son el mismo formulario con distinta cantidad de campos y distinto
  * botón. Escribirlos tres veces garantiza que dentro de un mes uno de ellos no
  * deshabilite el botón mientras envía.
+ *
+ * **Google va arriba del correo, no abajo.** Es el camino que la mayoría va a
+ * elegir, y ponerlo después del formulario obliga a leer dos campos para
+ * descubrir que no hacían falta. El separador dice "o" y no "o registrate con
+ * tu correo": las dos son la misma puerta.
  */
 
 import { useState } from 'react'
@@ -29,6 +34,14 @@ export interface AuthFormProps {
   onDone: () => void
   /** Enlaces al pie: "ya tengo cuenta", "olvidé mi contraseña". */
   links?: ReadonlyArray<{ key: TranslationKey; onPress: () => void }>
+  /**
+   * Entrar con Google. Ausente en recuperar contraseña, donde no aplica.
+   *
+   * Devuelve `null` cuando la persona canceló: cerrar la pestaña del navegador
+   * es una decisión, no una falla, y un cartel rojo ahí convierte "me
+   * arrepentí" en "algo se rompió".
+   */
+  onGoogle?: () => Promise<TranslationKey | null | 'ok'>
   testID?: string
 }
 
@@ -40,6 +53,7 @@ export function AuthForm({
   onSubmit,
   onDone,
   links = [],
+  onGoogle,
   testID,
 }: AuthFormProps) {
   const t = useT()
@@ -47,6 +61,7 @@ export function AuthForm({
   const [password, setPassword] = useState('')
   const [errorKey, setErrorKey] = useState<TranslationKey | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isGoogling, setIsGoogling] = useState(false)
 
   const canSubmit =
     email.trim().length > 0 &&
@@ -65,6 +80,21 @@ export function AuthForm({
     setErrorKey(result.messageKey)
   }
 
+  async function google() {
+    if (onGoogle == null || isGoogling) return
+    setIsGoogling(true)
+    setErrorKey(null)
+    const outcome = await onGoogle()
+    setIsGoogling(false)
+
+    if (outcome === 'ok') {
+      onDone()
+      return
+    }
+    // `null` es cancelar: no se muestra nada.
+    if (outcome != null) setErrorKey(outcome)
+  }
+
   return (
     <Box padding="lg" gap="lg" testID={testID}>
       <Box gap="xs">
@@ -75,6 +105,38 @@ export function AuthForm({
           </Text>
         ) : null}
       </Box>
+
+      {onGoogle != null ? (
+        <Box gap="md">
+          <Box gap="xs">
+            <Button
+              label={t('auth.google')}
+              variant="secondary"
+              onPress={() => void google()}
+              loading={isGoogling}
+              disabled={isSubmitting}
+              fullWidth
+              testID="auth-google"
+            />
+            {/* Lo que más se pregunta al ver un botón de Google en una app donde
+                ya venías usando algo: si se pierde lo hecho. No se pierde. */}
+            <Text role="label" color="textTertiary">
+              {t('auth.google.hint')}
+            </Text>
+          </Box>
+
+          {/* Centrado y en su propia caja.
+
+              Alineado a la izquierda y pegado a la aclaración, una "o" sola se
+              lee como un error de tipeo y parece separar el texto de arriba del
+              de abajo en vez de separar los dos caminos. */}
+          <Box align="center">
+            <Text role="label" color="textTertiary" accessibilityRole="none">
+              {t('auth.or')}
+            </Text>
+          </Box>
+        </Box>
+      ) : null}
 
       <Box gap="md">
         <Input
@@ -116,7 +178,7 @@ export function AuthForm({
       <Button
         label={t(submitKey)}
         onPress={() => void submit()}
-        disabled={!canSubmit}
+        disabled={!canSubmit || isGoogling}
         loading={isSubmitting}
         fullWidth
         testID="auth-submit"

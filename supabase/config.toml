@@ -160,7 +160,10 @@ site_url = "http://127.0.0.1:3000"
 # The public URL that Auth serves on. Defaults to the API external URL with `/auth/v1` appended.
 # external_url = ""
 # A list of *exact* URLs that auth providers are permitted to redirect to post authentication.
-additional_redirect_urls = ["mesh://auth/callback", "exp://127.0.0.1:8081/--/auth/callback"]
+# `exp://*` con comodín porque en Expo Go la URL de vuelta lleva la IP de LAN de
+# la máquina que corre el bundler (`exp://192.168.x.x:8081/--/auth/callback`), y
+# esa IP cambia de red en red. `mesh://` es la de un build propio.
+additional_redirect_urls = ["mesh://auth/callback", "exp://127.0.0.1:8081/--/auth/callback", "exp://*/--/auth/callback"]
 # How long tokens are valid for, in seconds. Defaults to 3600 (1 hour), maximum 604,800 (1 week).
 jwt_expiry = 3600
 # JWT issuer URL. If not set, defaults to auth.external_url.
@@ -176,8 +179,13 @@ refresh_token_reuse_interval = 10
 enable_signup = true
 # Allow/disallow anonymous sign-ins to your project.
 enable_anonymous_sign_ins = true
-# Allow/disallow testing manual linking of accounts
-enable_manual_linking = false
+# Allow/disallow testing manual linking of accounts.
+#
+# **Encendido a propósito.** Es lo que hace posible que entrar con Google
+# conserve el mismo `auth.uid()` en vez de crear un usuario nuevo: sin esto,
+# `linkIdentity()` falla y alguien que ya tenía su perfil de artista cargado
+# desde la app lo perdería al registrarse. Ver ADR-002 y ADR-015.
+enable_manual_linking = true
 # Passwords shorter than this value will be rejected as weak. Minimum 6, recommended 8 or more.
 minimum_password_length = 10
 # Passwords that do not meet the following requirements will be rejected as weak. Supported values
@@ -319,6 +327,20 @@ max_frequency = "5s"
 # Use an external OAuth provider. The full list of providers are: `apple`, `azure`, `bitbucket`,
 # `discord`, `facebook`, `github`, `gitlab`, `google`, `keycloak`, `linkedin_oidc`, `notion`, `twitch`,
 # `twitter`, `x`, `slack`, `spotify`, `workos`, `zoom`.
+# Google. Ver docs/launch/sso-setup.md para de dónde salen estos dos valores —
+# el `secret` NUNCA se commitea, entra por variable de entorno.
+#
+# `skip_nonce_check` en local: el flujo por navegador contra una instancia local
+# no puede validar el nonce. En producción queda en `false`.
+[auth.external.google]
+enabled = true
+client_id = "env(SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_ID)"
+secret = "env(SUPABASE_AUTH_EXTERNAL_GOOGLE_SECRET)"
+redirect_uri = ""
+url = ""
+skip_nonce_check = true
+email_optional = false
+
 [auth.external.apple]
 enabled = false
 client_id = ""

@@ -642,3 +642,39 @@ fotos de alguien se ve cómo se recorta su obra en la grilla.
    imágenes abstractas. Se sacan con contenido real, después de la recorrida.
 
 Los dos dependen de la misma cosa, y esa cosa es tuya.
+
+### Entrar con Google (2026-08-20)
+
+Dar de alta un perfil desde la app solo sirve si **queda guardado**, y queda
+guardado en una cuenta. Hasta acá la única forma de tener cuenta era elegir una
+contraseña de diez caracteres — justo después de subir seis fotos, que es
+exactamente donde alguien abandona.
+
+Ahora hay un botón de Google arriba del formulario, y la decisión que lo
+gobierna está en [ADR-015](../decisions/ADR-015-social-sign-in.md): **con sesión
+anónima se vincula la identidad, no se abre un usuario nuevo.** Elegir mal ahí
+no falla ni tira error: deja el perfil de artista recién cargado en un usuario
+al que nadie va a volver a entrar. Es el mismo riesgo que ADR-002 evitó para el
+correo, y no se ve en ninguna pantalla — por eso la decisión es una función
+pura con nombre propio y su test es el primero del archivo.
+
+**Corre en Expo Go**, sin build propio, porque las credenciales de Google viven
+en Supabase y Google nunca ve la URL de la app.
+
+**Y mirarlo en el preview encontró el defecto que importaba:** no había ninguna
+forma de llegar a crear cuenta. Las rutas existían, los tests pasaban, el flujo
+de correo cerraba contra la base — y desde la app no se podía registrar nadie,
+porque ninguna pantalla navegaba a `/cuenta`. Ahora la cuenta vive en Perfil.
+Con eso a la vista se cayó también el texto de la invitación, que prometía
+guardar "tu gusto y tus guardados": el gusto se sacó con D-010 y los guardados
+nunca se construyeron.
+
+Lo que falta, y no se puede hacer desde acá:
+
+1. **Las credenciales.** Un client ID de tipo "aplicación web" en Google Cloud
+   —uno solo, no hacen falta los de iOS ni Android— y pegarlo en Supabase. El
+   paso a paso está en [sso-setup.md](../launch/sso-setup.md).
+2. **Sign in with Apple.** La guideline 4.8 de Apple la exige junto a cualquier
+   otro ingreso social, así que ofrecer Google la vuelve obligatoria para
+   publicar en iOS. Necesita un build propio: no corre en Expo Go. Es el
+   próximo paso de esta línea, y es el costo que ADR-002 había anticipado.

@@ -28,6 +28,7 @@ function renderScreen() {
     defaultOptions: { queries: { retry: false, gcTime: 0 } },
   })
   const onOpenStudio = jest.fn()
+  const onCreateAccount = jest.fn()
   render(
     <QueryClientProvider client={client}>
       <ThemeProvider>
@@ -36,13 +37,18 @@ function renderScreen() {
             <AccountScreen
               userId="u1"
               onOpenStudio={onOpenStudio}
+              isAnonymous
+              email={null}
+              onCreateAccount={onCreateAccount}
+              onSignIn={jest.fn()}
+              onSignOut={jest.fn()}
             />
           </I18nProvider>
         </MotionProvider>
       </ThemeProvider>
     </QueryClientProvider>,
   )
-  return { onOpenStudio }
+  return { onOpenStudio, onCreateAccount }
 }
 
 beforeEach(() => {
@@ -98,7 +104,6 @@ describe('AccountScreen', () => {
     await waitFor(() =>
       expect(screen.getByTestId('account-content')).toBeTruthy(),
     )
-
 
     fireEvent.press(screen.getByTestId('account-studio'))
     expect(onOpenStudio).toHaveBeenCalled()

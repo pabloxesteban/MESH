@@ -11,6 +11,11 @@
  * (D-010). Su texto además prometía un filtrado por distancia que D-010
  * eliminó — la distancia ordena y nunca filtra. Desde dónde se mira ahora se
  * elige en Inicio, donde se ve el efecto. Ver D-012.
+ *
+ * **Sí está la cuenta**, y no estaba: `app/cuenta/` existía como ruta y ninguna
+ * pantalla llevaba ahí. Crear cuenta —con correo o con Google— era código que
+ * corría en los tests y que nadie podía alcanzar desde la app. Un perfil de
+ * artista que no se puede guardar en una cuenta se pierde con el teléfono.
  */
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
@@ -41,11 +46,22 @@ export interface AccountScreenProps {
       Así el preview puede montarla sin `SessionProvider`. */
   userId: string | null
   onOpenStudio: () => void
+  /** Hay sesión pero no cuenta. Nunca "no hay sesión": ver ADR-002. */
+  isAnonymous: boolean
+  email: string | null
+  onCreateAccount: () => void
+  onSignIn: () => void
+  onSignOut: () => void
 }
 
 export function AccountScreen({
   userId,
   onOpenStudio,
+  isAnonymous,
+  email,
+  onCreateAccount,
+  onSignIn,
+  onSignOut,
 }: AccountScreenProps) {
   const t = useT()
   const theme = useTheme()
@@ -117,7 +133,7 @@ export function AccountScreen({
           <Text role="label" color="textSecondary">
             {t('account.intent')}
           </Text>
-          <Text role="micro" color="textTertiary">
+          <Text role="label" color="textTertiary">
             {t('account.intent.hint')}
           </Text>
           <Box direction="row" gap="xxs" wrap>
@@ -135,6 +151,53 @@ export function AccountScreen({
             />
           </Box>
         </Box>
+
+        {/* La cuenta.
+
+            Va arriba de "Más" porque decide si todo lo demás sobrevive al
+            teléfono, y no bloquea nada: MESH funciona entero sin cuenta. La
+            invitación dice qué se gana, no qué se pierde — un muro de registro
+            sería un peaje, no una razón. Ver ADR-002 y ADR-015. */}
+        {isAnonymous ? (
+          <Box gap="xs" testID="account-anonymous">
+            <Text role="label" color="textSecondary">
+              {t('auth.account.anonymous.title')}
+            </Text>
+            {/* `label` y no `micro`: micro se dibuja en mayúsculas y sirve para
+                rótulos de una o dos palabras. Una oración de tres renglones en
+                mayúsculas se grita, y encima cuesta leerla. */}
+            <Text role="label" color="textTertiary">
+              {t('auth.account.anonymous.body')}
+            </Text>
+            <Button
+              label={t('auth.signUp.submit')}
+              onPress={onCreateAccount}
+              fullWidth
+              testID="account-sign-up"
+            />
+            <Button
+              label={t('auth.signIn.submit')}
+              variant="secondary"
+              onPress={onSignIn}
+              fullWidth
+              testID="account-sign-in"
+            />
+          </Box>
+        ) : (
+          <Box gap="xs" testID="account-signed-in">
+            <Text role="label" color="textSecondary">
+              {t('auth.account.email')}
+            </Text>
+            <Text role="body">{email ?? ''}</Text>
+            <Button
+              label={t('auth.account.signOut')}
+              variant="destructive"
+              onPress={onSignOut}
+              fullWidth
+              testID="account-sign-out"
+            />
+          </Box>
+        )}
 
         <Box gap="xs">
           <Text role="label" color="textSecondary">
