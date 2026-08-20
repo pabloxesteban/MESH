@@ -203,6 +203,16 @@ export const esAR = {
   'saved.empty.action': 'Ir a Explorar',
   'saved.entry': 'Lo que guardaste',
   'saved.count': '{n} obra(s)',
+  'ranking.title': 'Lo más guardado',
+  'ranking.week': 'Esta semana',
+  'ranking.month': 'Este mes',
+  'ranking.saves': '{n} guardados',
+  'ranking.open': 'Ver a {nombre}, con {n} guardados',
+  'studio.saves.title': 'Guardaron tu obra',
+  'studio.saves.total': '{n} guardados en total',
+  'studio.saves.new': '{n} nuevos desde la última vez que miraste',
+  'studio.saves.none': 'Todavía no guardó nadie. Cuando pase, aparece acá.',
+  'studio.saves.piece': '{n} guardados',
   'common.fixture': 'Ficticio',
 
   // --- contacto --------------------------------------------------------------

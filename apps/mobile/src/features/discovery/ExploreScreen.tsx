@@ -39,6 +39,8 @@ import type { TranslationKey } from '@/i18n/index.ts'
 import { GrowingArtwork } from '@/features/transitions/GrowingArtwork.tsx'
 import { useArtworkReturn } from '@/features/transitions/useArtworkReturn.ts'
 
+import { RankingRow } from '@/features/saved/RankingRow.tsx'
+
 import { ArtworkGrid } from './ArtworkGrid.tsx'
 import { mediaUrl } from './queries.ts'
 import { useDiscoveryGrid } from './useDiscoveryGrid.ts'
@@ -171,6 +173,10 @@ export function ExploreScreen({
             </View>
           ) : null}
         </Box>
+
+        {/* Arriba de los filtros y de la grilla: es una entrada, no un
+            destino. Se dibuja sola solo si hay algo guardado en la ventana. */}
+        <RankingRow categorySlug={categorySlug} onOpenArtist={onOpenArtist} />
 
         {grid.availableStyles.length > 0 ? (
           <StyleFilters

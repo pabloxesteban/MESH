@@ -171,6 +171,17 @@ export const en: Readonly<Record<TranslationKey, string>> = {
   'saved.empty.action': 'Go to Explore',
   'saved.entry': 'What you saved',
   'saved.count': '{n} piece(s)',
+  'ranking.title': 'Most saved',
+  'ranking.week': 'This week',
+  'ranking.month': 'This month',
+  'ranking.saves': '{n} saves',
+  'ranking.open': 'See {nombre}, with {n} saves',
+  'studio.saves.title': 'They saved your work',
+  'studio.saves.total': '{n} saves in total',
+  'studio.saves.new': '{n} new since you last looked',
+  'studio.saves.none':
+    'Nobody has saved anything yet. When they do, it shows up here.',
+  'studio.saves.piece': '{n} saves',
   'common.fixture': 'Test',
 
   'contact.title': 'Write to {nombre}',

@@ -755,6 +755,7 @@ export type Database = {
           onboarding_intent:
             | Database["public"]["Enums"]["onboarding_intent"]
             | null
+          saves_seen_at: string | null
           updated_at: string
         }
         Insert: {
@@ -768,6 +769,7 @@ export type Database = {
           onboarding_intent?:
             | Database["public"]["Enums"]["onboarding_intent"]
             | null
+          saves_seen_at?: string | null
           updated_at?: string
         }
         Update: {
@@ -781,6 +783,7 @@ export type Database = {
           onboarding_intent?:
             | Database["public"]["Enums"]["onboarding_intent"]
             | null
+          saves_seen_at?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -1182,6 +1185,15 @@ export type Database = {
           title: string
         }[]
       }
+      get_own_save_counts: {
+        Args: { p_since?: string }
+        Returns: {
+          last_saved_at: string
+          portfolio_item_id: string
+          saves: number
+          saves_since: number
+        }[]
+      }
       get_search_interests: {
         Args: { p_project_id?: string }
         Returns: {
@@ -1203,12 +1215,27 @@ export type Database = {
           style_slug: string
         }[]
       }
+      get_top_saved: {
+        Args: { p_category_slug: string; p_limit?: number; p_since: string }
+        Returns: {
+          is_fixture: boolean
+          media_blurhash: string
+          media_height: number
+          media_path: string
+          media_width: number
+          portfolio_item_id: string
+          professional_display_name: string
+          professional_slug: string
+          saves: number
+        }[]
+      }
       is_open_search_reference: { Args: { p_path: string }; Returns: boolean }
       is_search_open: { Args: { p_project_id: string }; Returns: boolean }
       mark_conversation_read: {
         Args: { p_conversation_id: string }
         Returns: undefined
       }
+      mark_saves_seen: { Args: never; Returns: string }
       match_reasons_are_grounded: {
         Args: { p_components: Json; p_reasons: Json }
         Returns: boolean

@@ -144,7 +144,10 @@ function Grid({
   return (
     <Box direction="row" gap="xxs" wrap>
       {pieces.map((piece) => (
-        <View key={piece.portfolioItemId} style={{ width: columnWidth, gap: spacing.xxs }}>
+        <View
+          key={piece.portfolioItemId}
+          style={{ width: columnWidth, gap: spacing.xxs }}
+        >
           <View>
             <Pressable
               onPress={() => onOpenArtist(piece.professionalSlug)}

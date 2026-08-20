@@ -117,11 +117,21 @@ valor— cuesta más en usuarios reales de lo que ahorra en abuso a esta escala.
 | `analytics_events` | ✗ | propios (`user_id = auth.uid()`) | ✗ | ✗ |
 | `audit_events` | ✗ | ✗ | ✗ | ✗ (sin políticas — solo service role) |
 
-**Nadie cuenta corazones ajenos.** `saved_items` no tiene ninguna política que
-le deje a un artista ver quién guardó su obra, ni cuántos lo hicieron. No es una
-omisión: un contador público convierte guardar en una métrica, y de ahí a la
-notificación carnada hay un paso. Ver ADR-016; está verificado en
-`supabase/tests/48_saved_items.sql`, donde el dueño del perfil cuenta cero.
+**Nadie lee una fila de guardado ajena, y nadie sabe quién guardó.**
+`saved_items` no tiene ninguna política que le deje a un artista ver las filas
+de su obra. Lo que sí puede desde el 2026-08-20 —ver ADR-017, que enmienda
+ADR-016— es **contar**, por dos funciones `security definer` que devuelven
+agregados y columnas elegidas a mano:
+
+- `get_top_saved()` — el ranking público de una ventana.
+- `get_own_save_counts()` — los conteos de la obra propia, y solo la propia:
+  filtra por `owner_user_id = auth.uid()` adentro de la función, que es lo que
+  impide que `security definer` la convierta en una forma de contar los
+  guardados de cualquiera.
+
+**Ninguna de las dos devuelve `user_id`.** Se abrió el agregado, no la
+identidad. Está verificado en `supabase/tests/48_saved_items.sql`, que falla si
+alguien le agrega una columna de identidad a cualquiera de las dos.
 
 **`professionals` sigue sin política de INSERT ni de UPDATE para el cliente**,
 ni siquiera para el dueño. Todo lo que un artista escribe sobre su propia fila

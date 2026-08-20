@@ -36,6 +36,8 @@ import {
 import { ErrorView } from '@/components/ErrorView.tsx'
 import { mediaUrl } from '@/features/discovery/queries.ts'
 import { useT } from '@/i18n/I18nProvider.tsx'
+
+import { StudioSaves } from '@/features/saved/StudioSaves.tsx'
 import type { TranslationKey } from '@/i18n/index.ts'
 
 import { readDeviceGps } from './gps.ts'
@@ -292,6 +294,10 @@ export function StudioScreen({ userId, onBack }: StudioScreenProps) {
             </Text>
           ) : null}
         </Box>
+
+        {/* Arriba de todo lo editable: es lo único de esta pantalla que cambia
+            sin que el artista haga nada, así que es lo que vino a mirar. */}
+        {userId != null ? <StudioSaves userId={userId} /> : null}
 
         <OwnStyles
           saved={professional.styleSlugs}

@@ -29,4 +29,5 @@ todo el repositorio.
 | [013](ADR-013-artist-self-signup.md) | Alta propia de artista desde la app; el catálogo deja de ser exclusivamente curado | **Aceptado** |
 | [014](ADR-014-two-sided.md) | MESH tiene dos lados: mazo de búsquedas para el artista, con permiso explícito y sin contacto directo | **Aceptado** |
 | [015](ADR-015-social-sign-in.md) | Entrar con Google **vincula** la identidad al usuario anónimo; nunca crea uno nuevo | **Aceptado** |
-| [016](ADR-016-saved-items.md) | Guardar obra con un corazón; privado, sin contador, y revierte el descarte de ADR-003 | **Aceptado** |
+| [016](ADR-016-saved-items.md) | Guardar obra con un corazón; revierte el descarte de ADR-003 | Enmendado por ADR-017 |
+| [017](ADR-017-saved-ranking.md) | Ranking de lo más guardado y avisos al artista; **enmienda ADR-016** y acota el innegociable 3 | **Aceptado** |

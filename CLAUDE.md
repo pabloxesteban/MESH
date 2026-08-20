@@ -54,7 +54,20 @@ a enchufar el gusto y el matching a una pantalla.
    estadísticas de reservas ni razones de match inventadas. Una razón solo se
    puede mostrar si el término que describe efectivamente aportó al puntaje.
 3. **Nada de dark patterns.** Ni rachas, ni puntos, ni niveles, ni escasez o
-   urgencia falsas, ni límites artificiales, ni notificaciones carnada. Nunca.
+   urgencia falsas, ni límites artificiales. Nunca.
+
+   **Sobre notificaciones, la regla es más chica desde el 2026-08-20.** Decía
+   "ni notificaciones carnada" y se decidió avisarle al artista cada vez que
+   alguien guarda su obra — que es exactamente eso. Está acotado, no borrado:
+   una notificación tiene que corresponder a **un hecho real y reciente sobre
+   quien la recibe**, tiene que poder apagarse, y no puede inventar urgencia
+   ("¡se van a olvidar de vos!") ni fabricar un motivo para volver cuando no
+   pasó nada. Ver [ADR-017](docs/decisions/ADR-017-saved-ranking.md), que dice
+   qué se ganó y qué se resignó.
+
+   Lo que **sí** sigue prohibido sin excepción en esa línea: rachas, puntos,
+   niveles, medallas, y cualquier número cuyo propósito sea que alguien vuelva a
+   entrar en vez de informarlo.
 4. **RLS en todas las tablas.** Habilitado *y* forzado, con políticas
    explícitas. Agregar una tabla sin políticas rompe el CI.
 5. **La service-role key nunca toca el cliente.** Existe solo en `tools/seed` y

@@ -14,7 +14,7 @@
 -- de rol haría pasar todo siempre.
 
 begin;
-select plan(9);
+select plan(14);
 
 -- --- fixtures (como postgres) ------------------------------------------------
 
@@ -117,11 +117,63 @@ select throws_ok(
 set local request.jwt.claims =
   '{"sub":"aaaaaaaa-0000-0000-0000-0000000000c1","role":"authenticated"}';
 
+-- Leer la tabla sigue prohibido: el artista cuenta por la RPC, que devuelve
+-- agregados, y nunca por la fila. Ver ADR-017.
 select is(
   (select count(*)::int from public.saved_items
    where portfolio_item_id = 'dddddddd-0000-0000-0000-0000000000a1'),
   0,
-  'el artista NO puede contar los corazones de su propia obra'
+  'el artista NO puede leer las filas de guardado de su propia obra'
+);
+
+-- --- lo que SÍ ve el artista, desde 2026-08-20 --------------------------------
+
+-- Dos: A y B guardaron la misma obra. Es el agregado a través de personas, que
+-- es exactamente el dato que el artista pidió ver.
+select is(
+  (select saves from public.get_own_save_counts()
+   where portfolio_item_id = 'dddddddd-0000-0000-0000-0000000000a1'),
+  2,
+  'cuenta los guardados de su obra, sumando los de todos'
+);
+
+-- El test que sostiene toda la promesa de ADR-017: se abre el agregado, no la
+-- identidad. Si algún día alguien agrega `user_id` al `returns table`, esto
+-- falla antes de que llegue a una pantalla.
+select is(
+  (select count(*)::int
+   from information_schema.columns
+   where table_name = 'get_own_save_counts'
+     and column_name in ('user_id', 'saved_by', 'email')),
+  0,
+  'la RPC del artista NO devuelve ninguna columna que identifique a nadie'
+);
+
+select is(
+  (select count(*)::int
+   from information_schema.columns
+   where table_name = 'get_top_saved'
+     and column_name in ('user_id', 'saved_by', 'email')),
+  0,
+  'el ranking tampoco'
+);
+
+select is(
+  (select saves_since from public.get_own_save_counts(now() + interval '1 day')
+   where portfolio_item_id = 'dddddddd-0000-0000-0000-0000000000a1'),
+  0,
+  'lo guardado antes de la última visita no cuenta como nuevo'
+);
+
+-- --- somos B, que no es dueño de nada ----------------------------------------
+
+set local request.jwt.claims =
+  '{"sub":"aaaaaaaa-0000-0000-0000-0000000000b1","role":"authenticated"}';
+
+select is(
+  (select count(*)::int from public.get_own_save_counts()),
+  0,
+  'la RPC es `security definer`: sin ser dueño, no devuelve nada de nadie'
 );
 
 -- --- somos A otra vez --------------------------------------------------------
