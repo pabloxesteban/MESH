@@ -42,9 +42,13 @@ preview.
 
 ## Las pestañas son las de la app
 
-El preview muestra **exactamente las cuatro pestañas de la app** — Inicio, la
-segunda según la intención (Explorar o Estudio), Chats y Perfil — más el botón
-de tema, que es una herramienta de revisión y no una pestaña.
+El preview muestra **exactamente las cuatro pestañas de la app**, y nada más:
+Inicio, la segunda según la intención (Explorar o Estudio), Chats y Perfil.
+
+Tampoco hay botón de tema. Lo hubo, y se sacó: al lado de cuatro pestañas se
+leía como una quinta. El preview sigue el modo claro/oscuro del sistema —igual
+que la app— así que para mirar el otro tema se cambia el del teléfono, que
+además es la única forma en que alguien lo va a vivir de verdad.
 
 Es a propósito y no es cosmético: la barra es lo primero que se lee de un
 producto, y "cuatro y ninguna más" es una decisión de MESH. Un preview con seis

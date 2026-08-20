@@ -17,7 +17,6 @@ import {
   ThemeProvider,
   spacing,
   useTheme,
-  useThemePreference,
 } from '@/design-system/index.ts'
 import { AccountScreen } from '@/features/account/AccountScreen.tsx'
 import { AuthForm } from '@/features/auth/AuthForm.tsx'
@@ -141,6 +140,13 @@ function PreviewRoot() {
 
   return (
     <SafeAreaProvider>
+      {/* Sin `initialPreference`: el default es `'system'`, así que el preview
+          sigue el modo claro/oscuro del teléfono — igual que la app.
+
+          Antes había un botón de tema al final de la barra. Se sacó: al lado de
+          cuatro pestañas se leía como una quinta, y no hacía falta. Para mirar
+          el otro tema se cambia el del sistema, que además es la única forma en
+          que alguien lo va a vivir de verdad. */}
       <ThemeProvider>
         <MotionProvider>
           <I18nProvider>
@@ -438,9 +444,6 @@ function TabBar({
   actual: Pestana
   onCambiar: (id: Pestana) => void
 }) {
-  const theme = useTheme()
-  const { preference, setPreference } = useThemePreference()
-
   return (
     <Box
       direction="row"
@@ -474,27 +477,6 @@ function TabBar({
           </Text>
         </Pressable>
       ))}
-
-      <Pressable
-        onPress={() => setPreference(preference === 'light' ? 'dark' : 'light')}
-        accessibilityRole="button"
-        accessibilityLabel="Cambiar entre tema claro y oscuro"
-        style={{
-          minWidth: 44,
-          minHeight: 44,
-          alignItems: 'center',
-          justifyContent: 'center',
-          borderLeftWidth: 1,
-          borderLeftColor: theme.borderSubtle,
-        }}
-      >
-        {/* La palabra entera y no "Cla" / "Osc": al lado de cuatro pestañas,
-            tres letras en mayúscula se leen como una quinta pestaña cortada.
-            Dice a qué tema vas a pasar, no en cuál estás. */}
-        <Text role="micro" color="textSecondary">
-          {preference === 'light' ? 'Oscuro' : 'Claro'}
-        </Text>
-      </Pressable>
     </Box>
   )
 }
