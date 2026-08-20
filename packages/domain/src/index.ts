@@ -13,6 +13,9 @@ export type { MatchingVersion, TasteVersion } from './version.ts'
 export {
   CATEGORIES,
   STYLES,
+  TRAITS,
+  TRAIT_DIMENSIONS,
+  traitsOf,
   findStyle,
   isKnownCategory,
   isKnownStyle,
@@ -22,6 +25,8 @@ export type {
   CategoryDefinition,
   CategorySlug,
   StyleDefinition,
+  TraitDefinition,
+  TraitDimension,
 } from './taxonomy/taxonomy.ts'
 
 export { matchNeighborhood } from './taxonomy/geocoding.ts'

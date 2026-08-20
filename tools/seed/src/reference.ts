@@ -18,7 +18,7 @@ import { readFileSync, writeFileSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
-import { CATEGORIES, LOCATIONS, STYLES } from '@mesh/domain'
+import { CATEGORIES, LOCATIONS, STYLES, TRAITS } from '@mesh/domain'
 
 const HERE = dirname(fileURLToPath(import.meta.url))
 const SEED_PATH = resolve(HERE, '../../../supabase/seed.sql')
@@ -85,6 +85,25 @@ function render(): string {
     )
   }
 
+  lines.push('-- --- traits ---', '')
+  for (const trait of TRAITS) {
+    lines.push(
+      'insert into public.traits (',
+      '  category_id, dimension, slug, name_key, sort_order, is_active',
+      ')',
+      'select',
+      `  c.id, ${sql(trait.dimension)}, ${sql(trait.slug)}, ${sql(trait.nameKey)},`,
+      `  ${trait.sortOrder}, ${trait.isActive}`,
+      `from public.categories c where c.slug = ${sql(trait.categorySlug)}`,
+      'on conflict (category_id, slug) do update set',
+      '  dimension = excluded.dimension,',
+      '  name_key = excluded.name_key,',
+      '  sort_order = excluded.sort_order,',
+      '  is_active = excluded.is_active;',
+      '',
+    )
+  }
+
   // Las ciudades primero: un barrio referencia a su ciudad por parent_id, así
   // que si se insertaran mezclados el orden decidiría si la carga funciona.
   lines.push('-- --- locations: ciudades ---', '')
@@ -126,7 +145,7 @@ if (check) {
   console.log(
     `✓ ${SEED_PATH}\n` +
       `  ${CATEGORIES.length} categoría(s) · ${STYLES.length} estilo(s) · ` +
-      `${LOCATIONS.length} ubicación(es)`,
+      `${TRAITS.length} rasgo(s) · ${LOCATIONS.length} ubicación(es)`,
   )
 }
 

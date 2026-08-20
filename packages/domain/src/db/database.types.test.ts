@@ -73,11 +73,13 @@ const KNOWN_TABLES = [
   'project_interests',
   'project_references',
   'project_styles',
+  'project_traits',
   'projects',
   'reviews',
   'saved_items',
   'styles',
   'taste_profiles',
+  'traits',
 ] as const satisfies readonly (keyof Tables)[]
 
 type KnownTable = (typeof KNOWN_TABLES)[number]
@@ -139,7 +141,7 @@ describe('el esquema y el dominio no se separaron', () => {
     // que la suite reporte el archivo, y para que `Reconciliacion` esté usada.
     const reconciliacion = {} as Reconciliacion
     expect(reconciliacion).toBeDefined()
-    expect(KNOWN_TABLES).toHaveLength(26)
+    expect(KNOWN_TABLES).toHaveLength(28)
   })
 
   const enums: ReadonlyArray<

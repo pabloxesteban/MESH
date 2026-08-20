@@ -135,9 +135,12 @@ select is(
 
 select throws_ok(
   $$
-    insert into public.project_interests (project_id, professional_id, verdict)
+    insert into public.project_interests
+      (project_id, professional_id, verdict,
+       price_min_cents, price_max_cents, price_currency, sessions)
     values ('ffffffff-0000-0000-0000-0000000000f1',
-            'cccccccc-0000-0000-0000-0000000000d1', 'interest')
+            'cccccccc-0000-0000-0000-0000000000d1', 'interest',
+            8000000, 12000000, 'ARS', 1)
   $$,
   '42501',
   null,
@@ -150,9 +153,12 @@ set local request.jwt.claims = '{"sub":"aaaaaaaa-0000-0000-0000-0000000000d2","r
 
 select lives_ok(
   $$
-    insert into public.project_interests (project_id, professional_id, verdict)
+    insert into public.project_interests
+      (project_id, professional_id, verdict,
+       price_min_cents, price_max_cents, price_currency, sessions)
     values ('ffffffff-0000-0000-0000-0000000000f1',
-            'cccccccc-0000-0000-0000-0000000000d1', 'interest')
+            'cccccccc-0000-0000-0000-0000000000d1', 'interest',
+            8000000, 12000000, 'ARS', 1)
   $$,
   'El artista levanta la mano ante una búsqueda abierta'
 );
@@ -173,9 +179,12 @@ select throws_ok(
 -- nunca publicó.
 select throws_ok(
   $$
-    insert into public.project_interests (project_id, professional_id, verdict)
+    insert into public.project_interests
+      (project_id, professional_id, verdict,
+       price_min_cents, price_max_cents, price_currency, sessions)
     values ('ffffffff-0000-0000-0000-0000000000f2',
-            'cccccccc-0000-0000-0000-0000000000d1', 'interest')
+            'cccccccc-0000-0000-0000-0000000000d1', 'interest',
+            8000000, 12000000, 'ARS', 1)
   $$,
   '42501',
   null,
@@ -285,9 +294,12 @@ select is(
 );
 
 -- De nuevo, para poder probar el descarte del otro lado.
-insert into public.project_interests (project_id, professional_id, verdict)
+insert into public.project_interests
+  (project_id, professional_id, verdict,
+   price_min_cents, price_max_cents, price_currency, sessions)
 values ('ffffffff-0000-0000-0000-0000000000f1',
-        'cccccccc-0000-0000-0000-0000000000d1', 'interest');
+        'cccccccc-0000-0000-0000-0000000000d1', 'interest',
+        8000000, 12000000, 'ARS', 1);
 
 set local request.jwt.claims = '{"sub":"aaaaaaaa-0000-0000-0000-0000000000d1","role":"authenticated"}';
 

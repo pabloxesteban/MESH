@@ -1,5 +1,5 @@
 /**
- * Taxonomía: categorías y estilos.
+ * Taxonomía: categorías, estilos y rasgos.
  *
  * Esto es la fuente de verdad en tiempo de compilación para lo que se carga en
  * las tablas `categories` y `styles`. En la base, la taxonomía son filas — no
@@ -70,6 +70,96 @@ export const STYLES: readonly StyleDefinition[] = [
   s('fileteado-porteno', 14, ['fileteado']),
   s('handpoke', 15, ['stick and poke', 'a mano']),
 ]
+
+/**
+ * Las dimensiones de un brief. Espeja el enum `trait_dimension` de Postgres.
+ *
+ * Los nombres son genéricos a propósito: otro rubro puede usar `size` y
+ * `palette` con otros slugs, y puede no tener `body_area`. Nada obliga a que
+ * una categoría use las tres. Ver ADR-020.
+ */
+export type TraitDimension = 'body_area' | 'size' | 'palette'
+
+export const TRAIT_DIMENSIONS: readonly TraitDimension[] = [
+  'body_area',
+  'size',
+  'palette',
+] as const
+
+export interface TraitDefinition {
+  readonly slug: string
+  readonly categorySlug: CategorySlug
+  readonly dimension: TraitDimension
+  readonly nameKey: string
+  readonly sortOrder: number
+  readonly isActive: boolean
+}
+
+/**
+ * Vocabulario de rasgos de tatuaje.
+ *
+ * Es lo que el clasificador puede devolver y lo que la pantalla del brief
+ * ofrece — la misma lista, y por eso vive acá y no en el prompt: un vocabulario
+ * escrito dos veces se separa a la primera edición.
+ *
+ * Las listas son **cortas a propósito**. Diez zonas del cuerpo y no un atlas de
+ * anatomía: con treinta opciones nadie elige, y la diferencia entre "gemelo" y
+ * "pantorrilla" no cambia ni el precio ni el artista.
+ */
+export const TRAITS: readonly TraitDefinition[] = [
+  // Zona del cuerpo, de la más pedida a la menos.
+  t('body_area', 'antebrazo', 10),
+  t('body_area', 'brazo', 20),
+  t('body_area', 'hombro', 30),
+  t('body_area', 'espalda', 40),
+  t('body_area', 'pecho', 50),
+  t('body_area', 'costillas', 60),
+  t('body_area', 'pierna', 70),
+  t('body_area', 'tobillo', 80),
+  t('body_area', 'mano', 90),
+  t('body_area', 'cuello', 100),
+
+  // Tamaño. La referencia en centímetros va en el nombre traducido, no en el
+  // slug: "chico" no cambia de significado, la referencia sí puede afinarse.
+  t('size', 'mini', 10),
+  t('size', 'chico', 20),
+  t('size', 'mediano', 30),
+  t('size', 'grande', 40),
+  t('size', 'gran-formato', 50),
+
+  // Paleta. Tres, que es como se decide de verdad.
+  t('palette', 'negro', 10),
+  t('palette', 'negro-y-gris', 20),
+  t('palette', 'color', 30),
+]
+
+/** Los rasgos de una dimensión, en orden. */
+export function traitsOf(
+  dimension: TraitDimension,
+  categorySlug: CategorySlug = 'tattoo',
+): readonly TraitDefinition[] {
+  return TRAITS.filter(
+    (trait) =>
+      trait.dimension === dimension &&
+      trait.categorySlug === categorySlug &&
+      trait.isActive,
+  )
+}
+
+function t(
+  dimension: TraitDimension,
+  slug: string,
+  sortOrder: number,
+): TraitDefinition {
+  return {
+    slug,
+    categorySlug: 'tattoo',
+    dimension,
+    nameKey: `trait.tattoo.${slug}`,
+    sortOrder,
+    isActive: true,
+  }
+}
 
 function s(
   slug: string,

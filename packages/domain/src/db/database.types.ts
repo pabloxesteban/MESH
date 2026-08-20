@@ -951,22 +951,37 @@ export type Database = {
         Row: {
           created_at: string
           id: string
+          note: string | null
+          price_currency: string | null
+          price_max_cents: number | null
+          price_min_cents: number | null
           professional_id: string
           project_id: string
+          sessions: number | null
           verdict: Database["public"]["Enums"]["professional_verdict"]
         }
         Insert: {
           created_at?: string
           id?: string
+          note?: string | null
+          price_currency?: string | null
+          price_max_cents?: number | null
+          price_min_cents?: number | null
           professional_id: string
           project_id: string
+          sessions?: number | null
           verdict: Database["public"]["Enums"]["professional_verdict"]
         }
         Update: {
           created_at?: string
           id?: string
+          note?: string | null
+          price_currency?: string | null
+          price_max_cents?: number | null
+          price_min_cents?: number | null
           professional_id?: string
           project_id?: string
+          sessions?: number | null
           verdict?: Database["public"]["Enums"]["professional_verdict"]
         }
         Relationships: [
@@ -1051,6 +1066,36 @@ export type Database = {
             columns: ["style_id"]
             isOneToOne: false
             referencedRelation: "styles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      project_traits: {
+        Row: {
+          project_id: string
+          trait_id: string
+        }
+        Insert: {
+          project_id: string
+          trait_id: string
+        }
+        Update: {
+          project_id?: string
+          trait_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_traits_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_traits_trait_id_fkey"
+            columns: ["trait_id"]
+            isOneToOne: false
+            referencedRelation: "traits"
             referencedColumns: ["id"]
           },
         ]
@@ -1326,6 +1371,47 @@ export type Database = {
           },
         ]
       }
+      traits: {
+        Row: {
+          category_id: string
+          created_at: string
+          dimension: Database["public"]["Enums"]["trait_dimension"]
+          id: string
+          is_active: boolean
+          name_key: string
+          slug: string
+          sort_order: number
+        }
+        Insert: {
+          category_id: string
+          created_at?: string
+          dimension: Database["public"]["Enums"]["trait_dimension"]
+          id?: string
+          is_active?: boolean
+          name_key: string
+          slug: string
+          sort_order?: number
+        }
+        Update: {
+          category_id?: string
+          created_at?: string
+          dimension?: Database["public"]["Enums"]["trait_dimension"]
+          id?: string
+          is_active?: boolean
+          name_key?: string
+          slug?: string
+          sort_order?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "traits_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -1405,6 +1491,13 @@ export type Database = {
           title: string
         }[]
       }
+      get_open_search_traits: {
+        Args: { p_project_id: string }
+        Returns: {
+          dimension: Database["public"]["Enums"]["trait_dimension"]
+          slug: string
+        }[]
+      }
       get_own_save_counts: {
         Args: { p_since?: string }
         Returns: {
@@ -1412,6 +1505,23 @@ export type Database = {
           portfolio_item_id: string
           saves: number
           saves_since: number
+        }[]
+      }
+      get_project_proposals: {
+        Args: { p_project_id: string }
+        Returns: {
+          created_at: string
+          interest_id: string
+          is_fixture: boolean
+          note: string
+          price_currency: string
+          price_max_cents: number
+          price_min_cents: number
+          professional_display_name: string
+          professional_id: string
+          professional_slug: string
+          sample_media_path: string
+          sessions: number
         }[]
       }
       get_review_summary: {
@@ -1515,6 +1625,7 @@ export type Database = {
       professional_verdict: "interest" | "pass"
       project_status: "draft" | "active" | "archived"
       project_timing: "asap" | "weeks" | "months" | "flexible"
+      trait_dimension: "body_area" | "size" | "palette"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1654,6 +1765,7 @@ export const Constants = {
       professional_verdict: ["interest", "pass"],
       project_status: ["draft", "active", "archived"],
       project_timing: ["asap", "weeks", "months", "flexible"],
+      trait_dimension: ["body_area", "size", "palette"],
     },
   },
 } as const

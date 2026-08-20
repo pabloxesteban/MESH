@@ -2,10 +2,13 @@ import { describe, expect, it } from 'vitest'
 import {
   CATEGORIES,
   STYLES,
+  TRAITS,
+  TRAIT_DIMENSIONS,
   findStyle,
   isKnownCategory,
   isKnownStyle,
   stylesForCategory,
+  traitsOf,
 } from './taxonomy.ts'
 
 describe('taxonomía', () => {
@@ -60,5 +63,51 @@ describe('taxonomía', () => {
         expect(slugs.has(alias)).toBe(false)
       }
     }
+  })
+})
+
+describe('rasgos del brief', () => {
+  it('no repite un slug dentro de una categoría, aunque cambie la dimensión', () => {
+    // Es la restricción `unique (category_id, slug)` de la tabla, y existe
+    // porque la pantalla del brief muestra las tres dimensiones juntas: si
+    // "chico" fuera un tamaño y también una zona, no habría forma de saber cuál
+    // eligió alguien.
+    const vistos = new Set<string>()
+    for (const trait of TRAITS) {
+      const clave = `${trait.categorySlug}/${trait.slug}`
+      expect(vistos.has(clave)).toBe(false)
+      vistos.add(clave)
+    }
+  })
+
+  it('nombra cada rasgo por clave de i18n, nunca por texto visible', () => {
+    for (const trait of TRAITS) {
+      expect(trait.nameKey).toBe(`trait.tattoo.${trait.slug}`)
+    }
+  })
+
+  it('usa slugs estables en minúscula y con guiones', () => {
+    for (const trait of TRAITS) {
+      expect(trait.slug).toMatch(/^[a-z0-9]+(?:-[a-z0-9]+)*$/)
+    }
+  })
+
+  it('llena las tres dimensiones, y `traitsOf` devuelve solo la pedida', () => {
+    for (const dimension of TRAIT_DIMENSIONS) {
+      const rasgos = traitsOf(dimension)
+      expect(rasgos.length).toBeGreaterThan(0)
+      expect(rasgos.every((trait) => trait.dimension === dimension)).toBe(true)
+    }
+  })
+
+  it('ordena cada dimensión sin empates', () => {
+    for (const dimension of TRAIT_DIMENSIONS) {
+      const ordenes = traitsOf(dimension).map((trait) => trait.sortOrder)
+      expect(new Set(ordenes).size).toBe(ordenes.length)
+    }
+  })
+
+  it('mantiene corta la lista de zonas: con treinta opciones nadie elige', () => {
+    expect(traitsOf('body_area').length).toBeLessThanOrEqual(12)
   })
 })

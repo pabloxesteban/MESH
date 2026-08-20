@@ -246,6 +246,242 @@ on conflict (category_id, slug) do update set
   sort_order = excluded.sort_order,
   is_active = excluded.is_active;
 
+-- --- traits ---
+
+insert into public.traits (
+  category_id, dimension, slug, name_key, sort_order, is_active
+)
+select
+  c.id, 'body_area', 'antebrazo', 'trait.tattoo.antebrazo',
+  10, true
+from public.categories c where c.slug = 'tattoo'
+on conflict (category_id, slug) do update set
+  dimension = excluded.dimension,
+  name_key = excluded.name_key,
+  sort_order = excluded.sort_order,
+  is_active = excluded.is_active;
+
+insert into public.traits (
+  category_id, dimension, slug, name_key, sort_order, is_active
+)
+select
+  c.id, 'body_area', 'brazo', 'trait.tattoo.brazo',
+  20, true
+from public.categories c where c.slug = 'tattoo'
+on conflict (category_id, slug) do update set
+  dimension = excluded.dimension,
+  name_key = excluded.name_key,
+  sort_order = excluded.sort_order,
+  is_active = excluded.is_active;
+
+insert into public.traits (
+  category_id, dimension, slug, name_key, sort_order, is_active
+)
+select
+  c.id, 'body_area', 'hombro', 'trait.tattoo.hombro',
+  30, true
+from public.categories c where c.slug = 'tattoo'
+on conflict (category_id, slug) do update set
+  dimension = excluded.dimension,
+  name_key = excluded.name_key,
+  sort_order = excluded.sort_order,
+  is_active = excluded.is_active;
+
+insert into public.traits (
+  category_id, dimension, slug, name_key, sort_order, is_active
+)
+select
+  c.id, 'body_area', 'espalda', 'trait.tattoo.espalda',
+  40, true
+from public.categories c where c.slug = 'tattoo'
+on conflict (category_id, slug) do update set
+  dimension = excluded.dimension,
+  name_key = excluded.name_key,
+  sort_order = excluded.sort_order,
+  is_active = excluded.is_active;
+
+insert into public.traits (
+  category_id, dimension, slug, name_key, sort_order, is_active
+)
+select
+  c.id, 'body_area', 'pecho', 'trait.tattoo.pecho',
+  50, true
+from public.categories c where c.slug = 'tattoo'
+on conflict (category_id, slug) do update set
+  dimension = excluded.dimension,
+  name_key = excluded.name_key,
+  sort_order = excluded.sort_order,
+  is_active = excluded.is_active;
+
+insert into public.traits (
+  category_id, dimension, slug, name_key, sort_order, is_active
+)
+select
+  c.id, 'body_area', 'costillas', 'trait.tattoo.costillas',
+  60, true
+from public.categories c where c.slug = 'tattoo'
+on conflict (category_id, slug) do update set
+  dimension = excluded.dimension,
+  name_key = excluded.name_key,
+  sort_order = excluded.sort_order,
+  is_active = excluded.is_active;
+
+insert into public.traits (
+  category_id, dimension, slug, name_key, sort_order, is_active
+)
+select
+  c.id, 'body_area', 'pierna', 'trait.tattoo.pierna',
+  70, true
+from public.categories c where c.slug = 'tattoo'
+on conflict (category_id, slug) do update set
+  dimension = excluded.dimension,
+  name_key = excluded.name_key,
+  sort_order = excluded.sort_order,
+  is_active = excluded.is_active;
+
+insert into public.traits (
+  category_id, dimension, slug, name_key, sort_order, is_active
+)
+select
+  c.id, 'body_area', 'tobillo', 'trait.tattoo.tobillo',
+  80, true
+from public.categories c where c.slug = 'tattoo'
+on conflict (category_id, slug) do update set
+  dimension = excluded.dimension,
+  name_key = excluded.name_key,
+  sort_order = excluded.sort_order,
+  is_active = excluded.is_active;
+
+insert into public.traits (
+  category_id, dimension, slug, name_key, sort_order, is_active
+)
+select
+  c.id, 'body_area', 'mano', 'trait.tattoo.mano',
+  90, true
+from public.categories c where c.slug = 'tattoo'
+on conflict (category_id, slug) do update set
+  dimension = excluded.dimension,
+  name_key = excluded.name_key,
+  sort_order = excluded.sort_order,
+  is_active = excluded.is_active;
+
+insert into public.traits (
+  category_id, dimension, slug, name_key, sort_order, is_active
+)
+select
+  c.id, 'body_area', 'cuello', 'trait.tattoo.cuello',
+  100, true
+from public.categories c where c.slug = 'tattoo'
+on conflict (category_id, slug) do update set
+  dimension = excluded.dimension,
+  name_key = excluded.name_key,
+  sort_order = excluded.sort_order,
+  is_active = excluded.is_active;
+
+insert into public.traits (
+  category_id, dimension, slug, name_key, sort_order, is_active
+)
+select
+  c.id, 'size', 'mini', 'trait.tattoo.mini',
+  10, true
+from public.categories c where c.slug = 'tattoo'
+on conflict (category_id, slug) do update set
+  dimension = excluded.dimension,
+  name_key = excluded.name_key,
+  sort_order = excluded.sort_order,
+  is_active = excluded.is_active;
+
+insert into public.traits (
+  category_id, dimension, slug, name_key, sort_order, is_active
+)
+select
+  c.id, 'size', 'chico', 'trait.tattoo.chico',
+  20, true
+from public.categories c where c.slug = 'tattoo'
+on conflict (category_id, slug) do update set
+  dimension = excluded.dimension,
+  name_key = excluded.name_key,
+  sort_order = excluded.sort_order,
+  is_active = excluded.is_active;
+
+insert into public.traits (
+  category_id, dimension, slug, name_key, sort_order, is_active
+)
+select
+  c.id, 'size', 'mediano', 'trait.tattoo.mediano',
+  30, true
+from public.categories c where c.slug = 'tattoo'
+on conflict (category_id, slug) do update set
+  dimension = excluded.dimension,
+  name_key = excluded.name_key,
+  sort_order = excluded.sort_order,
+  is_active = excluded.is_active;
+
+insert into public.traits (
+  category_id, dimension, slug, name_key, sort_order, is_active
+)
+select
+  c.id, 'size', 'grande', 'trait.tattoo.grande',
+  40, true
+from public.categories c where c.slug = 'tattoo'
+on conflict (category_id, slug) do update set
+  dimension = excluded.dimension,
+  name_key = excluded.name_key,
+  sort_order = excluded.sort_order,
+  is_active = excluded.is_active;
+
+insert into public.traits (
+  category_id, dimension, slug, name_key, sort_order, is_active
+)
+select
+  c.id, 'size', 'gran-formato', 'trait.tattoo.gran-formato',
+  50, true
+from public.categories c where c.slug = 'tattoo'
+on conflict (category_id, slug) do update set
+  dimension = excluded.dimension,
+  name_key = excluded.name_key,
+  sort_order = excluded.sort_order,
+  is_active = excluded.is_active;
+
+insert into public.traits (
+  category_id, dimension, slug, name_key, sort_order, is_active
+)
+select
+  c.id, 'palette', 'negro', 'trait.tattoo.negro',
+  10, true
+from public.categories c where c.slug = 'tattoo'
+on conflict (category_id, slug) do update set
+  dimension = excluded.dimension,
+  name_key = excluded.name_key,
+  sort_order = excluded.sort_order,
+  is_active = excluded.is_active;
+
+insert into public.traits (
+  category_id, dimension, slug, name_key, sort_order, is_active
+)
+select
+  c.id, 'palette', 'negro-y-gris', 'trait.tattoo.negro-y-gris',
+  20, true
+from public.categories c where c.slug = 'tattoo'
+on conflict (category_id, slug) do update set
+  dimension = excluded.dimension,
+  name_key = excluded.name_key,
+  sort_order = excluded.sort_order,
+  is_active = excluded.is_active;
+
+insert into public.traits (
+  category_id, dimension, slug, name_key, sort_order, is_active
+)
+select
+  c.id, 'palette', 'color', 'trait.tattoo.color',
+  30, true
+from public.categories c where c.slug = 'tattoo'
+on conflict (category_id, slug) do update set
+  dimension = excluded.dimension,
+  name_key = excluded.name_key,
+  sort_order = excluded.sort_order,
+  is_active = excluded.is_active;
+
 -- --- locations: ciudades ---
 
 insert into public.locations (slug, country_code, admin_area, city, metro_key, kind, parent_id, group_key)
