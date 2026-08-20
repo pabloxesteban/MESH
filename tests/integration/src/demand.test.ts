@@ -107,10 +107,13 @@ before(async () => {
 
   await artista.client.rpc('set_own_styles', { p_style_slugs: ['fine-line'] })
 
+  // Por `owner_user_id` y no por "el único que tiene dueño": esa suposición se
+  // rompe apenas otro test —o la app— da de alta a un segundo artista, y el
+  // síntoma aparece lejos de acá, en dos tests del mazo que dejan de cerrar.
   const { data: pro } = await artista.client
     .from('professionals')
     .select('id')
-    .not('owner_user_id', 'is', null)
+    .eq('owner_user_id', artista.userId)
     .single()
   professionalId = pro?.id as string
 
