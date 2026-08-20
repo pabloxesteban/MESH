@@ -24,7 +24,7 @@ import { Image } from 'expo-image'
 import { memo } from 'react'
 import { ScrollView, View } from 'react-native'
 
-import { findLocation, roundDistanceKm } from '@mesh/domain'
+import { locationLabel, roundDistanceKm } from '@mesh/domain'
 
 import {
   Box,
@@ -71,10 +71,16 @@ function ArtistCardImpl({
   const t = useT()
   const theme = useTheme()
 
+  // `locationLabel` y no `findLocation(...).neighborhood`: los partidos del
+  // conurbano —Quilmes, San Isidro, La Plata— son `kind: 'city'` y tienen
+  // `neighborhood: null`, así que leerlo directo daba `null` y la tarjeta
+  // anunciaba "no publicó su ubicación" a alguien que sí la publicó. Un tercio
+  // del catálogo de prueba vive fuera de CABA, y es exactamente la clase de
+  // cosa que la app no puede decir: es falsa.
   const barrio =
     artist.neighborhoodSlug == null
       ? null
-      : (findLocation(artist.neighborhoodSlug)?.neighborhood ?? null)
+      : locationLabel(artist.neighborhoodSlug)
 
   return (
     <View
@@ -140,7 +146,6 @@ function ArtistCardImpl({
           </Text>
         </View>
       </Pressable>
-
     </View>
   )
 }
@@ -234,7 +239,9 @@ function ubicacion(
   const partes: string[] = []
   if (barrio != null) partes.push(barrio)
   if (distanceKm != null) {
-    partes.push(t('artists.card.km', { km: String(roundDistanceKm(distanceKm)) }))
+    partes.push(
+      t('artists.card.km', { km: String(roundDistanceKm(distanceKm)) }),
+    )
   }
   return partes.length > 0 ? partes.join(' · ') : t('artists.card.noLocation')
 }

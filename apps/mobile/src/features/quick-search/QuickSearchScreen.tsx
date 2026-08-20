@@ -24,7 +24,7 @@ import * as ImagePicker from 'expo-image-picker'
 import { Image } from 'expo-image'
 import { ScrollView, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { findLocation } from '@mesh/domain'
+import { locationLabel } from '@mesh/domain'
 
 import {
   Box,
@@ -318,9 +318,7 @@ function LocationRow({
           {neighborhoodSlug == null
             ? t('quickSearch.location.unknown')
             : t('quickSearch.location.near', {
-                barrio:
-                  findLocation(neighborhoodSlug)?.neighborhood ??
-                  neighborhoodSlug,
+                barrio: locationLabel(neighborhoodSlug) ?? neighborhoodSlug,
               })}
         </Text>
       </Box>

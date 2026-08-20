@@ -1,0 +1,30 @@
+# Artista fixture. Ver consent.md.
+slug: fixture-minimo
+display_name: 'Mínimo'
+category: tattoo
+location: colegiales
+is_fixture: true
+
+bio: >-
+  Piezas chicas, mucho aire alrededor. Nada más grande que una moneda.
+
+styles:
+  - { slug: minimalist, proficiency: 1.0, primary: true }
+  - { slug: fine-line, proficiency: 0.9, primary: true }
+  - { slug: handpoke, proficiency: 0.5, primary: false }
+  - { slug: dotwork, proficiency: 0.4, primary: false }
+
+travels: false
+
+price:
+  min_cents: 4500000
+  max_cents: 12000000
+  currency: ARS
+  priced_at: '2026-08-08'
+
+availability:
+  status: open
+  updated_at: '2026-08-19'
+
+contact:
+  instagram: fixture.minimo

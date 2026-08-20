@@ -1,0 +1,30 @@
+# Artista fixture. Ver consent.md.
+slug: fixture-tradicional
+display_name: 'Tradicional'
+category: tattoo
+location: almagro
+is_fixture: true
+
+bio: >-
+  Flash clásico: golondrinas, anclas, corazones. Contorno negro cerrado y cinco colores.
+
+styles:
+  - { slug: traditional, proficiency: 1.0, primary: true }
+  - { slug: old-school, proficiency: 0.95, primary: true }
+  - { slug: lettering, proficiency: 0.5, primary: false }
+  - { slug: neo-traditional, proficiency: 0.4, primary: false }
+
+travels: true
+
+price:
+  min_cents: 7000000
+  max_cents: 20000000
+  currency: ARS
+  priced_at: '2026-07-30'
+
+availability:
+  status: limited
+  updated_at: '2026-08-14'
+
+contact:
+  instagram: fixture.tradicional

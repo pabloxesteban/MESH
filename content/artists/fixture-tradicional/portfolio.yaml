@@ -1,0 +1,30 @@
+items:
+  - file: 01.jpg
+    featured: true
+    year: 2025
+    styles:
+      - { slug: traditional, weight: 0.7 }
+      - { slug: old-school, weight: 0.3 }
+  - file: 02.jpg
+    year: 2024
+    styles:
+      - { slug: old-school, weight: 1.0 }
+  - file: 03.jpg
+    year: 2025
+    styles:
+      - { slug: traditional, weight: 1.0 }
+  - file: 04.jpg
+    year: 2023
+    styles:
+      - { slug: traditional, weight: 0.55 }
+      - { slug: lettering, weight: 0.45 }
+  - file: 05.jpg
+    year: 2024
+    styles:
+      - { slug: old-school, weight: 0.6 }
+      - { slug: neo-traditional, weight: 0.4 }
+  - file: 06.jpg
+    year: 2025
+    styles:
+      - { slug: traditional, weight: 0.8 }
+      - { slug: old-school, weight: 0.2 }

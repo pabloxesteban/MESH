@@ -1,0 +1,30 @@
+# Artista fixture. Ver consent.md.
+slug: fixture-neotradicional
+display_name: 'Neotradicional'
+category: tattoo
+location: belgrano
+is_fixture: true
+
+bio: >-
+  Paleta cerrada y contorno grueso. Figuras de siempre —rosas, dagas, panteras— dibujadas con sombra moderna.
+
+styles:
+  - { slug: neo-traditional, proficiency: 1.0, primary: true }
+  - { slug: traditional, proficiency: 0.8, primary: true }
+  - { slug: old-school, proficiency: 0.6, primary: false }
+  - { slug: lettering, proficiency: 0.4, primary: false }
+
+travels: false
+
+price:
+  min_cents: 9000000
+  max_cents: 26000000
+  currency: ARS
+  priced_at: '2026-08-05'
+
+availability:
+  status: open
+  updated_at: '2026-08-15'
+
+contact:
+  instagram: fixture.neotradicional

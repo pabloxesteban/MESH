@@ -21,7 +21,7 @@ import {
   spacing,
   useTheme,
 } from '@/design-system/index.ts'
-import { findLocation } from '@mesh/domain'
+import { locationLabel } from '@mesh/domain'
 import { useT } from '@/i18n/I18nProvider.tsx'
 import type { TranslationKey } from '@/i18n/index.ts'
 
@@ -42,7 +42,9 @@ export function SearchCard({
   const barrio =
     search.locationSlug == null
       ? null
-      : (findLocation(search.locationSlug)?.neighborhood ?? null)
+      : // Ver el comentario en ArtistCard: un partido del conurbano tiene
+        // `neighborhood: null` y leerlo directo lo borra de la tarjeta.
+        locationLabel(search.locationSlug)
 
   const portada = search.referenceUrls[0]
 

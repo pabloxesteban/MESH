@@ -22,6 +22,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import {
   LOCATIONS,
+  locationLabel,
   neighborhoodsOf,
   type LocationDefinition,
 } from '@mesh/domain'
@@ -258,8 +259,9 @@ function Option({
   )
 }
 
+/** El nombre para mostrar. Delega en el dominio para no divergir. */
 function nameOf(place: LocationDefinition): string {
-  return place.neighborhood ?? place.city
+  return locationLabel(place.slug) ?? place.city
 }
 
 /** Sin acentos y en minúscula: nadie escribe "Villa Devoto" con la tilde justa. */

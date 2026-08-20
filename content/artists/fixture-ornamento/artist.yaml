@@ -1,0 +1,30 @@
+# Artista fixture. Ver consent.md.
+slug: fixture-ornamento
+display_name: 'Ornamento'
+category: tattoo
+location: nunez
+is_fixture: true
+
+bio: >-
+  Mandalas, encajes y simetría. Piezas grandes que siguen la forma del cuerpo.
+
+styles:
+  - { slug: ornamental, proficiency: 1.0, primary: true }
+  - { slug: dotwork, proficiency: 0.9, primary: true }
+  - { slug: blackwork, proficiency: 0.6, primary: false }
+  - { slug: minimalist, proficiency: 0.35, primary: false }
+
+travels: false
+
+price:
+  min_cents: 8000000
+  max_cents: 30000000
+  currency: ARS
+  priced_at: '2026-08-02'
+
+availability:
+  status: open
+  updated_at: '2026-08-18'
+
+contact:
+  instagram: fixture.ornamento

@@ -146,6 +146,22 @@ describe('grilla de artistas', () => {
     expect(screen.getByTestId('artist-con-ubicacion')).toBeTruthy()
   })
 
+  it('un partido del conurbano se nombra, no se borra', async () => {
+    // El bug que esto caza: la tarjeta leía `findLocation(slug).neighborhood`,
+    // y los partidos del conurbano son `kind: 'city'` con `neighborhood: null`.
+    // Resultado: la app anunciaba "no publicó su ubicación" sobre alguien que
+    // sí la publicó. Decir algo falso de un artista es peor que no decir nada.
+    gridMock.mockResolvedValue([
+      artista('conurbano', { neighborhoodSlug: 'quilmes' }),
+      artista('capital', { neighborhoodSlug: 'san-telmo' }),
+    ])
+    renderArtists()
+
+    await waitFor(() => expect(screen.getByTestId('artists-list')).toBeTruthy())
+    expect(screen.getByText('Quilmes')).toBeTruthy()
+    expect(screen.getByText('San Telmo')).toBeTruthy()
+  })
+
   it('sin ubicación de nadie no muestra ninguna distancia', async () => {
     mockDeviceLocation.mockReturnValue({
       status: 'unrequested',
@@ -213,7 +229,9 @@ describe('grilla de artistas', () => {
     renderArtists()
 
     // Reintentar no va a hacer aparecer a nadie.
-    await waitFor(() => expect(screen.getByTestId('artists-empty')).toBeTruthy())
+    await waitFor(() =>
+      expect(screen.getByTestId('artists-empty')).toBeTruthy(),
+    )
   })
 })
 
@@ -342,7 +360,9 @@ describe('desde dónde se mira', () => {
         expect(screen.getByTestId('artists-list')).toBeTruthy(),
       )
       // La ubicación ordena y nunca filtra. En los tres modos.
-      expect(screen.getAllByTestId('artist-lejisimos').length).toBeGreaterThan(0)
+      expect(screen.getAllByTestId('artist-lejisimos').length).toBeGreaterThan(
+        0,
+      )
       expect(screen.getAllByTestId('artist-sin-nada').length).toBeGreaterThan(0)
     }
   })

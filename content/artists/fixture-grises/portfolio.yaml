@@ -1,0 +1,36 @@
+items:
+  - file: 01.jpg
+    featured: true
+    year: 2025
+    styles:
+      - { slug: black-and-grey, weight: 0.6 }
+      - { slug: realism, weight: 0.4 }
+  - file: 02.jpg
+    year: 2024
+    styles:
+      - { slug: black-and-grey, weight: 1.0 }
+  - file: 03.jpg
+    year: 2025
+    styles:
+      - { slug: realism, weight: 0.7 }
+      - { slug: black-and-grey, weight: 0.3 }
+  - file: 04.jpg
+    year: 2023
+    styles:
+      - { slug: black-and-grey, weight: 0.5 }
+      - { slug: ornamental, weight: 0.5 }
+  - file: 05.jpg
+    year: 2024
+    styles:
+      - { slug: black-and-grey, weight: 0.75 }
+      - { slug: blackwork, weight: 0.25 }
+  - file: 06.jpg
+    year: 2025
+    styles:
+      - { slug: realism, weight: 0.5 }
+      - { slug: black-and-grey, weight: 0.5 }
+  - file: 07.jpg
+    year: 2022
+    styles:
+      - { slug: black-and-grey, weight: 0.65 }
+      - { slug: ornamental, weight: 0.35 }

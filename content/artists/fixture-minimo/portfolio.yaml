@@ -1,0 +1,26 @@
+items:
+  - file: 01.jpg
+    featured: true
+    year: 2025
+    styles:
+      - { slug: minimalist, weight: 0.65 }
+      - { slug: fine-line, weight: 0.35 }
+  - file: 02.jpg
+    year: 2025
+    styles:
+      - { slug: minimalist, weight: 1.0 }
+  - file: 03.jpg
+    year: 2024
+    styles:
+      - { slug: fine-line, weight: 0.6 }
+      - { slug: minimalist, weight: 0.4 }
+  - file: 04.jpg
+    year: 2025
+    styles:
+      - { slug: minimalist, weight: 0.5 }
+      - { slug: handpoke, weight: 0.5 }
+  - file: 05.jpg
+    year: 2024
+    styles:
+      - { slug: minimalist, weight: 0.7 }
+      - { slug: dotwork, weight: 0.3 }
