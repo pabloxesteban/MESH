@@ -40,15 +40,19 @@ profesionales en base a ese gusto". Se cambió el 2026-08-19: con quince artista
 recomendar es prometer una precisión que no hay. Ver
 [D-010](docs/design/MESH-DESIGN-DECISIONS.md).
 
-V1 es un instrumento de validación, no una plataforma. Es deliberadamente:
+Es un instrumento de validación antes que una plataforma. Deliberadamente:
 
 - **Una sola categoría** — tatuajes
 - **Un solo mercado** — Buenos Aires / CABA
-- **Curado** — 8–15 artistas reales de una red existente, con consentimiento
-- **Sin reservas ni pagos** — el contacto sucede en WhatsApp/Instagram
+- **Curado al arranque** — 8–15 artistas reales con consentimiento, y desde la
+  app cualquiera puede darse de alta solo
 
 Si la hipótesis está equivocada, queremos saberlo en semanas con una app chica,
 no en un año con un marketplace.
+
+**Reservas, pagos y guardados** estaban en esta lista como "no" y salieron el
+2026-08-20. Todavía no están construidos; lo que cambió es que dejaron de estar
+prohibidos. Ver el apartado "Alcance" de `CLAUDE.md`.
 
 ## El loop
 

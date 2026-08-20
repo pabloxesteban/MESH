@@ -6,8 +6,8 @@ Leé esto antes de cambiar nada. Es corto a propósito.
 
 MESH ayuda a la gente a descubrir a la persona indicada para hacer realidad una
 idea. Muestra **quién trabaja cerca tuyo**, con una muestra de su obra, y
-**toda la obra que hay** para buscar ideas. V1: tatuadores, Buenos Aires /
-CABA, sin reservas, sin pagos. El catálogo arranca con 8–15 artistas reales
+**toda la obra que hay** para buscar ideas. Tatuadores, Buenos Aires / CABA.
+El catálogo arranca con 8–15 artistas reales
 curados desde `content/artists/`, y **desde la app cualquier artista puede darse
 de alta solo** — ver [ADR-013](docs/decisions/ADR-013-artist-self-signup.md),
 que documenta qué se pierde al abrirlo y cómo se vuelve a cerrar. El contacto
@@ -19,6 +19,24 @@ se sacó. Los motores de gusto y matching siguen en `packages/domain`,
 versionados y con sus tests, pero hoy **ninguna pantalla de quien busca los
 ejecuta** — ver [D-010](docs/design/MESH-DESIGN-DECISIONS.md). Volver a
 enchufarlos es una decisión de producto, y se escribe antes de codearla.
+
+## Alcance
+
+Dos cosas que hasta el 2026-08-20 estaban explícitamente afuera y **ya no lo
+están**:
+
+- **Reservas y pagos.** Se decidió abrirlas. Todavía no existen: no hay esquema,
+  no hay pantallas, y el botón del perfil sigue abriendo una consulta por chat.
+  Cuando se construyan, van con su ADR — y con el innegociable 3 vigente, que es
+  donde más se nota: una agenda es exactamente el lugar donde se cuelan la
+  escasez y la urgencia falsas.
+- **Guardar obra y artistas.** ADR-003 lo había descartado y
+  [D-010](docs/design/MESH-DESIGN-DECISIONS.md) lo dejó afuera al sacar el mazo.
+  Revertirlo necesita un ADR que revierta a ADR-003, como hizo
+  [ADR-012](docs/decisions/ADR-012-chat.md) con la mensajería.
+
+Sigue afuera, sin cambios: abrir a otras categorías o a otras ciudades, y volver
+a enchufar el gusto y el matching a una pantalla.
 
 ## Innegociables
 
