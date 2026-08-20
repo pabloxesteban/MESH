@@ -31,3 +31,4 @@ todo el repositorio.
 | [015](ADR-015-social-sign-in.md) | Entrar con Google **vincula** la identidad al usuario anónimo; nunca crea uno nuevo | **Aceptado** |
 | [016](ADR-016-saved-items.md) | Guardar obra con un corazón; revierte el descarte de ADR-003 | Enmendado por ADR-017 |
 | [017](ADR-017-saved-ranking.md) | Ranking de lo más guardado y avisos al artista; **enmienda ADR-016** y acota el innegociable 3 | **Aceptado** |
+| [018](ADR-018-availability.md) | Almanaque por reglas, no casilleros; el turno nace de un chat y "ocupado" lo garantiza Postgres | **Aceptado** |

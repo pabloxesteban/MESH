@@ -87,6 +87,77 @@ export type Database = {
           },
         ]
       }
+      appointments: {
+        Row: {
+          cancelled_at: string | null
+          cancelled_by: string | null
+          conversation_id: string | null
+          created_at: string
+          ends_at: string
+          id: string
+          note: string | null
+          professional_id: string
+          starts_at: string
+          status: Database["public"]["Enums"]["appointment_status"]
+          user_id: string
+        }
+        Insert: {
+          cancelled_at?: string | null
+          cancelled_by?: string | null
+          conversation_id?: string | null
+          created_at?: string
+          ends_at: string
+          id?: string
+          note?: string | null
+          professional_id: string
+          starts_at: string
+          status?: Database["public"]["Enums"]["appointment_status"]
+          user_id: string
+        }
+        Update: {
+          cancelled_at?: string | null
+          cancelled_by?: string | null
+          conversation_id?: string | null
+          created_at?: string
+          ends_at?: string
+          id?: string
+          note?: string | null
+          professional_id?: string
+          starts_at?: string
+          status?: Database["public"]["Enums"]["appointment_status"]
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "appointments_cancelled_by_fkey"
+            columns: ["cancelled_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "appointments_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "appointments_professional_id_fkey"
+            columns: ["professional_id"]
+            isOneToOne: false
+            referencedRelation: "professionals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "appointments_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       audit_events: {
         Row: {
           action: string
@@ -116,6 +187,79 @@ export type Database = {
           occurred_at?: string
         }
         Relationships: []
+      }
+      availability_exceptions: {
+        Row: {
+          created_at: string
+          ends_at: string | null
+          id: string
+          is_open: boolean
+          on_date: string
+          professional_id: string
+          starts_at: string | null
+        }
+        Insert: {
+          created_at?: string
+          ends_at?: string | null
+          id?: string
+          is_open: boolean
+          on_date: string
+          professional_id: string
+          starts_at?: string | null
+        }
+        Update: {
+          created_at?: string
+          ends_at?: string | null
+          id?: string
+          is_open?: boolean
+          on_date?: string
+          professional_id?: string
+          starts_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "availability_exceptions_professional_id_fkey"
+            columns: ["professional_id"]
+            isOneToOne: false
+            referencedRelation: "professionals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      availability_rules: {
+        Row: {
+          created_at: string
+          ends_at: string
+          id: string
+          professional_id: string
+          starts_at: string
+          weekday: number
+        }
+        Insert: {
+          created_at?: string
+          ends_at: string
+          id?: string
+          professional_id: string
+          starts_at: string
+          weekday: number
+        }
+        Update: {
+          created_at?: string
+          ends_at?: string
+          id?: string
+          professional_id?: string
+          starts_at?: string
+          weekday?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "availability_rules_professional_id_fkey"
+            columns: ["professional_id"]
+            isOneToOne: false
+            referencedRelation: "professionals"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       categories: {
         Row: {
@@ -1122,6 +1266,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      cancel_appointment: {
+        Args: { p_appointment_id: string }
+        Returns: undefined
+      }
       claim_professional: { Args: { p_code: string }; Returns: string }
       create_own_professional: {
         Args: {
@@ -1143,6 +1291,13 @@ export type Database = {
           slug: string
           studio_lat: number
           studio_lng: number
+        }[]
+      }
+      get_busy_slots: {
+        Args: { p_from: string; p_professional_id: string; p_to: string }
+        Returns: {
+          ends_at: string
+          starts_at: string
         }[]
       }
       get_discovery_feed: {
@@ -1240,6 +1395,15 @@ export type Database = {
         Args: { p_components: Json; p_reasons: Json }
         Returns: boolean
       }
+      schedule_appointment: {
+        Args: {
+          p_conversation_id: string
+          p_ends_at: string
+          p_note?: string
+          p_starts_at: string
+        }
+        Returns: string
+      }
       set_own_styles: { Args: { p_style_slugs: string[] }; Returns: undefined }
       set_studio_location: {
         Args: { p_lat: number; p_lng: number; p_neighborhood_slug?: string }
@@ -1247,6 +1411,7 @@ export type Database = {
       }
     }
     Enums: {
+      appointment_status: "scheduled" | "cancelled"
       availability_status: "open" | "limited" | "waitlist" | "closed"
       interaction_source: "discover" | "search" | "profile"
       interaction_verdict: "like" | "pass"
@@ -1385,6 +1550,7 @@ export const Constants = {
   },
   public: {
     Enums: {
+      appointment_status: ["scheduled", "cancelled"],
       availability_status: ["open", "limited", "waitlist", "closed"],
       interaction_source: ["discover", "search", "profile"],
       interaction_verdict: ["like", "pass"],

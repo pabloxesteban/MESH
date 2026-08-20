@@ -114,6 +114,8 @@ valor— cuesta más en usuarios reales de lo que ahorra en abuso a esta escala.
 | `messages` | participante del hilo padre | participante, y `sender_user_id = auth.uid()` | ✗ | ✗ |
 | `project_interests` | el artista dueño (todas las suyas) · la persona (solo `verdict = 'interest'`) | el artista dueño, con perfil publicado y sobre una búsqueda abierta | ✗ | las dos partes |
 | `saved_items` | propios | propios (`user_id = auth.uid()`) | ✗ (guardar es insert, desguardar es delete) | propios |
+| `availability_rules`, `availability_exceptions` | de cualquier profesional **publicado** | el dueño del perfil | ✗ | el dueño |
+| `appointments` | las dos partes | ✗ (solo vía `schedule_appointment()`) | ✗ (solo vía `cancel_appointment()`) | ✗ |
 | `analytics_events` | ✗ | propios (`user_id = auth.uid()`) | ✗ | ✗ |
 | `audit_events` | ✗ | ✗ | ✗ | ✗ (sin políticas — solo service role) |
 
@@ -132,6 +134,17 @@ agregados y columnas elegidas a mano:
 **Ninguna de las dos devuelve `user_id`.** Se abrió el agregado, no la
 identidad. Está verificado en `supabase/tests/48_saved_items.sql`, que falla si
 alguien le agrega una columna de identidad a cualquiera de las dos.
+
+**Ver el almanaque y ver la agenda son cosas distintas.** El horario de un
+artista publicado es público —es lo que la persona viene a mirar antes de
+escribirle— y los huecos tomados también, vía `get_busy_slots()`. Pero esa
+función devuelve **desde y hasta, nada más**: ningún `user_id`, ninguna nota,
+ninguna conversación. Un hueco ocupado no dice de quién es. Ver ADR-018.
+
+`appointments` no tiene política de INSERT ni de UPDATE: agendar y cancelar
+pasan por funciones, porque los invariantes son varios —la conversación tiene
+que ser del artista, el cliente sale de ahí y no de un parámetro, el pasado no
+se agenda— y no todos caben en un `with check`.
 
 **`professionals` sigue sin política de INSERT ni de UPDATE para el cliente**,
 ni siquiera para el dueño. Todo lo que un artista escribe sobre su propia fila

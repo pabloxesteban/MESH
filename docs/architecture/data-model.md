@@ -232,6 +232,40 @@ el esquema para agregarse después.
 
 ### Conversaciones
 
+**`availability_rules`** — el horario semanal de un artista: día de la semana
+más un tramo de hora a hora. Varias filas por día se permiten (mañana y tarde);
+los huecos libres **no se guardan, se calculan**. Ver
+[ADR-018](../decisions/ADR-018-availability.md).
+
+**`availability_exceptions`** — un día que no sigue la regla: cerrado, o abierto
+en otro horario. Una restricción impide el "cerrado de 14 a 20", que no
+significa nada. Una excepción **reemplaza** a la regla de ese día, no se le
+suma: si se sumaran, marcar un feriado no serviría para nada.
+
+**`appointments`** — un turno, nacido de un chat. `conversation_id` es de dónde
+salió y de dónde sale quién es el cliente; se guarda con `on delete set null`
+porque borrar un chat no puede borrar un turno que las dos partes tienen
+anotado.
+
+| Columna | Tipo | Notas |
+|---|---|---|
+| `professional_id` | uuid NOT NULL | → `professionals` ON DELETE CASCADE |
+| `user_id` | uuid NOT NULL | el cliente, copiado de la conversación |
+| `conversation_id` | uuid | → `conversations` ON DELETE SET NULL |
+| `starts_at`, `ends_at` | timestamptz NOT NULL | `ends_at > starts_at` |
+| `status` | enum | `scheduled` · `cancelled` |
+| `note` | text | lo que se va a tatuar, en palabras del artista |
+
+**"Ocupado" es una restricción de exclusión**, no un chequeo en la app: dos
+turnos `scheduled` del mismo artista no pueden solaparse, y lo impone Postgres.
+El rango es `[)` para que dos turnos consecutivos convivan. Los cancelados
+quedan fuera del índice parcial, así que cancelar libera el horario al instante
+sin borrar el historial.
+
+**No hay estado "completado":** que un turno ya pasó se deriva de `ends_at`. Un
+estado que nadie marca queda para siempre en su valor inicial, mintiendo — y
+las reseñas se van a apoyar en esto.
+
 **`saved_items`** — una obra que alguien guardó con el corazón. Privada de
 punta a punta: las tres políticas filtran por `auth.uid()` y **no existe
 ninguna consulta que cuente guardados ajenos**, ni siquiera para el artista

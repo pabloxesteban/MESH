@@ -169,3 +169,10 @@ export { haversineKm, roundDistanceKm } from './geo/distance.ts'
 export type { GeoCoordinates } from './geo/distance.ts'
 export { sortByNeighborhood, sortByProximity } from './geo/proximity.ts'
 export type { Locatable, WithDistance } from './geo/proximity.ts'
+
+export { freeSpans, openSpans, slotStarts } from './scheduling/slots.ts'
+export type {
+  AvailabilityException,
+  AvailabilityRule,
+  Span,
+} from './scheduling/slots.ts'
