@@ -75,7 +75,19 @@ export function Input({
         style={{
           ...textRoles.body,
           color: theme.textPrimary,
-          minHeight: MIN_TOUCH_TARGET,
+          // Un campo de varias líneas nace con lugar para cuatro. Con la altura
+          // de uno solo, el texto que uno escribe se le va abajo del borde
+          // mientras lo escribe — que es exactamente cuando hay que poder
+          // releerlo. Cuatro líneas cubren un mensaje de chat o el resumen de
+          // un pedido sin volverse una hoja en blanco.
+          minHeight:
+            rest.multiline === true
+              ? textRoles.body.lineHeight * 4 + spacing.xs * 2
+              : MIN_TOUCH_TARGET,
+          // Android alinea el texto al medio de la caja si no se le dice.
+          ...(rest.multiline === true
+            ? { textAlignVertical: 'top' as const }
+            : {}),
           paddingHorizontal: spacing.sm,
           paddingVertical: spacing.xs,
           borderWidth: HAIRLINE,

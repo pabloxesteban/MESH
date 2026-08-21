@@ -158,6 +158,87 @@ export type Database = {
           },
         ]
       }
+      assistant_threads: {
+        Row: {
+          category_id: string
+          created_at: string
+          id: string
+          last_turn_at: string | null
+          project_id: string | null
+          user_id: string
+        }
+        Insert: {
+          category_id: string
+          created_at?: string
+          id?: string
+          last_turn_at?: string | null
+          project_id?: string | null
+          user_id: string
+        }
+        Update: {
+          category_id?: string
+          created_at?: string
+          id?: string
+          last_turn_at?: string | null
+          project_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assistant_threads_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assistant_threads_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assistant_threads_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      assistant_turns: {
+        Row: {
+          body: string
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["assistant_role"]
+          thread_id: string
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["assistant_role"]
+          thread_id: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["assistant_role"]
+          thread_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assistant_turns_thread_id_fkey"
+            columns: ["thread_id"]
+            isOneToOne: false
+            referencedRelation: "assistant_threads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       audit_events: {
         Row: {
           action: string
@@ -1417,6 +1498,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      attach_thread_project: {
+        Args: { p_project_id: string; p_thread_id: string }
+        Returns: undefined
+      }
       cancel_appointment: {
         Args: { p_appointment_id: string }
         Returns: undefined
@@ -1506,6 +1591,10 @@ export type Database = {
           saves: number
           saves_since: number
         }[]
+      }
+      get_reply_habit: {
+        Args: { p_professional_id: string }
+        Returns: Database["public"]["Enums"]["reply_habit"]
       }
       get_review_summary: {
         Args: { p_professional_id: string }
@@ -1606,6 +1695,7 @@ export type Database = {
     }
     Enums: {
       appointment_status: "scheduled" | "cancelled"
+      assistant_role: "person" | "assistant"
       availability_status: "open" | "limited" | "waitlist" | "closed"
       interaction_source: "discover" | "search" | "profile"
       interaction_verdict: "like" | "pass"
@@ -1614,6 +1704,7 @@ export type Database = {
       professional_verdict: "interest" | "pass"
       project_status: "draft" | "active" | "archived"
       project_timing: "asap" | "weeks" | "months" | "flexible"
+      reply_habit: "same_day" | "few_days" | "slower"
       trait_dimension: "body_area" | "size" | "palette"
     }
     CompositeTypes: {
@@ -1746,6 +1837,7 @@ export const Constants = {
   public: {
     Enums: {
       appointment_status: ["scheduled", "cancelled"],
+      assistant_role: ["person", "assistant"],
       availability_status: ["open", "limited", "waitlist", "closed"],
       interaction_source: ["discover", "search", "profile"],
       interaction_verdict: ["like", "pass"],
@@ -1754,6 +1846,7 @@ export const Constants = {
       professional_verdict: ["interest", "pass"],
       project_status: ["draft", "active", "archived"],
       project_timing: ["asap", "weeks", "months", "flexible"],
+      reply_habit: ["same_day", "few_days", "slower"],
       trait_dimension: ["body_area", "size", "palette"],
     },
   },

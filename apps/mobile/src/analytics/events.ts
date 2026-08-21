@@ -92,6 +92,16 @@ export type AnalyticsEvent =
       props: { project_id: string; previous_verdict: string }
     }
   | { name: 'search_opened'; props: { is_open: boolean } }
+  // El asistente de ADR-021. Conteos y booleanos, nunca el texto: lo que
+  // alguien le cuenta a un asistente sobre qué se quiere tatuar y por qué es
+  // exactamente la clase de string que este catálogo existe para no dejar
+  // pasar.
+  | { name: 'assistant_started'; props: Record<string, never> }
+  | {
+      name: 'assistant_brief_closed'
+      props: { trait_count: number; has_style: boolean; turn_count: number }
+    }
+  | { name: 'assistant_thread_discarded'; props: { turn_count: number } }
   | { name: 'error_shown'; props: { surface: string; error_code: string } }
 
 export type EventName = AnalyticsEvent['name']
@@ -122,5 +132,8 @@ export const EVENT_NAMES = [
   'search_passed',
   'search_undone',
   'search_opened',
+  'assistant_started',
+  'assistant_brief_closed',
+  'assistant_thread_discarded',
   'error_shown',
 ] as const satisfies readonly EventName[]

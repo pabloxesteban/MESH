@@ -318,7 +318,7 @@ mismo mecanismo que ya existía para proyectos completos, no uno nuevo. Ver
 `apps/mobile/src/features/quick-search/`.
 
 **De dónde sale el estilo, si nadie lo elige.** La primera foto se manda a
-`classify-style` (`supabase/functions/classify-style/`), una Edge Function
+`read-reference` (`supabase/functions/read-reference/`), una Edge Function
 que le pide a un modelo de visión (Claude) que elija un slug de la lista de
 estilos activos — real, la misma que ya etiqueta el catálogo — o `null` si
 no reconoce ninguno. Es la única llamada a un modelo de IA en toda la app, y
@@ -329,6 +329,13 @@ modelo no reconoce nada, se le dice a la persona y no se inventa un
 resultado. Ver [ADR-011](../decisions/ADR-011-photo-classification.md) para
 por qué esto no contradice ADR-005 (que sigue rechazando IA en el ranking en
 sí), y CLAUDE.md (Innegociable 1) para el límite exacto de la excepción.
+
+**Y si no hay foto.** Desde el 2026-08-20 hay una segunda puerta: un asistente
+que conversa y arma el pedido con las palabras de la persona
+([ADR-021](../decisions/ADR-021-brief-assistant.md)). Cambia la puerta, no el
+motor: lo que llega al matching siguen siendo **slugs de esta misma taxonomía**,
+confirmados por la persona en una pantalla editable antes de existir. Ningún
+texto generado entra al puntaje, y ningún modelo decide un orden.
 
 Antes de esto hubo dos intentos manuales: una lista de chips de texto, y
 después una grilla de fotos reales para tocar la que se pareciera. Los dos se

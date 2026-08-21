@@ -42,6 +42,14 @@ export interface BriefEditorProps {
   onToggle: (slug: string) => void
   /** Cuántos rasgos leyó el modelo. Se dice, para no atribuirse lo que eligió la persona. */
   readCount?: number
+  /**
+   * De dónde salió la lectura.
+   *
+   * Cambia una sola frase, y la frase importa: en el camino del asistente no
+   * hay ninguna foto, y decir "salieron de tu foto" sería contarle a alguien
+   * algo que no pasó. Ver ADR-021.
+   */
+  source?: 'photo' | 'words'
 }
 
 export function BriefEditor({
@@ -49,6 +57,7 @@ export function BriefEditor({
   selected,
   onToggle,
   readCount = 0,
+  source = 'photo',
 }: BriefEditorProps) {
   const t = useT()
 
@@ -61,10 +70,12 @@ export function BriefEditor({
         {/* Se dice cuánto salió de la foto y cuánto falta. Sin esto, un campo
             vacío se lee como un error de la app en vez de como "esto la foto no
             lo dice". */}
-        <Text role="micro" color="textTertiary">
+        <Text role="label" color="textTertiary">
           {readCount === 0
-            ? t('brief.readNone')
-            : t('brief.read', { n: String(readCount) })}
+            ? t(source === 'words' ? 'brief.readNone.words' : 'brief.readNone')
+            : t(source === 'words' ? 'brief.read.words' : 'brief.read', {
+                n: String(readCount),
+              })}
         </Text>
       </Box>
 

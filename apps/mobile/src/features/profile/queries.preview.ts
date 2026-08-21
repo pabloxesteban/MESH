@@ -100,3 +100,23 @@ export async function fetchProfile(slug: string): Promise<ProfileData | null> {
     ],
   }
 }
+
+export type ReplyHabit = 'same_day' | 'few_days' | 'slower'
+
+/**
+ * En el preview, el segundo artista de la lista tarda.
+ *
+ * No todos rápido: el estado que hay que poder mirar es el malo, porque es el
+ * que decide si este indicador sirve para algo o es publicidad. Ver ADR-022.
+ */
+export async function fetchReplyHabit(
+  professionalId: string,
+): Promise<ReplyHabit | null> {
+  const posicion = [...professionalId].reduce(
+    (total, letra) => total + letra.charCodeAt(0),
+    0,
+  )
+  const cual = posicion % 3
+  if (cual === 0) return null
+  return cual === 1 ? 'same_day' : 'slower'
+}

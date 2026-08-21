@@ -211,3 +211,24 @@ function toPiece(row: PieceRow): PortfolioPiece {
       .map((style) => String(style.styles?.slug)),
   }
 }
+
+/** Con qué frecuencia contesta, o `null` si todavía no hay con qué decirlo. */
+export type ReplyHabit = 'same_day' | 'few_days' | 'slower'
+
+/**
+ * El hábito de respuesta de un artista.
+ *
+ * Se pide aparte de `fetchProfile` a propósito: es una consulta que recorre
+ * conversaciones y mensajes, y el perfil tiene que poder dibujarse sin
+ * esperarla. Si tarda o falla, el perfil se ve completo y esta línea no está —
+ * que es exactamente lo que corresponde cuando no se sabe. Ver ADR-022.
+ */
+export async function fetchReplyHabit(
+  professionalId: string,
+): Promise<ReplyHabit | null> {
+  const { data, error } = await supabase.rpc('get_reply_habit', {
+    p_professional_id: professionalId,
+  })
+  if (error != null) throw error
+  return (data as ReplyHabit | null) ?? null
+}

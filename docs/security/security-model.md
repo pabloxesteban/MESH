@@ -117,6 +117,10 @@ valor— cuesta más en usuarios reales de lo que ahorra en abuso a esta escala.
 | `availability_rules`, `availability_exceptions` | de cualquier profesional **publicado** | el dueño del perfil | ✗ | el dueño |
 | `appointments` | las dos partes | ✗ (solo vía `schedule_appointment()`) | ✗ (solo vía `cancel_appointment()`) | ✗ |
 | `reviews` | **solo las propias** (lo público sale de `get_reviews()`) | quien tuvo un turno propio, con ese artista, no cancelado y ya terminado | la autora, con las columnas de origen congeladas por trigger | la autora |
+| `traits` | todas las filas activas | ✗ | ✗ | ✗ |
+| `project_traits` | proyecto padre propio | padre propio | ✗ (sacar y poner) | padre propio |
+| `assistant_threads` | propios | propios (`user_id = auth.uid()`) | ✗ (solo vía `attach_thread_project()`) | propios |
+| `assistant_turns` | del hilo padre propio | del hilo propio **y solo `role = 'person'`** | ✗ | ✗ (se borra el hilo entero) |
 | `analytics_events` | ✗ | propios (`user_id = auth.uid()`) | ✗ | ✗ |
 | `audit_events` | ✗ | ✗ | ✗ | ✗ (sin políticas — solo service role) |
 
@@ -200,6 +204,39 @@ Una persona tiene como mucho un perfil, y eso lo impone la base
 No hay moderación, ni denuncia, ni camino de despublicación. Es un riesgo
 aceptado a sabiendas con el producto sin lanzar, y la vuelta atrás es una línea
 —sacarle el `grant execute` a `create_own_professional`—, no una migración.
+
+### El hilo con el asistente
+
+Un `assistant_thread` es de una sola persona y **no lo lee nadie más**: ni otro
+usuario, ni un artista, ni sabiendo su id. Es la superficie donde alguien cuenta
+qué se quiere tatuar y por qué, así que se trata como sus fotos de referencia.
+Ver [ADR-021](../decisions/ADR-021-brief-assistant.md).
+
+Lo que sostiene la ADR entera es **una línea de la política de INSERT**:
+
+```sql
+create policy assistant_turns_insert_own on public.assistant_turns
+  for insert to authenticated
+  with check (role = 'person' and ...)
+```
+
+Sin `role = 'person'`, un cliente modificado fabrica una respuesta del asistente
+—un precio, una disponibilidad, un "fulano te lo hace"— y la muestra como si
+MESH la hubiera dicho. Las tres prohibiciones fuertes de esa ADR no valen nada
+si el cliente puede escribir del lado del bot.
+
+El turno del asistente lo escribe `supabase/functions/brief-assistant` **con la
+service key**, y es lo único para lo que la usa. Antes verifica el hilo **con el
+JWT de quien llama**: si RLS no se lo devuelve, no es suyo y la función no
+escribe nada. Verificado en `supabase/tests/53_assistant.sql`.
+
+Dos cosas más que se le deben a quien usa esto:
+
+- **El hilo se borra entero**, con todo lo que se dijo adentro, y el DELETE es
+  del cliente a propósito.
+- **Nada de lo que el asistente escribe cruza hacia un artista** salvo el pedido
+  que la persona leyó, editó y confirmó — que se guarda en
+  `projects.description`, o sea como texto suyo. La transcripción no sale nunca.
 
 ### Las búsquedas de la gente
 
@@ -354,10 +391,12 @@ Los chequeos del lado del cliente son UX. Lo que realmente impone es:
 | Spam de proyectos | Máximo 20 proyectos **sin archivar** por usuario, impuesto por un trigger `BEFORE INSERT`, no por el cliente. Los archivados no cuentan: archivar es la salida, y hacerla contar convertiría la cuota en una trampa sin puerta |
 | Abuso de storage con imágenes de referencia | Máximo 10 referencias por proyecto, máximo 50 MB por usuario, los dos con trigger `BEFORE INSERT`. La media curada no tiene cuota — la sube el seeder, no una persona |
 | Inundación de analytics | Solo inserción, sin lectura; se monitorea el volumen; los eventos se descartan, nunca se reintentan agresivamente |
+| Inundación del asistente | 40 turnos por hilo y 120 turnos de persona por hora, los dos con trigger `BEFORE INSERT`. El tope por hilo además acota el contexto que se le manda al modelo: sin él, el costo por hilo no tiene techo |
+| Reconstrucción del negocio de un artista con `get_reply_habit()` | Devuelve un solo valor de un enum de tres. Sin fechas, sin conteos, sin identidades: llamarla en loop no dice con quién habló ni cuántas conversaciones tiene |
 | Cosecha de datos de contacto | `whatsapp_e164` e `instagram_handle` son legibles para profesionales publicados — eso *es* el producto. La mitigación es el consentimiento (los artistas saben que sus datos se muestran) más límite de tasa en la lectura del catálogo, no la oscuridad. |
 | Scraping del catálogo | Aceptado como daño bajo en V1 con 12 perfiles públicos y consentidos. Revisitar antes de que el catálogo sea un activo. |
 
-Los tres triggers de cuota son `SECURITY DEFINER` con `search_path` fijado, a
+Los triggers de cuota son `SECURITY DEFINER` con `search_path` fijado, a
 propósito: cuentan filas para decidir si aceptar una más, y una cuenta que RLS
 pudiera recortar sería una cuota evadible. Verificados en
 `supabase/tests/50_quotas.sql`, ejecutados desde el rol `authenticated` — que es
@@ -370,7 +409,7 @@ desde donde se intentaría evadirlos.
 | `EXPO_PUBLIC_SUPABASE_URL` | Bundle del cliente (público por diseño) | — |
 | `EXPO_PUBLIC_SUPABASE_ANON_KEY` | Bundle del cliente (público por diseño) | — |
 | `SUPABASE_SERVICE_ROLE_KEY` | `tools/seed/.env.local`, secreto de CI | Cualquier archivo bajo `apps/`, cualquier log, cualquier commit |
-| `ANTHROPIC_API_KEY` | Secreto de la Edge Function `classify-style` (`supabase/.env` local, `supabase secrets set` en producción) | Cualquier archivo bajo `apps/`, cualquier variable `EXPO_PUBLIC_*`, cualquier log, cualquier commit |
+| `ANTHROPIC_API_KEY` | Secreto de las Edge Functions `read-reference` y `brief-assistant` (`supabase/.env` local, `supabase secrets set` en producción) | Cualquier archivo bajo `apps/`, cualquier variable `EXPO_PUBLIC_*`, cualquier log, cualquier commit |
 | Contraseña de la base | Gestor de contraseñas del operador | En cualquier otro lado |
 
 Controles:

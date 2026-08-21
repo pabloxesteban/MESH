@@ -21,7 +21,10 @@ export default function ExplorarRoute() {
       onOpenArtist={(slug) => router.push(`/artista/${slug}`)}
       {...(typeof estilo === 'string' ? { initialStyle: estilo } : {})}
       {...(userId != null
-        ? { onSearchByPhotos: () => router.push('/buscar') }
+        ? {
+            onSearchByPhotos: () => router.push('/buscar'),
+            onSearchByWords: () => router.push('/asistente'),
+          }
         : {})}
     />
   )

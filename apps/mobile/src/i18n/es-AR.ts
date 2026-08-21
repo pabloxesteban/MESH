@@ -458,6 +458,10 @@ export const esAR = {
   'brief.read': 'Salieron {n} de tu foto. Cambiá lo que no sea así.',
   'brief.readNone':
     'De tu foto no pudimos sacar nada con seguridad. Completalo vos.',
+  'brief.read.words':
+    'Salieron {n} de lo que contaste. Cambiá lo que no sea así.',
+  'brief.readNone.words':
+    'De lo que contaste no sacamos nada con seguridad. Completalo vos.',
   'brief.style': 'Estilo',
   'brief.bodyArea': 'Dónde va',
   'brief.size': 'Qué tamaño',
@@ -573,6 +577,57 @@ export const esAR = {
   'account.more': 'Más',
   'account.studio': 'Tu estudio',
   'account.saved': 'Guardado',
+  // --- el asistente ---------------------------------------------------------
+  // El bot que ayuda a armar el pedido. Ver ADR-021. El texto de apertura y el
+  // de límites NO los escribe ningún modelo: son de la app, y dicen las tres
+  // cosas que el asistente tiene prohibidas antes de que alguien las pregunte.
+  'assistant.title': 'Contame qué querés',
+  'assistant.badge': 'Asistente de MESH',
+  'assistant.opening':
+    'Te hago tres o cuatro preguntas para armar tu pedido. Después lo revisás vos y recién ahí lo ven los tatuadores.',
+  'assistant.limits':
+    'No sé precios, no sé quién tiene lugar y no te recomiendo a nadie. Eso lo responde cada tatuador.',
+  'assistant.placeholder': 'Escribí qué tenés en mente',
+  'assistant.send': 'Mandar',
+  'assistant.thinking': 'Pensando',
+  'assistant.discard': 'Borrar esta conversación',
+  'assistant.error': 'No pudimos responderte. Probá de nuevo.',
+  'assistant.entry': 'Contame con palabras',
+  'assistant.entry.body':
+    'Si no tenés una foto, contame la idea y armamos el pedido juntos.',
+
+  // La revisión, que es donde la persona se apropia del pedido.
+  'assistant.review.title': 'Revisá tu pedido',
+  'assistant.review.body':
+    'Esto es lo que va a leer un tatuador. Cambiá lo que no diga lo que querés.',
+  'assistant.review.gaps':
+    'Quedaron {n} datos sin completar. Se puede publicar igual.',
+  'assistant.review.gaps.one':
+    'Quedó 1 dato sin completar. Se puede publicar igual.',
+  'assistant.review.name': 'Nombre del pedido',
+  'assistant.review.summary': 'Tu pedido en palabras',
+  'assistant.review.summary.hint':
+    'Está escrito con lo que contaste. Editalo hasta que suene tuyo.',
+  'assistant.review.publish': 'Publicar el pedido',
+  'assistant.review.error': 'No pudimos publicar el pedido. Probá de nuevo.',
+
+  // Con qué frecuencia contesta un artista. Calculado al leer, de sus propias
+  // conversaciones. Una de las tres frases es mala a propósito: un indicador
+  // que solo puede decir cosas buenas es publicidad. Ver ADR-022.
+  'replyHabit.same_day': 'Suele contestar en el día',
+  'replyHabit.few_days': 'Suele contestar en unos días',
+  'replyHabit.slower': 'Suele tardar en contestar',
+  'replyHabit.source':
+    'Calculado con sus conversaciones de los últimos 90 días.',
+  'replyHabit.own': 'Así se ve tu respuesta en tu perfil',
+
+  // Mandar el pedido armado como primer mensaje de un chat. Ver ADR-021.
+  'sendBrief.title': 'Tenés un pedido armado',
+  'sendBrief.body':
+    'Se lo podés mandar como primer mensaje, así puede pasarte un precio sin preguntarte cinco cosas.',
+  'sendBrief.preview': 'Ver qué le llega',
+  'sendBrief.send': 'Mandar mi pedido',
+
   // --- chat ---
   'chat.title': 'Mensajes',
   'chat.empty.title': 'Todavía no escribiste a nadie',

@@ -32,3 +32,7 @@ todo el repositorio.
 | [016](ADR-016-saved-items.md) | Guardar obra con un corazón; revierte el descarte de ADR-003 | Enmendado por ADR-017 |
 | [017](ADR-017-saved-ranking.md) | Ranking de lo más guardado y avisos al artista; **enmienda ADR-016** y acota el innegociable 3 | **Aceptado** |
 | [018](ADR-018-availability.md) | Almanaque por reglas, no casilleros; el turno nace de un chat y "ocupado" lo garantiza Postgres | **Aceptado** |
+| [019](ADR-019-reviews.md) | Reseñas colgadas de un turno que ocurrió; el artista no las escribe, no las edita y no sabe quién las dejó | **Aceptado** |
+| [020](ADR-020-brief.md) | El brief como objeto central: rasgos como taxonomía, y el artista responde con un precio | **Aceptado** |
+| [021](ADR-021-brief-assistant.md) | Un asistente que conversa para armar el pedido; **enmienda el innegociable 1** con siete reglas duras, y deja el chat humano intacto | **Aceptado** |
+| [022](ADR-022-reply-habit.md) | Con qué frecuencia contesta un artista, en tres frases de las que una es mala | **Aceptado** |

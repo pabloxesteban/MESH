@@ -101,6 +101,19 @@ vea nadie—, porque eso lo decide RLS y acá no hay base. Está en
 `supabase/tests/26_artist_self_signup.sql`,
 `supabase/tests/46_open_searches.sql` y en `tests/integration/`.
 
+**El asistente del preview es un guion, no un modelo.** Tres preguntas fijas y
+cierra con un pedido al que le falta el tamaño a propósito — el estado que hay
+que poder mirar es el que tiene huecos, no el camino feliz. Sirve para ver la
+pantalla, los turnos etiquetados y la revisión editable; **no** sirve para
+evaluar qué tan bien conversa el asistente de verdad, que vive en
+`supabase/functions/brief-assistant/`.
+
+**Dos cosas nuevas no se pueden mirar con el catálogo de prueba.** «Suele
+contestar en el día» y «Tenés un pedido armado» solo aparecen en perfiles que no
+son fixtures, y en el preview todo el catálogo lo es. La misma limitación que ya
+tenía el almanaque. Para verlas hay que crear un perfil propio desde
+**Perfil → Tu estudio**.
+
 **Un preview que se ve bien no dice que la app esté bien.** react-native-web es
 una traducción. Antes de un release hay que abrirla en un dispositivo con Expo
 Go.

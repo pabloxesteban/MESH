@@ -38,6 +38,7 @@ import {
   fetchOwnProfessionalForConversation,
 } from '@/features/scheduling/queries.ts'
 import { fetchReviewableAppointments } from '@/features/reviews/queries.ts'
+import { SendBrief } from '@/features/assistant/SendBrief.tsx'
 
 import {
   fetchMessages,
@@ -215,6 +216,17 @@ export function ChatScreen({
           gap: spacing.xs,
         }}
       >
+        {/* El pedido armado, como primer mensaje. Solo en un chat vacío y solo
+            del lado de quien busca: después del primero, la conversación ya
+            arrancó. Ver ADR-021. */}
+        {ownProfessionalId == null && (messages.data ?? []).length === 0 ? (
+          <SendBrief
+            userId={userId}
+            sending={send.isPending}
+            onSend={(body) => send.mutate(body)}
+          />
+        ) : null}
+
         {ownProfessionalId != null ? (
           <ScheduleFromChat
             conversationId={conversationId}

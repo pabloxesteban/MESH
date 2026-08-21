@@ -39,6 +39,7 @@ import { useT } from '@/i18n/I18nProvider.tsx'
 
 import { StudioSaves } from '@/features/saved/StudioSaves.tsx'
 import { AvailabilityEditor } from '@/features/scheduling/AvailabilityEditor.tsx'
+import { fetchReplyHabit } from '@/features/profile/queries.ts'
 import type { TranslationKey } from '@/i18n/index.ts'
 
 import { readDeviceGps } from './gps.ts'
@@ -302,6 +303,11 @@ export function StudioScreen({ userId, onBack }: StudioScreenProps) {
         {/* Arriba de todo lo editable: es lo único de esta pantalla que cambia
             sin que el artista haga nada, así que es lo que vino a mirar. */}
         {userId != null ? <StudioSaves userId={userId} /> : null}
+
+        {/* Lo mismo que ve cualquiera en su perfil, y por eso está acá: un
+            indicador público sobre una persona que esa persona no puede ver es
+            una calificación a sus espaldas. Ver ADR-022. */}
+        <OwnReplyHabit professionalId={professional.id} />
 
         {/* El horario va con el resto de lo que el artista configura sobre sí
             mismo. Ver ADR-018. */}
@@ -775,6 +781,38 @@ function OwnStyles({
           testID="studio-styles-save"
         />
       ) : null}
+    </Box>
+  )
+}
+
+/**
+ * Con qué frecuencia contesta, tal como lo ve cualquiera en su perfil.
+ *
+ * Está acá por una sola razón: un indicador público sobre una persona que esa
+ * persona no puede ver es una calificación a sus espaldas. Si todavía no hay
+ * datos suficientes, no se dibuja nada — igual que en el perfil. Ver ADR-022.
+ */
+function OwnReplyHabit({ professionalId }: { professionalId: string }) {
+  const t = useT()
+
+  const habito = useQuery({
+    queryKey: ['reply-habit', professionalId],
+    queryFn: () => fetchReplyHabit(professionalId),
+  })
+
+  if (habito.data == null) return null
+
+  return (
+    <Box gap="xxs" testID="studio-reply-habit">
+      <Text role="label" color="textSecondary">
+        {t('replyHabit.own')}
+      </Text>
+      <Text role="body">
+        {t(`replyHabit.${habito.data}` as TranslationKey)}
+      </Text>
+      <Text role="label" color="textTertiary">
+        {t('replyHabit.source')}
+      </Text>
     </Box>
   )
 }

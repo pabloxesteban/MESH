@@ -20,6 +20,7 @@ app/
     para-vos.tsx                 chats
     perfil.tsx                   cuenta, alcance, tema, acceso al estudio
     buscar.tsx                   buscar por fotos — ruta sin pestaña
+  asistente.tsx                  contarlo con palabras — ruta sin pestaña
   ubicacion.tsx                  desde dónde mirar — se llega desde Inicio
   artista/[slug].tsx             perfil profesional (push desde cualquier lado)
   chat/[id].tsx                  una conversación

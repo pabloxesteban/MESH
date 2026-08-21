@@ -34,6 +34,7 @@ import { OnboardingGate } from '@/features/onboarding/OnboardingGate.tsx'
 import { ContactScreen } from '@/features/contact/ContactScreen.tsx'
 import { ExploreScreen } from '@/features/discovery/ExploreScreen.tsx'
 import { QuickSearchScreen } from '@/features/quick-search/QuickSearchScreen.tsx'
+import { AssistantScreen } from '@/features/assistant/AssistantScreen.tsx'
 import { ProfileScreen } from '@/features/profile/ProfileScreen.tsx'
 import { SearchLocationScreen } from '@/features/location/SearchLocationScreen.tsx'
 import { useDeviceLocation } from '@/features/location/useDeviceLocation.ts'
@@ -213,6 +214,9 @@ function Shell({ abrirEstudio }: { abrirEstudio: boolean }) {
   // "Buscar con una foto" dejó de ser pestaña: se abre desde Explorar y
   // termina en Explorar, filtrado por el estilo que detectó la IA.
   const [buscando, setBuscando] = useState(false)
+  // El asistente de ADR-021. En el preview el guion es fijo y sin modelo: tres
+  // preguntas y cierra con un pedido que tiene un hueco a propósito.
+  const [contando, setContando] = useState(false)
   // Crear cuenta y entrar son rutas en la app; acá son una sobrecapa, que es
   // todo lo que hace falta para MIRARLAS.
   const [cuenta, setCuenta] = useState<
@@ -317,6 +321,18 @@ function Shell({ abrirEstudio }: { abrirEstudio: boolean }) {
     if (contacto != null) {
       return <ContactScreen slug={contacto} onBack={() => setContacto(null)} />
     }
+    if (contando) {
+      return (
+        <AssistantScreen
+          userId={USUARIO}
+          onBack={() => setContando(false)}
+          onPublished={() => {
+            setContando(false)
+            setPestana('para-vos')
+          }}
+        />
+      )
+    }
     if (buscando) {
       return (
         <QuickSearchScreen
@@ -368,6 +384,7 @@ function Shell({ abrirEstudio }: { abrirEstudio: boolean }) {
             userId={USUARIO}
             onOpenArtist={(slug) => setPerfil(slug)}
             onSearchByPhotos={() => setBuscando(true)}
+            onSearchByWords={() => setContando(true)}
             {...(estiloBuscado != null ? { initialStyle: estiloBuscado } : {})}
           />
         )

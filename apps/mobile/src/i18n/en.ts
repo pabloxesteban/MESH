@@ -418,6 +418,9 @@ export const en: Readonly<Record<TranslationKey, string>> = {
   'brief.read': '{n} came from your photo. Change whatever is off.',
   'brief.readNone':
     'We could not read anything from your photo with confidence. Fill it in yourself.',
+  'brief.read.words': '{n} came from what you told me. Change anything wrong.',
+  'brief.readNone.words':
+    "We couldn't pull anything definite from what you told me. Fill it in yourself.",
   'brief.style': 'Style',
   'brief.bodyArea': 'Where it goes',
   'brief.size': 'What size',
@@ -527,6 +530,47 @@ export const en: Readonly<Record<TranslationKey, string>> = {
   'account.more': 'More',
   'account.studio': 'Your studio',
   'account.saved': 'Saved',
+  // The brief assistant. See ADR-021.
+  'assistant.title': 'Tell me what you want',
+  'assistant.badge': 'MESH assistant',
+  'assistant.opening':
+    'I ask three or four questions to put your request together. Then you review it, and only then do tattooers see it.',
+  'assistant.limits':
+    "I don't know prices, I don't know who has openings, and I don't recommend anyone. Each tattooer answers that.",
+  'assistant.placeholder': 'Write what you have in mind',
+  'assistant.send': 'Send',
+  'assistant.thinking': 'Thinking',
+  'assistant.discard': 'Delete this conversation',
+  'assistant.error': "We couldn't reply. Try again.",
+  'assistant.entry': 'Tell me in words',
+  'assistant.entry.body':
+    "If you don't have a photo, tell me the idea and we'll build the request together.",
+  'assistant.review.title': 'Review your request',
+  'assistant.review.body':
+    "This is what a tattooer will read. Change anything that doesn't say what you want.",
+  'assistant.review.gaps':
+    '{n} details are still blank. You can publish anyway.',
+  'assistant.review.gaps.one':
+    '1 detail is still blank. You can publish anyway.',
+  'assistant.review.name': 'Request name',
+  'assistant.review.summary': 'Your request in words',
+  'assistant.review.summary.hint':
+    'Written from what you told me. Edit it until it sounds like you.',
+  'assistant.review.publish': 'Publish the request',
+  'assistant.review.error': "We couldn't publish the request. Try again.",
+  'replyHabit.same_day': 'Usually replies the same day',
+  'replyHabit.few_days': 'Usually replies within a few days',
+  'replyHabit.slower': 'Usually slow to reply',
+  'replyHabit.source':
+    'Calculated from their conversations in the last 90 days.',
+  'replyHabit.own': 'This is how your replying looks on your profile',
+
+  'sendBrief.title': 'You have a request ready',
+  'sendBrief.body':
+    'You can send it as your first message, so they can quote you without asking five things.',
+  'sendBrief.preview': 'See what they get',
+  'sendBrief.send': 'Send my request',
+
   'chat.title': 'Messages',
   'chat.empty.title': "You haven't written to anyone yet",
   'chat.empty.body':

@@ -33,6 +33,12 @@
 
 import { createClient } from 'jsr:@supabase/supabase-js@2'
 
+import {
+  fetchVocabulary,
+  resolveSlug,
+  resolveTraits,
+} from '../_shared/vocabulary.ts'
+
 const ANTHROPIC_API_KEY = Deno.env.get('ANTHROPIC_API_KEY')
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL') ?? ''
 const SUPABASE_ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY') ?? ''
@@ -61,20 +67,10 @@ function jsonResponse(body: unknown, status: number): Response {
   })
 }
 
-/**
- * Valida que el slug que devolvió el modelo sea uno de los que le ofrecimos.
- *
- * Es una segunda barrera después del `tool_choice` forzado — si algo raro
- * pasa (una versión de API distinta, un cambio de comportamiento del
- * modelo), esto nunca deja pasar un estilo inventado.
- */
-export function resolveClassifiedSlug(
-  raw: unknown,
-  knownSlugs: readonly string[],
-): string | null {
-  if (typeof raw !== 'string') return null
-  return knownSlugs.includes(raw) ? raw : null
-}
+// La barrera que valida cada slug contra la lista que entró vive en
+// `_shared/vocabulary.ts`: la comparte con el asistente de ADR-021, y dos copias
+// de una barrera de seguridad es una barrera que algún día se arregla en un
+// solo lado.
 
 /**
  * Qué le pedimos al modelo por cada dimensión.
@@ -184,45 +180,16 @@ Deno.serve(async (req) => {
     return jsonResponse({ error: 'imagen demasiado grande' }, 413)
   }
 
-  const { data: styles, error: stylesError } = await supabase
-    .from('styles')
-    .select('slug, aliases, categories!inner(slug, is_active)')
-    .eq('categories.slug', body.categorySlug)
-    .eq('categories.is_active', true)
-    .eq('is_active', true)
-
-  if (stylesError != null || styles == null || styles.length === 0) {
+  // El vocabulario sale de la base, así que la lista que ve el modelo es
+  // exactamente la que la pantalla del brief le va a ofrecer a la persona para
+  // corregir.
+  const vocabulary = await fetchVocabulary(supabase, body.categorySlug)
+  if (vocabulary == null) {
     return jsonResponse({ error: 'no hay estilos para esa categoría' }, 400)
   }
 
-  const styleSlugs = styles.map((row) => String(row.slug))
-
-  // Los rasgos de la categoría, agrupados por dimensión. Salen de la tabla,
-  // así que la lista que ve el modelo es exactamente la que la pantalla del
-  // brief le va a ofrecer a la persona para corregir.
-  const { data: traits } = await supabase
-    .from('traits')
-    .select('slug, dimension, categories!inner(slug, is_active)')
-    .eq('categories.slug', body.categorySlug)
-    .eq('categories.is_active', true)
-    .eq('is_active', true)
-    .order('sort_order')
-
-  const traitsByDimension: Record<string, string[]> = {}
-  for (const row of traits ?? []) {
-    const dimension = String(row.dimension)
-    ;(traitsByDimension[dimension] ??= []).push(String(row.slug))
-  }
-
+  const { styleSlugs, styleList, traitsByDimension } = vocabulary
   const tool = buildReadingTool(styleSlugs, traitsByDimension)
-  const styleList = styles
-    .map((row) => {
-      const aliases = (row.aliases as string[] | null) ?? []
-      return aliases.length > 0
-        ? `${String(row.slug)} (también: ${aliases.join(', ')})`
-        : String(row.slug)
-    })
-    .join('\n')
 
   let anthropicResponse: Response
   try {
@@ -237,7 +204,7 @@ Deno.serve(async (req) => {
         model: ANTHROPIC_MODEL,
         max_tokens: 256,
         tools: [tool],
-        tool_choice: { type: 'tool', name: 'classify_style' },
+        tool_choice: { type: 'tool', name: tool.name },
         messages: [
           {
             role: 'user',
@@ -285,13 +252,8 @@ Deno.serve(async (req) => {
   // Segunda barrera, dimensión por dimensión: nada sale de acá que no estuviera
   // en la lista que entró. `styleSlug` conserva su nombre en la respuesta
   // porque es el mismo dato de siempre.
-  const styleSlug = resolveClassifiedSlug(input['style_slug'], styleSlugs)
-
-  const readTraits: Array<{ dimension: string; slug: string }> = []
-  for (const [dimension, slugs] of Object.entries(traitsByDimension)) {
-    const slug = resolveClassifiedSlug(input[dimension], slugs)
-    if (slug != null) readTraits.push({ dimension, slug })
-  }
+  const styleSlug = resolveSlug(input['style_slug'], styleSlugs)
+  const readTraits = resolveTraits(input, traitsByDimension)
 
   return jsonResponse({ styleSlug, traits: readTraits }, 200)
 })

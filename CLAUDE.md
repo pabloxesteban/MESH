@@ -40,6 +40,18 @@ están**:
   las borra y no sabe quién las dejó. Ver
   [ADR-019](docs/decisions/ADR-019-reviews.md).
 
+- **Un asistente que conversa.** Ya existe. Quien no tiene una foto le cuenta la
+  idea con sus palabras y el asistente arma el pedido; la persona lo edita y lo
+  confirma antes de que exista. Vive en un hilo aparte, **nunca adentro del chat
+  con un artista**, y tiene siete reglas duras encima — entre ellas que nunca
+  dice un precio, nunca dice una disponibilidad y nunca nombra a un tatuador.
+  Ver [ADR-021](docs/decisions/ADR-021-brief-assistant.md), que enmienda el
+  innegociable 1.
+- **Con qué frecuencia contesta un artista.** Ya existe, calculado al leer de
+  sus propias conversaciones, en tres frases de las que una es mala. No es un
+  puntaje, no ordena a nadie y no se puede apagar. Ver
+  [ADR-022](docs/decisions/ADR-022-reply-habit.md).
+
 Sigue afuera, sin cambios: abrir a otras categorías o a otras ciudades, y volver
 a enchufar el gusto y el matching a una pantalla.
 
@@ -48,13 +60,28 @@ a enchufar el gusto y el matching a una pantalla.
 1. **Explicable antes que ingenioso.** Nada de ML ni LLM en el camino de
    *recomendación*: la función de matching —qué se puntúa, en qué orden se
    muestra, qué razón se da— es determinística, versionada y con tests
-   unitarios. Excepción única y acotada: interpretar una entrada ambigua que
-   la propia persona subió (hoy, clasificar la foto de referencia de "buscar
-   por fotos" contra la taxonomía real de estilos) puede usar un modelo,
-   siempre con vocabulario cerrado — nunca texto libre, nunca un slug
-   inventado — y siempre corriendo del lado del servidor. El resultado de esa
-   clasificación entra al motor de matching como un dato más; el motor en sí
-   nunca deja de ser puro. Ver [ADR-011](docs/decisions/ADR-011-photo-classification.md).
+   unitarios. **Eso no se toca nunca**, y todo lo que sigue es una excepción
+   *antes* del motor, jamás adentro.
+
+   Un modelo puede **ayudar a alguien a decir qué quiere**, siempre del lado
+   del servidor y siempre con la salida forzada a una herramienta:
+
+   - **Interpretar lo que la propia persona subió** — clasificar su foto de
+     referencia contra la taxonomía real. Vocabulario cerrado, nunca texto
+     libre, nunca un slug inventado. Ver
+     [ADR-011](docs/decisions/ADR-011-photo-classification.md).
+   - **Conversar con ella para armar su pedido**, cuando no hay foto sino una
+     idea a medias. Acá **sí hay texto libre**, y por eso viene con las siete
+     reglas duras de [ADR-021](docs/decisions/ADR-021-brief-assistant.md), de
+     las que estas tres son las que se rompen primero: el asistente **nunca
+     dice un precio**, **nunca dice una disponibilidad** y **nunca nombra a un
+     artista**. Habla solo con su dueña, en un hilo que nadie más lee, y nada
+     de lo que escribe llega a un tercero sin que ella lo haya leído,
+     editado y confirmado.
+
+   En los dos casos lo que entra al motor son **slugs de la taxonomía**, como
+   un dato más. El motor en sí nunca deja de ser puro.
+
 2. **Nunca inventar.** Nada de reseñas, testimonios, disponibilidad, precios,
    estadísticas de reservas ni razones de match inventadas. Una razón solo se
    puede mostrar si el término que describe efectivamente aportó al puntaje.
@@ -134,7 +161,7 @@ depende de a qué vino la persona. Ver
 | | Busca a alguien | Ofrece un servicio |
 |---|---|---|
 | **Inicio** | La grilla de artistas: un carrusel chico de la obra de cada uno y, debajo, nombre, foto y ubicación. Contesta *quién tatúa cerca mío*. Arriba dice desde dónde se mide y se cambia — GPS, un barrio, o nada ([D-012](docs/design/MESH-DESIGN-DECISIONS.md)). Ordena por cercanía, **nunca filtra por ella**. | El mazo de búsquedas de gente. Un tatuador no quiere deslizar obra de otros tatuadores. |
-| **Segunda** | **Explorar**: toda la obra de todos los que se registraron, cerca o lejos. Contesta *qué me quiero tatuar*. Buscar por fotos con IA se entra desde acá — ver [ADR-011](docs/decisions/ADR-011-photo-classification.md). | **Estudio**: tu perfil, tus estilos, tu ubicación, tu obra. |
+| **Segunda** | **Explorar**: toda la obra de todos los que se registraron, cerca o lejos. Contesta *qué me quiero tatuar*. Desde acá se entra a las dos formas de armar un pedido: **con una foto** ([ADR-011](docs/decisions/ADR-011-photo-classification.md)) o **contándolo con palabras** ([ADR-021](docs/decisions/ADR-021-brief-assistant.md)). | **Estudio**: tu perfil, tus estilos, tu ubicación, tu obra. |
 | **Tercera** | **Chats** | **Chats**: nada más. MESH no le recomienda tatuadores a un tatuador. |
 | **Cuarta** | **Perfil** | **Perfil** |
 

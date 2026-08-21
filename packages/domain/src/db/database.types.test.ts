@@ -54,6 +54,8 @@ type FeedRow =
 const KNOWN_TABLES = [
   'analytics_events',
   'appointments',
+  'assistant_threads',
+  'assistant_turns',
   'audit_events',
   'availability_exceptions',
   'availability_rules',
@@ -141,16 +143,18 @@ describe('el esquema y el dominio no se separaron', () => {
     // que la suite reporte el archivo, y para que `Reconciliacion` esté usada.
     const reconciliacion = {} as Reconciliacion
     expect(reconciliacion).toBeDefined()
-    expect(KNOWN_TABLES).toHaveLength(28)
+    expect(KNOWN_TABLES).toHaveLength(30)
   })
 
   const enums: ReadonlyArray<
     readonly [keyof typeof Constants.public.Enums, readonly string[]]
   > = [
+    ['assistant_role', ['person', 'assistant']],
     ['availability_status', ['open', 'limited', 'waitlist', 'closed']],
     ['interaction_verdict', ['like', 'pass']],
     ['interaction_source', ['discover', 'search', 'profile']],
     ['project_timing', ['asap', 'weeks', 'months', 'flexible']],
+    ['reply_habit', ['same_day', 'few_days', 'slower']],
     ['project_status', ['draft', 'active', 'archived']],
     ['match_band', ['strong', 'good', 'possible']],
   ]

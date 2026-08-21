@@ -55,6 +55,14 @@ export interface ExploreScreenProps {
   /** Buscar por fotos. Dejó de ser pestaña y se entra desde acá. */
   onSearchByPhotos?: (() => void) | undefined
   /**
+   * Contarlo con palabras, para cuando no hay foto.
+   *
+   * Es la otra mitad de la misma intención: la foto sirve cuando ya viste algo
+   * que te gusta, y las palabras cuando la idea todavía no tiene imagen. Ver
+   * ADR-021.
+   */
+  onSearchByWords?: (() => void) | undefined
+  /**
    * Estilo con el que abre el filtro.
    *
    * Es a dónde llega "buscar con una foto": la IA clasificó la referencia
@@ -70,6 +78,7 @@ export function ExploreScreen({
   userId,
   onOpenArtist,
   onSearchByPhotos,
+  onSearchByWords,
   initialStyle,
 }: ExploreScreenProps) {
   const t = useT()
@@ -161,16 +170,27 @@ export function ExploreScreen({
           {/* El camino con IA vive acá y no en una pestaña propia: es la misma
             intención que explorar —encontrar obra parecida a una idea— con una
             entrada distinta. */}
-          {onSearchByPhotos != null ? (
-            <View style={{ alignItems: 'flex-start' }}>
-              <Button
-                label={t('explore.byPhotos')}
-                variant="secondary"
-                size="sm"
-                onPress={onSearchByPhotos}
-                testID="explore-by-photos"
-              />
-            </View>
+          {onSearchByPhotos != null || onSearchByWords != null ? (
+            <Box direction="row" gap="xxs" wrap>
+              {onSearchByPhotos != null ? (
+                <Button
+                  label={t('explore.byPhotos')}
+                  variant="secondary"
+                  size="sm"
+                  onPress={onSearchByPhotos}
+                  testID="explore-by-photos"
+                />
+              ) : null}
+              {onSearchByWords != null ? (
+                <Button
+                  label={t('assistant.entry')}
+                  variant="secondary"
+                  size="sm"
+                  onPress={onSearchByWords}
+                  testID="explore-by-words"
+                />
+              ) : null}
+            </Box>
           ) : null}
         </Box>
 

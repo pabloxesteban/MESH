@@ -22,6 +22,15 @@ import { uploadReference } from '../projects/upload.ts'
 export interface QuickSearchInput {
   readonly userId: string
   readonly title: string
+  /**
+   * El pedido en palabras, si lo hay.
+   *
+   * Lo escribe la persona: sale del asistente de ADR-021 y pasa por la pantalla
+   * de revisión antes de llegar acá. La búsqueda por fotos no manda ninguno —
+   * una foto no es una descripción, y ponerle uno inventado sería el
+   * innegociable 2 roto en la puerta de entrada.
+   */
+  readonly description?: string | undefined
   readonly styleSlugs: readonly string[]
   readonly locationSlug?: string | undefined
   /** URIs locales, ya elegidas del picker. Hasta MAX_PROJECT_REFERENCES. */
@@ -57,6 +66,7 @@ export async function createQuickSearch(
   const projectId = await createProject(input.userId, {
     title: input.title,
     styleSlugs: input.styleSlugs,
+    ...(input.description != null ? { description: input.description } : {}),
     openToProfessionals: input.openToProfessionals ?? false,
     ...(input.locationSlug != null ? { locationSlug: input.locationSlug } : {}),
   })

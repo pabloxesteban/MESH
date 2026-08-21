@@ -39,6 +39,13 @@ pantalla no muestra el botón. Consecuencia honesta: con el catálogo actual
 sería un canal de mensajes no pedidos hacia gente que solo miró un perfil:
 spam por diseño, no por abuso.
 
+**Un chat es entre dos personas, y sigue siéndolo.**
+[ADR-021](ADR-021-brief-assistant.md) agregó un asistente que ayuda a armar el
+pedido, y la decisión de forma de esa ADR fue justamente **dejarlo afuera de
+este hilo**: vive en una conversación aparte, con su dueña, y lo único que
+cruza hacia acá es un texto que ella leyó y confirmó. Adentro de
+`conversations` no escribe nadie que no sea una de las dos partes.
+
 **Un mensaje es inmutable.** Sin UPDATE ni DELETE para el cliente. No se edita
 lo dicho, y no se borra la mitad de una conversación que otra persona también
 tiene. Mismo criterio que `media_assets`.

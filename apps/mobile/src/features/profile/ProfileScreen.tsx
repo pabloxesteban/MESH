@@ -64,7 +64,11 @@ import { useI18n, useT } from '@/i18n/I18nProvider.tsx'
 import type { TranslationKey } from '@/i18n/index.ts'
 
 import { formatDate, formatMoney, isAvailabilityStale } from './format.ts'
-import { fetchProfile, type PortfolioPiece } from './queries.ts'
+import {
+  fetchProfile,
+  fetchReplyHabit,
+  type PortfolioPiece,
+} from './queries.ts'
 
 export interface ProfileScreenProps {
   slug: string
@@ -265,6 +269,13 @@ export function ProfileScreen({
           </Section>
         ) : null}
 
+        {/* Con qué frecuencia contesta. Un hecho calculado de sus propias
+            conversaciones, no una promesa ni una medalla — y puede decir que
+            tarda. Ver ADR-022. Un fixture no tiene conversaciones. */}
+        {!professional.isFixture ? (
+          <ReplyHabitRow professionalId={professional.id} />
+        ) : null}
+
         {/* Contesta "¿tiene lugar esta semana?" antes de escribirle, que es la
             pregunta que hoy se hace por chat y tarda un día en responderse.
             Solo para perfiles reales: un fixture no tiene agenda. */}
@@ -411,6 +422,42 @@ export function ProfileScreen({
         />
       ) : null}
     </View>
+  )
+}
+
+/**
+ * Con qué frecuencia contesta este artista.
+ *
+ * Tres decisiones, y las tres son sobre no convertir un dato en un adorno:
+ *
+ * · **Si no hay datos, no se dibuja nada.** Ni un guion, ni un "sin datos" —
+ *   una línea vacía igual ocupa lugar y sugiere que hay algo que falta.
+ * · **Una de las tres frases es mala.** Un indicador que solo puede decir cosas
+ *   buenas es publicidad, y no sirve para decidir.
+ * · **Debajo va de dónde sale.** Sin eso es un juicio de MESH sobre una
+ *   persona; con eso es una cuenta que cualquiera puede entender.
+ *
+ * Ver ADR-022.
+ */
+function ReplyHabitRow({ professionalId }: { professionalId: string }) {
+  const t = useT()
+
+  const habito = useQuery({
+    queryKey: ['reply-habit', professionalId],
+    queryFn: () => fetchReplyHabit(professionalId),
+  })
+
+  if (habito.data == null) return null
+
+  return (
+    <Box gap="xxs" testID="profile-reply-habit">
+      <Text role="body">
+        {t(`replyHabit.${habito.data}` as TranslationKey)}
+      </Text>
+      <Text role="label" color="textTertiary">
+        {t('replyHabit.source')}
+      </Text>
+    </Box>
   )
 }
 

@@ -294,6 +294,41 @@ Tres cosas que definen la tabla:
   la edita, no la borra, y tampoco lee la tabla. Cuenta y promedio salen de
   `get_review_summary()`, que calcula al leer — no hay ningún agregado guardado.
 
+**`assistant_threads` / `assistant_turns`** — la conversación con el asistente
+que arma un pedido. Ver [ADR-021](../decisions/ADR-021-brief-assistant.md).
+
+| Columna | Tipo | Notas |
+|---|---|---|
+| `assistant_threads.user_id` | uuid NOT NULL | → `profiles` ON DELETE CASCADE |
+| `assistant_threads.category_id` | uuid NOT NULL | → `categories` ON DELETE RESTRICT |
+| `assistant_threads.project_id` | uuid | → `projects` ON DELETE SET NULL; lo escribe `attach_thread_project()` |
+| `assistant_threads.last_turn_at` | timestamptz | denormalizado, lo mueve un trigger |
+| `assistant_turns.role` | `assistant_role` | `person` \| `assistant` |
+| `assistant_turns.body` | text NOT NULL | 1 a 2000 |
+
+Tres cosas que definen estas tablas:
+
+- **El hilo tiene un solo lado.** No es una `conversation`: del otro lado no hay
+  una persona sino una función, y por eso no hay política que le dé acceso a
+  nadie más que a su dueña.
+- **El cliente solo puede insertar `role = 'person'`.** Es lo que impide que un
+  cliente modificado fabrique una respuesta del asistente —un precio, una
+  disponibilidad— y la muestre como si MESH la hubiera dicho. El turno del
+  asistente lo escribe la Edge Function con la service key.
+- **El hilo se borra entero y los turnos son inmutables.** DELETE sobre
+  `assistant_threads` es del cliente a propósito; sobre `assistant_turns` no
+  existe.
+
+El pedido confirmado **no vive acá**: va a `projects.description`, que ya
+existía y que el artista ya ve por `get_open_searches()`.
+
+**`get_reply_habit()`** — con qué frecuencia contesta un artista. No hay tabla:
+se calcula al leer sobre `conversations` y `messages`, devuelve un valor de un
+enum de tres —`same_day`, `few_days`, `slower`— o `null` con menos de tres
+conversaciones. `security definer` porque cruza conversaciones de personas
+distintas; no devuelve fechas, ni conteos, ni identidades. Ver
+[ADR-022](../decisions/ADR-022-reply-habit.md).
+
 **`saved_items`** — una obra que alguien guardó con el corazón. Privada de
 punta a punta: las tres políticas filtran por `auth.uid()` y **no existe
 ninguna consulta que cuente guardados ajenos**, ni siquiera para el artista
@@ -480,15 +515,31 @@ remoción en una migración posterior si nadie la retoma. Ver
 `supabase/migrations/20260819000100_style_examples.sql` y
 `supabase/tests/35_style_examples.sql`.
 
-**`classify-style`** (Edge Function, no RPC de Postgres) — recibe la primera
-foto de referencia de "buscar por fotos" en base64 y la clasifica contra los
-estilos activos de la categoría con un modelo de visión, devolviendo un slug
-real o `null`. Corre en el servidor con `ANTHROPIC_API_KEY` como secreto —
-nunca en el cliente. Es la única llamada a IA de toda la app, acotada a
-interpretar la entrada: el motor de matching que puntúa y ordena sigue
-siendo el determinístico de arriba. Ver
-`supabase/functions/classify-style/index.ts` y
-[ADR-011](../decisions/ADR-011-photo-classification.md).
+**`read-reference`** (Edge Function, no RPC de Postgres) — antes
+`classify-style`. Recibe la primera foto de referencia de "buscar por fotos" en
+base64 y la lee contra el vocabulario activo de la categoría: estilo, zona del
+cuerpo, tamaño y paleta, cada campo con su slug real o `null`. Corre en el
+servidor con `ANTHROPIC_API_KEY` como secreto — nunca en el cliente. Ver
+`supabase/functions/read-reference/index.ts`,
+[ADR-011](../decisions/ADR-011-photo-classification.md) y
+[ADR-020](../decisions/ADR-020-brief.md).
+
+**`brief-assistant`** (Edge Function) — la otra puerta al mismo pedido, para
+quien no tiene una foto. Recibe un mensaje, guarda el turno de la persona con su
+JWT, y obliga al modelo a contestar eligiendo una de dos herramientas: preguntar
+una cosa más, o cerrar el pedido con los slugs del vocabulario cerrado. Es la
+única de las dos que produce texto libre, y por eso viene con siete reglas duras
+y una pantalla de confirmación editable. Ver
+`supabase/functions/brief-assistant/index.ts` y
+[ADR-021](../decisions/ADR-021-brief-assistant.md).
+
+Las dos comparten la barrera que valida cada slug contra la lista que entró
+(`supabase/functions/_shared/vocabulary.ts`): dos copias de una barrera de
+seguridad es una barrera que algún día se arregla en un solo lado.
+
+**Ninguna de las dos toca el ranking.** El motor de matching que puntúa y ordena
+sigue siendo el determinístico de arriba; lo que estas funciones producen entra
+como un dato más.
 
 ## 5. Enums
 
