@@ -57,6 +57,15 @@ En servidores de [[PROVEEDOR DE INFRAESTRUCTURA — hoy Supabase]], ubicados en
 [[REGIÓN]]. Eso implica una transferencia internacional de datos: al usar MESH
 la aceptás. Ver [[BASE LEGAL DE LA TRANSFERENCIA]].
 
+Si algo se rompe en la app, mandamos un **reporte de error** a
+[[PROVEEDOR DE REPORTES DE ERROR — hoy ninguno configurado]]. Ese reporte lleva
+qué se rompió, en qué pantalla, con qué código, la versión de la app y un
+identificador de sesión aleatorio que se descarta al cerrar. **No lleva tu
+identificador de usuario, ni tu correo, ni nada de lo que escribiste**: el
+mensaje del error pasa antes por un filtro que reemplaza cualquier cosa con
+forma de correo, teléfono, identificador o texto citado. Se puede apagar desde
+Perfil.
+
 Las conversaciones con el asistente se procesan con un modelo de
 [[PROVEEDOR DEL MODELO — hoy Anthropic]], del lado del servidor. Solo se le
 manda el texto de esa conversación. No se le manda tu correo, tu nombre ni tu
@@ -80,7 +89,8 @@ Podés, en cualquier momento:
 - **Rectificarlos.** Todo lo que escribiste se edita desde donde lo escribiste.
 - **Suprimirlos.** Perfil → Borrar mi cuenta. Es inmediato y no hay período de
   gracia.
-- **Oponerte** a la medición de uso. Perfil → el interruptor de datos de uso.
+- **Oponerte** a la medición de uso. Perfil → el interruptor de datos de uso, y
+  el de reportes de error, que son dos cosas distintas y se apagan por separado.
 - **Reclamar** ante la Agencia de Acceso a la Información Pública, que es la
   autoridad de control de la Ley 25.326 (argentina.gob.ar/aaip).
 

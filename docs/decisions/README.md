@@ -39,3 +39,4 @@ todo el repositorio.
 | [023](ADR-023-moderation.md) | Denunciar y bloquear; el bloqueo se impone en la base y corta chat, propuestas y visibilidad | **Aceptado** |
 | [024](ADR-024-account-deletion.md) | Borrar la cuenta desde la app: inmediato, completo, sin período de gracia | **Aceptado** |
 | [025](ADR-025-age-gate.md) | Mayoría de edad declarada, sin fecha de nacimiento; la puerta vive en `schedule_appointment` | **Aceptado** |
+| [026](ADR-026-observability.md) | Reportes de error sin id de nadie y logs estructurados; sin dependencia nueva, para no salir de Expo Go | **Aceptado** |

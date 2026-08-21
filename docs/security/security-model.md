@@ -445,6 +445,7 @@ desde donde se intentaría evadirlos.
 | `EXPO_PUBLIC_SUPABASE_URL` | Bundle del cliente (público por diseño) | — |
 | `EXPO_PUBLIC_SUPABASE_ANON_KEY` | Bundle del cliente (público por diseño) | — |
 | `SUPABASE_SERVICE_ROLE_KEY` | `tools/seed/.env.local`, secreto de CI | Cualquier archivo bajo `apps/`, cualquier log, cualquier commit |
+| `EXPO_PUBLIC_ERROR_SINK_URL` | Bundle del cliente (es un destino, no un secreto). Solo `https://` | Ningún endpoint que requiera credenciales: iría en el bundle |
 | `ANTHROPIC_API_KEY` | Secreto de las Edge Functions `read-reference` y `brief-assistant` (`supabase/.env` local, `supabase secrets set` en producción) | Cualquier archivo bajo `apps/`, cualquier variable `EXPO_PUBLIC_*`, cualquier log, cualquier commit |
 | Contraseña de la base | Gestor de contraseñas del operador | En cualquier otro lado |
 
@@ -493,6 +494,25 @@ artista. `actor_user_id` no tiene FK desde el primer día, justamente para esto.
 `schedule_appointment()` **sobre la persona, no sobre quien llama**. Ver
 [ADR-025](../decisions/ADR-025-age-gate.md). No se guarda fecha de nacimiento, y
 un "no" no se guarda de ninguna forma: sería un registro de menores de edad.
+
+## 8ter. Observabilidad
+
+Un reporte de error **no lleva el id de nadie**, y el mensaje pasa por
+`redact()` antes de salir del teléfono: el `message` de un error de Postgres se
+arma con los valores de la fila, así que un choque de unicidad sobre el correo
+lleva el correo adentro. Ver
+[ADR-026](../decisions/ADR-026-observability.md).
+
+- **`ErrorReport` es la lista completa de lo que viaja.** Hay un test que
+  enumera sus claves y se cae si alguien agrega una.
+- **Sin URL de destino configurada no se encola nada.** `httpSink()` devuelve
+  `null` y el reportador corta antes de escribir en el teléfono.
+- **Solo `https://`** como destino, y sin credenciales: es una URL en el bundle,
+  así que un endpoint que necesite autenticación va detrás de una función
+  propia.
+- **Los logs de Edge Function nunca llevan el cuerpo** —ni el mensaje, ni la
+  foto, ni el resumen— ni el id de usuario. `logLine()` descarta cualquier campo
+  que no sea texto, número o booleano, que es donde viajaría un cuerpo.
 
 ## 9. Derechos sobre los datos
 

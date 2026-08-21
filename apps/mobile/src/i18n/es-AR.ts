@@ -642,6 +642,16 @@ export const esAR = {
   // --- borrar la cuenta -------------------------------------------------------
   // Ver ADR-024. La lista de lo que se va está entera, y lo que NO se va
   // también: omitirlo sería mentir por la parte que no conviene contar.
+  // Reportes de error. Separado de datos de uso a propósito: aquel mide qué
+  // hace la persona, este mide si la app funciona. Ver ADR-026.
+  'settings.errors.title': 'Cuando algo se rompe',
+  'settings.errors.body':
+    'Cuando algo se rompe mandamos qué se rompió, en qué pantalla y con qué código. Nunca lo que escribiste, ni tu mail, ni quién sos: un reporte no lleva tu identificador.',
+  'settings.errors.on': 'Está encendido',
+  'settings.errors.off': 'Está apagado',
+  'settings.errors.toggle.on': 'Apagar',
+  'settings.errors.toggle.off': 'Encender',
+
   'legal.privacy': 'Privacidad',
   'legal.terms': 'Términos de uso',
   'legal.moderation': 'Cómo moderamos',

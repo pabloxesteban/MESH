@@ -27,6 +27,8 @@
 
 import { createClient } from 'jsr:@supabase/supabase-js@2'
 
+import { logLine, withLogging } from '../_shared/log.ts'
+
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL') ?? ''
 const SUPABASE_ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY') ?? ''
 const SUPABASE_SERVICE_ROLE_KEY =
@@ -76,69 +78,88 @@ async function removePrefix(
   return borrados
 }
 
-Deno.serve(async (req) => {
-  if (req.method !== 'POST') {
-    return jsonResponse({ error: 'method not allowed' }, 405)
-  }
-
-  const authHeader = req.headers.get('Authorization')
-  if (authHeader == null) {
-    return jsonResponse({ error: 'hace falta una sesión' }, 401)
-  }
-
-  const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-    global: { headers: { Authorization: authHeader } },
-  })
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  if (user == null) {
-    return jsonResponse({ error: 'sesión inválida' }, 401)
-  }
-
-  // El slug del perfil propio, para saber qué carpeta de `portfolio` limpiar.
-  // Con el JWT de quien llama y filtrando por dueño: la tabla tiene una
-  // política de lectura pública para lo publicado, así que sin el `.eq` esto
-  // podría traer el perfil de cualquiera.
-  const { data: propio } = await supabase
-    .from('professionals')
-    .select('slug')
-    .eq('owner_user_id', user.id)
-    .limit(1)
-    .maybeSingle()
-
-  const admin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
-    auth: { persistSession: false },
-  })
-
-  let archivos = 0
-  try {
-    for (const bucket of OWN_BUCKETS) {
-      archivos += await removePrefix(admin, bucket, user.id)
+Deno.serve(
+  withLogging('delete-account', async (req, requestId) => {
+    if (req.method !== 'POST') {
+      return jsonResponse({ error: 'method not allowed' }, 405)
     }
-    if (propio?.slug != null) {
-      archivos += await removePrefix(
-        admin,
-        'portfolio',
-        String(propio.slug),
-      )
+
+    const authHeader = req.headers.get('Authorization')
+    if (authHeader == null) {
+      return jsonResponse({ error: 'hace falta una sesión' }, 401)
     }
-  } catch {
-    // Se corta acá a propósito: la cuenta sigue viva y se puede reintentar. Si
-    // siguiéramos, quedarían fotos de alguien que ya no existe y nadie con
-    // sesión para pedir que se vayan.
-    return jsonResponse({ error: 'no se pudieron borrar los archivos' }, 502)
-  }
 
-  // La base, con el JWT de la persona: la función saca el id de `auth.uid()`,
-  // así que corre sobre su cuenta y sobre ninguna otra. Deliberadamente NO se
-  // usa la service key acá — con ella, un error de programación borraría a
-  // cualquiera.
-  const { error } = await supabase.rpc('delete_own_account')
-  if (error != null) {
-    return jsonResponse({ error: 'no se pudo borrar la cuenta' }, 500)
-  }
+    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+      global: { headers: { Authorization: authHeader } },
+    })
 
-  return jsonResponse({ deleted: true, files: archivos }, 200)
-})
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+    if (user == null) {
+      return jsonResponse({ error: 'sesión inválida' }, 401)
+    }
+
+    // El slug del perfil propio, para saber qué carpeta de `portfolio` limpiar.
+    // Con el JWT de quien llama y filtrando por dueño: la tabla tiene una
+    // política de lectura pública para lo publicado, así que sin el `.eq` esto
+    // podría traer el perfil de cualquiera.
+    const { data: propio } = await supabase
+      .from('professionals')
+      .select('slug')
+      .eq('owner_user_id', user.id)
+      .limit(1)
+      .maybeSingle()
+
+    const admin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
+      auth: { persistSession: false },
+    })
+
+    let archivos = 0
+    try {
+      for (const bucket of OWN_BUCKETS) {
+        archivos += await removePrefix(admin, bucket, user.id)
+      }
+      if (propio?.slug != null) {
+        archivos += await removePrefix(admin, 'portfolio', String(propio.slug))
+      }
+    } catch {
+      // Se corta acá a propósito: la cuenta sigue viva y se puede reintentar. Si
+      // siguiéramos, quedarían fotos de alguien que ya no existe y nadie con
+      // sesión para pedir que se vayan.
+      logLine({
+        fn: 'delete-account',
+        event: 'storage_failed',
+        request_id: requestId,
+      })
+      return jsonResponse({ error: 'no se pudieron borrar los archivos' }, 502)
+    }
+
+    // La base, con el JWT de la persona: la función saca el id de `auth.uid()`,
+    // así que corre sobre su cuenta y sobre ninguna otra. Deliberadamente NO se
+    // usa la service key acá — con ella, un error de programación borraría a
+    // cualquiera.
+    const { error } = await supabase.rpc('delete_own_account')
+    if (error != null) {
+      // Un borrado que falla tiene que dejar rastro: es un derecho que no se
+      // cumplió, y la persona se va creyendo que sí. El código de Postgres sí,
+      // el mensaje no — lleva valores de la fila.
+      logLine({
+        fn: 'delete-account',
+        event: 'delete_failed',
+        request_id: requestId,
+        code: error.code ?? 'unknown',
+      })
+      return jsonResponse({ error: 'no se pudo borrar la cuenta' }, 500)
+    }
+
+    // Cuántos archivos, sin decir de quién eran ni cómo se llamaban.
+    logLine({
+      fn: 'delete-account',
+      event: 'deleted',
+      request_id: requestId,
+    })
+
+    return jsonResponse({ deleted: true, files: archivos }, 200)
+  }),
+)

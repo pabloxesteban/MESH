@@ -37,6 +37,7 @@
 
 import { createClient } from 'jsr:@supabase/supabase-js@2'
 
+import { logLine, withLogging } from '../_shared/log.ts'
 import {
   fetchVocabulary,
   resolveSlug,
@@ -224,211 +225,251 @@ function trim(value: unknown, max: number): string {
   return `${text.slice(0, max - 1).trimEnd()}…`
 }
 
-Deno.serve(async (req) => {
-  if (req.method !== 'POST') {
-    return jsonResponse({ error: 'method not allowed' }, 405)
-  }
+Deno.serve(
+  withLogging('brief-assistant', async (req, requestId) => {
+    if (req.method !== 'POST') {
+      return jsonResponse({ error: 'method not allowed' }, 405)
+    }
 
-  if (ANTHROPIC_API_KEY == null || ANTHROPIC_API_KEY === '') {
-    return jsonResponse({ error: 'no configurado' }, 500)
-  }
+    if (ANTHROPIC_API_KEY == null || ANTHROPIC_API_KEY === '') {
+      return jsonResponse({ error: 'no configurado' }, 500)
+    }
 
-  const authHeader = req.headers.get('Authorization')
-  if (authHeader == null) {
-    return jsonResponse({ error: 'hace falta una sesión' }, 401)
-  }
+    const authHeader = req.headers.get('Authorization')
+    if (authHeader == null) {
+      return jsonResponse({ error: 'hace falta una sesión' }, 401)
+    }
 
-  const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-    global: { headers: { Authorization: authHeader } },
-  })
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  if (user == null) {
-    return jsonResponse({ error: 'sesión inválida' }, 401)
-  }
-
-  let body: AssistantRequest
-  try {
-    body = await req.json()
-  } catch {
-    return jsonResponse({ error: 'cuerpo inválido' }, 400)
-  }
-
-  if (
-    typeof body.threadId !== 'string' ||
-    typeof body.message !== 'string' ||
-    body.message.trim() === '' ||
-    typeof body.categorySlug !== 'string'
-  ) {
-    return jsonResponse({ error: 'faltan campos' }, 400)
-  }
-
-  if (body.message.length > MAX_MESSAGE_LENGTH) {
-    return jsonResponse({ error: 'mensaje demasiado largo' }, 400)
-  }
-
-  // El hilo, con el JWT de quien llama. Si RLS no lo devuelve, no es suyo — y
-  // esta es la única verificación de dueño que hay antes de usar la service
-  // key más abajo.
-  const { data: thread } = await supabase
-    .from('assistant_threads')
-    .select('id')
-    .eq('id', body.threadId)
-    .maybeSingle()
-
-  if (thread == null) {
-    return jsonResponse({ error: 'ese hilo no existe' }, 404)
-  }
-
-  // El turno de la persona lo escribe la persona: con su JWT, contra su
-  // política, y pasando por los dos topes del trigger. Que la cuota se aplique
-  // acá y no en código es a propósito — un tope que vive en la función se evade
-  // llamando a la tabla.
-  const { error: turnError } = await supabase.from('assistant_turns').insert({
-    thread_id: body.threadId,
-    role: 'person',
-    body: body.message.trim(),
-  })
-
-  if (turnError != null) {
-    // 53400 son los dos topes: el del hilo y el de la hora.
-    const status = turnError.code === '53400' ? 429 : 400
-    return jsonResponse({ error: turnError.message }, status)
-  }
-
-  const { data: turns } = await supabase
-    .from('assistant_turns')
-    .select('role, body')
-    .eq('thread_id', body.threadId)
-    .order('created_at')
-
-  const history = turns ?? []
-
-  const vocabulary = await fetchVocabulary(supabase, body.categorySlug)
-  if (vocabulary == null) {
-    return jsonResponse({ error: 'no hay estilos para esa categoría' }, 400)
-  }
-
-  const tools = buildAssistantTools(
-    vocabulary.styleSlugs,
-    vocabulary.traitsByDimension,
-  )
-
-  // Cerca del tope, el modelo tiene que cerrar sí o sí: la alternativa es que
-  // el trigger le corte la conversación a la persona con un error, que es la
-  // peor forma de terminar un pedido.
-  const casiLleno = history.length >= MAX_TURNS - 4
-
-  const vocabularyNote = [
-    `Estilos posibles: ${vocabulary.styleSlugs.join(', ')}`,
-    ...Object.entries(vocabulary.traitsByDimension).map(
-      ([dimension, slugs]) => `${dimension} posibles: ${slugs.join(', ')}`,
-    ),
-  ].join('\n')
-
-  let anthropicResponse: Response
-  try {
-    anthropicResponse = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'x-api-key': ANTHROPIC_API_KEY,
-        'anthropic-version': ANTHROPIC_VERSION,
-        'content-type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: ANTHROPIC_MODEL,
-        max_tokens: 700,
-        system: [
-          SYSTEM_PROMPT,
-          '',
-          'VOCABULARIO. Al cerrar, los campos de abajo solo aceptan estos valores, o null:',
-          vocabularyNote,
-          ...(casiLleno
-            ? [
-                '',
-                'ESTA CONVERSACIÓN YA ES LARGA: cerrá el pedido ahora con close_brief, con lo que tengas.',
-              ]
-            : []),
-        ].join('\n'),
-        tools,
-        // Forzado a herramienta, sin dejarle elegir "contestar de una":
-        // `any` obliga a usar una de las dos, que es toda la garantía.
-        tool_choice: casiLleno
-          ? { type: 'tool', name: 'close_brief' }
-          : { type: 'any' },
-        messages: mergeTurns(
-          history.map((turn) => ({
-            role: String(turn.role),
-            body: String(turn.body),
-          })),
-        ),
-      }),
+    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+      global: { headers: { Authorization: authHeader } },
     })
-  } catch {
-    return jsonResponse({ error: 'no se pudo responder' }, 502)
-  }
 
-  if (!anthropicResponse.ok) {
-    return jsonResponse({ error: 'no se pudo responder' }, 502)
-  }
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+    if (user == null) {
+      return jsonResponse({ error: 'sesión inválida' }, 401)
+    }
 
-  const payload = await anthropicResponse.json()
-  const toolUse = (
-    payload.content as Array<Record<string, unknown>> | undefined
-  )?.find((block) => block['type'] === 'tool_use')
+    let body: AssistantRequest
+    try {
+      body = await req.json()
+    } catch {
+      return jsonResponse({ error: 'cuerpo inválido' }, 400)
+    }
 
-  if (toolUse == null) {
-    return jsonResponse({ error: 'no se pudo responder' }, 502)
-  }
+    if (
+      typeof body.threadId !== 'string' ||
+      typeof body.message !== 'string' ||
+      body.message.trim() === '' ||
+      typeof body.categorySlug !== 'string'
+    ) {
+      return jsonResponse({ error: 'faltan campos' }, 400)
+    }
 
-  const input = (toolUse['input'] as Record<string, unknown> | undefined) ?? {}
+    if (body.message.length > MAX_MESSAGE_LENGTH) {
+      return jsonResponse({ error: 'mensaje demasiado largo' }, 400)
+    }
 
-  // El turno del asistente, con la service key. Es lo ÚNICO para lo que se usa,
-  // y sobre un hilo que ya se verificó que es de quien llama.
-  const admin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
-    auth: { persistSession: false },
-  })
+    // El hilo, con el JWT de quien llama. Si RLS no lo devuelve, no es suyo — y
+    // esta es la única verificación de dueño que hay antes de usar la service
+    // key más abajo.
+    const { data: thread } = await supabase
+      .from('assistant_threads')
+      .select('id')
+      .eq('id', body.threadId)
+      .maybeSingle()
 
-  async function recordAssistantTurn(text: string): Promise<void> {
-    await admin
+    if (thread == null) {
+      return jsonResponse({ error: 'ese hilo no existe' }, 404)
+    }
+
+    // El turno de la persona lo escribe la persona: con su JWT, contra su
+    // política, y pasando por los dos topes del trigger. Que la cuota se aplique
+    // acá y no en código es a propósito — un tope que vive en la función se evade
+    // llamando a la tabla.
+    const { error: turnError } = await supabase.from('assistant_turns').insert({
+      thread_id: body.threadId,
+      role: 'person',
+      body: body.message.trim(),
+    })
+
+    if (turnError != null) {
+      // 53400 son los dos topes: el del hilo y el de la hora.
+      const status = turnError.code === '53400' ? 429 : 400
+      return jsonResponse({ error: turnError.message }, status)
+    }
+
+    const { data: turns } = await supabase
       .from('assistant_turns')
-      .insert({ thread_id: body.threadId, role: 'assistant', body: text })
-  }
+      .select('role, body')
+      .eq('thread_id', body.threadId)
+      .order('created_at')
 
-  if (toolUse['name'] === 'ask_question') {
-    const question = trim(input['question'], 400)
-    if (question === '') {
+    const history = turns ?? []
+
+    const vocabulary = await fetchVocabulary(supabase, body.categorySlug)
+    if (vocabulary == null) {
+      return jsonResponse({ error: 'no hay estilos para esa categoría' }, 400)
+    }
+
+    const tools = buildAssistantTools(
+      vocabulary.styleSlugs,
+      vocabulary.traitsByDimension,
+    )
+
+    // Cerca del tope, el modelo tiene que cerrar sí o sí: la alternativa es que
+    // el trigger le corte la conversación a la persona con un error, que es la
+    // peor forma de terminar un pedido.
+    const casiLleno = history.length >= MAX_TURNS - 4
+
+    const vocabularyNote = [
+      `Estilos posibles: ${vocabulary.styleSlugs.join(', ')}`,
+      ...Object.entries(vocabulary.traitsByDimension).map(
+        ([dimension, slugs]) => `${dimension} posibles: ${slugs.join(', ')}`,
+      ),
+    ].join('\n')
+
+    let anthropicResponse: Response
+    try {
+      anthropicResponse = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'x-api-key': ANTHROPIC_API_KEY,
+          'anthropic-version': ANTHROPIC_VERSION,
+          'content-type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: ANTHROPIC_MODEL,
+          max_tokens: 700,
+          system: [
+            SYSTEM_PROMPT,
+            '',
+            'VOCABULARIO. Al cerrar, los campos de abajo solo aceptan estos valores, o null:',
+            vocabularyNote,
+            ...(casiLleno
+              ? [
+                  '',
+                  'ESTA CONVERSACIÓN YA ES LARGA: cerrá el pedido ahora con close_brief, con lo que tengas.',
+                ]
+              : []),
+          ].join('\n'),
+          tools,
+          // Forzado a herramienta, sin dejarle elegir "contestar de una":
+          // `any` obliga a usar una de las dos, que es toda la garantía.
+          tool_choice: casiLleno
+            ? { type: 'tool', name: 'close_brief' }
+            : { type: 'any' },
+          messages: mergeTurns(
+            history.map((turn) => ({
+              role: String(turn.role),
+              body: String(turn.body),
+            })),
+          ),
+        }),
+      })
+    } catch {
+      // Antes esto se perdía entero. Que el modelo esté caído y que devuelva 429
+      // por cuota se veían igual desde afuera: "no se pudo responder".
+      logLine({
+        fn: 'brief-assistant',
+        event: 'upstream_unreachable',
+        request_id: requestId,
+      })
       return jsonResponse({ error: 'no se pudo responder' }, 502)
     }
 
-    const rawOptions = Array.isArray(input['options']) ? input['options'] : []
-    const options = rawOptions
-      .map((option) => trim(option, 40))
-      .filter((option) => option !== '')
-      .slice(0, 4)
+    if (!anthropicResponse.ok) {
+      logLine({
+        fn: 'brief-assistant',
+        event: 'upstream_error',
+        upstream_status: anthropicResponse.status,
+        request_id: requestId,
+      })
+      return jsonResponse({ error: 'no se pudo responder' }, 502)
+    }
 
-    await recordAssistantTurn(question)
-    return jsonResponse({ kind: 'question', question, options }, 200)
-  }
+    const payload = await anthropicResponse.json()
+    const toolUse = (
+      payload.content as Array<Record<string, unknown>> | undefined
+    )?.find((block) => block['type'] === 'tool_use')
 
-  // close_brief. Segunda barrera sobre cada slug: lo que no estaba en la lista
-  // que entró, no sale.
-  const styleSlug = resolveSlug(input['style_slug'], vocabulary.styleSlugs)
-  const traits = resolveTraits(input, vocabulary.traitsByDimension)
-  const summary = trim(input['summary'], 600)
-  const title = trim(input['title'], 60)
+    if (toolUse == null) {
+      // El modelo contestó sin usar ninguna herramienta, que con `tool_choice`
+      // forzado no debería poder pasar. Si empieza a pasar, es un cambio de
+      // contrato de la API y hay que enterarse.
+      logLine({
+        fn: 'brief-assistant',
+        event: 'no_tool_use',
+        request_id: requestId,
+      })
+      return jsonResponse({ error: 'no se pudo responder' }, 502)
+    }
 
-  if (summary === '' || title === '') {
-    return jsonResponse({ error: 'no se pudo responder' }, 502)
-  }
+    const input =
+      (toolUse['input'] as Record<string, unknown> | undefined) ?? {}
 
-  // El resumen queda también en el hilo: si la persona lo edita en la pantalla
-  // de revisión, se puede ver qué había propuesto el asistente y qué escribió
-  // ella. Un resumen que solo existiera en la pantalla sería imposible de
-  // auditar después.
-  await recordAssistantTurn(summary)
+    // El turno del asistente, con la service key. Es lo ÚNICO para lo que se usa,
+    // y sobre un hilo que ya se verificó que es de quien llama.
+    const admin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
+      auth: { persistSession: false },
+    })
 
-  return jsonResponse({ kind: 'brief', title, summary, styleSlug, traits }, 200)
-})
+    async function recordAssistantTurn(text: string): Promise<void> {
+      await admin
+        .from('assistant_turns')
+        .insert({ thread_id: body.threadId, role: 'assistant', body: text })
+    }
+
+    if (toolUse['name'] === 'ask_question') {
+      const question = trim(input['question'], 400)
+      if (question === '') {
+        return jsonResponse({ error: 'no se pudo responder' }, 502)
+      }
+
+      const rawOptions = Array.isArray(input['options']) ? input['options'] : []
+      const options = rawOptions
+        .map((option) => trim(option, 40))
+        .filter((option) => option !== '')
+        .slice(0, 4)
+
+      await recordAssistantTurn(question)
+      logLine({
+        fn: 'brief-assistant',
+        event: 'asked',
+        request_id: requestId,
+      })
+      return jsonResponse({ kind: 'question', question, options }, 200)
+    }
+
+    // close_brief. Segunda barrera sobre cada slug: lo que no estaba en la lista
+    // que entró, no sale.
+    const styleSlug = resolveSlug(input['style_slug'], vocabulary.styleSlugs)
+    const traits = resolveTraits(input, vocabulary.traitsByDimension)
+    const summary = trim(input['summary'], 600)
+    const title = trim(input['title'], 60)
+
+    if (summary === '' || title === '') {
+      return jsonResponse({ error: 'no se pudo responder' }, 502)
+    }
+
+    // El resumen queda también en el hilo: si la persona lo edita en la pantalla
+    // de revisión, se puede ver qué había propuesto el asistente y qué escribió
+    // ella. Un resumen que solo existiera en la pantalla sería imposible de
+    // auditar después.
+    await recordAssistantTurn(summary)
+
+    // Que cerró un pedido, y nada de lo que dice. Es la única medida de si el
+    // asistente sirve para algo.
+    logLine({
+      fn: 'brief-assistant',
+      event: 'closed',
+      request_id: requestId,
+    })
+
+    return jsonResponse(
+      { kind: 'brief', title, summary, styleSlug, traits },
+      200,
+    )
+  }),
+)

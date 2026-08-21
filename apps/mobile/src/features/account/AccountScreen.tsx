@@ -38,6 +38,7 @@ import {
 import { ErrorView } from '@/components/ErrorView.tsx'
 import { AnalyticsToggle } from '@/features/settings/AnalyticsToggle.tsx'
 import { BlockedList } from '@/features/moderation/BlockedList.tsx'
+import { ErrorReportsToggle } from '@/observability/ErrorReportsToggle.tsx'
 
 import { DeleteAccount } from './DeleteAccount.tsx'
 import { LegalRow } from './LegalRow.tsx'
@@ -273,6 +274,11 @@ export function AccountScreen({
         <BlockedList />
 
         <AnalyticsToggle userId={userId} />
+
+        {/* Debajo del de datos de uso y separado de él: son dos cosas
+            distintas, y juntarlas habría dejado a quien apaga la telemetría de
+            producto sin reportes de cierre inesperado. Ver ADR-026. */}
+        <ErrorReportsToggle />
 
         <LegalRow />
 

@@ -579,6 +579,14 @@ export const en: Readonly<Record<TranslationKey, string>> = {
   'age.blocked':
     'Booking an appointment needs you to confirm you are 18 or older. You can do it from your profile.',
 
+  'settings.errors.title': 'When something breaks',
+  'settings.errors.body':
+    'When something breaks we send what broke, on which screen, and with which code. Never what you wrote, never your email, never who you are: a report does not carry your identifier.',
+  'settings.errors.on': 'Turned on',
+  'settings.errors.off': 'Turned off',
+  'settings.errors.toggle.on': 'Turn off',
+  'settings.errors.toggle.off': 'Turn on',
+
   'legal.privacy': 'Privacy',
   'legal.terms': 'Terms of use',
   'legal.moderation': 'How we moderate',

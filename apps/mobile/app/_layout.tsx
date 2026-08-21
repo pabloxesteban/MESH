@@ -14,6 +14,8 @@ import {
   useTheme,
 } from '@/design-system/index.ts'
 import { AnalyticsProvider } from '@/analytics/AnalyticsProvider.tsx'
+import { ErrorBoundary } from '@/observability/ErrorBoundary.tsx'
+import { ObservabilityProvider } from '@/observability/ObservabilityProvider.tsx'
 import { ErrorView } from '@/components/ErrorView.tsx'
 import {
   SessionProvider,
@@ -53,25 +55,35 @@ export default function RootLayout() {
     // GestureHandlerRootView tiene que envolver TODO: sin él los gestos del
     // mazo no llegan nunca, y falla en silencio.
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <SafeAreaProvider>
-        <QueryClientProvider client={queryClient}>
-          <ThemeProvider>
-            <MotionProvider>
-              <I18nProvider>
-                <SessionProvider>
-                  <AnalyticsProvider>
-                    <StatusBar style="auto" />
-                    {/* Sin pantalla de carga con spinner: el fondo del tema
+      {/* Por ENCIMA de la sesión: los errores que más importan son los del
+          arranque, y un reportador que espera a que haya sesión no se entera
+          de ninguno. Ver ADR-026. */}
+      <ObservabilityProvider>
+        <SafeAreaProvider>
+          <QueryClientProvider client={queryClient}>
+            <ThemeProvider>
+              <MotionProvider>
+                <I18nProvider>
+                  <SessionProvider>
+                    <AnalyticsProvider>
+                      <StatusBar style="auto" />
+                      {/* Sin pantalla de carga con spinner: el fondo del tema
                         pintado mientras cargan las tipografías es menos ruidoso
                         que un indicador que aparece y desaparece en 200ms. */}
-                    {fontsLoaded ? <SessionGate /> : <ThemedBackdrop />}
-                  </AnalyticsProvider>
-                </SessionProvider>
-              </I18nProvider>
-            </MotionProvider>
-          </ThemeProvider>
-        </QueryClientProvider>
-      </SafeAreaProvider>
+                      {/* La red va acá adentro y no más arriba: para dibujar el
+                        error hacen falta el tema y el idioma, y arriba de
+                        `ThemeProvider` no los hay. */}
+                      <ErrorBoundary surface="app">
+                        {fontsLoaded ? <SessionGate /> : <ThemedBackdrop />}
+                      </ErrorBoundary>
+                    </AnalyticsProvider>
+                  </SessionProvider>
+                </I18nProvider>
+              </MotionProvider>
+            </ThemeProvider>
+          </QueryClientProvider>
+        </SafeAreaProvider>
+      </ObservabilityProvider>
     </GestureHandlerRootView>
   )
 }

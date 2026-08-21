@@ -33,6 +33,7 @@
 
 import { createClient } from 'jsr:@supabase/supabase-js@2'
 
+import { logLine, withLogging } from '../_shared/log.ts'
 import {
   fetchVocabulary,
   resolveSlug,
@@ -127,133 +128,155 @@ export function buildReadingTool(
   }
 }
 
-Deno.serve(async (req) => {
-  if (req.method !== 'POST') {
-    return jsonResponse({ error: 'method not allowed' }, 405)
-  }
+Deno.serve(
+  withLogging('read-reference', async (req, requestId) => {
+    if (req.method !== 'POST') {
+      return jsonResponse({ error: 'method not allowed' }, 405)
+    }
 
-  if (ANTHROPIC_API_KEY == null || ANTHROPIC_API_KEY === '') {
-    return jsonResponse({ error: 'no configurado' }, 500)
-  }
+    if (ANTHROPIC_API_KEY == null || ANTHROPIC_API_KEY === '') {
+      return jsonResponse({ error: 'no configurado' }, 500)
+    }
 
-  const authHeader = req.headers.get('Authorization')
-  if (authHeader == null) {
-    return jsonResponse({ error: 'hace falta una sesión' }, 401)
-  }
+    const authHeader = req.headers.get('Authorization')
+    if (authHeader == null) {
+      return jsonResponse({ error: 'hace falta una sesión' }, 401)
+    }
 
-  // Cliente con el JWT de quien llama, no con la service key: las políticas
-  // de `styles`/`categories` (lectura pública de lo activo) alcanzan, y así
-  // esta función nunca tiene más acceso a la base que la propia persona.
-  const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-    global: { headers: { Authorization: authHeader } },
-  })
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  if (user == null) {
-    return jsonResponse({ error: 'sesión inválida' }, 401)
-  }
-
-  let body: ReadRequest
-  try {
-    body = await req.json()
-  } catch {
-    return jsonResponse({ error: 'cuerpo inválido' }, 400)
-  }
-
-  if (
-    typeof body.image !== 'string' ||
-    body.image.length === 0 ||
-    typeof body.mimeType !== 'string' ||
-    typeof body.categorySlug !== 'string'
-  ) {
-    return jsonResponse({ error: 'faltan campos' }, 400)
-  }
-
-  if (!ALLOWED_MIME_TYPES.has(body.mimeType)) {
-    return jsonResponse({ error: 'tipo de imagen no soportado' }, 400)
-  }
-
-  // Tamaño en base64 ≈ 4/3 del tamaño real — el chequeo es conservador.
-  if (body.image.length > (MAX_IMAGE_BYTES * 4) / 3) {
-    return jsonResponse({ error: 'imagen demasiado grande' }, 413)
-  }
-
-  // El vocabulario sale de la base, así que la lista que ve el modelo es
-  // exactamente la que la pantalla del brief le va a ofrecer a la persona para
-  // corregir.
-  const vocabulary = await fetchVocabulary(supabase, body.categorySlug)
-  if (vocabulary == null) {
-    return jsonResponse({ error: 'no hay estilos para esa categoría' }, 400)
-  }
-
-  const { styleSlugs, styleList, traitsByDimension } = vocabulary
-  const tool = buildReadingTool(styleSlugs, traitsByDimension)
-
-  let anthropicResponse: Response
-  try {
-    anthropicResponse = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'x-api-key': ANTHROPIC_API_KEY,
-        'anthropic-version': ANTHROPIC_VERSION,
-        'content-type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: ANTHROPIC_MODEL,
-        max_tokens: 256,
-        tools: [tool],
-        tool_choice: { type: 'tool', name: tool.name },
-        messages: [
-          {
-            role: 'user',
-            content: [
-              {
-                type: 'image',
-                source: {
-                  type: 'base64',
-                  media_type: body.mimeType,
-                  data: body.image,
-                },
-              },
-              {
-                type: 'text',
-                text: [
-                  `Estilos posibles:\n${styleList}`,
-                  ...Object.entries(traitsByDimension).map(
-                    ([dimension, slugs]) =>
-                      `${dimension} posibles:\n${slugs.join('\n')}`,
-                  ),
-                  'Describí esta imagen con ese vocabulario. Dejá en null todo lo que la imagen no permita saber.',
-                ].join('\n\n'),
-              },
-            ],
-          },
-        ],
-      }),
+    // Cliente con el JWT de quien llama, no con la service key: las políticas
+    // de `styles`/`categories` (lectura pública de lo activo) alcanzan, y así
+    // esta función nunca tiene más acceso a la base que la propia persona.
+    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+      global: { headers: { Authorization: authHeader } },
     })
-  } catch {
-    return jsonResponse({ error: 'no se pudo clasificar' }, 502)
-  }
 
-  if (!anthropicResponse.ok) {
-    return jsonResponse({ error: 'no se pudo clasificar' }, 502)
-  }
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+    if (user == null) {
+      return jsonResponse({ error: 'sesión inválida' }, 401)
+    }
 
-  const payload = await anthropicResponse.json()
-  const toolUse = (
-    payload.content as Array<Record<string, unknown>> | undefined
-  )?.find((block) => block['type'] === 'tool_use')
+    let body: ReadRequest
+    try {
+      body = await req.json()
+    } catch {
+      return jsonResponse({ error: 'cuerpo inválido' }, 400)
+    }
 
-  const input =
-    (toolUse?.['input'] as Record<string, unknown> | undefined) ?? {}
+    if (
+      typeof body.image !== 'string' ||
+      body.image.length === 0 ||
+      typeof body.mimeType !== 'string' ||
+      typeof body.categorySlug !== 'string'
+    ) {
+      return jsonResponse({ error: 'faltan campos' }, 400)
+    }
 
-  // Segunda barrera, dimensión por dimensión: nada sale de acá que no estuviera
-  // en la lista que entró. `styleSlug` conserva su nombre en la respuesta
-  // porque es el mismo dato de siempre.
-  const styleSlug = resolveSlug(input['style_slug'], styleSlugs)
-  const readTraits = resolveTraits(input, traitsByDimension)
+    if (!ALLOWED_MIME_TYPES.has(body.mimeType)) {
+      return jsonResponse({ error: 'tipo de imagen no soportado' }, 400)
+    }
 
-  return jsonResponse({ styleSlug, traits: readTraits }, 200)
-})
+    // Tamaño en base64 ≈ 4/3 del tamaño real — el chequeo es conservador.
+    if (body.image.length > (MAX_IMAGE_BYTES * 4) / 3) {
+      return jsonResponse({ error: 'imagen demasiado grande' }, 413)
+    }
+
+    // El vocabulario sale de la base, así que la lista que ve el modelo es
+    // exactamente la que la pantalla del brief le va a ofrecer a la persona para
+    // corregir.
+    const vocabulary = await fetchVocabulary(supabase, body.categorySlug)
+    if (vocabulary == null) {
+      return jsonResponse({ error: 'no hay estilos para esa categoría' }, 400)
+    }
+
+    const { styleSlugs, styleList, traitsByDimension } = vocabulary
+    const tool = buildReadingTool(styleSlugs, traitsByDimension)
+
+    let anthropicResponse: Response
+    try {
+      anthropicResponse = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'x-api-key': ANTHROPIC_API_KEY,
+          'anthropic-version': ANTHROPIC_VERSION,
+          'content-type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: ANTHROPIC_MODEL,
+          max_tokens: 256,
+          tools: [tool],
+          tool_choice: { type: 'tool', name: tool.name },
+          messages: [
+            {
+              role: 'user',
+              content: [
+                {
+                  type: 'image',
+                  source: {
+                    type: 'base64',
+                    media_type: body.mimeType,
+                    data: body.image,
+                  },
+                },
+                {
+                  type: 'text',
+                  text: [
+                    `Estilos posibles:\n${styleList}`,
+                    ...Object.entries(traitsByDimension).map(
+                      ([dimension, slugs]) =>
+                        `${dimension} posibles:\n${slugs.join('\n')}`,
+                    ),
+                    'Describí esta imagen con ese vocabulario. Dejá en null todo lo que la imagen no permita saber.',
+                  ].join('\n\n'),
+                },
+              ],
+            },
+          ],
+        }),
+      })
+    } catch {
+      logLine({
+        fn: 'read-reference',
+        event: 'upstream_unreachable',
+        request_id: requestId,
+      })
+      return jsonResponse({ error: 'no se pudo clasificar' }, 502)
+    }
+
+    if (!anthropicResponse.ok) {
+      // **El bug del `tool_choice` habría durado horas y no días** si esta línea
+      // hubiera existido: la API devolvía 400 por un nombre de herramienta que no
+      // existía, y desde afuera se veía "no se pudo clasificar".
+      logLine({
+        fn: 'read-reference',
+        event: 'upstream_error',
+        upstream_status: anthropicResponse.status,
+        request_id: requestId,
+      })
+      return jsonResponse({ error: 'no se pudo clasificar' }, 502)
+    }
+
+    const payload = await anthropicResponse.json()
+    const toolUse = (
+      payload.content as Array<Record<string, unknown>> | undefined
+    )?.find((block) => block['type'] === 'tool_use')
+
+    const input =
+      (toolUse?.['input'] as Record<string, unknown> | undefined) ?? {}
+
+    // Segunda barrera, dimensión por dimensión: nada sale de acá que no estuviera
+    // en la lista que entró. `styleSlug` conserva su nombre en la respuesta
+    // porque es el mismo dato de siempre.
+    const styleSlug = resolveSlug(input['style_slug'], styleSlugs)
+    const readTraits = resolveTraits(input, traitsByDimension)
+
+    logLine({
+      fn: 'read-reference',
+      event: 'read',
+      request_id: requestId,
+    })
+
+    return jsonResponse({ styleSlug, traits: readTraits }, 200)
+  }),
+)
