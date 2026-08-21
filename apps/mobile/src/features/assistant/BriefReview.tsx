@@ -36,6 +36,7 @@ import type { TranslationKey } from '@/i18n/index.ts'
 import { BriefEditor } from '../brief/BriefEditor.tsx'
 import { fetchTraits, setProjectTraits } from '../brief/queries.ts'
 import { createQuickSearch } from '../quick-search/createQuickSearch.ts'
+import { OpenToProsChoice } from '../quick-search/OpenToProsChoice.tsx'
 
 import type { AssistantBrief } from './assistant.ts'
 import { attachThreadProject } from './queries.ts'
@@ -68,7 +69,9 @@ export function BriefReview({
   const [traitSlugs, setTraitSlugs] = useState<ReadonlySet<string>>(
     new Set(brief.traits.map((trait) => trait.slug)),
   )
-  const [abierto, setAbierto] = useState(false)
+  // `null` y no `false`: es una elección obligatoria, no un default. Ver
+  // `OpenToProsChoice`, que explica por qué dejó de ser un interruptor.
+  const [abierto, setAbierto] = useState<boolean | null>(null)
   const [error, setError] = useState<string | null>(null)
 
   const vocabulario = useQuery({
@@ -84,7 +87,7 @@ export function BriefReview({
         description: summary.trim(),
         styleSlugs: brief.styleSlug == null ? [] : [brief.styleSlug],
         imageUris: [],
-        openToProfessionals: abierto,
+        openToProfessionals: abierto === true,
       })
 
       // Los rasgos van después: la política los pide colgados de una búsqueda
@@ -109,7 +112,7 @@ export function BriefReview({
       return result.projectId
     },
     onSuccess: (projectId) => {
-      track({ name: 'search_opened', props: { is_open: abierto } })
+      track({ name: 'search_opened', props: { is_open: abierto === true } })
       onPublished(projectId)
     },
     onError: (err) =>
@@ -202,28 +205,11 @@ export function BriefReview({
           source="words"
         />
 
-        <Box gap="xxs" testID="brief-review-open">
-          <Text role="label" color="textSecondary">
-            {t('quickSearch.open.title')}
-          </Text>
-          <Text role="body" color="textSecondary">
-            {t('quickSearch.open.body')}
-          </Text>
-          <Text role="micro" color="textTertiary">
-            {t(abierto ? 'quickSearch.open.on' : 'quickSearch.open.off')}
-          </Text>
-          <Button
-            label={t(
-              abierto
-                ? 'quickSearch.open.toggle.on'
-                : 'quickSearch.open.toggle.off',
-            )}
-            variant="secondary"
-            onPress={() => setAbierto(!abierto)}
-            fullWidth
-            testID="brief-review-open-toggle"
-          />
-        </Box>
+        <OpenToProsChoice
+          value={abierto}
+          onChange={setAbierto}
+          testID="brief-review-open"
+        />
 
         {error != null ? (
           <Text
@@ -238,7 +224,9 @@ export function BriefReview({
 
         <Button
           label={t('assistant.review.publish')}
-          disabled={title.trim() === '' || summary.trim() === ''}
+          disabled={
+            title.trim() === '' || summary.trim() === '' || abierto == null
+          }
           loading={publicar.isPending}
           onPress={() => publicar.mutate()}
           fullWidth

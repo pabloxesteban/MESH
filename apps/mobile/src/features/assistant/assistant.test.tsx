@@ -234,6 +234,7 @@ describe('la revisión del pedido', () => {
       screen.getByTestId('brief-review-summary'),
       'En realidad lo quiero en el gemelo.',
     )
+    fireEvent.press(screen.getByTestId('brief-review-open-yes'))
     fireEvent.press(screen.getByTestId('brief-review-publish'))
 
     await waitFor(() => {
@@ -246,8 +247,41 @@ describe('la revisión del pedido', () => {
     })
   })
 
-  it('arranca cerrado a los tatuadores', async () => {
+  // El corazón de esta pantalla: **no hay default**.
+  //
+  // Antes arrancaba apagado, y quien no miraba el interruptor publicaba un
+  // pedido que no le llegaba a nadie. Ahora no se puede publicar sin
+  // contestar, y no contestar no equivale a que sí. Los tres tests son las
+  // tres cosas que pueden pasar.
+  it('no publica nada si todavía no se decidió quién lo ve', async () => {
     await llegarALaRevision()
+    fireEvent.press(screen.getByTestId('brief-review-publish'))
+
+    await waitFor(() => {
+      expect(screen.getByTestId('brief-review-title')).toBeTruthy()
+    })
+    expect(crear).not.toHaveBeenCalled()
+  })
+
+  it('decir que sí lo abre a los tatuadores', async () => {
+    await llegarALaRevision()
+    fireEvent.press(screen.getByTestId('brief-review-open-yes'))
+    fireEvent.press(screen.getByTestId('brief-review-publish'))
+
+    await waitFor(() => {
+      expect(crear).toHaveBeenCalledWith(
+        expect.objectContaining({ openToProfessionals: true }),
+      )
+    })
+  })
+
+  it('decir que no lo publica cerrado, y avisa que no le llega a nadie', async () => {
+    await llegarALaRevision()
+    fireEvent.press(screen.getByTestId('brief-review-open-no'))
+
+    // El costo se dice antes de confirmar, no después de esperar una semana.
+    expect(screen.getByTestId('brief-review-open-note')).toBeTruthy()
+
     fireEvent.press(screen.getByTestId('brief-review-publish'))
 
     await waitFor(() => {

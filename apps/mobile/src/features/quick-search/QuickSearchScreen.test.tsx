@@ -139,6 +139,7 @@ describe('QuickSearchScreen', () => {
     await waitFor(() =>
       expect(screen.getByTestId('quick-search-brief')).toBeTruthy(),
     )
+    fireEvent.press(screen.getByTestId('quick-search-open-yes'))
     fireEvent.press(screen.getByTestId('quick-search-submit'))
 
     // Llega con el estilo detectado: es lo que necesita Explorar para abrir
@@ -226,10 +227,40 @@ describe('QuickSearchScreen', () => {
       ),
     ).toBeTruthy()
     // Sin estilo elegido no se publica: es lo único que la búsqueda necesita.
+    // Se contesta lo de los tatuadores primero, para que lo que queda
+    // deshabilitando el botón sea el estilo y no la otra pregunta.
+    fireEvent.press(screen.getByTestId('quick-search-open-yes'))
     expect(
       screen.getByTestId('quick-search-submit').props['accessibilityState'],
     ).toMatchObject({ disabled: true })
     expect(createQuickSearchMock).not.toHaveBeenCalled()
+  })
+
+  it('sin contestar si lo ven los tatuadores, publicar no se habilita', async () => {
+    // Antes esto era un interruptor apagado: quien no lo miraba publicaba un
+    // pedido que no le llegaba a nadie. Ahora hay que contestar, y no
+    // contestar no equivale a que no.
+    renderScreen()
+
+    fireEvent.press(screen.getByTestId('quick-search-add-photo'))
+    await waitFor(() =>
+      expect(screen.getByTestId('quick-search-photo-0')).toBeTruthy(),
+    )
+    fireEvent.press(screen.getByTestId('quick-search-read'))
+    await waitFor(() =>
+      expect(screen.getByTestId('quick-search-brief')).toBeTruthy(),
+    )
+
+    expect(
+      screen.getByTestId('quick-search-submit').props['accessibilityState'],
+    ).toMatchObject({ disabled: true })
+
+    // Y decir que no también habilita: es una decisión, no una omisión.
+    fireEvent.press(screen.getByTestId('quick-search-open-no'))
+    expect(screen.getByTestId('quick-search-open-note')).toBeTruthy()
+    expect(
+      screen.getByTestId('quick-search-submit').props['accessibilityState'],
+    ).toMatchObject({ disabled: false })
   })
 
   it('con fotos que fallaron, pide un segundo toque antes de avanzar', async () => {
@@ -247,6 +278,7 @@ describe('QuickSearchScreen', () => {
     await waitFor(() =>
       expect(screen.getByTestId('quick-search-brief')).toBeTruthy(),
     )
+    fireEvent.press(screen.getByTestId('quick-search-open-yes'))
     fireEvent.press(screen.getByTestId('quick-search-submit'))
 
     await waitFor(() =>
@@ -272,6 +304,7 @@ describe('QuickSearchScreen', () => {
     await waitFor(() =>
       expect(screen.getByTestId('quick-search-brief')).toBeTruthy(),
     )
+    fireEvent.press(screen.getByTestId('quick-search-open-yes'))
     fireEvent.press(screen.getByTestId('quick-search-submit'))
 
     await waitFor(() =>
@@ -321,6 +354,7 @@ describe('QuickSearchScreen', () => {
     await waitFor(() =>
       expect(screen.getByTestId('quick-search-brief')).toBeTruthy(),
     )
+    fireEvent.press(screen.getByTestId('quick-search-open-yes'))
     fireEvent.press(screen.getByTestId('quick-search-submit'))
 
     await waitFor(() => expect(createQuickSearchMock).toHaveBeenCalled())
@@ -351,6 +385,7 @@ describe('QuickSearchScreen', () => {
     await waitFor(() =>
       expect(screen.getByTestId('quick-search-brief')).toBeTruthy(),
     )
+    fireEvent.press(screen.getByTestId('quick-search-open-yes'))
     fireEvent.press(screen.getByTestId('quick-search-submit'))
 
     await waitFor(() => expect(createQuickSearchMock).toHaveBeenCalled())

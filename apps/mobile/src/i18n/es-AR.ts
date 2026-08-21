@@ -582,15 +582,15 @@ export const esAR = {
   'demand.interests.dismiss': 'Sacar a {nombre} de la lista',
   'demand.interests.dismiss.short': 'Sacar',
   // --- publicar la búsqueda ---
-  'quickSearch.open.title': '¿Que los tatuadores la vean?',
+  'quickSearch.open.title': '¿Que los tatuadores lo vean?',
   'quickSearch.open.body':
-    'Si lo activás, quienes tatúan lo que buscás pueden ver estas fotos y el ' +
+    'Si decís que sí, quienes tatúan lo que buscás pueden ver las fotos y el ' +
     'estilo, y avisarte que les interesa. No ven tu nombre ni pueden ' +
     'escribirte: el chat lo abrís vos.',
-  'quickSearch.open.on': 'La van a ver',
-  'quickSearch.open.off': 'No la ve nadie',
-  'quickSearch.open.toggle.on': 'Que no la vean',
-  'quickSearch.open.toggle.off': 'Que la vean',
+  'quickSearch.open.choose.yes': 'Sí, que lo vean',
+  'quickSearch.open.choose.no': 'No, guardarlo para mí',
+  'quickSearch.open.choose.noNote':
+    'Lo vas a tener guardado para vos y no le va a llegar a ningún tatuador.',
   // --- chats del artista ---
   'chat.empty.artist.title': 'Todavía no te escribió nadie',
   'chat.empty.artist.body':

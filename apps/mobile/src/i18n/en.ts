@@ -538,13 +538,13 @@ export const en: Readonly<Record<TranslationKey, string>> = {
   'demand.interests.dismiss.short': 'Remove',
   'quickSearch.open.title': 'Let tattooers see it?',
   'quickSearch.open.body':
-    'If you turn this on, artists who tattoo what you are looking for can see ' +
-    'these photos and the style, and let you know they are interested. They ' +
+    'If you say yes, artists who tattoo what you are looking for can see the ' +
+    'photos and the style, and let you know they are interested. They ' +
     'cannot see your name or write to you: you open the chat.',
-  'quickSearch.open.on': 'They can see it',
-  'quickSearch.open.off': 'Nobody sees it',
-  'quickSearch.open.toggle.on': 'Hide it again',
-  'quickSearch.open.toggle.off': 'Let them see it',
+  'quickSearch.open.choose.yes': 'Yes, let them see it',
+  'quickSearch.open.choose.no': 'No, keep it to myself',
+  'quickSearch.open.choose.noNote':
+    'It stays saved for you and reaches no tattooer.',
   'chat.empty.artist.title': 'Nobody has written to you yet',
   'chat.empty.artist.body':
     'When someone writes, the conversation shows up here. You cannot write ' +

@@ -48,6 +48,7 @@ import { BriefEditor } from '../brief/BriefEditor.tsx'
 import { fetchTraits, setProjectTraits } from '../brief/queries.ts'
 import { readReferencePhoto } from './classify.ts'
 import { createQuickSearch } from './createQuickSearch.ts'
+import { OpenToProsChoice } from './OpenToProsChoice.tsx'
 
 const MAX_PHOTOS = 4
 
@@ -90,9 +91,11 @@ export function QuickSearchScreen({
     queryKey: ['traits', 'tattoo'],
     queryFn: () => fetchTraits('tattoo'),
   })
-  // Apagado. Estas fotos las subió para sí misma; que las vea un tatuador es
-  // una decisión suya, y una decisión no se toma por default. Ver ADR-014.
-  const [openToPros, setOpenToPros] = useState(false)
+  // `null` = todavía no eligió. Estas fotos las subió para sí misma; que las
+  // vea un tatuador es una decisión suya, y una decisión no se toma por
+  // default —ni siquiera por el default prudente—. Ver ADR-014 y
+  // `OpenToProsChoice`, que explica por qué dejó de ser un interruptor.
+  const [openToPros, setOpenToPros] = useState<boolean | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   // Ausente hasta que la búsqueda corrió; con valor, algunas fotos no
@@ -105,7 +108,7 @@ export function QuickSearchScreen({
     readonly styleSlug: string
   } | null>(null)
 
-  const canSubmit = styleSlugs.length > 0 && !isSubmitting
+  const canSubmit = styleSlugs.length > 0 && openToPros != null && !isSubmitting
 
   /**
    * Lee las fotos y pasa al brief.
@@ -158,7 +161,7 @@ export function QuickSearchScreen({
         title,
         styleSlugs,
         imageUris: images,
-        openToProfessionals: openToPros,
+        openToProfessionals: openToPros === true,
         ...(locationSlug != null ? { locationSlug } : {}),
       })
 
@@ -176,7 +179,7 @@ export function QuickSearchScreen({
         // completar después. Un error acá no es un error de la persona.
       }
 
-      track({ name: 'search_opened', props: { is_open: openToPros } })
+      track({ name: 'search_opened', props: { is_open: openToPros === true } })
 
       if (result.failedUploads > 0) {
         setPending({ ...result, styleSlug })
@@ -328,10 +331,16 @@ export function QuickSearchScreen({
           onRequest={device.request}
         />
 
-        <OpenToProsRow
-          open={openToPros}
-          onToggle={() => setOpenToPros((previous) => !previous)}
-        />
+        {/* Solo en el paso del brief. Ahora que contestarla es obligatoria,
+            preguntarla mientras alguien todavía está eligiendo fotos sería
+            pedirle que decida sobre un pedido que no existe. */}
+        {paso === 'brief' ? (
+          <OpenToProsChoice
+            value={openToPros}
+            onChange={setOpenToPros}
+            testID="quick-search-open"
+          />
+        ) : null}
 
         {error != null ? (
           <Text role="micro" color="stateNegative" testID="quick-search-error">
@@ -457,47 +466,3 @@ function LocationRow({
   )
 }
 
-/**
- * El interruptor que decide si un tatuador puede ver esta búsqueda.
- *
- * Arranca apagado y la etiqueta dice qué pasa si se enciende, con las dos
- * consecuencias que importan: **qué se muestra** (las fotos y el estilo) y
- * **qué no** (quién sos). Sin eso, "que los tatuadores lo vean" suena a
- * publicar el perfil.
- *
- * Mismo patrón que el interruptor de datos de uso: un botón con el estado
- * escrito arriba. MESH no tiene un `Switch` propio, y un control cuyo estado
- * solo se lee del color no se lee.
- */
-function OpenToProsRow({
-  open,
-  onToggle,
-}: {
-  open: boolean
-  onToggle: () => void
-}) {
-  const t = useT()
-
-  return (
-    <Box gap="xxs" testID="quick-search-open">
-      <Text role="label" color="textSecondary">
-        {t('quickSearch.open.title')}
-      </Text>
-      <Text role="body" color="textSecondary">
-        {t('quickSearch.open.body')}
-      </Text>
-      <Text role="micro" color="textTertiary">
-        {t(open ? 'quickSearch.open.on' : 'quickSearch.open.off')}
-      </Text>
-      <Button
-        label={t(
-          open ? 'quickSearch.open.toggle.on' : 'quickSearch.open.toggle.off',
-        )}
-        variant="secondary"
-        onPress={onToggle}
-        fullWidth
-        testID="quick-search-open-toggle"
-      />
-    </Box>
-  )
-}
