@@ -238,7 +238,7 @@ export function ContactScreen({
               />
               {/* Se dice de antemano, no después: prometer que el mensaje va a
                   aparecer escrito sería mentir sobre lo que hace el botón. */}
-              <Text role="micro" color="textTertiary">
+              <Text role="label" color="textTertiary">
                 {t('contact.instagram.note')}
               </Text>
             </Box>

@@ -93,7 +93,7 @@ export function ProposalComposer({
         <Text role="body" numberOfLines={2}>
           {searchTitle}
         </Text>
-        <Text role="micro" color="textTertiary">
+        <Text role="label" color="textTertiary">
           {t('proposal.send.hint')}
         </Text>
       </Box>

@@ -14,6 +14,13 @@
  *    usa nunca sabría si ya está guardado.
  * 3. **Fondo propio.** El corazón vive sobre una foto, y una foto puede ser
  *    blanca o negra. Sin el disco detrás, la mitad de las veces desaparece.
+ * 4. **Los colores son los del velo, no los del tema.** El disco es siempre
+ *    oscuro —un velo sobre una foto no cambia con el tema— así que lo de
+ *    arriba tampoco puede cambiar. Usar `textInverse` acá dejaba el corazón
+ *    negro sobre negro en el tema oscuro, que es el de arranque: la feature
+ *    entera era invisible y ningún test lo veía. Ahora va `overlayContent`
+ *    (17:1 sobre el velo) y `accentFill` para el lleno (4,72:1, igual en los
+ *    dos temas; `accent` en el tema claro se quedaba en 3,79:1).
  */
 
 import {
@@ -56,7 +63,7 @@ export function SaveHeart({ isSaved, onToggle, testID }: SaveHeartProps) {
         backgroundColor: theme.overlayScrim,
       }}
     >
-      <Text role="bodyLg" color={isSaved ? 'accent' : 'textInverse'}>
+      <Text role="bodyLg" color={isSaved ? 'accentFill' : 'overlayContent'}>
         {isSaved ? '♥' : '♡'}
       </Text>
     </Pressable>

@@ -151,7 +151,7 @@ export function ProjectFormScreen({
             {/* Se dice para qué sirve. Pedir dónde vive alguien sin explicar por
               qué es pedirle que se exponga a cambio de nada — el mismo criterio
               que el presupuesto. */}
-            <Text role="micro" color="textTertiary">
+            <Text role="label" color="textTertiary">
               {t('projects.form.location.hint')}
             </Text>
             <Box direction="row" gap="xxs" wrap>
@@ -174,7 +174,7 @@ export function ProjectFormScreen({
             </Box>
           </Box>
 
-          <Text role="micro" color="textTertiary">
+          <Text role="label" color="textTertiary">
             {t('projects.form.budget.hint')}
           </Text>
           <Box direction="row" gap="xs">
@@ -221,7 +221,7 @@ export function ProjectFormScreen({
           </Box>
         </Box>
 
-        <Text role="micro" color="textTertiary">
+        <Text role="label" color="textTertiary">
           {t('projects.references.hint')}
         </Text>
 

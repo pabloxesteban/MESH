@@ -269,7 +269,7 @@ export function StudioScreen({
               <Text role="label" color="textSecondary">
                 {t('studio.claim.title')}
               </Text>
-              <Text role="micro" color="textTertiary">
+              <Text role="label" color="textTertiary">
                 {t('studio.claim.body')}
               </Text>
             </Box>
@@ -319,7 +319,7 @@ export function StudioScreen({
             {professional.displayName}
           </Text>
           {!professional.isPublished ? (
-            <Text role="micro" color="stateWarning">
+            <Text role="label" color="stateWarning">
               {t('studio.unpublished')}
             </Text>
           ) : null}
@@ -520,7 +520,7 @@ function StudioLocation({
         <Text role="label" color="textSecondary">
           {t('studio.location.title')}
         </Text>
-        <Text role="micro" color="textTertiary">
+        <Text role="label" color="textTertiary">
           {t('studio.location.body')}
         </Text>
         {hasSavedLocation ? (
@@ -581,7 +581,7 @@ function AddPiece({
         <Text role="label" color="textSecondary">
           {t('studio.add.styles')}
         </Text>
-        <Text role="micro" color="textTertiary">
+        <Text role="label" color="textTertiary">
           {t('studio.add.styles.hint')}
         </Text>
       </Box>
@@ -720,7 +720,7 @@ function CreateProfile({
           maxLength={20}
           testID="studio-create-whatsapp"
         />
-        <Text role="micro" color="textTertiary">
+        <Text role="label" color="textTertiary">
           {t('studio.create.contact.hint')}
         </Text>
       </Box>
@@ -783,7 +783,7 @@ function OwnStyles({
         <Text role="label" color="textSecondary">
           {t('studio.styles.title')}
         </Text>
-        <Text role="micro" color="textTertiary">
+        <Text role="label" color="textTertiary">
           {t('studio.styles.body')}
         </Text>
       </Box>

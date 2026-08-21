@@ -107,7 +107,7 @@ export function LeaveReview({
         <Text role="label" color="textSecondary">
           {t('reviews.leave.title')}
         </Text>
-        <Text role="micro" color="textTertiary">
+        <Text role="label" color="textTertiary">
           {t('reviews.leave.hint')}
         </Text>
       </Box>
@@ -154,7 +154,7 @@ export function LeaveReview({
           />
           {/* Antes de subir, no después: una foto publicada no se despublica
               de la memoria de quien ya la vio. */}
-          <Text role="micro" color="textTertiary">
+          <Text role="label" color="textTertiary">
             {t('reviews.leave.photo.public')}
           </Text>
         </Box>

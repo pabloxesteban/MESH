@@ -64,6 +64,19 @@ export interface Theme {
 
   // Velo sobre imágenes. Siempre tinta con opacidad, nunca coloreado.
   readonly overlayScrim: string
+  /**
+   * Contenido sobre `overlayScrim`.
+   *
+   * Existe porque `textInverse` **no** sirve para esto y el error no se ve a
+   * ojo hasta que se mira la pantalla: `overlayScrim` es tinta en los dos
+   * temas —un velo sobre una foto siempre es oscuro— y en el tema oscuro
+   * `textInverse` también es tinta. El corazón de guardar quedaba negro sobre
+   * negro: invisible en el tema por defecto de la app, con la feature entera
+   * de ADR-016 detrás.
+   *
+   * Es papel en los dos temas, y mide 17:1 sobre el velo. Hay un test.
+   */
+  readonly overlayContent: string
 
   // Estados de interacción, como opacidad.
   readonly pressedOpacity: number
@@ -101,6 +114,7 @@ export const darkTheme: Theme = {
   stateWarning: palette.warningRaised,
 
   overlayScrim: palette.ink900,
+  overlayContent: palette.paper100,
 
   pressedOpacity: 0.62,
   disabledOpacity: 0.38,
@@ -133,6 +147,7 @@ export const lightTheme: Theme = {
   stateWarning: palette.warning,
 
   overlayScrim: palette.ink900,
+  overlayContent: palette.paper100,
 
   pressedOpacity: 0.62,
   disabledOpacity: 0.38,

@@ -71,6 +71,26 @@ describe.each([
     ).toBeGreaterThanOrEqual(AA_TEXT)
   })
 
+  // **El test que faltaba.** Un velo sobre una foto es oscuro en los dos temas,
+  // así que lo que se dibuja encima no puede depender del tema. Sin esto, el
+  // corazón de guardar era tinta sobre tinta en el tema oscuro —invisible, con
+  // toda la feature de ADR-016 detrás— y nada lo veía: los tipos pasaban, el
+  // lint pasaba, y el barrido de accesibilidad solo mira etiquetas y tamaños.
+  it('lo que va sobre el velo se lee, en los dos temas', () => {
+    expect(
+      contrastRatio(theme.overlayContent, theme.overlayScrim),
+    ).toBeGreaterThanOrEqual(AA_TEXT)
+  })
+
+  it('el corazón lleno también se lee sobre el velo, en los dos temas', () => {
+    // `accentFill` y no `accent`: el acento del tema claro mide 3,79:1 sobre el
+    // velo, por debajo de AA. El relleno es el mismo color en los dos temas,
+    // que es justamente lo que pide algo que siempre va sobre lo mismo.
+    expect(
+      contrastRatio(theme.accentFill, theme.overlayScrim),
+    ).toBeGreaterThanOrEqual(AA_TEXT)
+  })
+
   it('el texto inverso llega a AA sobre la superficie del otro tema', () => {
     const other = theme.name === 'dark' ? lightTheme : darkTheme
     expect(

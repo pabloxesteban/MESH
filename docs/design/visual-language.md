@@ -254,6 +254,19 @@ Reglas: la serif nunca se usa por debajo de 24px, y la sans nunca por encima de
 20px. Esa única restricción mantiene a las dos familias en su rol sin discutir el
 manual de estilo en cada pantalla.
 
+**Y `micro` es para etiquetas, no para oraciones.** Es la regla que ya estaba en
+la tabla de arriba y que igual se rompió sola: la ayuda que va debajo de los
+campos había ido a parar a `micro`, y terminaron 16 oraciones enteras gritadas
+en versalitas —cinco en el Estudio, la primera pantalla que ve un artista—. Una
+oración en mayúsculas se lee más lento y suena a que le están hablando fuerte a
+alguien. La ayuda de un campo va en `label`, que es lo que ya usa el `hint` del
+propio `Input`.
+
+El límite está impuesto en `screens.a11y.test.tsx`: **más de 45 caracteres en
+versalitas rompe el barrido**. Ese número separa limpio lo que hay — la insignia
+"REGISTRO DE PRUEBA. NO ES UNA PERSONA REAL." mide 43 y es un aviso que sí
+corresponde gritar; de ahí para arriba no hay etiquetas, solo prosa.
+
 ## 6. Layout
 
 - Escala de espaciado de 8pt: 4, 8, 12, 16, 24, 32, 48, 64.

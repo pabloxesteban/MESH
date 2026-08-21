@@ -341,7 +341,7 @@ export function QuickSearchScreen({
 
         {pending != null ? (
           <Box gap="xs" testID="quick-search-partial">
-            <Text role="micro" color="stateWarning">
+            <Text role="label" color="stateWarning">
               {t('quickSearch.uploadsFailed', {
                 ok: String(images.length - pending.failedUploads),
                 total: String(images.length),
@@ -421,7 +421,7 @@ function LocationRow({
         <Text role="label" color="textSecondary">
           {t('quickSearch.location')}
         </Text>
-        <Text role="micro" color="textTertiary">
+        <Text role="label" color="textTertiary">
           {neighborhoodSlug == null
             ? t('quickSearch.location.unknown')
             : t('quickSearch.location.near', {
@@ -438,7 +438,7 @@ function LocationRow({
         <Text role="label" color="textSecondary">
           {t('quickSearch.location')}
         </Text>
-        <Text role="micro" color="textTertiary">
+        <Text role="label" color="textTertiary">
           {status === 'denied'
             ? t('quickSearch.location.denied')
             : t('quickSearch.location.hint')}

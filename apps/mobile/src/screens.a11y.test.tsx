@@ -391,6 +391,53 @@ beforeEach(() => {
  * por más de 3 y rompe cualquier layout. Con el tope, el texto crece de verdad
  * —que es el punto— pero hasta donde la pantalla lo sostiene.
  */
+/**
+ * Versalitas: para etiquetas, no para oraciones.
+ *
+ * El rol `micro` del design system pone `textTransform: 'uppercase'`, y su
+ * propia documentación dice para qué es: **etiquetas de estilo y antetítulos**.
+ * Pero nada lo impedía, y se había filtrado a la ayuda que va debajo de los
+ * campos — 16 oraciones enteras gritadas en mayúsculas, cinco de ellas en el
+ * Estudio, que es la primera pantalla que ve un artista. Una oración en
+ * versalitas se lee más lento y suena a que le están hablando fuerte a alguien.
+ *
+ * El umbral son 45 caracteres, y separa limpio lo que hay: la insignia
+ * "REGISTRO DE PRUEBA. NO ES UNA PERSONA REAL." mide 43 y es un aviso que
+ * **sí** corresponde gritar; el antetítulo "TODA LA OBRA, ESTÉ CERCA O LEJOS"
+ * mide 33. De ahí para arriba no hay etiquetas, solo prosa.
+ */
+const MAX_VERSALITA = 45
+
+function sweepShouting(name: string) {
+  const textos = screen.UNSAFE_root.findAll(
+    (node) => String(node.type) === 'Text' && node.props?.children != null,
+  )
+
+  const gritando = textos
+    .filter((node) => {
+      const flat = (
+        Array.isArray(node.props['style'])
+          ? node.props['style']
+          : [node.props['style']]
+      ).filter(Boolean) as Record<string, unknown>[]
+      return flat.some((entry) => entry?.['textTransform'] === 'uppercase')
+    })
+    .map((node) => String(node.props['children']))
+    .filter((texto) => texto.length > MAX_VERSALITA)
+
+  expect({
+    pantalla: name,
+    enVersalitas: gritando,
+    comoSeArregla:
+      'Es prosa, no una etiqueta: cambiá role="micro" por role="label".',
+  }).toEqual({
+    pantalla: name,
+    enVersalitas: [],
+    comoSeArregla:
+      'Es prosa, no una etiqueta: cambiá role="micro" por role="label".',
+  })
+}
+
 function sweepDynamicType(name: string) {
   // El tipo del host es un string en el árbol de test, pero el tipado de RNTL
   // lo declara como la unión de roles. Se compara sobre el string.
@@ -422,6 +469,7 @@ describe('barrido de accesibilidad y callejones', () => {
       expect(screen.getByTestId('artists-empty')).toBeTruthy(),
     )
     sweep('artistas · vacío')
+    sweepShouting('artistas · vacío')
     sweepDynamicType('artistas · vacío')
   })
 
@@ -458,6 +506,7 @@ describe('barrido de accesibilidad y callejones', () => {
     )
     await waitFor(() => expect(screen.getByTestId('artists-list')).toBeTruthy())
     sweep('artistas · con uno')
+    sweepShouting('artistas · con uno')
     sweepDynamicType('artistas · con uno')
   })
 
@@ -495,6 +544,7 @@ describe('barrido de accesibilidad y callejones', () => {
       expect(screen.getByTestId('discovery-grid')).toBeTruthy(),
     )
     sweep('explorar · con obra')
+    sweepShouting('explorar · con obra')
     sweepDynamicType('explorar · con obra')
   })
 
@@ -572,12 +622,14 @@ describe('barrido de accesibilidad y callejones', () => {
   it('formulario de proyecto', () => {
     render(<ProjectFormScreen onSubmit={jest.fn()} onCancel={jest.fn()} />)
     sweep('proyecto · formulario')
+    sweepShouting('proyecto · formulario')
     sweepDynamicType('proyecto · formulario')
   })
 
   it('la pregunta de onboarding', () => {
     render(<IntentScreen busy={false} onChoose={jest.fn()} />)
     sweep('onboarding · intención')
+    sweepShouting('onboarding · intención')
     sweepDynamicType('onboarding · intención')
   })
 
@@ -600,6 +652,7 @@ describe('barrido de accesibilidad y callejones', () => {
     // La puerta a crear cuenta tiene que estar acá: es la única que hay.
     expect(screen.getByTestId('account-sign-up')).toBeTruthy()
     sweep('perfil · sin cuenta')
+    sweepShouting('perfil · sin cuenta')
     sweepDynamicType('perfil · sin cuenta')
   })
 
@@ -620,6 +673,7 @@ describe('barrido de accesibilidad y callejones', () => {
       expect(screen.getByTestId('account-content')).toBeTruthy(),
     )
     sweep('perfil · con cuenta')
+    sweepShouting('perfil · con cuenta')
     sweepDynamicType('perfil · con cuenta')
   })
 
@@ -636,6 +690,7 @@ describe('barrido de accesibilidad y callejones', () => {
       expect(screen.getByTestId('chat-messages')).toBeTruthy(),
     )
     sweep('chat · vacío')
+    sweepShouting('chat · vacío')
     sweepDynamicType('chat · vacío')
   })
 
@@ -670,6 +725,7 @@ describe('barrido de accesibilidad y callejones', () => {
     // del cliente y el barrido no cubriría nada nuevo.
     expect(screen.getByTestId('schedule-open')).toBeTruthy()
     sweep('chat del artista · con turno')
+    sweepShouting('chat del artista · con turno')
     sweepDynamicType('chat del artista · con turno')
   })
 
@@ -718,6 +774,7 @@ describe('barrido de accesibilidad y callejones', () => {
     expect(screen.getByTestId('leave-review')).toBeTruthy()
 
     sweep('chat · dejar reseña')
+    sweepShouting('chat · dejar reseña')
     sweepDynamicType('chat · dejar reseña')
   })
 
@@ -728,6 +785,7 @@ describe('barrido de accesibilidad y callejones', () => {
       expect(screen.getByTestId('studio-create')).toBeTruthy(),
     )
     sweep('estudio · sin perfil')
+    sweepShouting('estudio · sin perfil')
     sweepDynamicType('estudio · sin perfil')
   })
 
@@ -745,6 +803,7 @@ describe('barrido de accesibilidad y callejones', () => {
       expect(screen.getByTestId('studio-content')).toBeTruthy(),
     )
     sweep('estudio · con perfil')
+    sweepShouting('estudio · con perfil')
     sweepDynamicType('estudio · con perfil')
   })
 
@@ -765,6 +824,7 @@ describe('barrido de accesibilidad y callejones', () => {
       expect(screen.getByTestId('availability-rule-r1')).toBeTruthy(),
     )
     sweep('estudio · con horario')
+    sweepShouting('estudio · con horario')
     sweepDynamicType('estudio · con horario')
   })
 
@@ -780,6 +840,7 @@ describe('barrido de accesibilidad y callejones', () => {
       expect(screen.getByTestId('demand-no-profile')).toBeTruthy(),
     )
     sweep('mazo del artista · sin perfil')
+    sweepShouting('mazo del artista · sin perfil')
     sweepDynamicType('mazo del artista · sin perfil')
   })
 
@@ -814,6 +875,7 @@ describe('barrido de accesibilidad y callejones', () => {
       expect(screen.getByTestId('demand-card-top')).toBeTruthy(),
     )
     sweep('mazo del artista · con búsqueda')
+    sweepShouting('mazo del artista · con búsqueda')
     sweepDynamicType('mazo del artista · con búsqueda')
   })
 
@@ -827,6 +889,7 @@ describe('barrido de accesibilidad y callejones', () => {
     )
     await waitFor(() => expect(screen.getByTestId('chats-empty')).toBeTruthy())
     sweep('chats del artista · vacío')
+    sweepShouting('chats del artista · vacío')
     sweepDynamicType('chats del artista · vacío')
   })
 
@@ -840,6 +903,7 @@ describe('barrido de accesibilidad y callejones', () => {
     )
     await waitFor(() => expect(screen.getByTestId('chats-empty')).toBeTruthy())
     sweep('chats de quien busca · vacío')
+    sweepShouting('chats de quien busca · vacío')
     sweepDynamicType('chats de quien busca · vacío')
   })
 
@@ -852,6 +916,7 @@ describe('barrido de accesibilidad y callejones', () => {
       />,
     )
     sweep('buscar por fotos')
+    sweepShouting('buscar por fotos')
     sweepDynamicType('buscar por fotos')
   })
 
@@ -871,6 +936,7 @@ describe('barrido de accesibilidad y callejones', () => {
       />,
     )
     sweep('crear cuenta')
+    sweepShouting('crear cuenta')
     sweepDynamicType('crear cuenta')
   })
 
@@ -885,6 +951,7 @@ describe('barrido de accesibilidad y callejones', () => {
     )
     await waitFor(() => expect(screen.getByTestId('saved-empty')).toBeTruthy())
     sweep('guardados · vacío')
+    sweepShouting('guardados · vacío')
     sweepDynamicType('guardados · vacío')
   })
 
@@ -896,6 +963,7 @@ describe('barrido de accesibilidad y callejones', () => {
       />,
     )
     sweep('contraseña nueva')
+    sweepShouting('contraseña nueva')
     sweepDynamicType('contraseña nueva')
   })
   // --- las cuatro que se habían quedado afuera del barrido -------------------
@@ -903,6 +971,7 @@ describe('barrido de accesibilidad y callejones', () => {
   it('mayoría de edad, la pregunta y el "no"', () => {
     render(<AgeScreen busy={false} onConfirm={jest.fn()} onSkip={jest.fn()} />)
     sweep('edad · la pregunta')
+    sweepShouting('edad · la pregunta')
     sweepDynamicType('edad · la pregunta')
 
     // Decir que no es el estado que más fácil se convierte en pared: no se
@@ -910,6 +979,7 @@ describe('barrido de accesibilidad y callejones', () => {
     fireEvent.press(screen.getByTestId('age-no'))
     expect(screen.getByTestId('age-minor')).toBeTruthy()
     sweep('edad · dijo que no')
+    sweepShouting('edad · dijo que no')
     sweepDynamicType('edad · dijo que no')
   })
 
@@ -920,6 +990,7 @@ describe('barrido de accesibilidad y callejones', () => {
       expect(screen.getByTestId('projects-empty')).toBeTruthy(),
     )
     sweep('pedidos · vacío')
+    sweepShouting('pedidos · vacío')
     sweepDynamicType('pedidos · vacío')
   })
 
@@ -934,6 +1005,7 @@ describe('barrido de accesibilidad y callejones', () => {
       />,
     )
     sweep('ubicación · permiso denegado')
+    sweepShouting('ubicación · permiso denegado')
     sweepDynamicType('ubicación · permiso denegado')
   })
 
@@ -950,6 +1022,7 @@ describe('barrido de accesibilidad y callejones', () => {
       expect(screen.getByTestId('screen-assistant')).toBeTruthy(),
     )
     sweep('asistente · hilo nuevo')
+    sweepShouting('asistente · hilo nuevo')
     sweepDynamicType('asistente · hilo nuevo')
   })
 
@@ -974,6 +1047,7 @@ describe('barrido de accesibilidad y callejones', () => {
       expect(screen.getByTestId('artists-search-empty')).toBeTruthy(),
     )
     sweep('buscar por nombre · sin resultados')
+    sweepShouting('buscar por nombre · sin resultados')
     sweepDynamicType('buscar por nombre · sin resultados')
   })
   // --- las superficies que no son pantallas ---------------------------------
@@ -993,6 +1067,7 @@ describe('barrido de accesibilidad y callejones', () => {
       />,
     )
     sweep('denunciar')
+    sweepShouting('denunciar')
     sweepDynamicType('denunciar')
   })
 
@@ -1007,6 +1082,7 @@ describe('barrido de accesibilidad y callejones', () => {
       />,
     )
     sweep('dejar reseña')
+    sweepShouting('dejar reseña')
     sweepDynamicType('dejar reseña')
   })
 
@@ -1021,6 +1097,7 @@ describe('barrido de accesibilidad y callejones', () => {
       />,
     )
     sweep('propuesta del artista')
+    sweepShouting('propuesta del artista')
     sweepDynamicType('propuesta del artista')
   })
 
@@ -1042,6 +1119,7 @@ describe('barrido de accesibilidad y callejones', () => {
       expect(screen.getByTestId('agenda-entry-t1')).toBeTruthy(),
     )
     sweep('tu semana · con un turno')
+    sweepShouting('tu semana · con un turno')
     sweepDynamicType('tu semana · con un turno')
   })
 
@@ -1060,6 +1138,7 @@ describe('barrido de accesibilidad y callejones', () => {
       expect(screen.getByTestId('notification-n1')).toBeTruthy(),
     )
     sweep('avisos · uno sin leer')
+    sweepShouting('avisos · uno sin leer')
     sweepDynamicType('avisos · uno sin leer')
   })
 })

@@ -24,7 +24,7 @@
 
 import { Image } from 'expo-image'
 import { useQuery } from '@tanstack/react-query'
-import { useCallback, useRef } from 'react'
+import { useCallback, useRef, useState } from 'react'
 import {
   ScrollView,
   View,
@@ -100,6 +100,12 @@ export function ProfileScreen({
   // definen desde dónde tiene que volver la obra.
   const heroShown = useRef<PortfolioPiece | null>(null)
   const scrollY = useRef(0)
+  // Si el contenido ya está pasando por debajo de "Volver".
+  //
+  // Es estado y no una ref porque tiene que redibujar, pero **cambia dos veces
+  // por recorrido, no por cuadro**: solo se escribe cuando cruza el umbral. El
+  // presupuesto de 60fps del scroll no lo toca.
+  const [tapando, setTapando] = useState(false)
 
   const { armReturnTo } = entrance
   const rearmReturn = useCallback(() => {
@@ -402,6 +408,13 @@ export function ProfileScreen({
         // un lugar donde ya no está.
         onScroll={({ nativeEvent }: { nativeEvent: NativeScrollEvent }) => {
           scrollY.current = nativeEvent.contentOffset.y
+          // El umbral es el alto del propio control: es exactamente cuando el
+          // contenido empieza a pasarle por debajo.
+          const hayContenidoAbajo =
+            nativeEvent.contentOffset.y > MIN_TOUCH_TARGET
+          setTapando((antes: boolean) =>
+            antes === hayContenidoAbajo ? antes : hayContenidoAbajo,
+          )
           rearmReturn()
         }}
         scrollEventThrottle={64}
@@ -415,9 +428,20 @@ export function ProfileScreen({
           forma de volver era el gesto del sistema, y navigation.md §6 dice que
           una pantalla cuya única salida es ese gesto es un defecto. Va sobre la
           obra porque no hay encabezado donde ponerlo, y con fondo opaco porque
-          el contraste de un texto sobre una foto no se puede verificar. */}
+          el contraste de un texto sobre una foto no se puede verificar.
+
+          Y **con una banda detrás en cuanto el contenido le pasa por abajo**:
+          arriba de todo flota sobre la foto, que es lo que se diseñó, pero al
+          desplazarse le tapaba palabras a media altura —"Tomando turnos"
+          quedaba cortado atrás de la pastilla— y un texto cortado por un botón
+          se lee como un defecto, no como una decisión. Con la banda, el texto
+          pasa por debajo de una barra, que es lo que efectivamente hace. */}
       {bodyHasOwnBack ? null : (
-        <BackControl onPress={onBack} insetTop={insets.top} />
+        <BackControl
+          onPress={onBack}
+          insetTop={insets.top}
+          withBand={tapando}
+        />
       )}
 
       {entrance.growing != null ? (
@@ -502,35 +526,58 @@ function Section({
 function BackControl({
   onPress,
   insetTop,
+  withBand,
 }: {
   onPress: () => void
   insetTop: number
+  /** El contenido ya le pasa por abajo, así que hace falta una barra. */
+  withBand: boolean
 }) {
   const t = useT()
   const theme = useTheme()
 
   return (
-    <Pressable
-      onPress={onPress}
-      accessibilityRole="button"
-      accessibilityLabel={t('profile.back')}
-      testID="profile-back"
-      style={{
-        position: 'absolute',
-        top: insetTop + spacing.sm,
-        left: SCREEN_GUTTER,
-        minHeight: MIN_TOUCH_TARGET,
-        justifyContent: 'center',
-        paddingHorizontal: spacing.sm,
-        borderRadius: radius.full,
-        borderWidth: HAIRLINE,
-        borderColor: theme.borderSubtle,
-        backgroundColor: theme.surface,
-        zIndex: 2,
-      }}
-    >
-      <Text role="label">{t('profile.back')}</Text>
-    </Pressable>
+    <>
+      {withBand ? (
+        <View
+          pointerEvents="none"
+          testID="profile-back-band"
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            height: insetTop + spacing.sm + MIN_TOUCH_TARGET + spacing.sm,
+            backgroundColor: theme.surface,
+            borderBottomWidth: HAIRLINE,
+            borderBottomColor: theme.borderSubtle,
+            zIndex: 1,
+          }}
+        />
+      ) : null}
+
+      <Pressable
+        onPress={onPress}
+        accessibilityRole="button"
+        accessibilityLabel={t('profile.back')}
+        testID="profile-back"
+        style={{
+          position: 'absolute',
+          top: insetTop + spacing.sm,
+          left: SCREEN_GUTTER,
+          minHeight: MIN_TOUCH_TARGET,
+          justifyContent: 'center',
+          paddingHorizontal: spacing.sm,
+          borderRadius: radius.full,
+          borderWidth: HAIRLINE,
+          borderColor: theme.borderSubtle,
+          backgroundColor: theme.surface,
+          zIndex: 2,
+        }}
+      >
+        <Text role="label">{t('profile.back')}</Text>
+      </Pressable>
+    </>
   )
 }
 
