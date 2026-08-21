@@ -94,10 +94,13 @@ export async function uploadAvatar(
   if (profileError != null) throw new UploadError(profileError.message)
 
   if (options.professionalId != null) {
-    const { error: professionalError } = await supabase
-      .from('professionals')
-      .update({ avatar_media_id: mediaId })
-      .eq('id', options.professionalId)
+    // `professionals` no tiene política de UPDATE para el cliente — todo lo
+    // que un artista escribe sobre su fila pasa por una función angosta,
+    // `security definer` (ver `set_studio_location`). Esta es la de la foto.
+    const { error: professionalError } = await supabase.rpc(
+      'set_own_professional_avatar',
+      { p_media_id: mediaId },
+    )
     // No revierte lo de arriba: la foto personal ya quedó bien, y esta parte
     // se puede reintentar sola desde el Estudio si hiciera falta. Peor sería
     // perder el trabajo del recorte por un fallo en el segundo `update`.

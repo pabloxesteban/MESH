@@ -2010,6 +2010,10 @@ export type Database = {
           studio_lng: number
         }[]
       }
+      set_own_professional_avatar: {
+        Args: { p_media_id: string }
+        Returns: undefined
+      }
       set_own_styles: { Args: { p_style_slugs: string[] }; Returns: undefined }
       set_studio_location: {
         Args: { p_lat: number; p_lng: number; p_neighborhood_slug?: string }
