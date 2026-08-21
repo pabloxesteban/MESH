@@ -37,7 +37,12 @@ export default function TabsLayout() {
       screenOptions={{
         headerShown: false,
         sceneStyle: { backgroundColor: theme.surface },
-        tabBarActiveTintColor: theme.textPrimary,
+        // ADR-032: acento de estado, recurrente — el tab activo es uno de los
+        // ejemplos nombrados explícitamente en la tabla del ADR. `accent`
+        // (texto/ícono), no `accentFill`: el ícono/label del tab es chico,
+        // `accentFill` es para relleno de botón. Contraste verificado en
+        // theme.test.ts (['accent', 'surface']).
+        tabBarActiveTintColor: theme.accent,
         tabBarInactiveTintColor: theme.textTertiary,
         tabBarStyle: {
           backgroundColor: theme.surface,

@@ -18,6 +18,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import {
   Box,
+  HeroGlow,
   Pressable,
   SCREEN_GUTTER,
   Text,
@@ -51,6 +52,14 @@ export function IntentScreen({ busy, onChoose }: IntentScreenProps) {
       }}
       testID="screen-onboarding-intent"
     >
+      {/*
+        ADR-032: degradado de héroe, ancla de la decisión. Detrás del título,
+        apagado a transparente mucho antes de las dos tarjetas — nunca compite
+        con el texto ni con el CTA. Puramente decorativo: HeroGlow ya sale del
+        árbol de accesibilidad.
+      */}
+      <HeroGlow height="45%" />
+
       <Box gap="xl">
         <Box gap="xs">
           <Text role="display">{t('onboarding.title')}</Text>
