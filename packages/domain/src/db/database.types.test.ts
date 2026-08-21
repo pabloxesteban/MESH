@@ -57,6 +57,7 @@ const KNOWN_TABLES = [
   'assistant_threads',
   'assistant_turns',
   'audit_events',
+  'blocks',
   'availability_exceptions',
   'availability_rules',
   'categories',
@@ -77,6 +78,7 @@ const KNOWN_TABLES = [
   'project_styles',
   'project_traits',
   'projects',
+  'reports',
   'reviews',
   'saved_items',
   'styles',
@@ -143,13 +145,30 @@ describe('el esquema y el dominio no se separaron', () => {
     // que la suite reporte el archivo, y para que `Reconciliacion` esté usada.
     const reconciliacion = {} as Reconciliacion
     expect(reconciliacion).toBeDefined()
-    expect(KNOWN_TABLES).toHaveLength(30)
+    expect(KNOWN_TABLES).toHaveLength(32)
   })
 
   const enums: ReadonlyArray<
     readonly [keyof typeof Constants.public.Enums, readonly string[]]
   > = [
     ['assistant_role', ['person', 'assistant']],
+    [
+      'report_reason',
+      [
+        'spam',
+        'harassment',
+        'impersonation',
+        'stolen_work',
+        'explicit',
+        'off_platform',
+        'other',
+      ],
+    ],
+    [
+      'report_target',
+      ['professional', 'artwork', 'review', 'message', 'assistant'],
+    ],
+    ['report_status', ['open', 'reviewing', 'actioned', 'dismissed']],
     ['availability_status', ['open', 'limited', 'waitlist', 'closed']],
     ['interaction_verdict', ['like', 'pass']],
     ['interaction_source', ['discover', 'search', 'profile']],

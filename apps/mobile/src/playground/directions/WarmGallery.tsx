@@ -73,7 +73,11 @@ function Descubrir() {
         </Box>
         <Box flex={1} gap="lg" paddingTop="xl">
           <Framed slug="blackwork" ratio={0.9} pie="Blackwork · Almagro" />
-          <Framed slug="minimalist" ratio={1.2} pie="Minimalista · Villa Crespo" />
+          <Framed
+            slug="minimalist"
+            ratio={1.2}
+            pie="Minimalista · Villa Crespo"
+          />
         </Box>
       </Box>
     </Vignette>
@@ -100,7 +104,8 @@ function Perfil() {
         <Box gap="xxs">
           <Text role="display">{ARTISTA.nombre}</Text>
           <Text role="micro" color="textSecondary">
-            {ARTISTA.barrio.toUpperCase()} · LÍNEA FINA, MINIMALISTA, PUNTILLISMO
+            {ARTISTA.barrio.toUpperCase()} · LÍNEA FINA, MINIMALISTA,
+            PUNTILLISMO
           </Text>
         </Box>
 
@@ -122,7 +127,10 @@ function Perfil() {
           <Ficha etiqueta="Técnica" valor="Aguja simple" />
           <Ficha etiqueta="Sesión" valor="Una, de 2 a 4 horas" />
           <Ficha etiqueta="Agenda" valor="Tomando citas" />
-          <Ficha etiqueta="Por qué encaja" valor={`Marcaste ${String(ARTISTA.marcadas)} trabajos suyos de línea fina`} />
+          <Ficha
+            etiqueta="Por qué encaja"
+            valor={`Marcaste ${String(ARTISTA.marcadas)} trabajos suyos de línea fina`}
+          />
         </View>
 
         <QuietAction label="Escribirle" />
@@ -165,11 +173,7 @@ function Gusto() {
               {GUSTO.map((entrada) => {
                 const color = styleColor(entrada.styleSlug, theme)
                 return (
-                  <Text
-                    key={entrada.styleSlug}
-                    role="micro"
-                    tint={color.text}
-                  >
+                  <Text key={entrada.styleSlug} role="micro" tint={color.text}>
                     {entrada.label.toUpperCase()} · {String(entrada.support)}
                   </Text>
                 )

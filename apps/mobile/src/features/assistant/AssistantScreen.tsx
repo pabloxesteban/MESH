@@ -49,6 +49,7 @@ import {
   type AssistantTurn,
 } from './queries.ts'
 import { BriefReview } from './BriefReview.tsx'
+import { ReportSheet } from '@/features/moderation/ReportSheet.tsx'
 
 export interface AssistantScreenProps {
   userId: string
@@ -71,6 +72,7 @@ export function AssistantScreen({
   const [options, setOptions] = useState<readonly string[]>([])
   const [brief, setBrief] = useState<AssistantBrief | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [denunciando, setDenunciando] = useState(false)
 
   // El hilo se abre al entrar, una sola vez. Cada pedido arranca de cero: no hay
   // memoria entre hilos, que es lo que evita que esto se vuelva un perfil de
@@ -136,6 +138,12 @@ export function AssistantScreen({
     },
   })
 
+  // El último turno del asistente. Es lo que se denuncia: la respuesta concreta
+  // que estuvo mal, no la conversación entera.
+  const ultimoDelAsistente = [...(turns.data ?? [])]
+    .reverse()
+    .find((turn) => turn.role === 'assistant')
+
   if (brief != null && threadId != null) {
     return (
       <BriefReview
@@ -181,6 +189,33 @@ export function AssistantScreen({
               {t('assistant.thinking')}
             </Text>
           </Box>
+        ) : null}
+
+        {/* **La vía por la que nos enteramos de que el asistente rompió una de
+            sus siete reglas.** Un precio, una disponibilidad, el nombre de un
+            tatuador: el prompt las prohíbe, pero un prompt no es una garantía y
+            esta ADR lo dice. Sin este botón, la única forma de enterarnos sería
+            que alguien nos escriba. Ver ADR-021 y ADR-023. */}
+        {ultimoDelAsistente != null && !denunciando ? (
+          <Button
+            label={t('report.assistant')}
+            variant="ghost"
+            size="sm"
+            onPress={() => setDenunciando(true)}
+            testID="assistant-report"
+          />
+        ) : null}
+
+        {ultimoDelAsistente != null && denunciando ? (
+          <ReportSheet
+            userId={userId}
+            target={{
+              kind: 'assistant',
+              assistantTurnId: ultimoDelAsistente.id,
+            }}
+            onDone={() => setDenunciando(false)}
+            onCancel={() => setDenunciando(false)}
+          />
         ) : null}
       </Box>
     )

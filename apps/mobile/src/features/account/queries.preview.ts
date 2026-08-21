@@ -5,10 +5,7 @@
  * radio, que es lo que el preview tiene que poder mostrar.
  */
 
-import {
-  previewAccount,
-  updatePreviewAccount,
-} from '../../../preview/store.ts'
+import { previewAccount, updatePreviewAccount } from '../../../preview/store.ts'
 
 export type OnboardingIntent = 'offering' | 'looking'
 

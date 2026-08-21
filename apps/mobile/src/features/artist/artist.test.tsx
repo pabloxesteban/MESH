@@ -116,7 +116,9 @@ describe('StudioScreen', () => {
   it('sin perfil ofrece crear el propio y también canjear un código', async () => {
     fetchProfileMock.mockResolvedValue(null)
     renderStudio()
-    await waitFor(() => expect(screen.getByTestId('studio-create')).toBeTruthy())
+    await waitFor(() =>
+      expect(screen.getByTestId('studio-create')).toBeTruthy(),
+    )
     expect(screen.getByTestId('studio-claim')).toBeTruthy()
   })
 

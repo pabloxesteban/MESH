@@ -294,6 +294,21 @@ Tres cosas que definen la tabla:
   la edita, no la borra, y tampoco lee la tabla. Cuenta y promedio salen de
   `get_review_summary()`, que calcula al leer — no hay ningún agregado guardado.
 
+**`reports` / `blocks`** — moderación. Ver
+[ADR-023](../decisions/ADR-023-moderation.md).
+
+`reports` lleva `target_kind` más una FK por tipo de objetivo —perfil, obra,
+reseña, mensaje, turno del asistente— y una restricción que impide que se llene
+la columna que no corresponde. Las FK son `on delete set null`: la denuncia
+sobrevive al borrado de lo denunciado, sin su objeto. Un índice único parcial
+por objetivo impide denunciar dos veces lo mismo.
+
+`blocks` tiene dos direcciones —la persona bloquea un perfil, el artista bloquea
+una persona— con una restricción de un objetivo por fila. El bloqueo lo imponen
+las políticas de `conversations`, `messages` y `project_interests`, y los filtros
+de `get_open_search_feed`, `get_artist_grid` y `get_discovery_feed`. La función
+`is_blocked_pair()` responde por las dos direcciones y **solo a las partes**.
+
 **`assistant_threads` / `assistant_turns`** — la conversación con el asistente
 que arma un pedido. Ver [ADR-021](../decisions/ADR-021-brief-assistant.md).
 

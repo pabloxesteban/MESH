@@ -89,8 +89,7 @@ export function useDiscoveryGrid(
     setActiveStyle,
     isLoading: query.isPending && userId != null,
     isEmpty: !query.isPending && all.length === 0,
-    isFilteredEmpty:
-      !query.isPending && all.length > 0 && items.length === 0,
+    isFilteredEmpty: !query.isPending && all.length > 0 && items.length === 0,
     error: query.error,
     loadMore,
     retry: () => void query.refetch(),

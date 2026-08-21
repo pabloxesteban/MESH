@@ -565,6 +565,34 @@ export const en: Readonly<Record<TranslationKey, string>> = {
     'Calculated from their conversations in the last 90 days.',
   'replyHabit.own': 'This is how your replying looks on your profile',
 
+  'report.open': 'Report',
+  'report.title': "What's wrong with this?",
+  'report.hint':
+    'Someone on the team reads it. It is not automatic, and the other person is not notified.',
+  'report.reason.stolen_work': "Someone else's work",
+  'report.reason.impersonation': 'Pretending to be someone else',
+  'report.reason.harassment': 'Harassment or abuse',
+  'report.reason.explicit': 'Explicit content',
+  'report.reason.spam': 'Spam',
+  'report.reason.off_platform': 'Trying to take me off MESH',
+  'report.reason.other': 'Something else',
+  'report.note': 'Tell us more, if you want',
+  'report.submit': 'Send the report',
+  'report.done': 'Got it',
+  'report.done.body':
+    'Someone on the team will read it. If you want to stop running into them meanwhile, block them.',
+  'report.already': 'You already reported this. Once is enough.',
+  'report.error': "We couldn't send the report. Try again.",
+  'report.assistant': 'The assistant said something wrong',
+
+  'block.do': 'Block',
+  'block.undo': 'Unblock',
+  'block.active':
+    'Blocked. You cannot message each other, they will not show in your grids, and they cannot answer your searches.',
+  'block.list.title': 'Blocked',
+  'block.list.empty': "You haven't blocked anyone.",
+  'block.list.undo': 'Unblock {nombre}',
+
   'sendBrief.title': 'You have a request ready',
   'sendBrief.body':
     'You can send it as your first message, so they can quote you without asking five things.',

@@ -342,6 +342,52 @@ export type Database = {
           },
         ]
       }
+      blocks: {
+        Row: {
+          blocked_professional_id: string | null
+          blocked_user_id: string | null
+          blocker_user_id: string
+          created_at: string
+          id: string
+        }
+        Insert: {
+          blocked_professional_id?: string | null
+          blocked_user_id?: string | null
+          blocker_user_id: string
+          created_at?: string
+          id?: string
+        }
+        Update: {
+          blocked_professional_id?: string | null
+          blocked_user_id?: string | null
+          blocker_user_id?: string
+          created_at?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "blocks_blocked_professional_id_fkey"
+            columns: ["blocked_professional_id"]
+            isOneToOne: false
+            referencedRelation: "professionals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "blocks_blocked_user_id_fkey"
+            columns: ["blocked_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "blocks_blocker_user_id_fkey"
+            columns: ["blocker_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       categories: {
         Row: {
           created_at: string
@@ -1257,6 +1303,94 @@ export type Database = {
           },
         ]
       }
+      reports: {
+        Row: {
+          assistant_turn_id: string | null
+          created_at: string
+          id: string
+          message_id: string | null
+          note: string | null
+          portfolio_item_id: string | null
+          professional_id: string | null
+          reason: Database["public"]["Enums"]["report_reason"]
+          reporter_user_id: string
+          review_id: string | null
+          status: Database["public"]["Enums"]["report_status"]
+          target_kind: Database["public"]["Enums"]["report_target"]
+        }
+        Insert: {
+          assistant_turn_id?: string | null
+          created_at?: string
+          id?: string
+          message_id?: string | null
+          note?: string | null
+          portfolio_item_id?: string | null
+          professional_id?: string | null
+          reason: Database["public"]["Enums"]["report_reason"]
+          reporter_user_id: string
+          review_id?: string | null
+          status?: Database["public"]["Enums"]["report_status"]
+          target_kind: Database["public"]["Enums"]["report_target"]
+        }
+        Update: {
+          assistant_turn_id?: string | null
+          created_at?: string
+          id?: string
+          message_id?: string | null
+          note?: string | null
+          portfolio_item_id?: string | null
+          professional_id?: string | null
+          reason?: Database["public"]["Enums"]["report_reason"]
+          reporter_user_id?: string
+          review_id?: string | null
+          status?: Database["public"]["Enums"]["report_status"]
+          target_kind?: Database["public"]["Enums"]["report_target"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reports_assistant_turn_id_fkey"
+            columns: ["assistant_turn_id"]
+            isOneToOne: false
+            referencedRelation: "assistant_turns"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reports_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "messages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reports_portfolio_item_id_fkey"
+            columns: ["portfolio_item_id"]
+            isOneToOne: false
+            referencedRelation: "portfolio_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reports_professional_id_fkey"
+            columns: ["professional_id"]
+            isOneToOne: false
+            referencedRelation: "professionals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reports_reporter_user_id_fkey"
+            columns: ["reporter_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reports_review_id_fkey"
+            columns: ["review_id"]
+            isOneToOne: false
+            referencedRelation: "reviews"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       reviews: {
         Row: {
           appointment_id: string
@@ -1667,6 +1801,14 @@ export type Database = {
           saves: number
         }[]
       }
+      is_blocked_for_project: {
+        Args: { p_professional_id: string; p_project_id: string }
+        Returns: boolean
+      }
+      is_blocked_pair: {
+        Args: { p_person_user_id: string; p_professional_id: string }
+        Returns: boolean
+      }
       is_open_search_reference: { Args: { p_path: string }; Returns: boolean }
       is_search_open: { Args: { p_project_id: string }; Returns: boolean }
       mark_conversation_read: {
@@ -1705,6 +1847,21 @@ export type Database = {
       project_status: "draft" | "active" | "archived"
       project_timing: "asap" | "weeks" | "months" | "flexible"
       reply_habit: "same_day" | "few_days" | "slower"
+      report_reason:
+        | "spam"
+        | "harassment"
+        | "impersonation"
+        | "stolen_work"
+        | "explicit"
+        | "off_platform"
+        | "other"
+      report_status: "open" | "reviewing" | "actioned" | "dismissed"
+      report_target:
+        | "professional"
+        | "artwork"
+        | "review"
+        | "message"
+        | "assistant"
       trait_dimension: "body_area" | "size" | "palette"
     }
     CompositeTypes: {
@@ -1847,6 +2004,23 @@ export const Constants = {
       project_status: ["draft", "active", "archived"],
       project_timing: ["asap", "weeks", "months", "flexible"],
       reply_habit: ["same_day", "few_days", "slower"],
+      report_reason: [
+        "spam",
+        "harassment",
+        "impersonation",
+        "stolen_work",
+        "explicit",
+        "off_platform",
+        "other",
+      ],
+      report_status: ["open", "reviewing", "actioned", "dismissed"],
+      report_target: [
+        "professional",
+        "artwork",
+        "review",
+        "message",
+        "assistant",
+      ],
       trait_dimension: ["body_area", "size", "palette"],
     },
   },

@@ -36,7 +36,13 @@ import {
   Vignette,
   percentWidth,
 } from './parts.tsx'
-import { ARTISTA, GUSTO, MOTIVOS, OBRAS, PROYECTO_OPCIONES } from './fixtures.ts'
+import {
+  ARTISTA,
+  GUSTO,
+  MOTIVOS,
+  OBRAS,
+  PROYECTO_OPCIONES,
+} from './fixtures.ts'
 
 export function EditorialDark() {
   return (

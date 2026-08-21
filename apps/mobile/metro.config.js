@@ -47,6 +47,7 @@ if (process.env.MESH_PREVIEW === '1') {
       'src/features/discovery/queries.ts',
       'src/features/discovery/interactions.ts',
       'src/features/location/device.ts',
+      'src/features/moderation/queries.ts',
       'src/features/profile/queries.ts',
       'src/features/settings/queries.ts',
       'src/features/artist/queries.ts',

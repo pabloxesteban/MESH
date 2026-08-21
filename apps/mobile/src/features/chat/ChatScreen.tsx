@@ -39,6 +39,8 @@ import {
 } from '@/features/scheduling/queries.ts'
 import { fetchReviewableAppointments } from '@/features/reviews/queries.ts'
 import { SendBrief } from '@/features/assistant/SendBrief.tsx'
+import { SafetyRow } from '@/features/moderation/SafetyRow.tsx'
+import { BlockPerson } from '@/features/moderation/BlockPerson.tsx'
 
 import {
   fetchMessages,
@@ -120,6 +122,17 @@ export function ChatScreen({
       .then(() => client.invalidateQueries({ queryKey: ['conversations'] }))
       .catch(() => undefined)
   }, [conversationId, client])
+
+  // El último mensaje de la otra parte. Es lo que se denuncia, y también la
+  // forma en que el artista conoce el id de quien le escribió — el único lugar
+  // donde esa identidad le llega.
+  const ultimoAjeno = [...(messages.data ?? [])]
+    .reverse()
+    .find((message) => message.senderUserId !== userId)
+
+  // De qué perfil es este hilo, para poder bloquearlo desde acá. Sale de los
+  // turnos, que ya se piden: el chat no conoce el profesional por sí solo.
+  const professionalId = deEsteChat[0]?.professionalId ?? propio.data ?? null
 
   const send = useMutation({
     mutationFn: (body: string) => sendMessage(conversationId, userId, body),
@@ -219,6 +232,28 @@ export function ChatScreen({
         {/* El pedido armado, como primer mensaje. Solo en un chat vacío y solo
             del lado de quien busca: después del primero, la conversación ya
             arrancó. Ver ADR-021. */}
+        {/* Denunciar y bloquear, al final del hilo. Se denuncia el último
+            mensaje de la otra parte, que es lo concreto que el equipo va a
+            mirar; si todavía no escribió nadie del otro lado, no hay nada que
+            denunciar. Ver ADR-023. */}
+        {ultimoAjeno != null ? (
+          <Box paddingY="sm">
+            {ownProfessionalId == null ? (
+              <SafetyRow
+                userId={userId}
+                target={{ kind: 'message', messageId: ultimoAjeno.id }}
+                blockProfessionalId={professionalId ?? undefined}
+              />
+            ) : (
+              <BlockPerson
+                userId={userId}
+                otherUserId={ultimoAjeno.senderUserId}
+                messageId={ultimoAjeno.id}
+              />
+            )}
+          </Box>
+        ) : null}
+
         {ownProfessionalId == null && (messages.data ?? []).length === 0 ? (
           <SendBrief
             userId={userId}

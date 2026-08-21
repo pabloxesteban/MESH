@@ -36,3 +36,4 @@ todo el repositorio.
 | [020](ADR-020-brief.md) | El brief como objeto central: rasgos como taxonomía, y el artista responde con un precio | **Aceptado** |
 | [021](ADR-021-brief-assistant.md) | Un asistente que conversa para armar el pedido; **enmienda el innegociable 1** con siete reglas duras, y deja el chat humano intacto | **Aceptado** |
 | [022](ADR-022-reply-habit.md) | Con qué frecuencia contesta un artista, en tres frases de las que una es mala | **Aceptado** |
+| [023](ADR-023-moderation.md) | Denunciar y bloquear; el bloqueo se impone en la base y corta chat, propuestas y visibilidad | **Aceptado** |

@@ -621,6 +621,37 @@ export const esAR = {
     'Calculado con sus conversaciones de los últimos 90 días.',
   'replyHabit.own': 'Así se ve tu respuesta en tu perfil',
 
+  // --- denunciar y bloquear --------------------------------------------------
+  // Ver ADR-023. El texto dice la verdad de lo que pasa después: lo mira una
+  // persona, no es automático, y al denunciado no le llega ningún aviso.
+  'report.open': 'Denunciar',
+  'report.title': '¿Qué pasa con esto?',
+  'report.hint':
+    'Lo mira alguien del equipo. No es automático y a la otra persona no le llega ningún aviso.',
+  'report.reason.stolen_work': 'Obra de otra persona',
+  'report.reason.impersonation': 'Se hace pasar por otro',
+  'report.reason.harassment': 'Acoso o agresión',
+  'report.reason.explicit': 'Contenido explícito',
+  'report.reason.spam': 'Spam',
+  'report.reason.off_platform': 'Quiere sacarme de MESH',
+  'report.reason.other': 'Otra cosa',
+  'report.note': 'Contanos más, si querés',
+  'report.submit': 'Mandar la denuncia',
+  'report.done': 'Listo, la recibimos',
+  'report.done.body':
+    'La mira alguien del equipo. Si querés dejar de cruzártelo mientras tanto, bloquealo.',
+  'report.already': 'Ya habías denunciado esto. Con una vez alcanza.',
+  'report.error': 'No pudimos mandar la denuncia. Probá de nuevo.',
+  'report.assistant': 'Algo que dijo el asistente está mal',
+
+  'block.do': 'Bloquear',
+  'block.undo': 'Desbloquear',
+  'block.active':
+    'Bloqueado. No se escriben, no te aparece en las grillas y no puede responder a tus búsquedas.',
+  'block.list.title': 'Bloqueados',
+  'block.list.empty': 'No bloqueaste a nadie.',
+  'block.list.undo': 'Desbloquear a {nombre}',
+
   // Mandar el pedido armado como primer mensaje de un chat. Ver ADR-021.
   'sendBrief.title': 'Tenés un pedido armado',
   'sendBrief.body':

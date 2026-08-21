@@ -117,6 +117,8 @@ valor— cuesta más en usuarios reales de lo que ahorra en abuso a esta escala.
 | `availability_rules`, `availability_exceptions` | de cualquier profesional **publicado** | el dueño del perfil | ✗ | el dueño |
 | `appointments` | las dos partes | ✗ (solo vía `schedule_appointment()`) | ✗ (solo vía `cancel_appointment()`) | ✗ |
 | `reviews` | **solo las propias** (lo público sale de `get_reviews()`) | quien tuvo un turno propio, con ese artista, no cancelado y ya terminado | la autora, con las columnas de origen congeladas por trigger | la autora |
+| `reports` | **solo las propias** (el denunciado no sabe que existe) | propias, y solo sobre algo que uno puede ver | ✗ (el estado lo mueve el equipo) | propias, y solo mientras `status = 'open'` |
+| `blocks` | **solo del lado de quien bloqueó** | propios; un artista solo bloquea a quien le escribió | ✗ | propios (desbloquear es borrar) |
 | `traits` | todas las filas activas | ✗ | ✗ | ✗ |
 | `project_traits` | proyecto padre propio | padre propio | ✗ (sacar y poner) | padre propio |
 | `assistant_threads` | propios | propios (`user_id = auth.uid()`) | ✗ (solo vía `attach_thread_project()`) | propios |
@@ -204,6 +206,38 @@ Una persona tiene como mucho un perfil, y eso lo impone la base
 No hay moderación, ni denuncia, ni camino de despublicación. Es un riesgo
 aceptado a sabiendas con el producto sin lanzar, y la vuelta atrás es una línea
 —sacarle el `grant execute` a `create_own_professional`—, no una migración.
+
+### Denunciar y bloquear
+
+Dos tablas que solo se leen desde el lado de quien actuó, y un bloqueo que se
+impone **en las políticas**, no en la pantalla. Ver
+[ADR-023](../decisions/ADR-023-moderation.md).
+
+Con un bloqueo activo, en cualquier dirección: no se abre un chat
+(`conversations_insert_own`), no se escribe en uno ya abierto
+(`messages_insert_participant`), no llega una propuesta
+(`project_interests_insert_own`) y la búsqueda sale del mazo
+(`get_open_search_feed`). Un bloqueo que solo esconde se evade abriendo la app
+en otro lado.
+
+Tres cosas no obvias que sostienen esto:
+
+- **`is_blocked_pair()` es `security definer` y por eso lleva su propio
+  candado.** Tiene que ver filas que RLS le esconde a quien pregunta —si el
+  otro lo bloqueó a él—, así que **solo contesta si quien llama es una de las
+  dos partes**. Sin esa línea sería un oráculo público de "¿fulano bloqueó a
+  mengano?".
+- **Denunciar exige poder ver lo denunciado.** Un mensaje solo lo denuncia un
+  participante del hilo; un turno del asistente, el dueño del hilo. Sin esas
+  guardas, el éxito o el fallo del insert diría si ese uuid existe: una denuncia
+  no puede ser una sonda de existencia.
+- **Un artista solo bloquea a quien le escribió.** Es la misma razón: el mazo no
+  trae `user_id`, así que la conversación es el único lugar donde esa identidad
+  le llegó.
+
+Las FK del objetivo de una denuncia son `on delete set null`, no `cascade`: con
+cascade, borrar lo denunciado borraría la denuncia — que es la jugada de quien
+tiene algo que esconder.
 
 ### El hilo con el asistente
 
@@ -391,6 +425,8 @@ Los chequeos del lado del cliente son UX. Lo que realmente impone es:
 | Spam de proyectos | Máximo 20 proyectos **sin archivar** por usuario, impuesto por un trigger `BEFORE INSERT`, no por el cliente. Los archivados no cuentan: archivar es la salida, y hacerla contar convertiría la cuota en una trampa sin puerta |
 | Abuso de storage con imágenes de referencia | Máximo 10 referencias por proyecto, máximo 50 MB por usuario, los dos con trigger `BEFORE INSERT`. La media curada no tiene cuota — la sube el seeder, no una persona |
 | Inundación de analytics | Solo inserción, sin lectura; se monitorea el volumen; los eventos se descartan, nunca se reintentan agresivamente |
+| Avalancha de denuncias | Un índice único parcial por persona y por objetivo. Denunciar diez veces lo mismo no lo hace más urgente |
+| Sondeo de existencia por denuncia o bloqueo | Toda denuncia y todo bloqueo exigen poder ver el objetivo: participar del hilo, ser dueño del hilo del asistente, o haber conversado. Un uuid adivinado es rechazado igual que uno inexistente |
 | Inundación del asistente | 40 turnos por hilo y 120 turnos de persona por hora, los dos con trigger `BEFORE INSERT`. El tope por hilo además acota el contexto que se le manda al modelo: sin él, el costo por hilo no tiene techo |
 | Reconstrucción del negocio de un artista con `get_reply_habit()` | Devuelve un solo valor de un enum de tres. Sin fechas, sin conteos, sin identidades: llamarla en loop no dice con quién habló ni cuántas conversaciones tiene |
 | Cosecha de datos de contacto | `whatsapp_e164` e `instagram_handle` son legibles para profesionales publicados — eso *es* el producto. La mitigación es el consentimiento (los artistas saben que sus datos se muestran) más límite de tasa en la lectura del catálogo, no la oscuridad. |

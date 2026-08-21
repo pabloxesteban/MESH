@@ -37,6 +37,7 @@ import {
 } from '@/design-system/index.ts'
 import { ErrorView } from '@/components/ErrorView.tsx'
 import { AnalyticsToggle } from '@/features/settings/AnalyticsToggle.tsx'
+import { BlockedList } from '@/features/moderation/BlockedList.tsx'
 import { useT } from '@/i18n/I18nProvider.tsx'
 
 import { fetchAccount, updateAccount } from './queries.ts'
@@ -225,6 +226,11 @@ export function AccountScreen({
             testID="account-studio"
           />
         </Box>
+
+        {/* Solo se dibuja si hay a quién desbloquear: una lista vacía de gente
+            con la que decidiste no cruzarte es un recordatorio que nadie pidió.
+            Ver ADR-023. */}
+        <BlockedList />
 
         <AnalyticsToggle userId={userId} />
       </Box>

@@ -229,7 +229,9 @@ describe('la entrada desde una obra', () => {
     llegarTocando('tocada')
     render()
 
-    await waitFor(() => expect(screen.getByTestId('profile-content')).toBeTruthy())
+    await waitFor(() =>
+      expect(screen.getByTestId('profile-content')).toBeTruthy(),
+    )
 
     const hero = screen.UNSAFE_getAllByProps({ contentFit: 'cover' })[0]
     expect(hero?.props.source).toContain('tocada')
@@ -239,7 +241,9 @@ describe('la entrada desde una obra', () => {
     fetchMock.mockResolvedValue(data({}, [TOCADA, DESTACADA]))
     render()
 
-    await waitFor(() => expect(screen.getByTestId('profile-content')).toBeTruthy())
+    await waitFor(() =>
+      expect(screen.getByTestId('profile-content')).toBeTruthy(),
+    )
 
     const hero = screen.UNSAFE_getAllByProps({ contentFit: 'cover' })[0]
     expect(hero?.props.source).toContain('destacada')
@@ -252,7 +256,9 @@ describe('la entrada desde una obra', () => {
     llegarTocando('una-que-ya-no-esta')
     render()
 
-    await waitFor(() => expect(screen.getByTestId('profile-content')).toBeTruthy())
+    await waitFor(() =>
+      expect(screen.getByTestId('profile-content')).toBeTruthy(),
+    )
 
     const hero = screen.UNSAFE_getAllByProps({ contentFit: 'cover' })[0]
     expect(hero?.props.source).toContain('destacada')
@@ -272,7 +278,9 @@ describe('la entrada desde una obra', () => {
     fetchMock.mockResolvedValue(data({}, [DESTACADA, TOCADA]))
     render()
 
-    await waitFor(() => expect(screen.getByTestId('profile-content')).toBeTruthy())
+    await waitFor(() =>
+      expect(screen.getByTestId('profile-content')).toBeTruthy(),
+    )
 
     const hero = screen.UNSAFE_getAllByProps({ contentFit: 'cover' })[0]
     expect(hero?.props.source).toContain('destacada')

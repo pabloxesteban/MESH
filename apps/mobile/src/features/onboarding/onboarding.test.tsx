@@ -51,7 +51,7 @@ describe('OnboardingGate', () => {
     fetchMock.mockResolvedValue({
       displayName: null,
       onboardingIntent: null,
-      })
+    })
     renderGate()
 
     await waitFor(() =>
@@ -64,7 +64,7 @@ describe('OnboardingGate', () => {
     fetchMock.mockResolvedValue({
       displayName: null,
       onboardingIntent: 'looking',
-      })
+    })
     renderGate()
 
     await waitFor(() => expect(screen.getByText('la app')).toBeTruthy())
@@ -75,7 +75,7 @@ describe('OnboardingGate', () => {
     fetchMock.mockResolvedValue({
       displayName: null,
       onboardingIntent: null,
-      })
+    })
     const { onOffering } = renderGate()
 
     await waitFor(() =>
@@ -94,7 +94,7 @@ describe('OnboardingGate', () => {
     fetchMock.mockResolvedValue({
       displayName: null,
       onboardingIntent: null,
-      })
+    })
     const { onOffering } = renderGate()
 
     await waitFor(() =>

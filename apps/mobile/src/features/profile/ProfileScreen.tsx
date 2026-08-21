@@ -55,6 +55,7 @@ import { FixtureBadge } from '@/components/FixtureBadge.tsx'
 import { SaveHeart } from '@/features/saved/SaveHeart.tsx'
 import { PublicCalendar } from '@/features/scheduling/PublicCalendar.tsx'
 import { ReviewList } from '@/features/reviews/ReviewList.tsx'
+import { SafetyRow } from '@/features/moderation/SafetyRow.tsx'
 import { useSaved } from '@/features/saved/useSaved.ts'
 import { mediaUrl } from '@/features/discovery/queries.ts'
 import { GrowingArtwork } from '@/features/transitions/GrowingArtwork.tsx'
@@ -289,7 +290,7 @@ export function ProfileScreen({
             reseñas, y mostrar la sección vacía en quince perfiles ficticios
             haría parecer que nadie reseña nunca. */}
         {!professional.isFixture ? (
-          <ReviewList professionalId={professional.id} />
+          <ReviewList professionalId={professional.id} userId={userId} />
         ) : null}
 
         {professional.price != null ? (
@@ -364,6 +365,18 @@ export function ProfileScreen({
               onPress={() => onContact(professional.slug)}
               fullWidth
               testID="profile-contact"
+            />
+
+            {/* Al final, debajo de las acciones que la persona vino a hacer.
+                Arriba competirían con ellas; adentro de un menú de tres puntos
+                no las encuentra quien las necesita. Ver ADR-023. */}
+            <SafetyRow
+              userId={userId ?? null}
+              target={{
+                kind: 'professional',
+                professionalId: professional.id,
+              }}
+              blockProfessionalId={professional.id}
             />
           </>
         )}

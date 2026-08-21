@@ -52,6 +52,11 @@ están**:
   puntaje, no ordena a nadie y no se puede apagar. Ver
   [ADR-022](docs/decisions/ADR-022-reply-habit.md).
 
+- **Denunciar y bloquear.** Ya existen, y el bloqueo **se impone en la base**:
+  con un bloqueo activo no se abre un chat, no se escribe en uno ya abierto, no
+  llega una propuesta y la búsqueda sale del mazo. Nadie sabe quién lo denunció
+  ni quién lo bloqueó. Ver [ADR-023](docs/decisions/ADR-023-moderation.md).
+
 Sigue afuera, sin cambios: abrir a otras categorías o a otras ciudades, y volver
 a enchufar el gusto y el matching a una pantalla.
 

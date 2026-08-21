@@ -39,11 +39,15 @@ import {
   type Review,
 } from './queries.ts'
 
+import { SafetyRow } from '@/features/moderation/SafetyRow.tsx'
+
 export interface ReviewListProps {
   professionalId: string
+  /** Quién mira. Sin sesión no se ofrece denunciar: no hay a quién colgarla. */
+  userId?: string | null | undefined
 }
 
-export function ReviewList({ professionalId }: ReviewListProps) {
+export function ReviewList({ professionalId, userId }: ReviewListProps) {
   const { t } = useI18n()
 
   const resumen = useQuery({
@@ -103,7 +107,7 @@ export function ReviewList({ professionalId }: ReviewListProps) {
 
       <Box gap="sm">
         {(reviews.data ?? []).map((review) => (
-          <ReviewRow key={review.id} review={review} />
+          <ReviewRow key={review.id} review={review} userId={userId ?? null} />
         ))}
       </Box>
     </Box>
@@ -121,7 +125,13 @@ function formatAverage(average: number | null): string {
   return String(average).replace('.', ',')
 }
 
-function ReviewRow({ review }: { review: Review }) {
+function ReviewRow({
+  review,
+  userId,
+}: {
+  review: Review
+  userId: string | null
+}) {
   const { t, locale } = useI18n()
   const theme = useTheme()
 
@@ -169,6 +179,14 @@ function ReviewRow({ review }: { review: Review }) {
           {t('reviews.edited')}
         </Text>
       ) : null}
+
+      {/* Una reseña se denuncia pero no se bloquea: quien la escribió es
+          anónimo para todos, incluido el artista, así que no hay a quién
+          bloquear. Ver ADR-019 y ADR-023. */}
+      <SafetyRow
+        userId={userId}
+        target={{ kind: 'review', reviewId: review.id }}
+      />
     </View>
   )
 }

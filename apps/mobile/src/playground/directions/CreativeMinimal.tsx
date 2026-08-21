@@ -34,7 +34,13 @@ import {
 } from '@/design-system/index.ts'
 
 import { ArtworkSlot, DirectionCanvas, Vignette } from './parts.tsx'
-import { ARTISTA, GUSTO, MOTIVOS, OBRAS, PROYECTO_OPCIONES } from './fixtures.ts'
+import {
+  ARTISTA,
+  GUSTO,
+  MOTIVOS,
+  OBRAS,
+  PROYECTO_OPCIONES,
+} from './fixtures.ts'
 
 export function CreativeMinimal() {
   return (
