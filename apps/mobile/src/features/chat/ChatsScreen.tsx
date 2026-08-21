@@ -34,6 +34,7 @@ import type { OnboardingIntent } from '@/features/account/queries.ts'
 import { useT } from '@/i18n/I18nProvider.tsx'
 
 import { InterestList } from '../demand/InterestList.tsx'
+import { NotificationList } from '../notifications/NotificationList.tsx'
 import { ConversationList } from './ConversationList.tsx'
 import { fetchConversations } from './queries.ts'
 
@@ -129,6 +130,12 @@ export function ChatsScreen({
           {t('chat.title')}
         </Text>
       </Box>
+
+      {/* Arriba de todo, porque son hechos que ya ocurrieron y no requieren
+          nada de la persona. Si no pasó nada, la sección no existe: una bandeja
+          vacía permanente enseña a mirar ahí todos los días, que es justo lo que
+          el innegociable 3 prohíbe. Ver ADR-027. */}
+      <NotificationList />
 
       {onOpenArtist != null ? (
         <Box paddingBottom="md">

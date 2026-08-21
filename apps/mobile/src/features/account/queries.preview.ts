@@ -36,3 +36,18 @@ export async function confirmAdult(): Promise<void> {
 export async function updateAccount(patch: AccountPatch): Promise<void> {
   updatePreviewAccount(patch)
 }
+
+let avisos = true
+
+export async function fetchNotificationsOptIn(
+  _userId: string,
+): Promise<boolean> {
+  return avisos
+}
+
+export async function updateNotificationsOptIn(
+  _userId: string,
+  value: boolean,
+): Promise<void> {
+  avisos = value
+}

@@ -76,8 +76,12 @@ describe('catálogos', () => {
       'style.tattoo.dotwork',
       'tabs.matches',
     ])
+    // Los límites son `\p{L}` y no `\b`: en JavaScript, `\b` trata a una vocal
+    // acentuada como si no fuera una letra, así que `\bcancel\b` daba positivo
+    // dentro de "canceló". Un guard que grita cuando no pasa nada se termina
+    // apagando, y este cuida algo que importa.
     const ingles =
-      /\b(cancel|retry|back|close|continue|save|loading|error|search|settings|profile|match(es)?|tap|swipe)\b/i
+      /(?<!\p{L})(cancel|retry|back|close|continue|save|loading|error|search|settings|profile|match(es)?|tap|swipe)(?!\p{L})/iu
     expect(
       Object.entries(esAR)
         .filter(([key]) => !permitidos.has(key))

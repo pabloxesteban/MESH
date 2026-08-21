@@ -642,6 +642,14 @@ export const esAR = {
   // --- borrar la cuenta -------------------------------------------------------
   // Ver ADR-024. La lista de lo que se va está entera, y lo que NO se va
   // también: omitirlo sería mentir por la parte que no conviene contar.
+  'settings.notifications.title': 'Avisos',
+  'settings.notifications.body':
+    'Te avisamos cuando pasa algo tuyo: que miramos una denuncia que hiciste, o que te dieron o cancelaron un turno. Nada más que eso, y nunca para que vuelvas a entrar. Si lo apagás, dejamos de escribirlos: no vas a poder verlos después.',
+  'settings.notifications.on': 'Están encendidos',
+  'settings.notifications.off': 'Están apagados',
+  'settings.notifications.toggle.on': 'Apagar',
+  'settings.notifications.toggle.off': 'Encender',
+
   // Reportes de error. Separado de datos de uso a propósito: aquel mide qué
   // hace la persona, este mide si la app funciona. Ver ADR-026.
   'settings.errors.title': 'Cuando algo se rompe',
@@ -675,6 +683,18 @@ export const esAR = {
   'account.delete.confirm': 'Escribí «{palabra}» para confirmar',
   'account.delete.submit': 'Borrar mi cuenta',
   'account.delete.error': 'No pudimos borrar la cuenta. Probá de nuevo.',
+
+  // --- avisos ------------------------------------------------------------------
+  // Ver ADR-027. La frase la arma la app, no la base: por eso un aviso no puede
+  // decir "se te escapa". Cada uno corresponde a un hecho que ocurrió.
+  'notif.title': 'Lo que pasó',
+  'notif.report.actioned': 'Miramos lo que denunciaste y tomamos una medida.',
+  'notif.report.dismissed':
+    'Miramos lo que denunciaste y no encontramos motivo para actuar.',
+  'notif.appointment_scheduled': 'Te dieron un turno.',
+  'notif.appointment_cancelled': 'Se canceló un turno tuyo.',
+  'notif.dismiss': 'Sacar',
+  'notif.dismiss.one': 'Sacar el aviso: {aviso}',
 
   // --- denunciar y bloquear --------------------------------------------------
   // Ver ADR-023. El texto dice la verdad de lo que pasa después: lo mira una

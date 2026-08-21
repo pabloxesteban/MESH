@@ -579,6 +579,14 @@ export const en: Readonly<Record<TranslationKey, string>> = {
   'age.blocked':
     'Booking an appointment needs you to confirm you are 18 or older. You can do it from your profile.',
 
+  'settings.notifications.title': 'Notices',
+  'settings.notifications.body':
+    'We tell you when something of yours happens: that we looked at a report you filed, or that an appointment was booked or cancelled. Nothing else, and never to get you to come back. If you turn it off we stop writing them: you will not be able to read them later.',
+  'settings.notifications.on': 'Turned on',
+  'settings.notifications.off': 'Turned off',
+  'settings.notifications.toggle.on': 'Turn off',
+  'settings.notifications.toggle.off': 'Turn on',
+
   'settings.errors.title': 'When something breaks',
   'settings.errors.body':
     'When something breaks we send what broke, on which screen, and with which code. Never what you wrote, never your email, never who you are: a report does not carry your identifier.',
@@ -610,6 +618,15 @@ export const en: Readonly<Record<TranslationKey, string>> = {
   'account.delete.confirm': 'Type "{palabra}" to confirm',
   'account.delete.submit': 'Delete my account',
   'account.delete.error': "We couldn't delete the account. Try again.",
+
+  'notif.title': 'What happened',
+  'notif.report.actioned': 'We looked at what you reported and took action.',
+  'notif.report.dismissed':
+    'We looked at what you reported and found no reason to act.',
+  'notif.appointment_scheduled': 'You have an appointment.',
+  'notif.appointment_cancelled': 'An appointment of yours was cancelled.',
+  'notif.dismiss': 'Dismiss',
+  'notif.dismiss.one': 'Dismiss the notice: {aviso}',
 
   'report.open': 'Report',
   'report.title': "What's wrong with this?",

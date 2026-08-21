@@ -60,6 +60,11 @@ están**:
   sin esa declaración no se puede cerrar un turno — la puerta vive adentro de
   `schedule_appointment()`. Decir que no, no se guarda: sería un registro de
   menores de edad. Ver [ADR-025](docs/decisions/ADR-025-age-gate.md).
+- **Avisos.** Ya existen, arriba de Chats: que miramos tu denuncia, que te
+  dieron un turno, que te lo cancelaron. **Un aviso no tiene texto** —lleva un
+  tipo y una referencia, y la frase la arma i18n— así que no puede inventar
+  urgencia. Sin bandeja vacía y sin número. Ver
+  [ADR-027](docs/decisions/ADR-027-notifications.md).
 - **Denunciar y bloquear.** Ya existen, y el bloqueo **se impone en la base**:
   con un bloqueo activo no se abre un chat, no se escribe en uno ya abierto, no
   llega una propuesta y la búsqueda sale del mazo. Nadie sabe quién lo denunció

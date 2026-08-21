@@ -39,6 +39,7 @@ import { ErrorView } from '@/components/ErrorView.tsx'
 import { AnalyticsToggle } from '@/features/settings/AnalyticsToggle.tsx'
 import { BlockedList } from '@/features/moderation/BlockedList.tsx'
 import { ErrorReportsToggle } from '@/observability/ErrorReportsToggle.tsx'
+import { NotificationsToggle } from '@/features/notifications/NotificationsToggle.tsx'
 
 import { DeleteAccount } from './DeleteAccount.tsx'
 import { LegalRow } from './LegalRow.tsx'
@@ -272,6 +273,8 @@ export function AccountScreen({
             con la que decidiste no cruzarte es un recordatorio que nadie pidió.
             Ver ADR-023. */}
         <BlockedList />
+
+        <NotificationsToggle userId={userId} />
 
         <AnalyticsToggle userId={userId} />
 

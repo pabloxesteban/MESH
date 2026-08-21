@@ -729,6 +729,61 @@ export type Database = {
           },
         ]
       }
+      notifications: {
+        Row: {
+          appointment_id: string | null
+          created_at: string
+          id: string
+          kind: Database["public"]["Enums"]["notification_kind"]
+          outcome: Database["public"]["Enums"]["report_status"] | null
+          read_at: string | null
+          report_id: string | null
+          user_id: string
+        }
+        Insert: {
+          appointment_id?: string | null
+          created_at?: string
+          id?: string
+          kind: Database["public"]["Enums"]["notification_kind"]
+          outcome?: Database["public"]["Enums"]["report_status"] | null
+          read_at?: string | null
+          report_id?: string | null
+          user_id: string
+        }
+        Update: {
+          appointment_id?: string | null
+          created_at?: string
+          id?: string
+          kind?: Database["public"]["Enums"]["notification_kind"]
+          outcome?: Database["public"]["Enums"]["report_status"] | null
+          read_at?: string | null
+          report_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "appointments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notifications_report_id_fkey"
+            columns: ["report_id"]
+            isOneToOne: false
+            referencedRelation: "reports"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notifications_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       portfolio_item_styles: {
         Row: {
           portfolio_item_id: string
@@ -1024,6 +1079,7 @@ export type Database = {
           display_name: string | null
           id: string
           locale: string
+          notifications_opt_in: boolean
           onboarding_intent:
             | Database["public"]["Enums"]["onboarding_intent"]
             | null
@@ -1039,6 +1095,7 @@ export type Database = {
           display_name?: string | null
           id: string
           locale?: string
+          notifications_opt_in?: boolean
           onboarding_intent?:
             | Database["public"]["Enums"]["onboarding_intent"]
             | null
@@ -1054,6 +1111,7 @@ export type Database = {
           display_name?: string | null
           id?: string
           locale?: string
+          notifications_opt_in?: boolean
           onboarding_intent?:
             | Database["public"]["Enums"]["onboarding_intent"]
             | null
@@ -1820,10 +1878,21 @@ export type Database = {
         Args: { p_conversation_id: string }
         Returns: undefined
       }
+      mark_notifications_read: { Args: never; Returns: undefined }
       mark_saves_seen: { Args: never; Returns: string }
       match_reasons_are_grounded: {
         Args: { p_components: Json; p_reasons: Json }
         Returns: boolean
+      }
+      push_notification: {
+        Args: {
+          p_appointment_id: string
+          p_kind: Database["public"]["Enums"]["notification_kind"]
+          p_outcome: Database["public"]["Enums"]["report_status"]
+          p_report_id: string
+          p_user_id: string
+        }
+        Returns: undefined
       }
       schedule_appointment: {
         Args: {
@@ -1847,6 +1916,10 @@ export type Database = {
       interaction_source: "discover" | "search" | "profile"
       interaction_verdict: "like" | "pass"
       match_band: "strong" | "good" | "possible"
+      notification_kind:
+        | "report_reviewed"
+        | "appointment_scheduled"
+        | "appointment_cancelled"
       onboarding_intent: "offering" | "looking"
       professional_verdict: "interest" | "pass"
       project_status: "draft" | "active" | "archived"
@@ -2004,6 +2077,11 @@ export const Constants = {
       interaction_source: ["discover", "search", "profile"],
       interaction_verdict: ["like", "pass"],
       match_band: ["strong", "good", "possible"],
+      notification_kind: [
+        "report_reviewed",
+        "appointment_scheduled",
+        "appointment_cancelled",
+      ],
       onboarding_intent: ["offering", "looking"],
       professional_verdict: ["interest", "pass"],
       project_status: ["draft", "active", "archived"],

@@ -40,3 +40,4 @@ todo el repositorio.
 | [024](ADR-024-account-deletion.md) | Borrar la cuenta desde la app: inmediato, completo, sin período de gracia | **Aceptado** |
 | [025](ADR-025-age-gate.md) | Mayoría de edad declarada, sin fecha de nacimiento; la puerta vive en `schedule_appointment` | **Aceptado** |
 | [026](ADR-026-observability.md) | Reportes de error sin id de nadie y logs estructurados; sin dependencia nueva, para no salir de Expo Go | **Aceptado** |
+| [027](ADR-027-notifications.md) | Avisos sin texto libre: un tipo y una referencia, sin bandeja vacía y sin número | **Aceptado** |

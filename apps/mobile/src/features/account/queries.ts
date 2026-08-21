@@ -81,3 +81,33 @@ export async function updateAccount(patch: AccountPatch): Promise<void> {
 
   if (error != null) throw error
 }
+
+/** Si esta persona quiere recibir avisos. Ver ADR-027. */
+export async function fetchNotificationsOptIn(
+  userId: string,
+): Promise<boolean> {
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('notifications_opt_in')
+    .eq('id', userId)
+    .maybeSingle()
+  if (error != null) throw error
+  return data?.notifications_opt_in ?? true
+}
+
+/**
+ * Enciende o apaga los avisos.
+ *
+ * Apagado, los triggers **no escriben**: no es que se escriban y no se muestren.
+ * Eso vive del lado de la base, en `push_notification()`.
+ */
+export async function updateNotificationsOptIn(
+  userId: string,
+  value: boolean,
+): Promise<void> {
+  const { error } = await supabase
+    .from('profiles')
+    .update({ notifications_opt_in: value })
+    .eq('id', userId)
+  if (error != null) throw error
+}

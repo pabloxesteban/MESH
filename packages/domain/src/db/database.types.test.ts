@@ -66,6 +66,7 @@ const KNOWN_TABLES = [
   'locations',
   'matches',
   'media_assets',
+  'notifications',
   'messages',
   'portfolio_item_styles',
   'portfolio_items',
@@ -145,7 +146,7 @@ describe('el esquema y el dominio no se separaron', () => {
     // que la suite reporte el archivo, y para que `Reconciliacion` esté usada.
     const reconciliacion = {} as Reconciliacion
     expect(reconciliacion).toBeDefined()
-    expect(KNOWN_TABLES).toHaveLength(32)
+    expect(KNOWN_TABLES).toHaveLength(33)
   })
 
   const enums: ReadonlyArray<
@@ -169,6 +170,10 @@ describe('el esquema y el dominio no se separaron', () => {
       ['professional', 'artwork', 'review', 'message', 'assistant'],
     ],
     ['report_status', ['open', 'reviewing', 'actioned', 'dismissed']],
+    [
+      'notification_kind',
+      ['report_reviewed', 'appointment_scheduled', 'appointment_cancelled'],
+    ],
     ['availability_status', ['open', 'limited', 'waitlist', 'closed']],
     ['interaction_verdict', ['like', 'pass']],
     ['interaction_source', ['discover', 'search', 'profile']],

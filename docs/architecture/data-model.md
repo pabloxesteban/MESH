@@ -299,6 +299,12 @@ hay fecha de nacimiento en ningún lado. La escribe solo `confirm_adult()`, y la
 verifica `schedule_appointment()` sobre la persona que se va a tatuar. Ver
 [ADR-025](../decisions/ADR-025-age-gate.md).
 
+**`notifications`** — un hecho real y reciente sobre quien lo recibe. **No tiene
+ninguna columna de texto**: lleva un `kind` de un enum cerrado y una referencia,
+y la frase la arma la pantalla con i18n. Esa ausencia es lo que hace imposible
+inventar urgencia o filtrar contenido ajeno. La escriben tres triggers, nunca el
+cliente. Ver [ADR-027](../decisions/ADR-027-notifications.md).
+
 **`reports` / `blocks`** — moderación. Ver
 [ADR-023](../decisions/ADR-023-moderation.md).
 

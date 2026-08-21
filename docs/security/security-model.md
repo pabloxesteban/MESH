@@ -123,6 +123,7 @@ valor— cuesta más en usuarios reales de lo que ahorra en abuso a esta escala.
 | `project_traits` | proyecto padre propio | padre propio | ✗ (sacar y poner) | padre propio |
 | `assistant_threads` | propios | propios (`user_id = auth.uid()`) | ✗ (solo vía `attach_thread_project()`) | propios |
 | `assistant_turns` | del hilo padre propio | del hilo propio **y solo `role = 'person'`** | ✗ | ✗ (se borra el hilo entero) |
+| `notifications` | propias | ✗ (las escriben triggers) | ✗ (solo vía `mark_notifications_read()`) | propias |
 | `analytics_events` | ✗ | propios (`user_id = auth.uid()`) | ✗ | ✗ |
 | `audit_events` | ✗ | ✗ | ✗ | ✗ (sin políticas — solo service role) |
 
