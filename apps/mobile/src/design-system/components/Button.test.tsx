@@ -2,7 +2,13 @@ import { fireEvent, screen } from '@testing-library/react-native'
 import * as Haptics from 'expo-haptics'
 import { BOTH_THEMES, renderWithProviders } from '../test-utils.tsx'
 import { MIN_TOUCH_TARGET } from '../tokens/layout.ts'
-import { Button } from './Button.tsx'
+import { Button, type ButtonVariant } from './Button.tsx'
+
+function flattenStyle(style: unknown) {
+  return Array.isArray(style)
+    ? Object.assign({}, ...style.filter(Boolean))
+    : style
+}
 
 describe.each(BOTH_THEMES)('Button · tema %s', (_name, theme) => {
   it('renderiza la etiqueta y responde al toque', () => {
@@ -21,10 +27,7 @@ describe.each(BOTH_THEMES)('Button · tema %s', (_name, theme) => {
         <Button label="Ver" size={size} testID="btn" />,
         { theme },
       )
-      const style = getByTestId('btn').props.style
-      const flat = Array.isArray(style)
-        ? Object.assign({}, ...style.filter(Boolean))
-        : style
+      const flat = flattenStyle(getByTestId('btn').props.style)
       expect(flat.minHeight).toBeGreaterThanOrEqual(MIN_TOUCH_TARGET)
       unmount()
     }
@@ -88,5 +91,60 @@ describe('Button · hápticos', () => {
     )
     fireEvent.press(screen.getByTestId('btn'))
     expect(Haptics.impactAsync).toHaveBeenCalledWith('medium')
+  })
+})
+
+// ADR-031, segunda etapa: compresión física al presionar, solo en `primary`.
+//
+// El mock oficial de Reanimated para Jest (ver `jest.reanimated.js`) no
+// persiste shared values entre renders ni corre el hilo de UI — cada llamada
+// a `useSharedValue` en un nuevo render arranca de nuevo desde el valor
+// inicial. La curva de la animación en sí (0,97 sostenido durante la presión,
+// `withTiming` de vuelta a 1) no se puede observar disparando `pressIn`/
+// `pressOut` sintéticos y releyendo el árbol: eso se mide en un dispositivo,
+// igual que el resto de los gestos (ver `docs/testing/test-strategy.md §7`).
+// Lo que sí se verifica acá, con certeza, es el cableado: que el mecanismo
+// animado está presente únicamente en `primary`, en reposo en escala 1, y que
+// no rompe `onPress` ni el resto de los estados del botón.
+describe('Button · compresión al presionar', () => {
+  it.each<ButtonVariant>(['secondary', 'ghost', 'destructive'])(
+    '%s no lleva el mecanismo de compresión — el acento aparece como máximo una vez por pantalla',
+    (variant) => {
+      renderWithProviders(
+        <Button label="Cancelar" variant={variant} testID="btn" />,
+      )
+      expect(
+        flattenStyle(screen.getByTestId('btn').props.style).transform,
+      ).toBeUndefined()
+    },
+  )
+
+  it('primary lleva el mecanismo animado, en reposo en escala 1', () => {
+    renderWithProviders(<Button label="Confirmar" testID="btn" />)
+    expect(
+      flattenStyle(screen.getByTestId('btn').props.style).transform,
+    ).toEqual([{ scale: 1 }])
+  })
+
+  it('con reducción de movimiento, primary se sigue renderizando en reposo en escala 1', () => {
+    renderWithProviders(<Button label="Confirmar" testID="btn" />, {
+      reduceMotion: true,
+    })
+    expect(
+      flattenStyle(screen.getByTestId('btn').props.style).transform,
+    ).toEqual([{ scale: 1 }])
+  })
+
+  it('presionar y soltar no interfiere con onPress, disabled ni loading', () => {
+    const onPress = jest.fn()
+    renderWithProviders(
+      <Button label="Confirmar" onPress={onPress} testID="btn" />,
+    )
+    const button = screen.getByTestId('btn')
+
+    fireEvent(button, 'pressIn')
+    fireEvent(button, 'pressOut')
+    fireEvent.press(button)
+    expect(onPress).toHaveBeenCalledTimes(1)
   })
 })

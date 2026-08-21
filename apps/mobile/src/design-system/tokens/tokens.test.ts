@@ -5,7 +5,7 @@
  * documento no impide que alguien agregue un token que la rompa; un test sí.
  */
 
-import { MAX_DURATION, duration, easing, spring } from './motion.ts'
+import { MAX_DURATION, PRESS_SCALE, duration, easing, spring } from './motion.ts'
 import { MIN_TOUCH_TARGET, radius, spacing } from './layout.ts'
 import { fontFamily, textRoles } from './typography.ts'
 
@@ -73,6 +73,14 @@ describe('movimiento', () => {
       expect(config.mass).toBeGreaterThan(0)
     },
   )
+
+  // ADR-031, segunda etapa. Comprime, nunca expande — y nunca desaparece: un
+  // valor en 0 o negativo no es "un poco de compresión", es un botón que se
+  // esconde al tocarlo.
+  it('PRESS_SCALE comprime sin desaparecer', () => {
+    expect(PRESS_SCALE).toBeLessThan(1)
+    expect(PRESS_SCALE).toBeGreaterThan(0.8)
+  })
 })
 
 describe('layout', () => {

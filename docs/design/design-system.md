@@ -65,11 +65,16 @@ necesita, porque un componente sin consumidor no se puede evaluar.
 
 **Primitivos** — ✅ `Text` (prop de rol, **sin prop `fontSize`**), ✅ `Box`
 (espaciados por token, sin números), ✅ `Pressable` (expansión del área táctil,
-estado presionado, intención háptica) · `Icon` · `Image` (envuelve `expo-image`
+estado presionado, intención háptica; `pressedScale` opcional — compresión
+física a `PRESS_SCALE` vía Reanimated, `withTiming`/`duration.instant`/
+`easing.out`, sin resorte y con `useMotion()` de por medio — apagado por
+defecto, ADR-031 segunda etapa) · `Icon` · `Image` (envuelve `expo-image`
 con blurhash, dimensionado y defaults de reciclado — Fase 8).
 
 **Controles** — ✅ `Button` (variantes: primary, secondary, ghost, destructive;
-tamaños: sm, md, lg; estados: normal, presionado, deshabilitado, cargando) ·
+tamaños: sm, md, lg; estados: normal, presionado, deshabilitado, cargando;
+`primary` enciende `pressedScale` de `Pressable` — es el único, para que el
+acento siga apareciendo como máximo una vez por pantalla) ·
 ✅ `FilterChip` · ✅ `Tag` · ✅ `Input` (etiqueta, ayuda, error, contador) ·
 `IconButton` · `Stepper`.
 

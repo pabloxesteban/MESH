@@ -78,6 +78,11 @@ export function Button({
       onPress={onPress}
       disabled={isDisabled}
       hapticIntent={hapticIntent}
+      // Compresión física solo en `primary` — ADR-031, segunda etapa. El
+      // acento aparece como máximo una vez por pantalla, y este feedback
+      // tiene que reforzar esa regla, no volverse un efecto genérico de
+      // cualquier botón.
+      pressedScale={variant === 'primary'}
       accessibilityLabel={accessibilityLabel ?? label}
       {...(accessibilityHint != null ? { accessibilityHint } : {})}
       accessibilityState={{ disabled: isDisabled, busy: loading }}

@@ -59,6 +59,19 @@ export type Spring = keyof typeof spring
 export const STAGGER = 60
 
 /**
+ * Compresión física del botón `primary` al presionar. Ver ADR-031 (segunda
+ * etapa — movimiento).
+ *
+ * Solo `primary`: el acento aparece como máximo una vez por pantalla, y este
+ * feedback tiene que reforzar esa regla, no romperla — no es un valor de
+ * conveniencia para cualquier `Pressable`. Anima con `duration.instant` y
+ * `easing.out`, vía `withTiming` — nunca `withSpring`: visual-language.md §7
+ * prohíbe "UI que rebota", así que no hay overshoot ni resorte, solo una
+ * transición lineal de ida y vuelta.
+ */
+export const PRESS_SCALE = 0.97
+
+/**
  * Duración cuando el sistema pide movimiento reducido.
  *
  * La reducción de movimiento reemplaza toda transición basada en
