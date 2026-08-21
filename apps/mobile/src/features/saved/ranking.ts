@@ -10,6 +10,7 @@
  * pgTAP que falla si alguien se la agrega.
  */
 
+import { windowStart } from './window.ts'
 import { supabase } from '../../data/supabase.ts'
 
 export type RankingWindow = 'week' | 'month'
@@ -26,20 +27,7 @@ export interface RankedPiece {
   readonly height: number | null
 }
 
-const DIAS: Record<RankingWindow, number> = { week: 7, month: 30 }
-
-/**
- * Desde cuándo cuenta una ventana.
- *
- * Pura y exportada para poder testearla: es la única parte del ranking donde
- * un error no se ve —una ventana de 7 días que en realidad son 8 devuelve algo
- * verosímil y equivocado— y donde además hay que pensar en zonas horarias.
- */
-export function windowStart(window: RankingWindow, now: Date): Date {
-  const desde = new Date(now.getTime())
-  desde.setUTCDate(desde.getUTCDate() - (DIAS[window] ?? 7))
-  return desde
-}
+export { windowStart }
 
 export async function fetchTopSaved(
   categorySlug: string,

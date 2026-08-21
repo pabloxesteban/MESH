@@ -11,7 +11,9 @@ import { PREVIEW_ARTISTS, artistOfPiece } from '../../../preview/store.ts'
 import type { OwnSaveCount, RankedPiece, RankingWindow } from './ranking.ts'
 import { fetchSavedIds } from './queries.preview.ts'
 
-export { windowStart } from './ranking.ts'
+// Desde `window.ts` y no desde `./ranking.ts`: acá adentro ese especificador
+// apunta a **este mismo archivo** por el swap de metro. Ver `window.ts`.
+export { windowStart } from './window.ts'
 
 export async function fetchTopSaved(
   _categorySlug: string,

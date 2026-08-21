@@ -131,6 +131,15 @@ son fixtures, y en el preview todo el catálogo lo es. La misma limitación que 
 tenía el almanaque. Para verlas hay que crear un perfil propio desde
 **Perfil → Tu estudio**.
 
+**Buscar por nombre sí se puede mirar entero.** El campo está arriba de Inicio,
+y el catálogo de prueba tiene quince nombres reales para escribirle: "ro"
+devuelve a Delfina Roig primero, después a Milena Ostrovsky y a Nahuel
+Ibarrola, que es el orden por parecido funcionando. Con una sola letra vuelve la
+grilla, y con la cruz también, en el acto. Lo único que **no** se puede mirar
+ahí es la tarjeta de quien no subió obra: los quince fixtures tienen obra. Para
+verla hay que crear un perfil propio desde **Perfil → Tu estudio**, no subir
+nada, y buscarse.
+
 **Un preview que se ve bien no dice que la app esté bien.** react-native-web es
 una traducción. Antes de un release hay que abrirla en un dispositivo con Expo
 Go.

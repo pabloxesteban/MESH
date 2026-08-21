@@ -31,7 +31,9 @@ import type {
   WeeklyRule,
 } from './queries.ts'
 
-export { scheduleErrorOf } from './queries.ts'
+// Desde `errors.ts` y no desde `./queries.ts`: acá adentro ese especificador
+// apunta a **este mismo archivo** por el swap de metro. Ver `errors.ts`.
+export { scheduleErrorOf } from './errors.ts'
 
 export async function fetchWeeklyRules(
   professionalId: string,

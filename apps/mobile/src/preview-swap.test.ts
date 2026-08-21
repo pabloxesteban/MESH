@@ -10,6 +10,14 @@
  *
  * Es un defecto invisible en tests, invisible en tipos y difícil de leer en
  * pantalla. Por eso está acá.
+ *
+ * Y hay un segundo defecto de la misma familia, peor porque además es mudo: el
+ * swap se aplica **también cuando el import sale del propio archivo de
+ * preview**. Un `export { x } from './queries.ts'` adentro de
+ * `queries.preview.ts` no apunta al archivo real: apunta a sí mismo, y el
+ * getter que genera el transpilador termina llamándose solo. El síntoma es un
+ * stack overflow sin línea de código a la vista. El tercer test de acá abajo
+ * lo caza leyendo el árbol, que es lo único que puede.
  */
 
 /// <reference types="node" />
@@ -66,6 +74,45 @@ describe('el swap del preview', () => {
       faltanEnMetroConfig: [],
       comoSeArregla:
         'Agregalo a PREVIEW_TARGETS en apps/mobile/metro.config.js.',
+    })
+  })
+
+  it('y ningún archivo de preview importa de sí mismo', () => {
+    // `import`/`export ... from './algo.ts'` adentro de `algo.preview.ts`:
+    // el swap lo resuelve a `algo.preview.ts`, o sea al propio archivo.
+    const culpables: string[] = []
+
+    for (const ruta of listados()) {
+      const preview = ruta.replace('.ts', '.preview.ts')
+      if (!existsSync(join(RAIZ, preview))) continue
+
+      const fuente = readFileSync(join(RAIZ, preview), 'utf8')
+      const propio = `./${ruta.split('/').pop() as string}`
+
+      // Por bloque y no por línea: un `import type { A, B } from './x.ts'` de
+      // varias líneas termina en un renglón que, leído solo, no se distingue
+      // de un import de valores.
+      const bloques = fuente.matchAll(
+        /(?:^|\n)[ \t]*(import|export)[ \t]+(type[ \t]+)?[^'"]*?from[ \t]*'([^']+)'/g,
+      )
+
+      for (const bloque of bloques) {
+        // `import type` / `export type` desaparecen al compilar, así que no
+        // pueden dar la vuelta. Lo demás sí.
+        if (bloque[2] != null) continue
+        if (bloque[3] !== propio) continue
+        culpables.push(`${preview} → ${propio}`)
+      }
+    }
+
+    expect({
+      seImportanASiMismos: culpables,
+      comoSeArregla:
+        'Movelo a un archivo que no esté en PREVIEW_TARGETS y que importen los dos. Ver features/scheduling/errors.ts.',
+    }).toEqual({
+      seImportanASiMismos: [],
+      comoSeArregla:
+        'Movelo a un archivo que no esté en PREVIEW_TARGETS y que importen los dos. Ver features/scheduling/errors.ts.',
     })
   })
 

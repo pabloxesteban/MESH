@@ -92,26 +92,40 @@ function ArtistCardImpl({
       testID={testID}
     >
       {/* El carrusel. Cada obra abre el mismo perfil: la muestra es del
-          artista, no de una pieza suelta. */}
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={{
-          gap: spacing.xxs,
-          paddingHorizontal: spacing.lg - spacing.xxs,
-        }}
-        testID={`${testID ?? 'artist'}-carousel`}
-      >
-        {artist.pieces.map((piece) => (
-          <CarouselPiece
-            key={piece.id}
-            piece={piece}
-            artist={artist}
-            onPress={onPress}
-            hidden={piece.id === hiddenPieceId}
-          />
-        ))}
-      </ScrollView>
+          artista, no de una pieza suelta.
+
+          Sin obra no hay carrusel, y se dice. Esta tarjeta no aparece en la
+          grilla de Inicio —ahí a quien no subió nada se lo esconde justamente
+          porque su tarjeta saldría vacía— pero sí en una búsqueda por nombre,
+          donde esconderlo sería contestar mal a quien preguntó por él. La
+          alternativa era una fila muda de 20pt: peor, porque no se entiende. */}
+      {artist.pieces.length === 0 ? (
+        <Box paddingX="lg" paddingBottom="xs" testID={`${testID ?? 'artist'}-no-work`}>
+          <Text role="body" color="textTertiary">
+            {t('artists.card.noWork')}
+          </Text>
+        </Box>
+      ) : (
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={{
+            gap: spacing.xxs,
+            paddingHorizontal: spacing.lg - spacing.xxs,
+          }}
+          testID={`${testID ?? 'artist'}-carousel`}
+        >
+          {artist.pieces.map((piece) => (
+            <CarouselPiece
+              key={piece.id}
+              piece={piece}
+              artist={artist}
+              onPress={onPress}
+              hidden={piece.id === hiddenPieceId}
+            />
+          ))}
+        </ScrollView>
+      )}
 
       {/* Quién es. Toda la fila es tocable: un nombre de 14pt no es un
           objetivo táctil, la fila entera sí. */}

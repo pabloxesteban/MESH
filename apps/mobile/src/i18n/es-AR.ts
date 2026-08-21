@@ -116,6 +116,7 @@ export const esAR = {
   'artists.card.open': 'Ver el perfil de {nombre}',
   'artists.card.km': 'a {km} km',
   'artists.card.noLocation': 'No publicó su ubicación',
+  'artists.card.noWork': 'Todavía no subió obra',
   'artists.location.body':
     'Con tu ubicación activada ordenamos por cercanía y te decimos a cuántos kilómetros está cada uno. Sin eso la lista igual se ve, en otro orden.',
   'artists.location.action': 'Activar mi ubicación',
@@ -145,6 +146,14 @@ export const esAR = {
   'artists.empty.body':
     'Cuando se registren tatuadores, acá vas a ver a los que trabajan cerca tuyo. Mientras tanto podés mirar obra.',
   'artists.empty.action': 'Ir a explorar',
+  // --- buscar a alguien por nombre ---
+  'artists.search.placeholder': 'Buscá a alguien por nombre',
+  'artists.search.label': 'Buscar un artista por nombre',
+  'artists.search.clear': 'Borrar lo que escribiste',
+  'artists.search.empty.title': 'Nadie se llama así',
+  'artists.search.empty.body':
+    'Puede que todavía no esté en MESH, o que se anote distinto. Si no sabés el nombre, en Explorar se llega por la obra.',
+  'artists.search.empty.action': 'Ir a explorar',
   // --- explorar ---
   'explore.byPhotos': 'Buscar con una foto',
   'explore.title': 'Explorar',

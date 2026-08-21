@@ -1917,6 +1917,26 @@ export type Database = {
         }
         Returns: string
       }
+      search_key: { Args: { p_text: string }; Returns: string }
+      search_professionals: {
+        Args: {
+          p_category_slug: string
+          p_limit?: number
+          p_pieces?: number
+          p_query: string
+        }
+        Returns: {
+          avatar_path: string
+          display_name: string
+          is_fixture: boolean
+          neighborhood_slug: string
+          pieces: Json
+          professional_id: string
+          slug: string
+          studio_lat: number
+          studio_lng: number
+        }[]
+      }
       set_own_styles: { Args: { p_style_slugs: string[] }; Returns: undefined }
       set_studio_location: {
         Args: { p_lat: number; p_lng: number; p_neighborhood_slug?: string }

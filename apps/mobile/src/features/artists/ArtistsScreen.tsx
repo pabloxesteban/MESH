@@ -22,12 +22,24 @@
  * Ninguna esconde a nadie: quien está lejos, o no publicó dónde trabaja,
  * aparece igual y más abajo.
  *
+ * **Y arriba de todo, buscar por nombre.** Es la tercera forma de llegar a
+ * una persona, y la única que sirve cuando ya sabés a quién buscás: hasta
+ * ahora quien llegaba con un nombre en la mano tenía que desplazarse hasta
+ * encontrarlo de casualidad. Mientras el campo está vacío no cambia nada; con
+ * dos letras o más, la lista pasa a ser el resultado.
+ *
+ * Un detalle que no es un detalle: **el resultado de una búsqueda no se
+ * ordena por cercanía.** Si escribiste un nombre querés ese nombre, no el
+ * estudio más cerca que se le parezca. El orden lo decide la base por
+ * parecido, y el encabezado de ubicación se esconde mientras tanto para no
+ * prometer algo que no está pasando.
+ *
  * La obra que se toca en un carrusel crece hasta ser el perfil, y al volver
  * encoge hasta su lugar. Ver features/transitions.
  */
 
 import { useQuery } from '@tanstack/react-query'
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { ScrollView, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
@@ -38,6 +50,7 @@ import {
   Button,
   EmptyState,
   SCREEN_GUTTER,
+  SearchField,
   Skeleton,
   Text,
   spacing,
@@ -54,7 +67,13 @@ import { GrowingArtwork } from '@/features/transitions/GrowingArtwork.tsx'
 import { useArtworkReturn } from '@/features/transitions/useArtworkReturn.ts'
 
 import { ArtistCard } from './ArtistCard.tsx'
-import { fetchArtistGrid, mediaUrl } from './queries.ts'
+import { useDebounced } from './useDebounced.ts'
+import {
+  MIN_SEARCH_LENGTH,
+  fetchArtistGrid,
+  mediaUrl,
+  searchArtists,
+} from './queries.ts'
 
 export interface ArtistsScreenProps {
   categorySlug: string
@@ -81,10 +100,24 @@ export function ArtistsScreen({
   const back = useArtworkReturn('artists')
   const searchLocation = useSearchLocation()
 
+  const [texto, setTexto] = useState('')
+  const consulta = useDebounced(texto).trim()
+  // Lo que decide qué se muestra es el texto **crudo**, no el frenado: si
+  // dependiera del frenado, borrar el campo dejaría el resultado viejo en
+  // pantalla un cuarto de segundo, con el campo ya vacío. Se ve mal y se lee
+  // como un error.
+  const buscando = texto.trim().length >= MIN_SEARCH_LENGTH
+
   const artists = useQuery({
     queryKey: ['artist-grid', categorySlug],
     enabled: userId != null,
     queryFn: () => fetchArtistGrid(categorySlug),
+  })
+
+  const resultados = useQuery({
+    queryKey: ['artist-search', categorySlug, consulta],
+    enabled: userId != null && consulta.length >= MIN_SEARCH_LENGTH,
+    queryFn: () => searchArtists(categorySlug, consulta),
   })
 
   // El GPS solo cuenta cuando efectivamente hay coordenadas. Elegir "mi
@@ -114,7 +147,62 @@ export function ArtistsScreen({
     searchLocation.value.neighborhoodSlug,
   ])
 
+  const lista = (
+    items: readonly { item: (typeof ordenados)[number]['item']; distanceKm: number | null }[],
+    testID: string,
+  ) => (
+    <Box gap="lg" testID={testID}>
+      {items.map(({ item, distanceKm }) => (
+        <ArtistCard
+          key={item.professionalId}
+          artist={item}
+          distanceKm={distanceKm}
+          onPress={() => onOpenArtist(item.slug)}
+          hiddenPieceId={back.hiddenPieceId}
+          testID={`artist-${item.slug}`}
+        />
+      ))}
+    </Box>
+  )
+
   const body = (() => {
+    if (buscando) {
+      if (resultados.error != null) {
+        return (
+          <ErrorView
+            error={resultados.error}
+            onRetry={() => void resultados.refetch()}
+            testID="artists-search-error"
+          />
+        )
+      }
+
+      if (resultados.isPending) return <Loading />
+
+      const encontrados = resultados.data ?? []
+
+      if (encontrados.length === 0) {
+        // No dice "no hay resultados": dice a quién se buscó y qué se puede
+        // hacer ahora. La salida es Explorar, que es donde se encuentra gente
+        // sin saber su nombre.
+        return (
+          <EmptyState
+            title={t('artists.search.empty.title')}
+            body={t('artists.search.empty.body')}
+            action={{ label: t('artists.search.empty.action'), onPress: onExplore }}
+            testID="artists-search-empty"
+          />
+        )
+      }
+
+      // Sin distancia: el resultado viene ordenado por parecido y anotarle
+      // kilómetros sugeriría que la cercanía tuvo algo que ver con el orden.
+      return lista(
+        encontrados.map((item) => ({ item, distanceKm: null })),
+        'artists-search-results',
+      )
+    }
+
     if (artists.error != null) {
       return (
         <ErrorView
@@ -140,20 +228,7 @@ export function ArtistsScreen({
       )
     }
 
-    return (
-      <Box gap="lg" testID="artists-list">
-        {ordenados.map(({ item, distanceKm }) => (
-          <ArtistCard
-            key={item.professionalId}
-            artist={item}
-            distanceKm={distanceKm}
-            onPress={() => onOpenArtist(item.slug)}
-            hiddenPieceId={back.hiddenPieceId}
-            testID={`artist-${item.slug}`}
-          />
-        ))}
-      </Box>
-    )
+    return lista(ordenados, 'artists-list')
   })()
 
   return (
@@ -168,20 +243,39 @@ export function ArtistsScreen({
         }}
         testID="screen-artists"
       >
-        <SearchLocationHeader
-          value={searchLocation.value}
-          deviceNeighborhoodSlug={device.location?.neighborhoodSlug ?? null}
-          deviceReady={deviceCoordinates != null}
-          onChange={onChangeLocation}
-        />
+        <Box paddingX="lg" paddingBottom="sm">
+          <SearchField
+            value={texto}
+            onChangeText={setTexto}
+            placeholder={t('artists.search.placeholder')}
+            accessibilityLabel={t('artists.search.label')}
+            clearLabel={t('artists.search.clear')}
+            testID="artists-search"
+          />
+        </Box>
 
-        {/* El aviso aparece solo cuando hay algo que arreglar: elegiste el GPS
-            y todavía no lo diste. En los otros modos no falta nada, así que no
-            hay nada que pedir. */}
-        {searchLocation.value.mode === 'device' &&
-        (device.status === 'unrequested' || device.status === 'denied') ? (
-          <LocationPrompt onRequest={device.request} />
-        ) : null}
+        {/* Mientras se busca, el encabezado de ubicación se va: dice desde
+            dónde se mide la cercanía, y en un resultado por nombre la cercanía
+            no mide nada. Dejarlo sería prometer un orden que no está pasando.
+            El mismo motivo vale para el pedido de GPS. */}
+        {buscando ? null : (
+          <>
+            <SearchLocationHeader
+              value={searchLocation.value}
+              deviceNeighborhoodSlug={device.location?.neighborhoodSlug ?? null}
+              deviceReady={deviceCoordinates != null}
+              onChange={onChangeLocation}
+            />
+
+            {/* El aviso aparece solo cuando hay algo que arreglar: elegiste el
+                GPS y todavía no lo diste. En los otros modos no falta nada, así
+                que no hay nada que pedir. */}
+            {searchLocation.value.mode === 'device' &&
+            (device.status === 'unrequested' || device.status === 'denied') ? (
+              <LocationPrompt onRequest={device.request} />
+            ) : null}
+          </>
+        )}
         {body}
       </ScrollView>
 

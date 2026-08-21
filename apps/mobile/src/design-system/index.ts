@@ -33,6 +33,10 @@ export {
 } from './components/Button.tsx'
 export { FilterChip, type FilterChipProps } from './components/FilterChip.tsx'
 export { Input, type InputProps } from './components/Input.tsx'
+export {
+  SearchField,
+  type SearchFieldProps,
+} from './components/SearchField.tsx'
 export { Tag, type TagProps } from './components/Tag.tsx'
 
 // Estados

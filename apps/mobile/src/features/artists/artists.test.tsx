@@ -26,7 +26,9 @@ import { ArtistsScreen } from './ArtistsScreen.tsx'
 import { fetchArtistGrid, type ArtistCardData } from './queries.ts'
 
 jest.mock('./queries.ts', () => ({
+  ...jest.requireActual('./queries.ts'),
   fetchArtistGrid: jest.fn(),
+  searchArtists: jest.fn(),
   avatarUrl: (path: string) => `https://ejemplo.test/${path}`,
   mediaUrl: (path: string) => `https://ejemplo.test/${path}`,
 }))

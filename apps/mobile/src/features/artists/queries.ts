@@ -56,7 +56,56 @@ export async function fetchArtistGrid(
 
   if (error != null) throw error
 
-  return (data ?? []).map((row) => ({
+  return (data ?? []).map(toCard)
+}
+
+/**
+ * El piso de caracteres para que una búsqueda salga a la red.
+ *
+ * Es el mismo número que la base exige: con una sola letra el resultado sería
+ * medio catálogo, que no es una respuesta. Está acá además de allá para no
+ * gastar un viaje en algo que ya sabemos que vuelve vacío.
+ */
+export const MIN_SEARCH_LENGTH = 2
+
+/**
+ * Busca artistas por nombre.
+ *
+ * Devuelve la misma forma que la grilla, así que la tarjeta es la misma. El
+ * orden **viene de la base** y no se toca: si escribiste un nombre querés ese
+ * nombre, no el estudio más cerca que se le parezca. Por eso el resultado no
+ * pasa por `sortByProximity`.
+ */
+export async function searchArtists(
+  categorySlug: string,
+  query: string,
+): Promise<readonly ArtistCardData[]> {
+  if (query.trim().length < MIN_SEARCH_LENGTH) return []
+
+  const { data, error } = await supabase.rpc('search_professionals', {
+    p_category_slug: categorySlug,
+    p_query: query,
+  })
+
+  if (error != null) throw error
+
+  return (data ?? []).map(toCard)
+}
+
+interface RawArtistRow {
+  professional_id: string
+  slug: string
+  display_name: string
+  is_fixture: boolean
+  avatar_path: string | null
+  neighborhood_slug: string | null
+  studio_lat: number | null
+  studio_lng: number | null
+  pieces: unknown
+}
+
+function toCard(row: RawArtistRow): ArtistCardData {
+  return {
     professionalId: String(row.professional_id),
     slug: String(row.slug),
     displayName: String(row.display_name),
@@ -68,7 +117,7 @@ export async function fetchArtistGrid(
         ? null
         : { lat: row.studio_lat, lng: row.studio_lng },
     pieces: toPieces(row.pieces),
-  }))
+  }
 }
 
 interface RawPiece {

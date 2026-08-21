@@ -26,6 +26,70 @@ const PIECES = 6
 export async function fetchArtistGrid(
   _categorySlug: string,
 ): Promise<readonly ArtistCardData[]> {
+  return (await todos())
+    // El RPC esconde a quien no tiene una sola obra: su tarjeta saldría vacía.
+    .filter((artist) => artist.pieces.length > 0)
+}
+
+/**
+ * El mismo número que `queries.ts`, escrito de nuevo y no reexportado.
+ *
+ * Reexportarlo desde `./queries.ts` sería reexportarlo desde **este mismo
+ * archivo**: el swap de metro reescribe `./queries.ts` a `./queries.preview.ts`
+ * también acá adentro, así que el getter que genera el transpilador se termina
+ * llamando a sí mismo. El síntoma es un stack overflow que no dice de dónde
+ * viene. Ver `preview-swap.test.ts`.
+ */
+export const MIN_SEARCH_LENGTH = 2
+
+/**
+ * Buscar por nombre en el preview.
+ *
+ * Replica lo que hace la base, no lo que sería más fácil acá: sin acentos, sin
+ * mayúsculas, por pedazo del nombre o del slug, y **sin filtrar a quien no
+ * subió obra** —que es justamente la diferencia con la grilla—. El orden es el
+ * mismo criterio: exacto, después arranca así, después una palabra arranca
+ * así, después lo lleva adentro.
+ */
+export async function searchArtists(
+  _categorySlug: string,
+  query: string,
+): Promise<readonly ArtistCardData[]> {
+  const q = clave(query.trim())
+  if (q.length < MIN_SEARCH_LENGTH) return []
+
+  return (await todos())
+    .filter(
+      (artist) =>
+        clave(artist.displayName).includes(q) || clave(artist.slug).includes(q),
+    )
+    .map((artist) => ({ artist, rango: rangoDe(clave(artist.displayName), q) }))
+    .sort(
+      (a, b) =>
+        a.rango - b.rango ||
+        Number(b.artist.pieces.length > 0) -
+          Number(a.artist.pieces.length > 0) ||
+        clave(a.artist.displayName).localeCompare(clave(b.artist.displayName)),
+    )
+    .map(({ artist }) => artist)
+}
+
+/** Lo mismo que `public.search_key`: sin acentos y en minúscula. */
+function clave(texto: string): string {
+  return texto
+    .normalize('NFD')
+    .replace(/\p{Diacritic}/gu, '')
+    .toLowerCase()
+}
+
+function rangoDe(nombre: string, q: string): number {
+  if (nombre === q) return 0
+  if (nombre.startsWith(q)) return 1
+  if (nombre.includes(` ${q}`)) return 2
+  return 3
+}
+
+async function todos(): Promise<readonly ArtistCardData[]> {
   const propio = previewOwnedProfessional()
 
   return (
@@ -66,8 +130,6 @@ export async function fetchArtistGrid(
           pieces: [...propias, ...horneadas].slice(0, PIECES),
         }
       })
-      // El RPC esconde a quien no tiene una sola obra: su tarjeta saldría vacía.
-      .filter((artist) => artist.pieces.length > 0)
   )
 }
 

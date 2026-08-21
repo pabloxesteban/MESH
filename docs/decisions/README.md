@@ -42,3 +42,4 @@ todo el repositorio.
 | [026](ADR-026-observability.md) | Reportes de error sin id de nadie y logs estructurados; sin dependencia nueva, para no salir de Expo Go | **Aceptado** |
 | [027](ADR-027-notifications.md) | Avisos sin texto libre: un tipo y una referencia, sin bandeja vacía y sin número | **Aceptado** |
 | [028](ADR-028-account-export.md) | Llevarte lo tuyo antes de borrarlo: lo que escribiste vos, no lo que escribieron otros | **Aceptado** |
+| [029](ADR-029-search-by-name.md) | Buscar a alguien por nombre: sin acentos, sin ordenar por cercanía, y a quien no subió obra también se lo encuentra | **Aceptado** |

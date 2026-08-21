@@ -500,6 +500,16 @@ la función son los dos `or` del `where`: solo devuelve filas donde quien llama 
 una de las dos partes. Ver la enmienda del 2026-08-21 en
 [ADR-018](../decisions/ADR-018-availability.md).
 
+**Buscar por nombre no abre nada nuevo.** `search_professionals()` es
+`security invoker` —no hay ninguna columna escondida que necesite— y devuelve
+exactamente los mismos campos que `get_artist_grid()`, sobre los mismos perfiles
+publicados. Las dos diferencias con la grilla están del lado de mostrar más, no
+de mostrar de más: incluye a quien todavía no subió obra, y ordena por parecido.
+El filtro de bloqueos es idéntico y está en la misma cláusula. El texto que
+escribe la persona se escapa antes de comparar —`%` y `_` son caracteres, no
+llaves del catálogo— y hay un test de pgTAP por cada uno. Ver
+[ADR-029](../decisions/ADR-029-search-by-name.md).
+
 **Llevarse los datos** es `export_own_account()`, que arma el JSON entero del
 lado de Postgres. `security definer` por una sola cosa —leer el correo de
 `auth.users`— y con el mismo candado: **no recibe a quién exportar**, saca el id

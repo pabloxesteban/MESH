@@ -94,6 +94,7 @@ export const en: Readonly<Record<TranslationKey, string>> = {
   'artists.card.open': "Open {nombre}'s profile",
   'artists.card.km': '{km} km away',
   'artists.card.noLocation': 'Location not shared',
+  'artists.card.noWork': 'No work uploaded yet',
   'artists.location.body':
     'With your location on we sort by distance and tell you how far each one is. Without it the list still shows, in another order.',
   'artists.location.action': 'Turn on my location',
@@ -122,6 +123,13 @@ export const en: Readonly<Record<TranslationKey, string>> = {
   'artists.empty.body':
     'Once tattooers register, this is where you will see the ones working near you. In the meantime you can browse work.',
   'artists.empty.action': 'Go explore',
+  'artists.search.placeholder': 'Search someone by name',
+  'artists.search.label': 'Search an artist by name',
+  'artists.search.clear': 'Clear what you typed',
+  'artists.search.empty.title': 'Nobody by that name',
+  'artists.search.empty.body':
+    'They may not be on MESH yet, or they may go by something else. If you do not know the name, Explore gets you there through the work.',
+  'artists.search.empty.action': 'Go explore',
   'explore.byPhotos': 'Search with a photo',
   'explore.title': 'Explore',
   'explore.subtitle': 'All the work, near or far.',

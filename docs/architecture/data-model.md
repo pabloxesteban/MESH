@@ -441,6 +441,8 @@ create unique index on professionals (slug);
 create index on matches (user_id, score desc);
 create index on projects (user_id, status);
 create index on analytics_events (occurred_at);
+-- buscar por nombre
+create index on professionals using gin (search_key(display_name) gin_trgm_ops);
 ```
 
 Cada índice de acá existe porque una consulta concreta de
@@ -562,6 +564,21 @@ y una pantalla de confirmación editable. Ver
 Las dos comparten la barrera que valida cada slug contra la lista que entró
 (`supabase/functions/_shared/vocabulary.ts`): dos copias de una barrera de
 seguridad es una barrera que algún día se arregla en un solo lado.
+
+**`search_professionals(p_category_slug, p_query, p_limit, p_pieces)`** —
+`SECURITY INVOKER`, misma forma de retorno que `get_artist_grid` para que la
+pantalla reutilice la tarjeta sin traducir nada. Compara contra
+`search_key(display_name)` y `search_key(slug)`, donde `search_key()` es
+`lower(unaccent(...))` declarada `immutable` nombrando el diccionario explícito
+—`unaccent(text)` de un argumento es apenas `stable` y no serviría para un
+índice funcional—.
+
+Tres diferencias con la grilla, las tres deliberadas: **no** exige tener obra
+publicada (una búsqueda por nombre es puntería, no descubrimiento), ordena por
+parecido en vez de mezclar, y el cliente no le aplica `sortByProximity`. El
+filtro de bloqueos es idéntico. El texto se escapa antes del `like`. Piso de dos
+caracteres, en la base y en el cliente. Ver
+[ADR-029](../decisions/ADR-029-search-by-name.md).
 
 **Ninguna de las dos toca el ranking.** El motor de matching que puntúa y ordena
 sigue siendo el determinístico de arriba; lo que estas funciones producen entra
