@@ -12,6 +12,7 @@ export type OnboardingIntent = 'offering' | 'looking'
 export interface Account {
   readonly displayName: string | null
   readonly onboardingIntent: OnboardingIntent | null
+  readonly adultConfirmedAt: string | null
 }
 
 export interface AccountPatch {
@@ -19,8 +20,17 @@ export interface AccountPatch {
   readonly onboardingIntent?: OnboardingIntent
 }
 
+/** Fecha fija: en el preview importa que haya declaración, no cuándo. */
+const DECLARADO = '2026-08-20T12:00:00.000Z'
+
+let mayor = false
+
 export async function fetchAccount(): Promise<Account> {
-  return previewAccount()
+  return { ...previewAccount(), adultConfirmedAt: mayor ? DECLARADO : null }
+}
+
+export async function confirmAdult(): Promise<void> {
+  mayor = true
 }
 
 export async function updateAccount(patch: AccountPatch): Promise<void> {

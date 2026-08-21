@@ -468,6 +468,32 @@ Controles:
 - El reporte de crashes, si se agrega, tiene que limpiar los breadcrumbs; no
   está en V1.
 
+## 8bis. Borrado de cuenta y mayoría de edad
+
+**Borrar la cuenta** es `delete_own_account()` más la Edge Function
+`delete-account`, en ese orden inverso: primero los archivos, después la base.
+Ver [ADR-024](../decisions/ADR-024-account-deletion.md).
+
+Dos cosas que definen el riesgo:
+
+- **La Edge Function no usa la service key para borrar la cuenta.** La usa solo
+  para los archivos. El borrado de la base va por una función `security definer`
+  que **no recibe a quién borrar**: saca el id de `auth.uid()`. Con la service
+  key, un error de programación borra a cualquiera; así, el peor error posible
+  es que alguien se borre a sí mismo.
+- **El orden importa.** Archivos → base: un fallo a mitad deja la cuenta viva y
+  se reintenta. Al revés, quedan fotos de alguien que ya no existe y nadie con
+  sesión para pedir que se vayan.
+
+Sobrevive una fila en `audit_events` con el uuid, la fecha y si tenía perfil de
+artista. `actor_user_id` no tiene FK desde el primer día, justamente para esto.
+
+**Mayoría de edad**: `profiles.adult_confirmed_at`, escrito solo por
+`confirm_adult()` —idempotente, sin marcha atrás— y verificado dentro de
+`schedule_appointment()` **sobre la persona, no sobre quien llama**. Ver
+[ADR-025](../decisions/ADR-025-age-gate.md). No se guarda fecha de nacimiento, y
+un "no" no se guarda de ninguna forma: sería un registro de menores de edad.
+
 ## 9. Derechos sobre los datos
 
 - **Exportación:** la persona puede pedir su perfil, interacciones, gusto,

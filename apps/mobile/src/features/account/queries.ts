@@ -19,7 +19,13 @@ export type OnboardingIntent = 'offering' | 'looking'
 export interface Account {
   readonly displayName: string | null
   readonly onboardingIntent: OnboardingIntent | null
-  /** Radio de búsqueda en km. `null` = sin límite. */
+  /**
+   * Cuándo declaró ser mayor de 18, o `null` si no lo hizo.
+   *
+   * No hay fecha de nacimiento en ningún lado: lo que se guarda es la
+   * declaración con su hora, y nada más. Ver ADR-025.
+   */
+  readonly adultConfirmedAt: string | null
 }
 
 export async function fetchAccount(): Promise<Account> {
@@ -28,7 +34,7 @@ export async function fetchAccount(): Promise<Account> {
   // cliente.
   const { data, error } = await supabase
     .from('profiles')
-    .select('display_name, onboarding_intent')
+    .select('display_name, onboarding_intent, adult_confirmed_at')
     .maybeSingle()
 
   if (error != null) throw error
@@ -36,7 +42,20 @@ export async function fetchAccount(): Promise<Account> {
   return {
     displayName: data?.display_name ?? null,
     onboardingIntent: data?.onboarding_intent ?? null,
+    adultConfirmedAt: data?.adult_confirmed_at ?? null,
   }
+}
+
+/**
+ * Declara que es mayor de edad.
+ *
+ * Por RPC y no por un update: la columna no está en `AccountPatch` a propósito.
+ * Si el cliente pudiera escribirla, podría también antedatarla — y lo que este
+ * registro tiene que conservar es exactamente cuándo se dijo. Ver ADR-025.
+ */
+export async function confirmAdult(): Promise<void> {
+  const { error } = await supabase.rpc('confirm_adult')
+  if (error != null) throw error
 }
 
 export interface AccountPatch {

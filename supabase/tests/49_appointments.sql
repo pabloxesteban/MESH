@@ -33,6 +33,11 @@ insert into public.profiles (id) values
   ('aaaaaaaa-0000-0000-0000-0000000000d4')
 on conflict (id) do nothing;
 
+-- Todos mayores de edad: la puerta de ADR-025 vive adentro de
+-- `schedule_appointment`, y sin esto ningún turno de este archivo se puede dar.
+-- Que la puerta funcione se prueba en `57_age_gate.sql`, no acá.
+update public.profiles set adult_confirmed_at = now();
+
 insert into public.professionals
   (id, category_id, slug, display_name, instagram_handle, is_published,
    owner_user_id, claimed_at)

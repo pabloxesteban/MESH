@@ -294,6 +294,11 @@ Tres cosas que definen la tabla:
   la edita, no la borra, y tampoco lee la tabla. Cuenta y promedio salen de
   `get_review_summary()`, que calcula al leer — no hay ningún agregado guardado.
 
+**`profiles.adult_confirmed_at`** — cuándo declaró ser mayor de 18, o `null`. No
+hay fecha de nacimiento en ningún lado. La escribe solo `confirm_adult()`, y la
+verifica `schedule_appointment()` sobre la persona que se va a tatuar. Ver
+[ADR-025](../decisions/ADR-025-age-gate.md).
+
 **`reports` / `blocks`** — moderación. Ver
 [ADR-023](../decisions/ADR-023-moderation.md).
 

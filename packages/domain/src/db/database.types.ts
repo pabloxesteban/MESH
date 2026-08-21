@@ -1016,6 +1016,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          adult_confirmed_at: string | null
           analytics_opt_in: boolean
           avatar_media_id: string | null
           city_location_id: string | null
@@ -1030,6 +1031,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          adult_confirmed_at?: string | null
           analytics_opt_in?: boolean
           avatar_media_id?: string | null
           city_location_id?: string | null
@@ -1044,6 +1046,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          adult_confirmed_at?: string | null
           analytics_opt_in?: boolean
           avatar_media_id?: string | null
           city_location_id?: string | null
@@ -1641,6 +1644,7 @@ export type Database = {
         Returns: undefined
       }
       claim_professional: { Args: { p_code: string }; Returns: string }
+      confirm_adult: { Args: never; Returns: undefined }
       create_own_professional: {
         Args: {
           p_display_name: string
@@ -1649,6 +1653,7 @@ export type Database = {
         }
         Returns: string
       }
+      delete_own_account: { Args: never; Returns: undefined }
       get_artist_grid: {
         Args: { p_category_slug: string; p_limit?: number; p_pieces?: number }
         Returns: {

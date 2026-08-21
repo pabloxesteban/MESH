@@ -405,6 +405,10 @@ function Shell({ abrirEstudio }: { abrirEstudio: boolean }) {
             onCreateAccount={() => setCuenta('crear')}
             onSignIn={() => setCuenta('entrar')}
             onSignOut={() => undefined}
+            // En el preview no borra nada: la garantía de que el borrado es
+            // real vive en `supabase/tests/56_account_deletion.sql`. Acá está
+            // para poder mirar la pantalla y su confirmación escrita.
+            onDeleted={() => setPestana('inicio')}
           />
         )
       case 'para-vos':

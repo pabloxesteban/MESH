@@ -52,6 +52,14 @@ están**:
   puntaje, no ordena a nadie y no se puede apagar. Ver
   [ADR-022](docs/decisions/ADR-022-reply-habit.md).
 
+- **Borrar la cuenta.** Ya existe, desde Perfil, y borra todo: búsquedas,
+  fotos, chats, reseñas, el hilo del asistente y el perfil de artista si lo hay.
+  Sin período de gracia. Queda un solo registro —un uuid y una fecha— para poder
+  demostrar que se cumplió. Ver [ADR-024](docs/decisions/ADR-024-account-deletion.md).
+- **Mayoría de edad.** Se pregunta una vez, **sin pedir fecha de nacimiento**, y
+  sin esa declaración no se puede cerrar un turno — la puerta vive adentro de
+  `schedule_appointment()`. Decir que no, no se guarda: sería un registro de
+  menores de edad. Ver [ADR-025](docs/decisions/ADR-025-age-gate.md).
 - **Denunciar y bloquear.** Ya existen, y el bloqueo **se impone en la base**:
   con un bloqueo activo no se abre un chat, no se escribe en uno ya abierto, no
   llega una propuesta y la búsqueda sale del mazo. Nadie sabe quién lo denunció

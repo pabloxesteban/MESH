@@ -108,6 +108,16 @@ pantalla, los turnos etiquetados y la revisión editable; **no** sirve para
 evaluar qué tan bien conversa el asistente de verdad, que vive en
 `supabase/functions/brief-assistant/`.
 
+**La app abre con dos preguntas, en este orden:** la edad (ADR-025) y a qué
+venís. El verificador del build contesta las dos; si alguna se rompe, el build
+falla ahí y no doce líneas más abajo con un mensaje confuso sobre el mazo vacío.
+
+**Denunciar y bloquear tampoco se pueden mirar con el catálogo de prueba**, por
+lo mismo de abajo: la fila de seguridad vive del lado de los perfiles reales, y
+a un registro de prueba no se lo denuncia ni se lo bloquea porque no es una
+persona. Lo que sí se ve entero es **Perfil → Borrar mi cuenta**, con su
+confirmación escrita.
+
 **Dos cosas nuevas no se pueden mirar con el catálogo de prueba.** «Suele
 contestar en el día» y «Tenés un pedido armado» solo aparecen en perfiles que no
 son fixtures, y en el preview todo el catálogo lo es. La misma limitación que ya

@@ -39,6 +39,7 @@ if (process.env.MESH_PREVIEW === '1') {
   const PREVIEW_TARGETS = new Set(
     [
       'src/features/account/queries.ts',
+      'src/features/account/deleteAccount.ts',
       'src/features/assistant/queries.ts',
       'src/features/assistant/assistant.ts',
       'src/features/chat/queries.ts',

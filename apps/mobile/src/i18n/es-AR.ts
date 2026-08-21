@@ -239,6 +239,8 @@ export const esAR = {
   'schedule.error.taken': 'Ese horario ya está ocupado. Elegí otro.',
   'schedule.error.past': 'Ese horario ya pasó.',
   'schedule.error.notYours': 'No podés dar un turno en esta conversación.',
+  'schedule.error.minor':
+    'Esta persona todavía no confirmó que es mayor de 18. Sin eso no se puede cerrar un turno.',
   'schedule.error.unknown': 'No se pudo dar el turno. Probá de nuevo.',
   'appointment.title': 'Turno',
   'appointment.when': '{fecha}, de {desde} a {hasta}',
@@ -620,6 +622,49 @@ export const esAR = {
   'replyHabit.source':
     'Calculado con sus conversaciones de los últimos 90 días.',
   'replyHabit.own': 'Así se ve tu respuesta en tu perfil',
+
+  // --- mayoría de edad --------------------------------------------------------
+  // Ver ADR-025. Se pregunta una sola cosa y no se pide la fecha de nacimiento:
+  // con ella tendríamos un dato sensible para calcular un booleano que ya nos
+  // dieron.
+  'age.title': 'Una sola cosa antes de entrar',
+  'age.body':
+    'Para arreglar un turno de tatuaje hay que ser mayor de 18. No te pedimos la fecha de nacimiento ni ningún documento.',
+  'age.yes': 'Sí, tengo 18 o más',
+  'age.no': 'Todavía no',
+  'age.back': 'Volver',
+  'age.minor.body':
+    'Podés seguir mirando obra y guardar lo que te gusta. Lo que no vas a poder es cerrar un turno hasta que cumplas 18.',
+  'age.minor.continue': 'Entrar igual',
+  'age.blocked':
+    'Para cerrar un turno hace falta confirmar que sos mayor de 18. Se hace desde Perfil.',
+
+  // --- borrar la cuenta -------------------------------------------------------
+  // Ver ADR-024. La lista de lo que se va está entera, y lo que NO se va
+  // también: omitirlo sería mentir por la parte que no conviene contar.
+  'legal.privacy': 'Privacidad',
+  'legal.terms': 'Términos de uso',
+  'legal.moderation': 'Cómo moderamos',
+
+  'legal.note': 'Se abren en el navegador.',
+
+  'account.delete.entry': 'Borrar mi cuenta',
+  'account.delete.title': 'Borrar tu cuenta',
+  'account.delete.body':
+    'Es inmediato y no se puede deshacer. No queda nada desactivado ni guardado por si cambiás de idea.',
+  'account.delete.item.profile': 'Tu cuenta y tu perfil',
+  'account.delete.item.searches': 'Tus búsquedas y las fotos que subiste',
+  'account.delete.item.chats': 'Tus conversaciones, de los dos lados',
+  'account.delete.item.reviews': 'Las reseñas que escribiste',
+  'account.delete.item.photos': 'Lo que le contaste al asistente',
+  'account.delete.item.studio':
+    'Tu perfil de artista, si tenías uno, con toda su obra',
+  'account.delete.kept':
+    'Queda un solo registro: que una cuenta se borró, con su identificador y la fecha. Sin tu mail, sin tu nombre y sin nada de lo que había adentro.',
+  'account.delete.word': 'borrar',
+  'account.delete.confirm': 'Escribí «{palabra}» para confirmar',
+  'account.delete.submit': 'Borrar mi cuenta',
+  'account.delete.error': 'No pudimos borrar la cuenta. Probá de nuevo.',
 
   // --- denunciar y bloquear --------------------------------------------------
   // Ver ADR-023. El texto dice la verdad de lo que pasa después: lo mira una

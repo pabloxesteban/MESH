@@ -209,6 +209,8 @@ export const en: Readonly<Record<TranslationKey, string>> = {
   'schedule.error.past': 'That time has already passed.',
   'schedule.error.notYours':
     'You cannot give an appointment in this conversation.',
+  'schedule.error.minor':
+    'This person has not confirmed they are 18 or older yet. Without that, no appointment can be booked.',
   'schedule.error.unknown': 'Could not give the appointment. Try again.',
   'appointment.title': 'Appointment',
   'appointment.when': '{fecha}, from {desde} to {hasta}',
@@ -564,6 +566,42 @@ export const en: Readonly<Record<TranslationKey, string>> = {
   'replyHabit.source':
     'Calculated from their conversations in the last 90 days.',
   'replyHabit.own': 'This is how your replying looks on your profile',
+
+  'age.title': 'One thing before you come in',
+  'age.body':
+    'You have to be 18 or older to book a tattoo appointment. We do not ask for your date of birth or any document.',
+  'age.yes': "Yes, I'm 18 or older",
+  'age.no': 'Not yet',
+  'age.back': 'Back',
+  'age.minor.body':
+    'You can still browse work and save what you like. What you cannot do is book an appointment until you turn 18.',
+  'age.minor.continue': 'Come in anyway',
+  'age.blocked':
+    'Booking an appointment needs you to confirm you are 18 or older. You can do it from your profile.',
+
+  'legal.privacy': 'Privacy',
+  'legal.terms': 'Terms of use',
+  'legal.moderation': 'How we moderate',
+
+  'legal.note': 'They open in your browser.',
+
+  'account.delete.entry': 'Delete my account',
+  'account.delete.title': 'Delete your account',
+  'account.delete.body':
+    'It is immediate and cannot be undone. Nothing is deactivated or kept in case you change your mind.',
+  'account.delete.item.profile': 'Your account and your profile',
+  'account.delete.item.searches': 'Your searches and the photos you uploaded',
+  'account.delete.item.chats': 'Your conversations, on both sides',
+  'account.delete.item.reviews': 'The reviews you wrote',
+  'account.delete.item.photos': 'What you told the assistant',
+  'account.delete.item.studio':
+    'Your artist profile, if you had one, with all its work',
+  'account.delete.kept':
+    'One record stays: that an account was deleted, with its identifier and the date. No email, no name, nothing of what was inside.',
+  'account.delete.word': 'delete',
+  'account.delete.confirm': 'Type "{palabra}" to confirm',
+  'account.delete.submit': 'Delete my account',
+  'account.delete.error': "We couldn't delete the account. Try again.",
 
   'report.open': 'Report',
   'report.title': "What's wrong with this?",

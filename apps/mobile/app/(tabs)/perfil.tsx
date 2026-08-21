@@ -24,6 +24,10 @@ export default function PerfilRoute() {
       onCreateAccount={() => router.push('/cuenta/crear')}
       onSignIn={() => router.push('/cuenta/entrar')}
       onSignOut={() => void signOut()}
+      // Después de borrar, a Inicio: la sesión ya no existe y `SessionProvider`
+      // va a arrancar una anónima nueva. Quedarse en Perfil mostraría la cuenta
+      // de alguien que acaba de dejar de existir.
+      onDeleted={() => router.replace('/(tabs)')}
     />
   )
 }

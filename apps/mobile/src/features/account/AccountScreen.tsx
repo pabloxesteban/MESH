@@ -38,9 +38,12 @@ import {
 import { ErrorView } from '@/components/ErrorView.tsx'
 import { AnalyticsToggle } from '@/features/settings/AnalyticsToggle.tsx'
 import { BlockedList } from '@/features/moderation/BlockedList.tsx'
+
+import { DeleteAccount } from './DeleteAccount.tsx'
+import { LegalRow } from './LegalRow.tsx'
 import { useT } from '@/i18n/I18nProvider.tsx'
 
-import { fetchAccount, updateAccount } from './queries.ts'
+import { confirmAdult, fetchAccount, updateAccount } from './queries.ts'
 
 export interface AccountScreenProps {
   /** Como el resto de las pantallas: la sesión entra por prop, no por hook.
@@ -54,6 +57,13 @@ export interface AccountScreenProps {
   onCreateAccount: () => void
   onSignIn: () => void
   onSignOut: () => void
+  /**
+   * Después de borrar la cuenta no hay a dónde volver.
+   *
+   * Opcional para que el preview y los tests puedan montar la pantalla sin
+   * inventar una salida; sin esto, la entrada a borrar no se dibuja.
+   */
+  onDeleted?: (() => void) | undefined
 }
 
 export function AccountScreen({
@@ -65,6 +75,7 @@ export function AccountScreen({
   onCreateAccount,
   onSignIn,
   onSignOut,
+  onDeleted,
 }: AccountScreenProps) {
   const t = useT()
   const theme = useTheme()
@@ -73,8 +84,14 @@ export function AccountScreen({
 
   const [name, setName] = useState<string | null>(null)
   const [toast, setToast] = useState<string | null>(null)
+  const [borrando, setBorrando] = useState(false)
 
   const account = useQuery({ queryKey: ['account'], queryFn: fetchAccount })
+
+  const declarar = useMutation({
+    mutationFn: confirmAdult,
+    onSuccess: () => client.invalidateQueries({ queryKey: ['account'] }),
+  })
 
   const save = useMutation({
     mutationFn: updateAccount,
@@ -227,12 +244,57 @@ export function AccountScreen({
           />
         </Box>
 
+        {/* Quien todavía no lo confirmó lo puede hacer desde acá. Sin esta
+            fila, alguien que en el arranque tocó "todavía no" no tiene ninguna
+            forma de cambiarlo, y descubre el bloqueo recién cuando un artista
+            no le puede dar un turno. Ver ADR-025. */}
+        {userId != null && account.data?.adultConfirmedAt == null ? (
+          <Box gap="xxs" testID="account-age">
+            <Text role="label" color="textSecondary">
+              {t('age.title')}
+            </Text>
+            <Text role="body" color="textSecondary">
+              {t('age.blocked')}
+            </Text>
+            <Button
+              label={t('age.yes')}
+              variant="secondary"
+              loading={declarar.isPending}
+              onPress={() => declarar.mutate()}
+              fullWidth
+              testID="account-age-confirm"
+            />
+          </Box>
+        ) : null}
+
         {/* Solo se dibuja si hay a quién desbloquear: una lista vacía de gente
             con la que decidiste no cruzarte es un recordatorio que nadie pidió.
             Ver ADR-023. */}
         <BlockedList />
 
         <AnalyticsToggle userId={userId} />
+
+        <LegalRow />
+
+        {/* Al final de todo, y con su propia pantalla. Es un derecho, no una
+            preferencia: tiene que estar y tiene que ser encontrable, pero no
+            compite con nada de lo de arriba. Ver ADR-024. */}
+        {onDeleted != null && userId != null ? (
+          borrando ? (
+            <DeleteAccount
+              onDeleted={onDeleted}
+              onCancel={() => setBorrando(false)}
+            />
+          ) : (
+            <Button
+              label={t('account.delete.entry')}
+              variant="ghost"
+              size="sm"
+              onPress={() => setBorrando(true)}
+              testID="account-delete"
+            />
+          )
+        ) : null}
       </Box>
     )
   })()
