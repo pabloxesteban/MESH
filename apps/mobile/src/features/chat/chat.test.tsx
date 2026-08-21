@@ -211,6 +211,49 @@ describe('ChatScreen', () => {
     )
     expect(screen.queryByText(/PGRST301/)).toBeNull()
   })
+
+  it('sin señal dice que no hay señal, no que el mensaje falló', async () => {
+    // Es el caso más común de un teléfono y el único donde la frase de la
+    // acción es peor que una genérica: "no pudimos mandar el mensaje" suena a
+    // que la app se rompió cuando lo que pasa es que estás en el subte.
+    sendMock.mockRejectedValue(new TypeError('Network request failed'))
+    renderChat()
+    await waitFor(() =>
+      expect(screen.getByTestId('chat-messages')).toBeTruthy(),
+    )
+
+    fireEvent.changeText(screen.getByTestId('chat-input'), 'Hola')
+    fireEvent.press(screen.getByTestId('chat-send'))
+
+    await waitFor(() =>
+      expect(screen.getByTestId('chat-send-error')).toBeTruthy(),
+    )
+    expect(screen.getByText(/Sin conexión/)).toBeTruthy()
+
+    // Y lo escrito no se pierde: sin conexión, borrarle el mensaje a alguien
+    // es hacerle escribirlo dos veces.
+    expect(screen.getByTestId('chat-input').props.value).toBe('Hola')
+  })
+
+  it('con RLS rechazando no delata el bloqueo', async () => {
+    // Con un bloqueo activo no se escribe en un chat ya abierto (ADR-023). El
+    // mensaje NO puede decir "no tenés permiso": eso le confirma a la persona
+    // que la bloquearon, que es exactamente lo que el ADR no quiere que sepa.
+    sendMock.mockRejectedValue({ code: '42501', message: 'rls' })
+    renderChat()
+    await waitFor(() =>
+      expect(screen.getByTestId('chat-messages')).toBeTruthy(),
+    )
+
+    fireEvent.changeText(screen.getByTestId('chat-input'), 'Hola')
+    fireEvent.press(screen.getByTestId('chat-send'))
+
+    await waitFor(() =>
+      expect(screen.getByTestId('chat-send-error')).toBeTruthy(),
+    )
+    expect(screen.getByText(/No pudimos mandar el mensaje/)).toBeTruthy()
+    expect(screen.queryByText(/permiso|bloque/i)).toBeNull()
+  })
 })
 
 describe('el vacío de Chats no es el mismo de los dos lados', () => {

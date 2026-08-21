@@ -190,6 +190,20 @@ de causas visibles (offline, servidor, no encontrado, permiso) en
 `data/errors.ts`; los mensajes crudos de Postgres o Supabase nunca se le muestran
 a nadie ni se escriben en analytics.
 
+**Los errores de acción también leen la causa, pero solo se meten con una.**
+Un error de *carga* pasa por `ErrorView`, que muestra la causa completa con su
+acción. Un error de *acción* —mandar un mensaje, canjear un código, subir una
+obra— muestra la frase de esa acción, con una excepción: **sin conexión se dice
+que no hay conexión**, vía `data/actionError.ts`. Es el caso más común de un
+teléfono y el único donde la frase específica es peor que una genérica: "ese
+código no sirve" es falso cuando el código sirve y lo que falta es señal.
+
+Las otras cuatro causas conservan a propósito la frase de la acción. `permission`
+en particular: decirle "no tenés permiso" a quien acaba de ser bloqueado le
+confirma que lo bloquearon, y [ADR-023](../decisions/ADR-023-moderation.md) dice
+que eso no se sabe. Es el mismo motivo por el que `permission` comparte texto con
+`notFound` en `errors.ts`.
+
 ## 8. Entornos
 
 | | Local | Preview | Producción |

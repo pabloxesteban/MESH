@@ -26,6 +26,7 @@ import { useT } from '@/i18n/I18nProvider.tsx'
 import type { TranslationKey } from '@/i18n/index.ts'
 
 import { exportAccount, type ExportResult } from './exportAccount.ts'
+import { actionErrorKey } from '@/data/actionError.ts'
 
 /**
  * Qué contar del archivo, y con qué clave.
@@ -64,7 +65,7 @@ export function ExportAccount() {
       setListo(result)
       setError(null)
     },
-    onError: () => setError(t('export.error')),
+    onError: (err) => setError(t(actionErrorKey(err, 'export.error'))),
   })
 
   return (

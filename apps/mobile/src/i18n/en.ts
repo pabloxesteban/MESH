@@ -17,6 +17,8 @@ export const en: Readonly<Record<TranslationKey, string>> = {
   'common.save': 'Save',
   'common.loading': 'Loading',
 
+  'error.offline.action':
+    'No connection. Check your data or wifi and try again.',
   'error.offline.title': 'No connection',
   'error.offline.body': 'Check your data or wifi and try again.',
   'error.server.title': 'Something broke on our side',

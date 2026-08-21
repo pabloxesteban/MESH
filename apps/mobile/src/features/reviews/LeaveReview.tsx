@@ -28,6 +28,7 @@ import { useT } from '@/i18n/I18nProvider.tsx'
 import { Stars } from './Stars.tsx'
 import { createReview } from './queries.ts'
 import { uploadReviewPhoto } from './upload.ts'
+import { actionErrorKey } from '@/data/actionError.ts'
 
 /** Igual que el check de la tabla. Un texto más largo es una carta. */
 const MAX_BODY = 1000
@@ -73,7 +74,7 @@ export function LeaveReview({
       void client.invalidateQueries({ queryKey: ['reviewable'] })
       onDone()
     },
-    onError: () => setError(t('reviews.error.send')),
+    onError: (err) => setError(t(actionErrorKey(err, 'reviews.error.send'))),
   })
 
   const elegirFoto = async () => {

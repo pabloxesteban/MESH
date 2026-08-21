@@ -23,6 +23,7 @@ import { Box, Button, Input, Text } from '@/design-system/index.ts'
 import { useT } from '@/i18n/I18nProvider.tsx'
 
 import { deleteAccount } from './deleteAccount.ts'
+import { actionErrorKey } from '@/data/actionError.ts'
 
 /** Lo que hay que escribir. Va por i18n: en inglés la palabra es otra. */
 const CONFIRM_KEY = 'account.delete.word'
@@ -46,7 +47,7 @@ export function DeleteAccount({ onDeleted, onCancel }: DeleteAccountProps) {
   const borrar = useMutation({
     mutationFn: deleteAccount,
     onSuccess: onDeleted,
-    onError: () => setError(t('account.delete.error')),
+    onError: (err) => setError(t(actionErrorKey(err, 'account.delete.error'))),
   })
 
   return (

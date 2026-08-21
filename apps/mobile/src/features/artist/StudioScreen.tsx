@@ -57,6 +57,7 @@ import {
 import { uploadPortfolioPiece } from './upload.ts'
 import { MAX_STYLES_PER_PIECE } from './weights.ts'
 import { MAX_OWN_STYLES, StylePicker } from './StylePicker.tsx'
+import { actionErrorKey } from '@/data/actionError.ts'
 
 /** Coordenadas leídas del GPS, todavía sin publicar. */
 interface PendingLocation {
@@ -124,7 +125,13 @@ export function StudioScreen({
     },
     // El mensaje crudo de Postgres no se muestra: dice más de nuestro esquema
     // que de lo que la persona tiene que hacer.
-    onError: () => setClaimError(t('studio.claim.invalid')),
+    //
+    // Y sin señal **no** se dice "ese código no sirve": el código sirve, lo que
+    // falta es conexión, y decirle a alguien que su código es inválido cuando
+    // no lo es es inventar. Es el peor de los trece casos que arregló
+    // `actionErrorKey`, y por eso está anotado.
+    onError: (err) =>
+      setClaimError(t(actionErrorKey(err, 'studio.claim.invalid'))),
   })
 
   const create = useMutation({
@@ -142,7 +149,8 @@ export function StudioScreen({
       setCreateError(null)
       void client.invalidateQueries({ queryKey: ['studio'] })
     },
-    onError: () => setCreateError(t('studio.create.failed')),
+    onError: (err) =>
+      setCreateError(t(actionErrorKey(err, 'studio.create.failed'))),
   })
 
   const styles = useMutation({
@@ -152,7 +160,8 @@ export function StudioScreen({
       setToast(t('studio.styles.saved'))
       void client.invalidateQueries({ queryKey: ['studio', 'professional'] })
     },
-    onError: () => setStylesError(t('studio.styles.failed')),
+    onError: (err) =>
+      setStylesError(t(actionErrorKey(err, 'studio.styles.failed'))),
   })
 
   const upload = useMutation({
@@ -179,7 +188,8 @@ export function StudioScreen({
       setToast(t('studio.upload.done'))
       void client.invalidateQueries({ queryKey: ['studio', 'pieces'] })
     },
-    onError: () => setUploadError(t('studio.upload.failed')),
+    onError: (err) =>
+      setUploadError(t(actionErrorKey(err, 'studio.upload.failed'))),
   })
 
   const saveLocation = useMutation({
@@ -191,7 +201,8 @@ export function StudioScreen({
       setToast(t('studio.location.set'))
       void client.invalidateQueries({ queryKey: ['studio', 'professional'] })
     },
-    onError: () => setLocationError(t('studio.location.error.save')),
+    onError: (err) =>
+      setLocationError(t(actionErrorKey(err, 'studio.location.error.save'))),
   })
 
   async function requestDeviceLocation(): Promise<void> {

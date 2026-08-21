@@ -24,6 +24,7 @@ import { Box, Button, FilterChip, Input, Text } from '@/design-system/index.ts'
 import { useT } from '@/i18n/I18nProvider.tsx'
 
 import { sendProposal } from './queries.ts'
+import { actionErrorKey } from '@/data/actionError.ts'
 
 /** Cuántas sesiones se ofrecen de un toque. Más que esto se escribe en la nota. */
 const SESIONES = [1, 2, 3, 4, 5, 6]
@@ -69,7 +70,7 @@ export function ProposalComposer({
         note: nota.trim() === '' ? null : nota.trim(),
       }),
     onSuccess: onSent,
-    onError: () => setError(t('proposal.error.send')),
+    onError: (err) => setError(t(actionErrorKey(err, 'proposal.error.send'))),
   })
 
   const mandar = () => {

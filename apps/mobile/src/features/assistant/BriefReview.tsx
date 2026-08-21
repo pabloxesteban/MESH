@@ -39,6 +39,7 @@ import { createQuickSearch } from '../quick-search/createQuickSearch.ts'
 
 import type { AssistantBrief } from './assistant.ts'
 import { attachThreadProject } from './queries.ts'
+import { actionErrorKey } from '@/data/actionError.ts'
 
 const MAX_TITLE = 120
 const MAX_SUMMARY = 600
@@ -111,7 +112,8 @@ export function BriefReview({
       track({ name: 'search_opened', props: { is_open: abierto } })
       onPublished(projectId)
     },
-    onError: () => setError(t('assistant.review.error')),
+    onError: (err) =>
+      setError(t(actionErrorKey(err, 'assistant.review.error'))),
   })
 
   const vacios =

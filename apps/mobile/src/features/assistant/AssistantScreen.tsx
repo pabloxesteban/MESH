@@ -50,6 +50,7 @@ import {
 } from './queries.ts'
 import { BriefReview } from './BriefReview.tsx'
 import { ReportSheet } from '@/features/moderation/ReportSheet.tsx'
+import { actionErrorKey } from '@/data/actionError.ts'
 
 export interface AssistantScreenProps {
   userId: string
@@ -123,7 +124,7 @@ export function AssistantScreen({
         },
       })
     },
-    onError: () => setError(t('assistant.error')),
+    onError: (err) => setError(t(actionErrorKey(err, 'assistant.error'))),
   })
 
   const tirar = useMutation({

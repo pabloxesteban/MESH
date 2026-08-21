@@ -23,6 +23,7 @@ import { useState } from 'react'
 import { Box, Button, FilterChip, Input, Text } from '@/design-system/index.ts'
 import { useT } from '@/i18n/I18nProvider.tsx'
 import type { TranslationKey } from '@/i18n/index.ts'
+import { actionErrorKey } from '@/data/actionError.ts'
 
 import {
   AlreadyReportedError,
@@ -67,7 +68,7 @@ export function ReportSheet({
       setError(
         err instanceof AlreadyReportedError
           ? t('report.already')
-          : t('report.error'),
+          : t(actionErrorKey(err, 'report.error')),
       ),
   })
 

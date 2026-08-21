@@ -26,6 +26,8 @@ export const esAR = {
   // --- errores ---------------------------------------------------------------
   // Un conjunto chico de causas visibles. Los mensajes crudos de Postgres o de
   // Supabase nunca se le muestran a nadie. Ver data/errors.ts.
+  'error.offline.action':
+    'Sin conexión. Revisá tus datos o el wifi y probá de nuevo.',
   'error.offline.title': 'Sin conexión',
   'error.offline.body': 'Revisá tus datos o el wifi y probá de nuevo.',
   'error.server.title': 'Algo se rompió de nuestro lado',

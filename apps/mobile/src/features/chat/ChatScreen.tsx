@@ -41,6 +41,7 @@ import { fetchReviewableAppointments } from '@/features/reviews/queries.ts'
 import { SendBrief } from '@/features/assistant/SendBrief.tsx'
 import { SafetyRow } from '@/features/moderation/SafetyRow.tsx'
 import { BlockPerson } from '@/features/moderation/BlockPerson.tsx'
+import { actionErrorKey } from '@/data/actionError.ts'
 
 import {
   fetchMessages,
@@ -142,7 +143,7 @@ export function ChatScreen({
       void client.invalidateQueries({ queryKey: ['chat', conversationId] })
       void client.invalidateQueries({ queryKey: ['conversations'] })
     },
-    onError: () => setError(t('chat.error')),
+    onError: (err) => setError(t(actionErrorKey(err, 'chat.error'))),
   })
 
   const body = (() => {
