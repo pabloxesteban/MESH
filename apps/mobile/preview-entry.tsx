@@ -137,6 +137,11 @@ function PreviewRoot() {
     'Fraunces-Regular': require('./assets/fonts/Fraunces-Regular.ttf'),
     'InstrumentSans-Regular': require('./assets/fonts/InstrumentSans-Regular.ttf'),
     'InstrumentSans-Medium': require('./assets/fonts/InstrumentSans-Medium.ttf'),
+    // ADR-031. Lista separada de la de `app/_layout.tsx` porque este entry no
+    // pasa por ahí — un corte que se agregue a uno y no al otro queda medio
+    // cargado en el preview sin que ningún tipo lo marque.
+    'Fraunces-SemiBold': require('./assets/fonts/Fraunces-SemiBold.ttf'),
+    'InstrumentSans-Bold': require('./assets/fonts/InstrumentSans-Bold.ttf'),
     /* eslint-enable @typescript-eslint/no-require-imports */
   })
 
