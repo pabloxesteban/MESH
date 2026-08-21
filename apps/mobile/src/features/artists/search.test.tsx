@@ -15,7 +15,13 @@
  */
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { act, fireEvent, render, screen, waitFor } from '@testing-library/react-native'
+import {
+  act,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from '@testing-library/react-native'
 
 import { MotionProvider, ThemeProvider } from '@/design-system/index.ts'
 import { I18nProvider } from '@/i18n/I18nProvider.tsx'
@@ -215,9 +221,7 @@ describe('buscar por nombre', () => {
     fireEvent.changeText(screen.getByTestId('artists-search'), 'nuevo')
     await despuesDelFreno()
 
-    await waitFor(() =>
-      expect(screen.getByTestId('artist-nuevo')).toBeTruthy(),
-    )
+    await waitFor(() => expect(screen.getByTestId('artist-nuevo')).toBeTruthy())
     expect(screen.getByTestId('artist-nuevo-no-work')).toBeTruthy()
     expect(screen.getByText('Todavía no subió obra')).toBeTruthy()
     // Y sigue siendo tocable: llegar a la persona es el punto.

@@ -27,14 +27,18 @@ import { TextInput, View, type TextInputProps } from 'react-native'
 import { Pressable } from '../primitives/Pressable.tsx'
 import { Text } from '../primitives/Text.tsx'
 import { useTheme } from '../providers/ThemeProvider.tsx'
-import { HAIRLINE, MIN_TOUCH_TARGET, radius, spacing } from '../tokens/layout.ts'
+import {
+  HAIRLINE,
+  MIN_TOUCH_TARGET,
+  radius,
+  spacing,
+} from '../tokens/layout.ts'
 import { MAX_FONT_SCALE, textRoles } from '../tokens/typography.ts'
 
-export interface SearchFieldProps
-  extends Omit<
-    TextInputProps,
-    'style' | 'placeholderTextColor' | 'value' | 'onChangeText'
-  > {
+export interface SearchFieldProps extends Omit<
+  TextInputProps,
+  'style' | 'placeholderTextColor' | 'value' | 'onChangeText'
+> {
   value: string
   onChangeText: (text: string) => void
   /** Qué es este campo, para un lector de pantalla. Obligatorio. */

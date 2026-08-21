@@ -26,9 +26,11 @@ const PIECES = 6
 export async function fetchArtistGrid(
   _categorySlug: string,
 ): Promise<readonly ArtistCardData[]> {
-  return (await todos())
-    // El RPC esconde a quien no tiene una sola obra: su tarjeta saldría vacía.
-    .filter((artist) => artist.pieces.length > 0)
+  return (
+    (await todos())
+      // El RPC esconde a quien no tiene una sola obra: su tarjeta saldría vacía.
+      .filter((artist) => artist.pieces.length > 0)
+  )
 }
 
 /**
@@ -92,45 +94,40 @@ function rangoDe(nombre: string, q: string): number {
 async function todos(): Promise<readonly ArtistCardData[]> {
   const propio = previewOwnedProfessional()
 
-  return (
-    previewArtists()
-      .map((artist) => {
-        // Tu propio perfil muestra lo que subiste desde el estudio; el resto,
-        // su obra horneada.
-        const propias: readonly ArtistPiece[] =
-          artist.slug === propio
-            ? previewPiecesOf().map((piece) => ({
-                id: piece.id,
-                mediaPath: piece.id,
-                width: null,
-                height: null,
-                blurhash: null,
-              }))
-            : []
-
-        const horneadas: readonly ArtistPiece[] = artist.pieces.map(
-          (piece) => ({
+  return previewArtists().map((artist) => {
+    // Tu propio perfil muestra lo que subiste desde el estudio; el resto,
+    // su obra horneada.
+    const propias: readonly ArtistPiece[] =
+      artist.slug === propio
+        ? previewPiecesOf().map((piece) => ({
             id: piece.id,
             mediaPath: piece.id,
-            width: piece.width,
-            height: piece.height,
+            width: null,
+            height: null,
             blurhash: null,
-          }),
-        )
+          }))
+        : []
 
-        return {
-          professionalId: `preview-${artist.slug}`,
-          slug: artist.slug,
-          displayName: artist.displayName,
-          isFixture: artist.isFixture,
-          // Ningún fixture tiene avatar, igual que en la base.
-          avatarPath: null,
-          neighborhoodSlug: artist.location,
-          studioCoordinates: previewStudioCoordinatesOf(artist.slug),
-          pieces: [...propias, ...horneadas].slice(0, PIECES),
-        }
-      })
-  )
+    const horneadas: readonly ArtistPiece[] = artist.pieces.map((piece) => ({
+      id: piece.id,
+      mediaPath: piece.id,
+      width: piece.width,
+      height: piece.height,
+      blurhash: null,
+    }))
+
+    return {
+      professionalId: `preview-${artist.slug}`,
+      slug: artist.slug,
+      displayName: artist.displayName,
+      isFixture: artist.isFixture,
+      // Ningún fixture tiene avatar, igual que en la base.
+      avatarPath: null,
+      neighborhoodSlug: artist.location,
+      studioCoordinates: previewStudioCoordinatesOf(artist.slug),
+      pieces: [...propias, ...horneadas].slice(0, PIECES),
+    }
+  })
 }
 
 export function avatarUrl(path: string): string {

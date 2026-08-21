@@ -148,7 +148,10 @@ export function ArtistsScreen({
   ])
 
   const lista = (
-    items: readonly { item: (typeof ordenados)[number]['item']; distanceKm: number | null }[],
+    items: readonly {
+      item: (typeof ordenados)[number]['item']
+      distanceKm: number | null
+    }[],
     testID: string,
   ) => (
     <Box gap="lg" testID={testID}>
@@ -189,7 +192,10 @@ export function ArtistsScreen({
           <EmptyState
             title={t('artists.search.empty.title')}
             body={t('artists.search.empty.body')}
-            action={{ label: t('artists.search.empty.action'), onPress: onExplore }}
+            action={{
+              label: t('artists.search.empty.action'),
+              onPress: onExplore,
+            }}
             testID="artists-search-empty"
           />
         )

@@ -213,13 +213,11 @@ describe('búsquedas abiertas', () => {
   })
 
   test('el interés llega a la persona, y el paso no', async () => {
-    const { error } = await artista.client
-      .from('project_interests')
-      .insert({
-        project_id: abierta,
-        professional_id: professionalId,
-        verdict: 'interest',
-      })
+    const { error } = await artista.client.from('project_interests').insert({
+      project_id: abierta,
+      professional_id: professionalId,
+      verdict: 'interest',
+    })
     assert.equal(error, null, `el interés falló: ${error?.message}`)
 
     // Se busca AL artista, no se cuenta el total: `get_search_interests()` sin

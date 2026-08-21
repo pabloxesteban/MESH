@@ -227,10 +227,10 @@ describe('alta propia de artista', () => {
       is_primary: boolean
       styles: { slug: string } | null
     }>
-    assert.deepEqual(
-      estilos.map((entry) => entry.styles?.slug).sort(),
-      ['blackwork', 'fine-line'],
-    )
+    assert.deepEqual(estilos.map((entry) => entry.styles?.slug).sort(), [
+      'blackwork',
+      'fine-line',
+    ])
     assert.ok(estilos.every((entry) => entry.is_primary))
   })
 
@@ -289,16 +289,14 @@ describe('alta propia de artista', () => {
       .upload(path, bytes, { contentType: 'image/jpeg', upsert: false })
     assert.equal(error, null, `la subida falló: ${error?.message}`)
 
-    const { error: rowError } = await nueva.client
-      .from('media_assets')
-      .insert({
-        id: mediaId,
-        bucket: 'portfolio',
-        path,
-        mime_type: 'image/jpeg',
-        byte_size: bytes.byteLength,
-        owner_user_id: nueva.userId,
-      })
+    const { error: rowError } = await nueva.client.from('media_assets').insert({
+      id: mediaId,
+      bucket: 'portfolio',
+      path,
+      mime_type: 'image/jpeg',
+      byte_size: bytes.byteLength,
+      owner_user_id: nueva.userId,
+    })
     assert.equal(rowError, null, `la fila falló: ${rowError?.message}`)
 
     const { data: propio } = await nueva.client

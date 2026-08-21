@@ -26,7 +26,9 @@ const TARDE: AvailabilityRule = { weekday: MARTES, start: h(14), end: h(20) }
 describe('cuándo trabaja', () => {
   it('toma la regla del día que se pregunta, y ninguna otra', () => {
     const reglas = [TARDE, { weekday: 3, start: h(10), end: h(12) }]
-    expect(openSpans(reglas, [], MARTES)).toEqual([{ start: h(14), end: h(20) }])
+    expect(openSpans(reglas, [], MARTES)).toEqual([
+      { start: h(14), end: h(20) },
+    ])
   })
 
   it('sin regla para ese día, no trabaja', () => {

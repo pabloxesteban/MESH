@@ -100,7 +100,11 @@ function ArtistCardImpl({
           donde esconderlo sería contestar mal a quien preguntó por él. La
           alternativa era una fila muda de 20pt: peor, porque no se entiende. */}
       {artist.pieces.length === 0 ? (
-        <Box paddingX="lg" paddingBottom="xs" testID={`${testID ?? 'artist'}-no-work`}>
+        <Box
+          paddingX="lg"
+          paddingBottom="xs"
+          testID={`${testID ?? 'artist'}-no-work`}
+        >
           <Text role="body" color="textTertiary">
             {t('artists.card.noWork')}
           </Text>

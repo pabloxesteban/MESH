@@ -80,118 +80,115 @@ function checkArtistDir(
 ): ArtistBundle | null {
   const base = join(root, dir)
 
+  // El consentimiento es requisito de inclusión, no un chequeo blando.
+  // Ver docs/product/content-policy.md §2.
+  let consent: string
+  try {
+    consent = readFileSync(join(base, 'consent.md'), 'utf8')
+  } catch {
+    fail(
+      'falta consent.md. Ningún artista se carga sin un registro de ' +
+        'consentimiento fechado.',
+    )
+    return null
+  }
+  if (!/\d{4}-\d{2}-\d{2}/.test(consent)) {
+    fail('consent.md no tiene una fecha ISO (AAAA-MM-DD)')
+  }
 
-    // El consentimiento es requisito de inclusión, no un chequeo blando.
-    // Ver docs/product/content-policy.md §2.
-    let consent: string
+  // Un directorio recién creado por `content:new` viene lleno de TODO. La
+  // mayoría los agarra el esquema —un slug de estilo "TODO" no existe en la
+  // taxonomía—, pero no todos: `bio: TODO` es un string válido, y un
+  // consent.md con los campos sin completar tiene fecha y pasa.
+  //
+  // Publicar una bio que dice TODO es un error tonto; publicar un registro de
+  // consentimiento sin completar es afirmar que hubo una conversación que no
+  // hubo. Por eso el marcador es una falla dura y no un aviso.
+  for (const archivo of ['consent.md', 'artist.yaml', 'portfolio.yaml']) {
+    let contenido: string
     try {
-      consent = readFileSync(join(base, 'consent.md'), 'utf8')
+      contenido = readFileSync(join(base, archivo), 'utf8')
     } catch {
-      fail(
-        'falta consent.md. Ningún artista se carga sin un registro de ' +
-          'consentimiento fechado.',
-      )
       return null
     }
-    if (!/\d{4}-\d{2}-\d{2}/.test(consent)) {
-      fail('consent.md no tiene una fecha ISO (AAAA-MM-DD)')
+    // Solo lo que queda fuera de un comentario de YAML: las plantillas
+    // explican los campos en comentarios, y ahí la palabra es documentación.
+    const vivas = contenido
+      .split('\n')
+      .filter((linea) => !/^\s*#/.test(linea))
+      .join('\n')
+    if (/\bTODO\b/.test(vivas)) {
+      fail(`${archivo} todavía tiene un TODO sin completar`)
     }
+  }
 
-    // Un directorio recién creado por `content:new` viene lleno de TODO. La
-    // mayoría los agarra el esquema —un slug de estilo "TODO" no existe en la
-    // taxonomía—, pero no todos: `bio: TODO` es un string válido, y un
-    // consent.md con los campos sin completar tiene fecha y pasa.
-    //
-    // Publicar una bio que dice TODO es un error tonto; publicar un registro de
-    // consentimiento sin completar es afirmar que hubo una conversación que no
-    // hubo. Por eso el marcador es una falla dura y no un aviso.
-    for (const archivo of ['consent.md', 'artist.yaml', 'portfolio.yaml']) {
-      let contenido: string
-      try {
-        contenido = readFileSync(join(base, archivo), 'utf8')
-      } catch {
-        return null
-      }
-      // Solo lo que queda fuera de un comentario de YAML: las plantillas
-      // explican los campos en comentarios, y ahí la palabra es documentación.
-      const vivas = contenido
-        .split('\n')
-        .filter((linea) => !/^\s*#/.test(linea))
-        .join('\n')
-      if (/\bTODO\b/.test(vivas)) {
-        fail(`${archivo} todavía tiene un TODO sin completar`)
-      }
-    }
-
-    let artist: ArtistContent
-    try {
-      const parsed = artistSchema.safeParse(readYaml(join(base, 'artist.yaml')))
-      if (!parsed.success) {
-        for (const issue of parsed.error.issues) {
-          fail(
-            `artist.yaml → ${issue.path.join('.') || '(raíz)'}: ${issue.message}`,
-          )
-        }
-        return null
-      }
-      artist = parsed.data
-    } catch (error) {
-      fail(`no se pudo leer artist.yaml: ${(error as Error).message}`)
-      return null
-    }
-
-    if (artist.slug !== dir) {
-      fail(`el slug "${artist.slug}" no coincide con el directorio "${dir}"`)
-    }
-
-    let portfolio: PortfolioContent
-    try {
-      const parsed = portfolioSchema.safeParse(
-        readYaml(join(base, 'portfolio.yaml')),
-      )
-      if (!parsed.success) {
-        for (const issue of parsed.error.issues) {
-          fail(`portfolio.yaml → ${issue.path.join('.')}: ${issue.message}`)
-        }
-        return null
-      }
-      portfolio = parsed.data
-    } catch (error) {
-      fail(`no se pudo leer portfolio.yaml: ${(error as Error).message}`)
-      return null
-    }
-
-    for (const message of validatePortfolioStyles(portfolio, artist.category)) {
-      fail(`portfolio.yaml → ${message}`)
-    }
-
-    for (const item of portfolio.items) {
-      const mediaPath = join(base, 'media', item.file)
-      const extension = item.file
-        .slice(item.file.lastIndexOf('.'))
-        .toLowerCase()
-
-      if (!ALLOWED_MEDIA.has(extension)) {
+  let artist: ArtistContent
+  try {
+    const parsed = artistSchema.safeParse(readYaml(join(base, 'artist.yaml')))
+    if (!parsed.success) {
+      for (const issue of parsed.error.issues) {
         fail(
-          `media/${item.file}: extensión "${extension}" no permitida. ` +
-            `Permitidas: ${[...ALLOWED_MEDIA].join(', ')} (SVG queda afuera a ` +
-            `propósito: es un contenedor de scripts).`,
+          `artist.yaml → ${issue.path.join('.') || '(raíz)'}: ${issue.message}`,
         )
-        return null
       }
-
-      try {
-        const { size } = statSync(mediaPath)
-        if (size > MAX_MEDIA_BYTES) {
-          fail(
-            `media/${item.file}: ${(size / 1024 / 1024).toFixed(1)} MB supera el ` +
-              `tope de 12 MB`,
-          )
-        }
-      } catch {
-        fail(`media/${item.file}: el archivo no existe`)
-      }
+      return null
     }
+    artist = parsed.data
+  } catch (error) {
+    fail(`no se pudo leer artist.yaml: ${(error as Error).message}`)
+    return null
+  }
+
+  if (artist.slug !== dir) {
+    fail(`el slug "${artist.slug}" no coincide con el directorio "${dir}"`)
+  }
+
+  let portfolio: PortfolioContent
+  try {
+    const parsed = portfolioSchema.safeParse(
+      readYaml(join(base, 'portfolio.yaml')),
+    )
+    if (!parsed.success) {
+      for (const issue of parsed.error.issues) {
+        fail(`portfolio.yaml → ${issue.path.join('.')}: ${issue.message}`)
+      }
+      return null
+    }
+    portfolio = parsed.data
+  } catch (error) {
+    fail(`no se pudo leer portfolio.yaml: ${(error as Error).message}`)
+    return null
+  }
+
+  for (const message of validatePortfolioStyles(portfolio, artist.category)) {
+    fail(`portfolio.yaml → ${message}`)
+  }
+
+  for (const item of portfolio.items) {
+    const mediaPath = join(base, 'media', item.file)
+    const extension = item.file.slice(item.file.lastIndexOf('.')).toLowerCase()
+
+    if (!ALLOWED_MEDIA.has(extension)) {
+      fail(
+        `media/${item.file}: extensión "${extension}" no permitida. ` +
+          `Permitidas: ${[...ALLOWED_MEDIA].join(', ')} (SVG queda afuera a ` +
+          `propósito: es un contenedor de scripts).`,
+      )
+      return null
+    }
+
+    try {
+      const { size } = statSync(mediaPath)
+      if (size > MAX_MEDIA_BYTES) {
+        fail(
+          `media/${item.file}: ${(size / 1024 / 1024).toFixed(1)} MB supera el ` +
+            `tope de 12 MB`,
+        )
+      }
+    } catch {
+      fail(`media/${item.file}: el archivo no existe`)
+    }
+  }
 
   return { slug: dir, artist, portfolio }
 }
