@@ -40,6 +40,7 @@ if (process.env.MESH_PREVIEW === '1') {
     [
       'src/features/account/queries.ts',
       'src/features/account/deleteAccount.ts',
+      'src/features/account/exportAccount.ts',
       'src/features/assistant/queries.ts',
       'src/features/assistant/assistant.ts',
       'src/features/chat/queries.ts',

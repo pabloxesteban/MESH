@@ -42,6 +42,7 @@ import { ErrorReportsToggle } from '@/observability/ErrorReportsToggle.tsx'
 import { NotificationsToggle } from '@/features/notifications/NotificationsToggle.tsx'
 
 import { DeleteAccount } from './DeleteAccount.tsx'
+import { ExportAccount } from './ExportAccount.tsx'
 import { LegalRow } from './LegalRow.tsx'
 import { useT } from '@/i18n/I18nProvider.tsx'
 
@@ -284,6 +285,12 @@ export function AccountScreen({
         <ErrorReportsToggle />
 
         <LegalRow />
+
+        {/* **Arriba de borrar la cuenta, y pegado.** Borrar es inmediato y no
+            tiene marcha atrás: si alguien se entera de que podía llevarse sus
+            cosas después de borrarlas, se enteró cuando ya no servía. Ver
+            ADR-028. */}
+        {userId != null ? <ExportAccount /> : null}
 
         {/* Al final de todo, y con su propia pantalla. Es un derecho, no una
             preferencia: tiene que estar y tiene que ser encontrable, pero no

@@ -639,6 +639,33 @@ export const esAR = {
   'age.blocked':
     'Para cerrar un turno hace falta confirmar que sos mayor de 18. Se hace desde Perfil.',
 
+  // --- llevarte lo tuyo --------------------------------------------------------
+  // Ver ADR-028. Va arriba de borrar la cuenta: borrar es inmediato, así que
+  // enterarse tarde de que se podía exportar es enterarse cuando ya no sirve.
+  'export.title': 'Llevarte lo tuyo',
+  'export.body':
+    'Armamos un archivo con todo lo que MESH guarda de vos: tus búsquedas, tus mensajes, tus turnos, tus reseñas y lo que le contaste al asistente. Las fotos van con un enlace que dura una semana.',
+  'export.notIncluded':
+    'Lo que escribieron otras personas no está: eso es de ellas. Lo podés seguir leyendo en la app.',
+  'export.action': 'Armar mi archivo',
+  'export.again': 'Armarlo de nuevo',
+  'export.ready': 'Listo. Adentro hay:',
+  'export.count.searches': '{n} búsquedas',
+  'export.count.searches.one': '1 búsqueda',
+  'export.count.chats': '{n} conversaciones',
+  'export.count.chats.one': '1 conversación',
+  'export.count.appointments': '{n} turnos',
+  'export.count.appointments.one': '1 turno',
+  'export.count.reviews': '{n} reseñas que escribiste',
+  'export.count.reviews.one': '1 reseña que escribiste',
+  'export.count.saved': '{n} obras guardadas',
+  'export.count.saved.one': '1 obra guardada',
+  'export.count.assistant': '{n} charlas con el asistente',
+  'export.count.assistant.one': '1 charla con el asistente',
+  'export.copy': 'Copiar el contenido',
+  'export.copied': 'Copiado',
+  'export.error': 'No pudimos armar el archivo. Probá de nuevo.',
+
   // --- borrar la cuenta -------------------------------------------------------
   // Ver ADR-024. La lista de lo que se va está entera, y lo que NO se va
   // también: omitirlo sería mentir por la parte que no conviene contar.

@@ -85,7 +85,10 @@ la cuenta.
 
 Podés, en cualquier momento:
 
-- **Acceder** a tus datos. Están todos a la vista en la app.
+- **Acceder** a tus datos. Están todos a la vista en la app, y además podés
+  llevarte un archivo con todo: Perfil → Llevarte lo tuyo. Incluye lo que
+  escribiste y lo que te pasó; lo que escribieron otras personas no, porque es
+  de ellas — y lo seguís leyendo en la app.
 - **Rectificarlos.** Todo lo que escribiste se edita desde donde lo escribiste.
 - **Suprimirlos.** Perfil → Borrar mi cuenta. Es inmediato y no hay período de
   gracia.

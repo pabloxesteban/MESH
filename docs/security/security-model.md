@@ -490,6 +490,17 @@ Dos cosas que definen el riesgo:
 Sobrevive una fila en `audit_events` con el uuid, la fecha y si tenía perfil de
 artista. `actor_user_id` no tiene FK desde el primer día, justamente para esto.
 
+**Llevarse los datos** es `export_own_account()`, que arma el JSON entero del
+lado de Postgres. `security definer` por una sola cosa —leer el correo de
+`auth.users`— y con el mismo candado: **no recibe a quién exportar**, saca el id
+de `auth.uid()`. Ver [ADR-028](../decisions/ADR-028-account-export.md).
+
+Lo que **no** entra al archivo, y es deliberado: lo que escribieron otras
+personas. El export lleva tus mensajes, no las respuestas del artista. Un
+archivo se comparte y se reenvía; es una superficie de distribución nueva para
+palabras ajenas, incluido el precio que un artista puso a un trabajo. Hay un
+test que falla si esa línea se corre.
+
 **Mayoría de edad**: `profiles.adult_confirmed_at`, escrito solo por
 `confirm_adult()` —idempotente, sin marcha atrás— y verificado dentro de
 `schedule_appointment()` **sobre la persona, no sobre quien llama**. Ver

@@ -601,6 +601,30 @@ export const en: Readonly<Record<TranslationKey, string>> = {
 
   'legal.note': 'They open in your browser.',
 
+  'export.title': 'Take your data',
+  'export.body':
+    'We build a file with everything MESH keeps about you: your searches, your messages, your appointments, your reviews and what you told the assistant. Photos come with a link that lasts a week.',
+  'export.notIncluded':
+    'What other people wrote is not in it: that is theirs. You can still read it in the app.',
+  'export.action': 'Build my file',
+  'export.again': 'Build it again',
+  'export.ready': 'Done. Inside there are:',
+  'export.count.searches': '{n} searches',
+  'export.count.searches.one': '1 search',
+  'export.count.chats': '{n} conversations',
+  'export.count.chats.one': '1 conversation',
+  'export.count.appointments': '{n} appointments',
+  'export.count.appointments.one': '1 appointment',
+  'export.count.reviews': '{n} reviews you wrote',
+  'export.count.reviews.one': '1 review you wrote',
+  'export.count.saved': '{n} saved works',
+  'export.count.saved.one': '1 saved work',
+  'export.count.assistant': '{n} chats with the assistant',
+  'export.count.assistant.one': '1 chat with the assistant',
+  'export.copy': 'Copy the contents',
+  'export.copied': 'Copied',
+  'export.error': "We couldn't build the file. Try again.",
+
   'account.delete.entry': 'Delete my account',
   'account.delete.title': 'Delete your account',
   'account.delete.body':

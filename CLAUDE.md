@@ -52,6 +52,10 @@ están**:
   puntaje, no ordena a nadie y no se puede apagar. Ver
   [ADR-022](docs/decisions/ADR-022-reply-habit.md).
 
+- **Llevarte tus datos.** Ya existe, pegado arriba de borrar la cuenta: un
+  archivo con lo que escribiste y lo que te pasó. Lo que escribieron otros no
+  entra — un archivo se reenvía, y esas palabras no son tuyas para abrirlas ahí.
+  Ver [ADR-028](docs/decisions/ADR-028-account-export.md).
 - **Borrar la cuenta.** Ya existe, desde Perfil, y borra todo: búsquedas,
   fotos, chats, reseñas, el hilo del asistente y el perfil de artista si lo hay.
   Sin período de gracia. Queda un solo registro —un uuid y una fecha— para poder
