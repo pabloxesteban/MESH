@@ -17,12 +17,14 @@ import {
   Input,
   SCREEN_GUTTER,
   Text,
+  haptic,
   spacing,
   useTheme,
 } from '@/design-system/index.ts'
 import { actionErrorKey } from '@/data/actionError.ts'
 import { useT } from '@/i18n/I18nProvider.tsx'
 
+import { offerJustCreated } from './justCreated.ts'
 import { createCollection } from './queries.ts'
 
 const MAX_NAME = 40
@@ -49,6 +51,12 @@ export function NewCollectionScreen({
   const create = useMutation({
     mutationFn: () => createCollection(userId, name.trim()),
     onSuccess: (id) => {
+      // Confirmación de una decisión que la persona acaba de tomar — mismo
+      // criterio e intención que usa `SaveHeart` al guardar. Antes de
+      // `onCreated`: el háptico marca el momento en que la colección pasó a
+      // existir, no el de la navegación que sigue.
+      haptic('save')
+      offerJustCreated(id)
       void client.invalidateQueries({ queryKey: ['collections'] })
       onCreated(id)
     },

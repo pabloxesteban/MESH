@@ -17,6 +17,7 @@ import { I18nProvider } from '@/i18n/I18nProvider.tsx'
 
 import { ALL_COLLECTION_ID } from './CollectionsScreen.tsx'
 import { CollectionDetailScreen } from './CollectionDetailScreen.tsx'
+import { offerJustCreated } from './justCreated.ts'
 import {
   deleteCollection,
   fetchCollectionItems,
@@ -156,6 +157,23 @@ describe('estados', () => {
 
     fireEvent.press(screen.getByText('Seguir explorando'))
     expect(onExplore).toHaveBeenCalled()
+  })
+
+  it('aterrizaje desde "crear colección": mismo contenido, con la señal reclamada', async () => {
+    // No cambia lo que se ve ni lo que se puede tocar — solo cómo entra.
+    // Reanimated está mockeado en jest, así que acá lo que importa es que
+    // reclamar la señal no le cambia el contenido a la pantalla.
+    fetchItemsMock.mockResolvedValue([])
+    offerJustCreated('col-1')
+    const onAddFromSaved = jest.fn()
+    renderScreen({ onAddFromSaved })
+
+    await waitFor(() => expect(screen.getByTestId('collection-detail-empty')).toBeTruthy())
+    expect(screen.getByText('Brazo entero')).toBeTruthy()
+    expect(screen.getByText('Esta colección todavía no tiene nada.')).toBeTruthy()
+
+    fireEvent.press(screen.getByText('Agregar de lo que guardaste'))
+    expect(onAddFromSaved).toHaveBeenCalled()
   })
 
   it('con obra: grilla escalonada, una tarjeta por pieza', async () => {

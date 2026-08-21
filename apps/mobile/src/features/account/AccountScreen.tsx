@@ -18,6 +18,7 @@ import { useEffect, useState } from 'react'
 import { Image } from 'expo-image'
 import { ScrollView, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import Animated, { Easing, FadeIn, FadeOut, LinearTransition } from 'react-native-reanimated'
 
 import {
   Avatar,
@@ -31,8 +32,12 @@ import {
   Skeleton,
   Text,
   Toast,
+  duration,
+  easing,
   radius,
   spacing,
+  spring,
+  useMotion,
   useTheme,
 } from '@/design-system/index.ts'
 import { ErrorView } from '@/components/ErrorView.tsx'
@@ -184,6 +189,29 @@ function formatMemberSince(iso: string): string {
   return label
 }
 
+/**
+ * El avatar del header, con un fundido puntual cuando la foto cambia.
+ *
+ * No toca `Avatar.tsx`: su `transition={0}` es la decisión correcta de
+ * performance para grillas, y tocar el default ahí afectaría toda la app.
+ * Acá, en cambio, es una sola instancia — vale la pena marcar que la persona
+ * acaba de subir una foto nueva. La `key` atada a la URL es lo que fuerza el
+ * remonte: sin ella, `Animated.View` seguiría siendo la misma instancia y
+ * `entering` nunca se dispararía de nuevo.
+ */
+function HeaderAvatar({ avatarUrl }: { avatarUrl: string | null }) {
+  const { reduceMotion } = useMotion()
+
+  return (
+    <Animated.View
+      key={avatarUrl ?? 'none'}
+      {...(reduceMotion ? {} : { entering: FadeIn.duration(duration.quick) })}
+    >
+      <Avatar source={avatarUrl} size="lg" />
+    </Animated.View>
+  )
+}
+
 function ProfileHeader({
   isAnonymous,
   account,
@@ -201,6 +229,7 @@ function ProfileHeader({
 }) {
   const t = useT()
   const client = useQueryClient()
+  const { reduceMotion } = useMotion()
 
   const [editing, setEditing] = useState(false)
   const [draftName, setDraftName] = useState<string | null>(null)
@@ -278,11 +307,25 @@ function ProfileHeader({
         : null
       : account.cityLabel
 
-  if (editing) {
-    return (
-      <Box gap="sm" testID="account-header-edit">
+  // Mismo patrón que `Toast`: sin movimiento reducido no se pasan `entering`
+  // ni `exiting` en absoluto, en vez de pasarlos en `undefined` — bajo
+  // `exactOptionalPropertyTypes` no es lo mismo ausente que indefinido.
+  const crossFade = reduceMotion
+    ? {}
+    : {
+        entering: FadeIn.duration(duration.standard).easing(
+          Easing.bezier(...easing.out),
+        ),
+        exiting: FadeOut.duration(duration.standard).easing(
+          Easing.bezier(...easing.in),
+        ),
+      }
+
+  const content = editing ? (
+    <Animated.View key="edit" testID="account-header-edit" {...crossFade}>
+      <Box gap="sm">
         <Box direction="row" gap="sm" align="center">
-          <Avatar source={account.avatarUrl} size="lg" />
+          <HeaderAvatar avatarUrl={account.avatarUrl} />
           <Button
             label={t('account.header.changePhoto')}
             variant="secondary"
@@ -359,81 +402,100 @@ function ProfileHeader({
           />
         ) : null}
       </Box>
-    )
-  }
-
-  return (
-    <Box gap="sm" testID="account-header">
-      <Box direction="row" gap="sm" align="flex-start">
-        <Avatar source={account.avatarUrl} size="lg" />
-        <Box flex={1} gap="xxs">
-          <Text
-            role="title"
-            color={currentName == null ? 'textTertiary' : 'textPrimary'}
-            testID="account-header-name"
-          >
-            {currentName ?? t('account.header.name.empty')}
-          </Text>
-
-          {isAnonymous ? (
-            <Box gap="xxs" testID="account-header-anonymous">
-              <Text role="label" color="textSecondary">
-                {t('auth.account.anonymous.title')}
-              </Text>
-              <Text role="label" color="textTertiary">
-                {t('auth.account.anonymous.body')}
-              </Text>
-            </Box>
-          ) : (
-            <Text role="label" color="textSecondary" testID="account-header-meta">
-              {displayLocationLabel != null
-                ? `${t('account.header.livesIn', { barrio: displayLocationLabel })} · ${t('account.header.memberSince', { fecha: formatMemberSince(account.createdAt) })}`
-                : t('account.header.memberSince', {
-                    fecha: formatMemberSince(account.createdAt),
-                  })}
+    </Animated.View>
+  ) : (
+    <Animated.View key="read" testID="account-header" {...crossFade}>
+      <Box gap="sm">
+        <Box direction="row" gap="sm" align="flex-start">
+          <HeaderAvatar avatarUrl={account.avatarUrl} />
+          <Box flex={1} gap="xxs">
+            <Text
+              role="title"
+              color={currentName == null ? 'textTertiary' : 'textPrimary'}
+              testID="account-header-name"
+            >
+              {currentName ?? t('account.header.name.empty')}
             </Text>
-          )}
 
-          {professional != null ? (
-            <Box gap="xxs" testID="account-header-professional">
-              {professional.bio != null && professional.bio.trim() !== '' ? (
-                <Text role="body" color="textSecondary">
-                  {professional.bio}
+            {isAnonymous ? (
+              <Box gap="xxs" testID="account-header-anonymous">
+                <Text role="label" color="textSecondary">
+                  {t('auth.account.anonymous.title')}
                 </Text>
-              ) : null}
-              <Pressable
-                onPress={onOpenStudio}
-                accessibilityRole="button"
-                accessibilityLabel={t('account.header.editInStudio')}
-                testID="account-header-edit-studio"
-                style={{ minHeight: MIN_TOUCH_TARGET, justifyContent: 'center' }}
-              >
-                <Text role="label" color="accent">
-                  {t('account.header.editInStudio')}
+                <Text role="label" color="textTertiary">
+                  {t('auth.account.anonymous.body')}
                 </Text>
-              </Pressable>
-              <CompletedServices professionalId={professional.id} />
-            </Box>
-          ) : null}
+              </Box>
+            ) : (
+              <Text role="label" color="textSecondary" testID="account-header-meta">
+                {displayLocationLabel != null
+                  ? `${t('account.header.livesIn', { barrio: displayLocationLabel })} · ${t('account.header.memberSince', { fecha: formatMemberSince(account.createdAt) })}`
+                  : t('account.header.memberSince', {
+                      fecha: formatMemberSince(account.createdAt),
+                    })}
+              </Text>
+            )}
+
+            {professional != null ? (
+              <Box gap="xxs" testID="account-header-professional">
+                {professional.bio != null && professional.bio.trim() !== '' ? (
+                  <Text role="body" color="textSecondary">
+                    {professional.bio}
+                  </Text>
+                ) : null}
+                <Pressable
+                  onPress={onOpenStudio}
+                  accessibilityRole="button"
+                  accessibilityLabel={t('account.header.editInStudio')}
+                  testID="account-header-edit-studio"
+                  style={{ minHeight: MIN_TOUCH_TARGET, justifyContent: 'center' }}
+                >
+                  <Text role="label" color="accent">
+                    {t('account.header.editInStudio')}
+                  </Text>
+                </Pressable>
+                <CompletedServices professionalId={professional.id} />
+              </Box>
+            ) : null}
+          </Box>
         </Box>
-      </Box>
 
-      <Button
-        label={t('account.header.edit')}
-        variant="secondary"
-        onPress={() => setEditing(true)}
-        testID="account-edit-toggle"
-      />
-
-      {toast != null ? (
-        <Toast
-          message={toast}
-          tone="positive"
-          onDismiss={() => setToast(null)}
-          testID="account-toast"
+        <Button
+          label={t('account.header.edit')}
+          variant="secondary"
+          onPress={() => setEditing(true)}
+          testID="account-edit-toggle"
         />
-      ) : null}
-    </Box>
+
+        {toast != null ? (
+          <Toast
+            message={toast}
+            tone="positive"
+            onDismiss={() => setToast(null)}
+            testID="account-toast"
+          />
+        ) : null}
+      </Box>
+    </Animated.View>
+  )
+
+  // El contenedor cambia de alto con el mismo resorte que el resto del
+  // sistema en vez de saltar cuando el formulario —más alto que la vista de
+  // lectura— reemplaza al otro. Sin movimiento reducido no se pasa `layout`
+  // en absoluto, mismo criterio que `crossFade` más arriba.
+  return (
+    <Animated.View
+      {...(reduceMotion
+        ? {}
+        : {
+            layout: LinearTransition.springify()
+              .damping(spring.standard.damping)
+              .stiffness(spring.standard.stiffness)
+              .mass(spring.standard.mass),
+          })}
+    >
+      {content}
+    </Animated.View>
   )
 }
 

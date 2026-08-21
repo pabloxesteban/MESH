@@ -16,9 +16,16 @@
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Image } from 'expo-image'
-import { useState } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import { ScrollView, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import Animated, {
+  Easing,
+  interpolate,
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming,
+} from 'react-native-reanimated'
 
 import {
   Box,
@@ -31,8 +38,11 @@ import {
   StaggeredGrid,
   Text,
   Toast,
+  duration,
+  easing,
   radius,
   spacing,
+  useMotion,
   useTheme,
 } from '@/design-system/index.ts'
 import { ErrorView } from '@/components/ErrorView.tsx'
@@ -46,6 +56,7 @@ import { useT } from '@/i18n/I18nProvider.tsx'
 
 import { ALL_COLLECTION_ID } from './CollectionsScreen.tsx'
 import { CollectionMembershipSheet } from './CollectionMembershipSheet.tsx'
+import { claimJustCreated } from './justCreated.ts'
 import {
   addToCollection,
   deleteCollection,
@@ -104,6 +115,12 @@ export function CollectionDetailScreen({
   const [membershipTarget, setMembershipTarget] = useState<SavedPiece | null>(null)
   const [confirmingDelete, setConfirmingDelete] = useState(false)
   const [deletedToast, setDeletedToast] = useState<string | null>(null)
+
+  // Se reclama una sola vez, con inicializador perezoso: si esta pantalla es
+  // el aterrizaje de "crear colección", el título y el estado vacío entran
+  // distinto. Un `useEffect` sería tarde — para el primer render ya
+  // necesitamos saber si toca animar. Ver `justCreated.ts`.
+  const [justCreated] = useState(() => claimJustCreated(collectionId))
 
   const remove = useMutation({
     mutationFn: () => deleteCollection(collectionId),
@@ -183,7 +200,7 @@ export function CollectionDetailScreen({
           />
         )
       }
-      return (
+      const emptyState = (
         <EmptyState
           title={t('collections.emptyCollection.title')}
           action={{
@@ -197,6 +214,10 @@ export function CollectionDetailScreen({
           testID="collection-detail-empty"
         />
       )
+      // Una colección vieja y vacía aparece ya completa. Esta, recién creada,
+      // entra distinto — es la diferencia entre "esto ya estaba así" y "esto
+      // acaba de pasar".
+      return justCreated ? <JustCreatedReveal>{emptyState}</JustCreatedReveal> : emptyState
     }
 
     return (
@@ -240,11 +261,17 @@ export function CollectionDetailScreen({
             onPress={onBack}
             testID="collection-detail-back"
           />
-          <Text role="titleLg">
-            {addToCollectionId != null
-              ? t('collections.addMode.title', { nombre: targetSummary?.name ?? '' })
-              : title}
-          </Text>
+          {justCreated ? (
+            <JustCreatedReveal>
+              <Text role="titleLg">{title}</Text>
+            </JustCreatedReveal>
+          ) : (
+            <Text role="titleLg">
+              {addToCollectionId != null
+                ? t('collections.addMode.title', { nombre: targetSummary?.name ?? '' })
+                : title}
+            </Text>
+          )}
         </Box>
 
         {body}
@@ -316,6 +343,36 @@ export function CollectionDetailScreen({
       ) : null}
     </View>
   )
+}
+
+/**
+ * Fundido + leve ascenso, solo para el aterrizaje en una colección recién
+ * creada — nunca para una colección vieja y vacía, que aparece ya completa.
+ *
+ * Corre una vez al montar, no en cada render: esta pantalla existe una sola
+ * vez para este propósito, la creación ya pasó y `justCreated` no vuelve a
+ * cambiar durante la vida del componente.
+ */
+function JustCreatedReveal({ children }: { children: ReactNode }) {
+  const { reduceMotion } = useMotion()
+  const progress = useSharedValue(reduceMotion ? 1 : 0)
+
+  useEffect(() => {
+    if (reduceMotion) return
+    progress.value = withTiming(1, {
+      duration: duration.standard,
+      easing: Easing.bezier(...easing.out),
+    })
+  }, [progress, reduceMotion])
+
+  const style = useAnimatedStyle(() => ({
+    opacity: progress.value,
+    transform: [
+      { translateY: interpolate(progress.value, [0, 1], [spacing.xs, 0]) },
+    ],
+  }))
+
+  return <Animated.View style={style}>{children}</Animated.View>
 }
 
 function CollectionGridItem({

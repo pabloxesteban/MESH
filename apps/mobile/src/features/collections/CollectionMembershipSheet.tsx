@@ -9,6 +9,13 @@
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { StyleSheet, View } from 'react-native'
+import Animated, {
+  Easing,
+  FadeIn,
+  FadeInDown,
+  FadeOut,
+  FadeOutDown,
+} from 'react-native-reanimated'
 
 import {
   Box,
@@ -17,8 +24,12 @@ import {
   MIN_TOUCH_TARGET,
   Pressable,
   Text,
+  duration,
+  easing,
   radius,
   spacing,
+  spring,
+  useMotion,
   useTheme,
 } from '@/design-system/index.ts'
 import { useT } from '@/i18n/I18nProvider.tsx'
@@ -47,6 +58,29 @@ export function CollectionMembershipSheet({
   const t = useT()
   const theme = useTheme()
   const client = useQueryClient()
+  const { reduceMotion } = useMotion()
+
+  // Mismo criterio que el mazo de descarte (`SwipeCard`): la salida es más
+  // rápida que la entrada. El velo se funde parejo; el panel entra con
+  // resorte desde abajo y sale con un fundido corto hacia el mismo lugar.
+  const backdropTransition = reduceMotion
+    ? {}
+    : {
+        entering: FadeIn.duration(duration.quick),
+        exiting: FadeOut.duration(duration.quick),
+      }
+
+  const panelTransition = reduceMotion
+    ? {}
+    : {
+        entering: FadeInDown.springify()
+          .damping(spring.standard.damping)
+          .stiffness(spring.standard.stiffness)
+          .mass(spring.standard.mass),
+        exiting: FadeOutDown.duration(duration.quick).easing(
+          Easing.bezier(...easing.in),
+        ),
+      }
 
   const collections = useQuery({
     queryKey: ['collections', 'list'],
@@ -74,14 +108,19 @@ export function CollectionMembershipSheet({
       style={StyleSheet.absoluteFill}
       testID="collection-membership-sheet"
     >
-      <Pressable
-        onPress={onClose}
-        accessibilityLabel={t('common.close')}
-        style={{ flex: 1, backgroundColor: theme.overlayScrim }}
-        testID="collection-membership-backdrop"
-      />
+      <Animated.View style={{ flex: 1 }} {...backdropTransition}>
+        <Pressable
+          onPress={onClose}
+          accessibilityLabel={t('common.close')}
+          style={{ flex: 1, backgroundColor: theme.overlayScrim }}
+          testID="collection-membership-backdrop"
+        />
+      </Animated.View>
 
-      <View style={{ position: 'absolute', left: 0, right: 0, bottom: 0 }}>
+      <Animated.View
+        style={{ position: 'absolute', left: 0, right: 0, bottom: 0 }}
+        {...panelTransition}
+      >
         <Box
           background="surface"
           border="borderSubtle"
@@ -154,7 +193,7 @@ export function CollectionMembershipSheet({
             testID="collection-membership-done"
           />
         </Box>
-      </View>
+      </Animated.View>
     </View>
   )
 }
