@@ -38,6 +38,11 @@ import { ChatsScreen } from '@/features/chat/ChatsScreen.tsx'
 import { AuthForm } from '@/features/auth/AuthForm.tsx'
 import { NewPasswordScreen } from '@/features/auth/NewPasswordScreen.tsx'
 import { CollectionsScreen } from '@/features/collections/CollectionsScreen.tsx'
+import { CollectionDetailScreen } from '@/features/collections/CollectionDetailScreen.tsx'
+import { NewCollectionScreen } from '@/features/collections/NewCollectionScreen.tsx'
+import { CollectionMembershipSheet } from '@/features/collections/CollectionMembershipSheet.tsx'
+import { ConfiguracionScreen } from '@/features/account/ConfiguracionScreen.tsx'
+import { AvatarPickerScreen } from '@/features/account/AvatarPickerScreen.tsx'
 import { AgeScreen } from '@/features/onboarding/AgeScreen.tsx'
 import { AssistantScreen } from '@/features/assistant/AssistantScreen.tsx'
 import { ProjectsScreen } from '@/features/projects/ProjectsScreen.tsx'
@@ -100,6 +105,19 @@ jest.mock('@/features/account/queries.ts', () => ({
   }),
   updateAccount: jest.fn().mockResolvedValue(undefined),
   resolveLocationId: jest.fn().mockResolvedValue(null),
+  confirmAdult: jest.fn().mockResolvedValue(undefined),
+}))
+jest.mock('@/features/account/uploadAvatar.ts', () => ({
+  uploadAvatar: jest.fn().mockResolvedValue({ mediaId: 'm1', path: 'avatars/u1/m1.jpg' }),
+}))
+jest.mock('@/features/collections/queries.ts', () => ({
+  fetchMyCollections: jest.fn().mockResolvedValue([]),
+  fetchCollectionItems: jest.fn().mockResolvedValue([]),
+  fetchCollectionsForItem: jest.fn().mockResolvedValue(new Set()),
+  createCollection: jest.fn().mockResolvedValue('col-nuevo'),
+  deleteCollection: jest.fn().mockResolvedValue(undefined),
+  addToCollection: jest.fn().mockResolvedValue(undefined),
+  removeFromCollection: jest.fn().mockResolvedValue(undefined),
 }))
 jest.mock('@/features/chat/queries.ts', () => ({
   fetchConversations: jest.fn().mockResolvedValue([]),
@@ -256,6 +274,11 @@ import { fetchProjects } from '@/features/projects/queries.ts'
 import { fetchAssistantTurns } from '@/features/assistant/queries.ts'
 import { fetchAgenda } from '@/features/scheduling/queries.ts'
 import { fetchNotifications } from '@/features/notifications/queries.ts'
+import {
+  fetchCollectionItems,
+  fetchMyCollections,
+} from '@/features/collections/queries.ts'
+import { fetchSaved } from '@/features/saved/queries.ts'
 
 const HOY = '2026-08-18'
 
@@ -1151,5 +1174,188 @@ describe('barrido de accesibilidad y callejones', () => {
     sweep('avisos · uno sin leer')
     sweepShouting('avisos · uno sin leer')
     sweepDynamicType('avisos · uno sin leer')
+  })
+
+  // --- ADR-030: Colecciones, Configuración, foto de perfil -------------------
+  //
+  // Estas rutas no pasaban por acá todavía: `app/configuracion.tsx`,
+  // `app/perfil/foto.tsx`, `app/coleccion/[id].tsx` y `app/coleccion/nueva.tsx`
+  // montan estas pantallas directamente y ninguna estaba en el barrido.
+
+  it('configuración, con cuenta', async () => {
+    render(
+      <ConfiguracionScreen
+        userId="u1"
+        isAnonymous={false}
+        email="pablo@ejemplo.test"
+        onCreateAccount={jest.fn()}
+        onSignIn={jest.fn()}
+        onSignOut={jest.fn()}
+        onDeleted={jest.fn()}
+        onBack={jest.fn()}
+      />,
+    )
+    await waitFor(() => expect(screen.getByTestId('settings-content')).toBeTruthy())
+    sweep('configuración · con cuenta')
+    sweepShouting('configuración · con cuenta')
+    sweepDynamicType('configuración · con cuenta')
+  })
+
+  it('configuración, sesión anónima', async () => {
+    render(
+      <ConfiguracionScreen
+        userId="u1"
+        isAnonymous
+        email={null}
+        onCreateAccount={jest.fn()}
+        onSignIn={jest.fn()}
+        onSignOut={jest.fn()}
+        onDeleted={jest.fn()}
+        onBack={jest.fn()}
+      />,
+    )
+    await waitFor(() => expect(screen.getByTestId('account-anonymous')).toBeTruthy())
+    sweep('configuración · anónima')
+    sweepShouting('configuración · anónima')
+    sweepDynamicType('configuración · anónima')
+  })
+
+  it('foto de perfil, eligiendo origen', () => {
+    render(
+      <AvatarPickerScreen userId="u1" onBack={jest.fn()} onDone={jest.fn()} />,
+    )
+    expect(screen.getByTestId('avatar-picker-choose')).toBeTruthy()
+    sweep('foto de perfil · elegir origen')
+    sweepShouting('foto de perfil · elegir origen')
+    sweepDynamicType('foto de perfil · elegir origen')
+  })
+
+  it('colección: "Todo", vacía', async () => {
+    ;(fetchSaved as jest.Mock).mockResolvedValue([])
+    render(
+      <CollectionDetailScreen
+        userId="u1"
+        collectionId="todo"
+        onBack={jest.fn()}
+        onOpenArtist={jest.fn()}
+        onExplore={jest.fn()}
+        onAddFromSaved={jest.fn()}
+        onDeleted={jest.fn()}
+      />,
+    )
+    await waitFor(() =>
+      expect(screen.getByTestId('collection-detail-empty')).toBeTruthy(),
+    )
+    sweep('colección · todo vacío')
+    sweepShouting('colección · todo vacío')
+    sweepDynamicType('colección · todo vacío')
+  })
+
+  it('colección real recién creada, vacía', async () => {
+    ;(fetchCollectionItems as jest.Mock).mockResolvedValue([])
+    ;(fetchMyCollections as jest.Mock).mockResolvedValue([
+      {
+        id: 'col-1',
+        name: 'Brazo entero',
+        createdAt: '2026-08-20T00:00:00.000Z',
+        itemCount: 0,
+        coverMediaPaths: [],
+      },
+    ])
+    render(
+      <CollectionDetailScreen
+        userId="u1"
+        collectionId="col-1"
+        onBack={jest.fn()}
+        onOpenArtist={jest.fn()}
+        onExplore={jest.fn()}
+        onAddFromSaved={jest.fn()}
+        onDeleted={jest.fn()}
+      />,
+    )
+    await waitFor(() =>
+      expect(screen.getByTestId('collection-detail-empty')).toBeTruthy(),
+    )
+    sweep('colección · recién creada, vacía')
+    sweepShouting('colección · recién creada, vacía')
+    sweepDynamicType('colección · recién creada, vacía')
+  })
+
+  it('colección con obra: grilla, corazón y "+" con área táctil propia', async () => {
+    ;(fetchCollectionItems as jest.Mock).mockResolvedValue([
+      {
+        savedItemId: 's1',
+        portfolioItemId: 'p1',
+        savedAt: '2026-08-20T00:00:00.000Z',
+        mediaPath: 'a/sm.jpg',
+        blurhash: null,
+        width: 800,
+        height: 1000,
+        professionalSlug: 'artista-1',
+        professionalName: 'Artista Uno',
+        isFixture: false,
+      },
+    ])
+    ;(fetchMyCollections as jest.Mock).mockResolvedValue([
+      {
+        id: 'col-1',
+        name: 'Brazo entero',
+        createdAt: '2026-08-20T00:00:00.000Z',
+        itemCount: 1,
+        coverMediaPaths: ['a/sm.jpg'],
+      },
+    ])
+    render(
+      <CollectionDetailScreen
+        userId="u1"
+        collectionId="col-1"
+        onBack={jest.fn()}
+        onOpenArtist={jest.fn()}
+        onExplore={jest.fn()}
+        onAddFromSaved={jest.fn()}
+        onDeleted={jest.fn()}
+      />,
+    )
+    await waitFor(() =>
+      expect(screen.getByTestId('collection-detail-grid')).toBeTruthy(),
+    )
+    // Estos dos botones definen su propio tamaño en la pantalla (no vienen
+    // del design system), así que el barrido genérico es justo la red que
+    // los tiene que agarrar si alguna vez pierden su `minWidth`/`minHeight`.
+    expect(screen.getByTestId('collection-item-add-s1')).toBeTruthy()
+    expect(screen.getByTestId('collection-heart-s1')).toBeTruthy()
+    sweep('colección · con obra')
+    sweepShouting('colección · con obra')
+    sweepDynamicType('colección · con obra')
+  })
+
+  it('colección nueva, en blanco', () => {
+    render(
+      <NewCollectionScreen userId="u1" onCancel={jest.fn()} onCreated={jest.fn()} />,
+    )
+    sweep('colección nueva · en blanco')
+    sweepShouting('colección nueva · en blanco')
+    sweepDynamicType('colección nueva · en blanco')
+  })
+
+  it('agregar a colección, con una colección existente', async () => {
+    ;(fetchMyCollections as jest.Mock).mockResolvedValue([
+      {
+        id: 'col-1',
+        name: 'Brazo entero',
+        createdAt: '2026-08-20T00:00:00.000Z',
+        itemCount: 1,
+        coverMediaPaths: [],
+      },
+    ])
+    render(
+      <CollectionMembershipSheet savedItemId="s1" onClose={jest.fn()} />,
+    )
+    await waitFor(() =>
+      expect(screen.getByTestId('collection-membership-col-1')).toBeTruthy(),
+    )
+    sweep('agregar a colección')
+    sweepShouting('agregar a colección')
+    sweepDynamicType('agregar a colección')
   })
 })
