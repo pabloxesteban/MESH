@@ -35,6 +35,11 @@ están**:
 - **Guardar obra.** Ya existe: un corazón abajo de cada obra, y una pantalla de
   Guardados. Ver [ADR-016](docs/decisions/ADR-016-saved-items.md) y
   [ADR-017](docs/decisions/ADR-017-saved-ranking.md).
+- **Colecciones.** Ya existen: lo guardado se puede agrupar en colecciones
+  nombradas por la propia persona, además de la vista implícita de todo lo
+  guardado. Una obra puede estar en varias colecciones a la vez — no es una
+  carpeta que la saca de otro lado. Enmienda el "sin carpetas ni tableros" de
+  ADR-016. Ver [ADR-030](docs/decisions/ADR-030-collections.md).
 - **Reseñas.** Ya existen, y con un candado: solo reseña quien tuvo un turno con
   ese artista y ese turno ya pasó. El artista no las escribe, no las edita, no
   las borra y no sabe quién las dejó. Ver
