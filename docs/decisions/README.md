@@ -44,3 +44,4 @@ todo el repositorio.
 | [028](ADR-028-account-export.md) | Llevarte lo tuyo antes de borrarlo: lo que escribiste vos, no lo que escribieron otros | **Aceptado** |
 | [029](ADR-029-search-by-name.md) | Buscar a alguien por nombre: sin acentos, sin ordenar por cercanía, y a quien no subió obra también se lo encuentra | **Aceptado** |
 | [030](ADR-030-collections.md) | Colecciones: etiquetas múltiples sobre lo guardado, sin borrar la obra al borrar la carpeta; **enmienda ADR-016** | **Aceptado** |
+| [031](ADR-031-brand-energy-refresh.md) | Rebrand: acento de marca verde ácido en el mismo generador OKLCH, tipografía existente con cortes más pesados; **extiende ADR-010** | Propuesto |

@@ -395,7 +395,7 @@ function CollectionGridItem({
               backgroundColor: theme.overlayScrim,
             }}
           >
-            <Text role="bodyLg" color={isMember ? 'accentFill' : 'overlayContent'}>
+            <Text role="bodyLg" color={isMember ? 'accentOnScrim' : 'overlayContent'}>
               {isMember ? '✓' : '+'}
             </Text>
           </Pressable>

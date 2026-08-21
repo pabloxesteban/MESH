@@ -17,8 +17,18 @@
 
 export const fontFamily = {
   serif: 'Fraunces-Regular',
+  // ADR-031. Mismos ejes que el logotipo (wght 600, opsz 144) — reutiliza el
+  // peso que la propia marca ya validó, en vez de importar una voz nueva.
+  // Solo el rol `display` lo usa: el veredicto sobre un Fraunces más pesado a
+  // 24px (`title`/`titleLg`) ya se probó y se descartó, y sigue siendo válido
+  // a ese tamaño. Ver tools/brand/src/build-fonts.py.
+  serifDisplay: 'Fraunces-SemiBold',
   sans: 'InstrumentSans-Regular',
   sansMedium: 'InstrumentSans-Medium',
+  // ADR-031. Para la etiqueta de los botones primarios y las pestañas
+  // activas — donde antes corría `sansMedium`. Sigue siendo tamaño `label`
+  // (13px): cambia el peso en un lugar puntual, no la escala.
+  sansBold: 'InstrumentSans-Bold',
 } as const
 
 export interface TextRoleStyle {
@@ -34,9 +44,13 @@ export interface TextRoleStyle {
  * `fontSize`: no se puede pedir un tamaño que no exista.
  */
 export const textRoles = {
-  /** Revelación del gusto, momentos de marca. */
+  /**
+   * Revelación del gusto, momentos de marca. Fraunces SemiBold (ADR-031):
+   * los mismos ejes que el logotipo, así que el texto más grande de la
+   * pantalla pesa lo mismo que la propia marca.
+   */
   display: {
-    fontFamily: fontFamily.serif,
+    fontFamily: fontFamily.serifDisplay,
     fontSize: 40,
     lineHeight: 44,
     letterSpacing: -0.4,
@@ -66,9 +80,21 @@ export const textRoles = {
     fontSize: 15,
     lineHeight: 22,
   },
-  /** Metadatos, epígrafes, etiquetas de botón. */
+  /** Metadatos, epígrafes, etiquetas de botón secundario/ghost/destructivo. */
   label: {
     fontFamily: fontFamily.sansMedium,
+    fontSize: 13,
+    lineHeight: 18,
+  },
+  /**
+   * Mismo tamaño que `label` (13px) — cambia el peso, no la escala. Solo para
+   * la etiqueta del botón `primary` (ADR-031): el único elemento con permiso
+   * de llevar el acento de marca se gana también el peso más audaz de la
+   * escala sans. No es un reemplazo de `label`: el resto de los botones y
+   * todo metadato se quedan en `sansMedium`.
+   */
+  labelBold: {
+    fontFamily: fontFamily.sansBold,
     fontSize: 13,
     lineHeight: 18,
   },

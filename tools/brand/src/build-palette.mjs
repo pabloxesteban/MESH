@@ -205,7 +205,11 @@ function solveForContrast(hue, chroma, background, target, direction) {
 const CHROMA = 0.15
 
 const FAMILIES = [
-  { name: 'brand', hue: 12, chroma: 0.19 },
+  // ADR-031: hue 12 (rosa) → 122 (lima ácido). `vividL` es la excepción de
+  // familia: el acento de marca tiene permiso de ser lo más audaz de la
+  // pantalla, una vez, así que su `vivid` no comparte la L=0,62 que mantiene
+  // parejas a las diez familias de estilo.
+  { name: 'brand', hue: 122, chroma: 0.2, vividL: 0.87 },
   { name: 'line', hue: 195 },
   { name: 'shade', hue: 295 },
   { name: 'dot', hue: 75 },
@@ -213,7 +217,9 @@ const FAMILIES = [
   { name: 'real', hue: 255 },
   { name: 'flow', hue: 340 },
   { name: 'east', hue: 20 },
-  { name: 'letter', hue: 130 },
+  // ADR-031: 130 → 144. A 130° quedaba a solo 8° del acento nuevo (122°); el
+  // generador reverifica el contraste solo.
+  { name: 'letter', hue: 144 },
   { name: 'gold', hue: 95 },
   { name: 'hand', hue: 160 },
 ]
@@ -254,8 +260,13 @@ for (const family of FAMILIES) {
   )
 
   // El vívido va al borde del gamut. Es el que se ve.
-  const vividChroma = maxChroma(VIVID_L, family.hue)
-  const vivid = oklchToHex(VIVID_L, vividChroma, family.hue)
+  //
+  // `vividL` es la excepción de familia (ver ADR-031): por defecto todas
+  // comparten VIVID_L para que ninguna familia grite más fuerte que otra, pero
+  // el acento de marca no es un chip entre iguales.
+  const vividL = family.vividL ?? VIVID_L
+  const vividChroma = maxChroma(vividL, family.hue)
+  const vivid = oklchToHex(vividL, vividChroma, family.hue)
 
   // Y su equivalente sobre papel: mismo tono, resuelto hacia abajo hasta que el
   // papel encima pase AA, con la croma al borde del gamut en cada candidato.

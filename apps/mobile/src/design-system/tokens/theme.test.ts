@@ -59,12 +59,27 @@ describe.each([
     ).toBeGreaterThanOrEqual(AA_TEXT)
   })
 
-  it('usa el color de marca al borde del gamut para el relleno', () => {
-    // El relleno no se aclara: aclararlo es lo que dejaba los botones lavados.
-    // Quien se aclara es el acento de TEXTO, y solo por contraste.
-    expect(theme.accentFill).toBe(palette.brandVivid)
+  it('resuelve el relleno de acento por tema (ADR-031)', () => {
+    // Hasta ADR-031, `accentFill` era el mismo valor —`brandVivid`, al borde
+    // del gamut— en los dos temas, igual que las diez familias de estilo NO
+    // hacían (`style-colors.ts` ya diferenciaba `vivid`/`deepVivid`). Con el
+    // lima de marca eso deja de alcanzar: `brandVivid` mide 1,24:1 contra
+    // papel, invisible como forma. El oscuro sigue usando el lima real; el
+    // claro pasa a `brandDeepVivid`, el verde oscuro que sí se distingue del
+    // papel.
+    expect(theme.accentFill).toBe(
+      theme.name === 'dark' ? palette.brandVivid : palette.brandDeepVivid,
+    )
   })
 
+  // `accentAltFill` (violeta, hue 295°) resuelto por tema, igual que
+  // `accentFill` desde ADR-031 y que ya hacía cada familia de
+  // `style-colors.ts`: oscuro usa `shadeVivid` (lleva tinta encima), claro
+  // usa `shadeDeepVivid` (lleva papel encima). Antes usaba `shadeVivid` en
+  // los dos temas y pasaba de pura casualidad, porque `accentContrast` era
+  // `ink900` en los dos temas — una coincidencia, no un diseño. ADR-031 hizo
+  // que `accentContrast` dependiera del tema y destapó la coincidencia rota
+  // (`paper100` sobre `shadeVivid` medía 3,51:1); esto la resuelve de raíz.
   it('el texto sobre el relleno del segundo acento también llega a AA', () => {
     expect(
       contrastRatio(theme.accentContrast, theme.accentAltFill),
@@ -82,12 +97,15 @@ describe.each([
     ).toBeGreaterThanOrEqual(AA_TEXT)
   })
 
+  // `accentFill` dejó de ser invariante por tema desde ADR-031 (resuelve
+  // `brandDeepVivid` en claro para distinguirse de PAPEL) — y `SaveHeart.tsx`
+  // pinta el corazón lleno sobre `overlayScrim`, que sigue siendo `ink900` en
+  // los dos temas y NUNCA es papel. `brandDeepVivid` mide 3,75:1 contra
+  // `ink900`: por debajo de AA. Por eso existe `accentOnScrim`, invariante
+  // como el propio velo, resuelto en `brandVivid` (13,71:1) en los dos temas.
   it('el corazón lleno también se lee sobre el velo, en los dos temas', () => {
-    // `accentFill` y no `accent`: el acento del tema claro mide 3,79:1 sobre el
-    // velo, por debajo de AA. El relleno es el mismo color en los dos temas,
-    // que es justamente lo que pide algo que siempre va sobre lo mismo.
     expect(
-      contrastRatio(theme.accentFill, theme.overlayScrim),
+      contrastRatio(theme.accentOnScrim, theme.overlayScrim),
     ).toBeGreaterThanOrEqual(AA_TEXT)
   })
 

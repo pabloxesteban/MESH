@@ -19,8 +19,9 @@
  *    arriba tampoco puede cambiar. Usar `textInverse` acá dejaba el corazón
  *    negro sobre negro en el tema oscuro, que es el de arranque: la feature
  *    entera era invisible y ningún test lo veía. Ahora va `overlayContent`
- *    (17:1 sobre el velo) y `accentFill` para el lleno (4,72:1, igual en los
- *    dos temas; `accent` en el tema claro se quedaba en 3,79:1).
+ *    (17:1 sobre el velo) y `accentOnScrim` para el lleno (13,71:1, invariante
+ *    por tema como el propio velo — a diferencia de `accentFill`, que desde
+ *    ADR-031 sí cambia por tema para distinguirse de PAPEL, no de `ink900`).
  */
 
 import {
@@ -63,7 +64,7 @@ export function SaveHeart({ isSaved, onToggle, testID }: SaveHeartProps) {
         backgroundColor: theme.overlayScrim,
       }}
     >
-      <Text role="bodyLg" color={isSaved ? 'accentFill' : 'overlayContent'}>
+      <Text role="bodyLg" color={isSaved ? 'accentOnScrim' : 'overlayContent'}>
         {isSaved ? '♥' : '♡'}
       </Text>
     </Pressable>

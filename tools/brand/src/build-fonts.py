@@ -52,6 +52,21 @@ CUTS = [
      {"wght": 400, "wdth": 100}),
     ("instrument", "InstrumentSans-Medium.ttf", "Instrument Sans", "Medium",
      {"wght": 500, "wdth": 100}),
+    # ADR-031. Los mismos ejes que ya usa el logotipo (`MESH` en Fraunces wght
+    # 600, opsz 144) — no una coincidencia conveniente, sino la forma más
+    # barata de ganar peso editorial sin crear una segunda "voz" tipográfica.
+    # Va SOLO al rol `display` (40px): el veredicto sobre Medium a 24px
+    # (`title`/`titleLg`) ya se probó y sigue siendo válido a ese tamaño.
+    ("fraunces", "Fraunces-SemiBold.ttf", "Fraunces", "SemiBold",
+     {"wght": 600, "opsz": 144, "SOFT": 0, "WONK": 0}),
+    # ADR-031. Etiqueta de los botones primarios y las pestañas activas, en
+    # el mismo tamaño `label` (13px) que ya usa `sansMedium` — cambia el peso,
+    # no la escala. `wdth: 100` a propósito: el eje de ancho de Instrument
+    # Sans va de 75 a 100 (ver fvar), pero condensar a 13px arriesga
+    # legibilidad y la ADR no lo verificó a ojo; la energía "bold" se consigue
+    # con peso, no con ancho forzado.
+    ("instrument", "InstrumentSans-Bold.ttf", "Instrument Sans", "Bold",
+     {"wght": 700, "wdth": 100}),
 ]
 
 

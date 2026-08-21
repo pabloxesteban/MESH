@@ -15,6 +15,7 @@ export type TextColor = Extract<
   | 'textTertiary'
   | 'textInverse'
   | 'overlayContent'
+  | 'accentOnScrim'
   | 'accent'
   | 'accentFill'
   | 'accentContrast'

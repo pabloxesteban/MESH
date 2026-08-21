@@ -9,13 +9,21 @@ import { MAX_DURATION, duration, easing, spring } from './motion.ts'
 import { MIN_TOUCH_TARGET, radius, spacing } from './layout.ts'
 import { fontFamily, textRoles } from './typography.ts'
 
+// Los dos cortes de Fraunces (Regular y, desde ADR-031, SemiBold) son la
+// misma familia serif a efectos de esta regla: lo que la mantiene en su rol
+// es el corte tipográfico, no el peso.
+const SERIF_FAMILIES: ReadonlyArray<string> = [
+  fontFamily.serif,
+  fontFamily.serifDisplay,
+]
+
 describe('tipografía', () => {
   it.each(Object.entries(textRoles))(
     'el rol %s respeta el rango de su familia',
     (_name, role) => {
       // Serif nunca por debajo de 24, sans nunca por encima de 20. Esa única
       // restricción las mantiene en su rol sin discutirlo en cada pantalla.
-      if (role.fontFamily === fontFamily.serif) {
+      if (SERIF_FAMILIES.includes(role.fontFamily)) {
         expect(role.fontSize).toBeGreaterThanOrEqual(24)
       } else {
         expect(role.fontSize).toBeLessThanOrEqual(20)

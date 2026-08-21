@@ -55,10 +55,10 @@ export const palette = {
   white: '#FFFFFF',
 
   // brand
-  brandOnDark: '#E4496A',
-  brandOnLight: '#CA3056',
-  brandVivid: '#F6005D',
-  brandDeepVivid: '#D90051',
+  brandOnDark: '#718C01',
+  brandOnLight: '#5F7500',
+  brandVivid: '#BEE800',
+  brandDeepVivid: '#5F7500',
 
   // line
   lineOnDark: '#0A9191',
@@ -103,10 +103,10 @@ export const palette = {
   eastDeepVivid: '#DB0039',
 
   // letter
-  letterOnDark: '#60901A',
-  letterOnLight: '#4F7909',
-  letterVivid: '#639900',
-  letterDeepVivid: '#4E7900',
+  letterOnDark: '#3A943D',
+  letterOnLight: '#207D27',
+  letterVivid: '#00A320',
+  letterDeepVivid: '#007F17',
 
   // gold
   goldOnDark: '#998007',

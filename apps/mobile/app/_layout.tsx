@@ -44,6 +44,9 @@ export default function RootLayout() {
     'Fraunces-Regular': require('../assets/fonts/Fraunces-Regular.ttf'),
     'InstrumentSans-Regular': require('../assets/fonts/InstrumentSans-Regular.ttf'),
     'InstrumentSans-Medium': require('../assets/fonts/InstrumentSans-Medium.ttf'),
+    // ADR-031.
+    'Fraunces-SemiBold': require('../assets/fonts/Fraunces-SemiBold.ttf'),
+    'InstrumentSans-Bold': require('../assets/fonts/InstrumentSans-Bold.ttf'),
     /* eslint-enable @typescript-eslint/no-require-imports */
   })
 

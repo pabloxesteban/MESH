@@ -108,7 +108,13 @@ export function Button({
           <ActivityIndicator color={theme[style.text]} />
         </View>
       ) : (
-        <Text role="label" color={style.text}>
+        // `labelBold` (InstrumentSans-Bold) solo en `primary` — ADR-031. El
+        // acento aparece como máximo una vez por pantalla, y es ese mismo
+        // botón el que se gana el peso tipográfico más audaz.
+        <Text
+          role={variant === 'primary' ? 'labelBold' : 'label'}
+          color={style.text}
+        >
           {label}
         </Text>
       )}
