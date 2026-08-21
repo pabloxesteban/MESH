@@ -15,9 +15,17 @@ import { fetchAccount, updateAccount } from './queries.ts'
 jest.mock('./queries.ts', () => ({
   fetchAccount: jest.fn(),
   updateAccount: jest.fn(),
+  resolveLocationId: jest.fn().mockResolvedValue(null),
 }))
 jest.mock('@/features/settings/AnalyticsToggle.tsx', () => ({
   AnalyticsToggle: () => null,
+}))
+jest.mock('@/features/artist/queries.ts', () => ({
+  fetchOwnedProfessional: jest.fn().mockResolvedValue(null),
+  fetchCompletedAppointmentsCount: jest.fn().mockResolvedValue(0),
+}))
+jest.mock('@/features/saved/queries.ts', () => ({
+  fetchSaved: jest.fn().mockResolvedValue([]),
 }))
 
 const fetchMock = fetchAccount as jest.Mock
@@ -28,7 +36,7 @@ function renderScreen() {
     defaultOptions: { queries: { retry: false, gcTime: 0 } },
   })
   const onOpenStudio = jest.fn()
-  const onCreateAccount = jest.fn()
+  const onOpenConfiguracion = jest.fn()
   render(
     <QueryClientProvider client={client}>
       <ThemeProvider>
@@ -36,20 +44,20 @@ function renderScreen() {
           <I18nProvider locale="es-AR">
             <AccountScreen
               userId="u1"
-              onOpenStudio={onOpenStudio}
-              onOpenSaved={jest.fn()}
               isAnonymous
-              email={null}
-              onCreateAccount={onCreateAccount}
-              onSignIn={jest.fn()}
-              onSignOut={jest.fn()}
+              onOpenStudio={onOpenStudio}
+              onOpenColecciones={jest.fn()}
+              onOpenConfiguracion={onOpenConfiguracion}
+              onOpenAvatarPicker={jest.fn()}
+              onOpenLocationEditor={jest.fn()}
+              onOpenArtist={jest.fn()}
             />
           </I18nProvider>
         </MotionProvider>
       </ThemeProvider>
     </QueryClientProvider>,
   )
-  return { onOpenStudio, onCreateAccount }
+  return { onOpenStudio, onOpenConfiguracion }
 }
 
 beforeEach(() => {
@@ -58,6 +66,12 @@ beforeEach(() => {
   fetchMock.mockResolvedValue({
     displayName: null,
     onboardingIntent: 'looking',
+    adultConfirmedAt: null,
+    createdAt: '2026-01-15T00:00:00.000Z',
+    avatarUrl: null,
+    cityLocationId: null,
+    citySlug: null,
+    cityLabel: null,
   })
 })
 
@@ -81,14 +95,35 @@ describe('AccountScreen', () => {
       expect(screen.getByTestId('account-content')).toBeTruthy(),
     )
 
+    fireEvent.press(screen.getByTestId('account-edit-toggle'))
+    await waitFor(() =>
+      expect(screen.getByTestId('account-header-edit')).toBeTruthy(),
+    )
+
     expect(
-      screen.getByTestId('account-name-save').props.accessibilityState.disabled,
+      screen.getByTestId('account-edit-save').props.accessibilityState.disabled,
     ).toBe(true)
 
-    fireEvent.changeText(screen.getByTestId('account-name'), 'Pablo')
+    fireEvent.changeText(screen.getByTestId('account-edit-name'), 'Pablo')
     expect(
-      screen.getByTestId('account-name-save').props.accessibilityState.disabled,
+      screen.getByTestId('account-edit-save').props.accessibilityState.disabled,
     ).toBe(false)
+  })
+
+  it('cancelar la edición descarta el cambio sin red', async () => {
+    renderScreen()
+    await waitFor(() =>
+      expect(screen.getByTestId('account-content')).toBeTruthy(),
+    )
+
+    fireEvent.press(screen.getByTestId('account-edit-toggle'))
+    fireEvent.changeText(screen.getByTestId('account-edit-name'), 'Pablo')
+    fireEvent.press(screen.getByTestId('account-edit-cancel'))
+
+    await waitFor(() =>
+      expect(screen.getByTestId('account-header')).toBeTruthy(),
+    )
+    expect(updateMock).not.toHaveBeenCalled()
   })
 
   it('ofrece el estudio aunque la persona haya entrado buscando', async () => {
@@ -100,14 +135,17 @@ describe('AccountScreen', () => {
     )
   })
 
-  it('lleva a gusto y a estudio', async () => {
-    const { onOpenStudio } = renderScreen()
+  it('lleva al estudio y a configuración', async () => {
+    const { onOpenStudio, onOpenConfiguracion } = renderScreen()
     await waitFor(() =>
       expect(screen.getByTestId('account-content')).toBeTruthy(),
     )
 
     fireEvent.press(screen.getByTestId('account-studio'))
     expect(onOpenStudio).toHaveBeenCalled()
+
+    fireEvent.press(screen.getByTestId('account-configuracion'))
+    expect(onOpenConfiguracion).toHaveBeenCalled()
   })
 
   it('un error ofrece reintentar en vez de una pantalla vacía', async () => {

@@ -590,6 +590,88 @@ export const esAR = {
   'account.more': 'Más',
   'account.studio': 'Tu estudio',
   'account.saved': 'Guardado',
+  'account.configuracion': 'Configuración',
+
+  // --- perfil: header de identidad ------------------------------------------
+  'account.header.name.empty': 'Sin nombre',
+  'account.header.livesIn': 'Vivís en {barrio}',
+  'account.header.memberSince': 'Miembro desde {fecha}',
+  'account.header.editInStudio': 'Editar en Estudio →',
+  'account.header.completed': '{n} servicios completados',
+  'account.header.completed.one': '1 servicio completado',
+  'account.header.edit': 'Editar perfil',
+  'account.header.changePhoto': 'Cambiar foto',
+  'account.header.location.label': 'Ubicación',
+  'account.header.location.placeholder': 'Elegir ubicación',
+  'account.header.location.a11y': 'Ubicación, {valor}',
+
+  // --- perfil: avisos puntuales ----------------------------------------------
+  'account.notice.photo':
+    'Todavía no subiste una foto de perfil. Sin ella, tu tarjeta en Inicio queda con un espacio vacío en lugar de tu cara.',
+  'account.notice.photo.cta': 'Agregar foto',
+  'account.notice.location':
+    'Tu estudio no tiene ubicación cargada. En Inicio se ordena por cercanía; el tuyo aparece igual, siempre al final.',
+  'account.notice.location.cta': 'Cargar ubicación',
+  'account.notice.dismiss': 'Descartar este aviso',
+
+  // --- perfil: guardado reciente ----------------------------------------------
+  'account.recent.title': 'Guardado reciente',
+  'account.recent.viewAll': 'Ver todo →',
+  'account.recent.itemA11y': 'Obra de {nombre}, guardada',
+  'account.recent.error': 'No pudimos traer lo que guardaste.',
+
+  // --- selector de foto de perfil ---------------------------------------------
+  'avatarPicker.title': 'Foto de perfil',
+  'avatarPicker.source.gallery': 'Elegir de la galería',
+  'avatarPicker.source.camera': 'Sacar una foto',
+  'avatarPicker.zoomIn': 'Acercar',
+  'avatarPicker.zoomOut': 'Alejar',
+  'avatarPicker.center': 'Centrar',
+  'avatarPicker.confirm': 'Usar esta foto',
+  'avatarPicker.permission.denied.title': 'No hay acceso a la cámara',
+  'avatarPicker.permission.denied.body':
+    'Podés elegir una foto de la galería en su lugar.',
+  'avatarPicker.upload.error': 'No se pudo subir. Probá de nuevo.',
+  'avatarPicker.success': 'Listo, cambiamos tu foto',
+
+  // --- configuración -----------------------------------------------------------
+  'settings.title': 'Configuración',
+  'settings.section.account': 'Cuenta',
+  'settings.section.preferences': 'Preferencias',
+  'settings.section.notifications': 'Notificaciones',
+  'settings.section.privacy': 'Privacidad y bloqueo',
+  'settings.section.data': 'Datos y legal',
+
+  // --- colecciones -------------------------------------------------------------
+  'collections.all.name': 'Todo',
+  'collections.count': '{n} obras',
+  'collections.count.one': '1 obra',
+  'collections.tile.a11y': '{nombre}, {cantidad}',
+  'collections.new': '+ Nueva colección',
+  'collections.new.title': 'Nueva colección',
+  'collections.new.name.label': 'Nombre',
+  'collections.new.create': 'Crear',
+  'collections.new.error': 'No pudimos crear la colección. Probá de nuevo.',
+  'collections.emptyCollection.title': 'Esta colección todavía no tiene nada.',
+  'collections.emptyCollection.addFromSaved': 'Agregar de lo que guardaste',
+  'collections.emptyCollection.keepExploring': 'Seguir explorando',
+  'collections.delete.entry': 'Borrar colección',
+  'collections.delete.confirm.title': '¿Borramos «{nombre}»?',
+  'collections.delete.confirm.body':
+    'Esto borra la colección, no las obras: siguen guardadas, sueltas, en Todo.',
+  'collections.delete.confirm.submit': 'Borrar colección',
+  'collections.delete.toast': 'Borramos «{nombre}». Las obras siguen en Todo.',
+  'collections.item.addToCollection': 'Agregar a colección',
+  'collections.membership.title': 'Agregar a colección',
+  'collections.membership.done': 'Listo',
+  'collections.membership.error':
+    'No pudimos guardar el cambio. Probá de nuevo.',
+  'collections.membership.noneYet': 'Todavía no tenés ninguna colección.',
+  'collections.addMode.title': 'Elegí qué sumar a «{nombre}»',
+  'collections.addMode.done': 'Listo',
+  'collections.addMode.itemA11y.add': 'Sumar a {nombre}',
+  'collections.addMode.itemA11y.remove': 'Ya está en {nombre}, sacar',
+
   // --- el asistente ---------------------------------------------------------
   // El bot que ayuda a armar el pedido. Ver ADR-021. El texto de apertura y el
   // de límites NO los escribe ningún modelo: son de la app, y dicen las tres

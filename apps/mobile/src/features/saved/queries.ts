@@ -14,6 +14,14 @@
 import { supabase } from '../../data/supabase.ts'
 
 export interface SavedPiece {
+  /**
+   * El id de la fila de `saved_items`, no el de la obra.
+   *
+   * Distinto de `portfolioItemId` a propósito: es lo que `collection_items`
+   * referencia (ADR-030), y una obra guardada solo puede colgar de una
+   * colección a través de esta fila, no de la pieza en sí.
+   */
+  readonly savedItemId: string
   readonly portfolioItemId: string
   readonly savedAt: string
   readonly mediaPath: string
@@ -26,6 +34,7 @@ export interface SavedPiece {
 }
 
 interface SavedRow {
+  id: string
   portfolio_item_id: string
   created_at: string
   portfolio_items: {
@@ -63,7 +72,7 @@ export async function fetchSaved(): Promise<readonly SavedPiece[]> {
   const { data, error } = await supabase
     .from('saved_items')
     .select(
-      `portfolio_item_id, created_at,
+      `id, portfolio_item_id, created_at,
        portfolio_items ( media_assets ( path, blurhash, width, height ),
                          professionals ( slug, display_name, is_fixture ) )`,
     )
@@ -78,6 +87,7 @@ export async function fetchSaved(): Promise<readonly SavedPiece[]> {
       // pasar mientras se borra en cascada; se saltea en vez de romper.
       if (media == null || pro == null) return null
       return {
+        savedItemId: row.id,
         portfolioItemId: row.portfolio_item_id,
         savedAt: row.created_at,
         mediaPath: media.path,

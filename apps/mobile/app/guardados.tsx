@@ -1,24 +1,20 @@
 import { router } from 'expo-router'
 
-import { useSession } from '@/features/auth/SessionProvider.tsx'
-import { SavedScreen } from '@/features/saved/SavedScreen.tsx'
+import { CollectionsScreen } from '@/features/collections/CollectionsScreen.tsx'
 
 /**
- * Ruta y no pestaña.
+ * Guardados → Colecciones.
  *
- * Guardados se visita cada tanto, no cada sesión, y la barra es de cuatro y
- * ninguna más — con seis pasa a ser un menú que hay que estudiar. Se llega
- * desde Perfil, igual que el estudio. Ver ADR-016.
+ * Ruta y no pestaña, igual que antes de ADR-030: se visita cada tanto, no
+ * cada sesión, y se llega desde Perfil.
  */
 export default function GuardadosRoute() {
-  const { userId } = useSession()
-
   return (
-    <SavedScreen
-      userId={userId}
-      onOpenArtist={(slug) => router.push(`/artista/${slug}`)}
-      onExplore={() => router.replace('/explorar')}
+    <CollectionsScreen
       onBack={() => router.back()}
+      onOpenCollection={(id) => router.push(`/coleccion/${id}`)}
+      onNewCollection={() => router.push('/coleccion/nueva')}
+      onExplore={() => router.replace('/explorar')}
     />
   )
 }

@@ -72,6 +72,21 @@ export function registerPreviewMedia(id: string, dataUri: string): void {
   MEDIA.set(id, dataUri)
 }
 
+/**
+ * La foto de la TARJETA del profesional propio (`professionals.avatar_media_id`
+ * en la app real) — distinta de la foto personal de Perfil, aunque las dos
+ * pantallas suban la misma imagen. Ver `features/account/uploadAvatar.ts`.
+ */
+let professionalAvatarDataUri: string | null = null
+
+export function setPreviewProfessionalAvatar(dataUri: string): void {
+  professionalAvatarDataUri = dataUri
+}
+
+export function previewProfessionalAvatarUrl(): string | null {
+  return professionalAvatarDataUri
+}
+
 // --- estudio -----------------------------------------------------------------
 //
 // El preview deja recorrer el modo artista entero: darse de alta, declarar
@@ -365,12 +380,19 @@ export type { PreviewArtist }
 interface PreviewAccount {
   displayName: string | null
   onboardingIntent: 'offering' | 'looking' | null
+  avatarDataUri: string | null
+  cityLocationId: string | null
 }
 
 const account: PreviewAccount = {
   displayName: null,
   onboardingIntent: null,
+  avatarDataUri: null,
+  cityLocationId: null,
 }
+
+/** Fecha fija: en el preview importa que haya un "miembro desde", no cuándo. */
+export const PREVIEW_ACCOUNT_CREATED_AT = '2026-01-15T00:00:00.000Z'
 
 export function previewAccount(): PreviewAccount {
   return { ...account }
@@ -378,6 +400,11 @@ export function previewAccount(): PreviewAccount {
 
 export function updatePreviewAccount(patch: Partial<PreviewAccount>): void {
   Object.assign(account, patch)
+}
+
+/** La foto de perfil personal, ya adentro del bundle. Vive solo en la sesión. */
+export function setPreviewAccountAvatar(dataUri: string): void {
+  account.avatarDataUri = dataUri
 }
 
 // --- chat ----------------------------------------------------------------------

@@ -22,6 +22,10 @@ export async function fetchSaved(): Promise<readonly SavedPiece[]> {
       if (!guardados.has(pieza.id)) continue
       const dueno = artistOfPiece(pieza.id) ?? artista
       piezas.push({
+        // En el preview no hay una fila de `saved_items` separada de la
+        // pieza: el id de la obra hace las veces de las dos cosas, igual que
+        // `mediaPath` más abajo.
+        savedItemId: pieza.id,
         portfolioItemId: pieza.id,
         savedAt: '2026-08-20T00:00:00Z',
         // En el preview la ruta ES el id de la pieza. Ver `previewMediaUrl`.

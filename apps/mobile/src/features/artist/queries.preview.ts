@@ -16,9 +16,12 @@ import {
   addPreviewPiece,
   claimPreviewProfessional,
   createPreviewProfessional,
+  previewAppointments,
   previewOwnProfile,
   previewOwnStyleSlugs,
   previewPiecesOf,
+  previewProfessionalAvatarUrl,
+  previewProfessionalId,
   previewStudioCoordinatesOf,
   removePreviewPiece,
   setPreviewOwnStyles,
@@ -33,6 +36,8 @@ export interface OwnedProfessional {
   readonly isPublished: boolean
   readonly studioCoordinates: GeoCoordinates | null
   readonly styleSlugs: readonly string[]
+  readonly bio: string | null
+  readonly hasAvatar: boolean
 }
 
 export interface OwnedPiece {
@@ -54,7 +59,26 @@ export async function fetchOwnedProfessional(
     isPublished: true,
     studioCoordinates: previewStudioCoordinatesOf(own.slug),
     styleSlugs: previewOwnStyleSlugs(),
+    // El catálogo horneado no trae bio propia; el preview no la edita todavía.
+    bio: null,
+    hasAvatar: previewProfessionalAvatarUrl() != null,
   }
+}
+
+/**
+ * Cuántos turnos propios ya pasaron sin cancelarse.
+ *
+ * En el preview "propio" es cualquier turno, porque hay un solo perfil con
+ * dueño. Mismo criterio que `previewReviewableAppointments`.
+ */
+export async function fetchCompletedAppointmentsCount(): Promise<number> {
+  const own = previewOwnProfile()
+  if (own == null) return 0
+  const professionalId = previewProfessionalId(own.slug)
+  const ahora = new Date().toISOString()
+  return previewAppointments().filter(
+    (turno) => turno.professionalId === professionalId && turno.endsAt < ahora,
+  ).length
 }
 
 export async function createOwnProfessional(input: {

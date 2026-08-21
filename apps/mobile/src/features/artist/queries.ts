@@ -20,6 +20,10 @@ export interface OwnedProfessional {
   readonly studioCoordinates: GeoCoordinates | null
   /** Los estilos que el artista declaró. Distintos de los de cada pieza. */
   readonly styleSlugs: readonly string[]
+  /** Solo lectura desde Perfil: se edita en el Estudio, no acá. */
+  readonly bio: string | null
+  /** Si la tarjeta de Inicio ya tiene foto. Ver el aviso de Perfil, ADR-030. */
+  readonly hasAvatar: boolean
 }
 
 export interface OwnedPiece {
@@ -50,7 +54,7 @@ export async function fetchOwnedProfessional(
   const { data, error } = await supabase
     .from('professionals')
     .select(
-      'id, slug, display_name, is_published, studio_lat, studio_lng, professional_styles ( styles ( slug ) )',
+      'id, slug, display_name, is_published, bio, studio_lat, studio_lng, avatar_media_id, professional_styles ( styles ( slug ) )',
     )
     .eq('owner_user_id', userId)
     .limit(1)
@@ -64,6 +68,8 @@ export async function fetchOwnedProfessional(
     slug: data.slug,
     displayName: data.display_name,
     isPublished: data.is_published,
+    bio: data.bio,
+    hasAvatar: data.avatar_media_id != null,
     studioCoordinates:
       data.studio_lat == null || data.studio_lng == null
         ? null
@@ -231,4 +237,16 @@ export async function removePiece(pieceId: string): Promise<void> {
     .delete()
     .eq('id', pieceId)
   if (error != null) throw error
+}
+
+/**
+ * Cuántos turnos propios (como profesional) ya pasaron sin cancelarse.
+ *
+ * `0` si quien llama no tiene perfil de artista — el RPC lo calcula así, sin
+ * fallar. Ver ADR-030 y `get_completed_appointments_count()`.
+ */
+export async function fetchCompletedAppointmentsCount(): Promise<number> {
+  const { data, error } = await supabase.rpc('get_completed_appointments_count')
+  if (error != null) throw error
+  return data ?? 0
 }

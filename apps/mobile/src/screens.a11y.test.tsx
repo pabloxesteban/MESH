@@ -37,7 +37,7 @@ import { SearchDeckScreen } from '@/features/demand/SearchDeckScreen.tsx'
 import { ChatsScreen } from '@/features/chat/ChatsScreen.tsx'
 import { AuthForm } from '@/features/auth/AuthForm.tsx'
 import { NewPasswordScreen } from '@/features/auth/NewPasswordScreen.tsx'
-import { SavedScreen } from '@/features/saved/SavedScreen.tsx'
+import { CollectionsScreen } from '@/features/collections/CollectionsScreen.tsx'
 import { AgeScreen } from '@/features/onboarding/AgeScreen.tsx'
 import { AssistantScreen } from '@/features/assistant/AssistantScreen.tsx'
 import { ProjectsScreen } from '@/features/projects/ProjectsScreen.tsx'
@@ -91,8 +91,15 @@ jest.mock('@/features/account/queries.ts', () => ({
   fetchAccount: jest.fn().mockResolvedValue({
     displayName: null,
     onboardingIntent: 'looking',
+    adultConfirmedAt: null,
+    createdAt: '2026-01-15T00:00:00.000Z',
+    avatarUrl: null,
+    cityLocationId: null,
+    citySlug: null,
+    cityLabel: null,
   }),
   updateAccount: jest.fn().mockResolvedValue(undefined),
+  resolveLocationId: jest.fn().mockResolvedValue(null),
 }))
 jest.mock('@/features/chat/queries.ts', () => ({
   fetchConversations: jest.fn().mockResolvedValue([]),
@@ -140,6 +147,7 @@ jest.mock('@/features/artist/queries.ts', () => ({
   setStudioLocation: jest.fn(),
   addPiece: jest.fn(),
   removePiece: jest.fn(),
+  fetchCompletedAppointmentsCount: jest.fn().mockResolvedValue(0),
 }))
 jest.mock('@/features/artist/gps.ts', () => ({
   readDeviceGps: jest.fn().mockResolvedValue({
@@ -637,20 +645,21 @@ describe('barrido de accesibilidad y callejones', () => {
     render(
       <AccountScreen
         userId="u1"
-        onOpenStudio={jest.fn()}
-        onOpenSaved={jest.fn()}
         isAnonymous
-        email={null}
-        onCreateAccount={jest.fn()}
-        onSignIn={jest.fn()}
-        onSignOut={jest.fn()}
+        onOpenStudio={jest.fn()}
+        onOpenColecciones={jest.fn()}
+        onOpenConfiguracion={jest.fn()}
+        onOpenAvatarPicker={jest.fn()}
+        onOpenLocationEditor={jest.fn()}
+        onOpenArtist={jest.fn()}
       />,
     )
     await waitFor(() =>
       expect(screen.getByTestId('account-content')).toBeTruthy(),
     )
-    // La puerta a crear cuenta tiene que estar acá: es la única que hay.
-    expect(screen.getByTestId('account-sign-up')).toBeTruthy()
+    // Crear cuenta se mudó a Configuración — Perfil solo tiene que poder
+    // llegar ahí.
+    expect(screen.getByTestId('account-configuracion')).toBeTruthy()
     sweep('perfil · sin cuenta')
     sweepShouting('perfil · sin cuenta')
     sweepDynamicType('perfil · sin cuenta')
@@ -660,13 +669,13 @@ describe('barrido de accesibilidad y callejones', () => {
     render(
       <AccountScreen
         userId="u1"
-        onOpenStudio={jest.fn()}
-        onOpenSaved={jest.fn()}
         isAnonymous={false}
-        email="vos@ejemplo.com"
-        onCreateAccount={jest.fn()}
-        onSignIn={jest.fn()}
-        onSignOut={jest.fn()}
+        onOpenStudio={jest.fn()}
+        onOpenColecciones={jest.fn()}
+        onOpenConfiguracion={jest.fn()}
+        onOpenAvatarPicker={jest.fn()}
+        onOpenLocationEditor={jest.fn()}
+        onOpenArtist={jest.fn()}
       />,
     )
     await waitFor(() =>
@@ -942,14 +951,16 @@ describe('barrido de accesibilidad y callejones', () => {
 
   it('guardados, sin nada guardado todavía', async () => {
     render(
-      <SavedScreen
-        userId="u1"
-        onOpenArtist={jest.fn()}
-        onExplore={jest.fn()}
+      <CollectionsScreen
         onBack={jest.fn()}
+        onOpenCollection={jest.fn()}
+        onNewCollection={jest.fn()}
+        onExplore={jest.fn()}
       />,
     )
-    await waitFor(() => expect(screen.getByTestId('saved-empty')).toBeTruthy())
+    await waitFor(() =>
+      expect(screen.getByTestId('collections-empty')).toBeTruthy(),
+    )
     sweep('guardados · vacío')
     sweepShouting('guardados · vacío')
     sweepDynamicType('guardados · vacío')

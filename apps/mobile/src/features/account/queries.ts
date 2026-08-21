@@ -5,7 +5,10 @@
  * el cliente lee (ver la migración de `profiles`).
  */
 
+import { locationLabel } from '@mesh/domain'
+
 import { supabase } from '../../data/supabase.ts'
+import { avatarUrl } from '../artists/queries.ts'
 
 /**
  * Qué eligió hacer primero al registrarse.
@@ -26,6 +29,15 @@ export interface Account {
    * declaración con su hora, y nada más. Ver ADR-025.
    */
   readonly adultConfirmedAt: string | null
+  /** Para "Miembro desde {mes año}" en el header de Perfil. */
+  readonly createdAt: string
+  /** URL ya resuelta del avatar personal, o `null` sin foto. */
+  readonly avatarUrl: string | null
+  readonly cityLocationId: string | null
+  /** El slug de la taxonomía (`palermo`), para preseleccionar el selector. */
+  readonly citySlug: string | null
+  /** El nombre para mostrar ("Palermo"), o `null` sin ubicación cargada. */
+  readonly cityLabel: string | null
 }
 
 export async function fetchAccount(): Promise<Account> {
@@ -34,15 +46,34 @@ export async function fetchAccount(): Promise<Account> {
   // cliente.
   const { data, error } = await supabase
     .from('profiles')
-    .select('display_name, onboarding_intent, adult_confirmed_at')
+    .select(
+      `display_name, onboarding_intent, adult_confirmed_at, created_at,
+       city_location_id,
+       media_assets ( path ),
+       locations ( slug )`,
+    )
     .maybeSingle()
 
   if (error != null) throw error
+
+  const avatarPath = (
+    data?.media_assets as { path: string } | null | undefined
+  )?.path
+  const citySlug = (data?.locations as { slug: string } | null | undefined)
+    ?.slug
 
   return {
     displayName: data?.display_name ?? null,
     onboardingIntent: data?.onboarding_intent ?? null,
     adultConfirmedAt: data?.adult_confirmed_at ?? null,
+    // `created_at` siempre está: la fila nace con el usuario (ver
+    // `handle_new_user`), así que el único caso sin ella es sin sesión, y esa
+    // pantalla ni llega a pedir esto.
+    createdAt: data?.created_at ?? new Date().toISOString(),
+    avatarUrl: avatarPath != null ? avatarUrl(avatarPath) : null,
+    cityLocationId: data?.city_location_id ?? null,
+    citySlug: citySlug ?? null,
+    cityLabel: citySlug != null ? locationLabel(citySlug) : null,
   }
 }
 
@@ -61,6 +92,7 @@ export async function confirmAdult(): Promise<void> {
 export interface AccountPatch {
   readonly displayName?: string | null
   readonly onboardingIntent?: OnboardingIntent
+  readonly cityLocationId?: string | null
 }
 
 export async function updateAccount(patch: AccountPatch): Promise<void> {
@@ -76,10 +108,29 @@ export async function updateAccount(patch: AccountPatch): Promise<void> {
       ...(patch.onboardingIntent !== undefined
         ? { onboarding_intent: patch.onboardingIntent }
         : {}),
+      ...(patch.cityLocationId !== undefined
+        ? { city_location_id: patch.cityLocationId }
+        : {}),
     })
     .eq('id', userId)
 
   if (error != null) throw error
+}
+
+/**
+ * El id de `locations` para un slug de la taxonomía, o `null` si no existe.
+ *
+ * `SearchLocationScreen` trabaja con slugs (`palermo`); `profiles.city_location_id`
+ * guarda el id de la fila. Este es el único lugar que cruza uno al otro.
+ */
+export async function resolveLocationId(slug: string): Promise<string | null> {
+  const { data, error } = await supabase
+    .from('locations')
+    .select('id')
+    .eq('slug', slug)
+    .maybeSingle()
+  if (error != null) throw error
+  return data?.id ?? null
 }
 
 /** Si esta persona quiere recibir avisos. Ver ADR-027. */

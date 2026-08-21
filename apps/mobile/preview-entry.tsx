@@ -19,9 +19,17 @@ import {
   useTheme,
 } from '@/design-system/index.ts'
 import { AccountScreen } from '@/features/account/AccountScreen.tsx'
+import { AvatarPickerScreen } from '@/features/account/AvatarPickerScreen.tsx'
+import { ConfiguracionScreen } from '@/features/account/ConfiguracionScreen.tsx'
+import { resolveLocationId, updateAccount } from '@/features/account/queries.ts'
 import { AuthForm } from '@/features/auth/AuthForm.tsx'
 import { NewPasswordScreen } from '@/features/auth/NewPasswordScreen.tsx'
-import { SavedScreen } from '@/features/saved/SavedScreen.tsx'
+import {
+  ALL_COLLECTION_ID,
+  CollectionsScreen,
+} from '@/features/collections/CollectionsScreen.tsx'
+import { CollectionDetailScreen } from '@/features/collections/CollectionDetailScreen.tsx'
+import { NewCollectionScreen } from '@/features/collections/NewCollectionScreen.tsx'
 import { ArtistsScreen } from '@/features/artists/ArtistsScreen.tsx'
 import { useOnboardingIntent } from '@/features/account/useIntent.ts'
 import { fetchOwnedProfessional } from '@/features/artist/queries.ts'
@@ -222,23 +230,122 @@ function Shell({ abrirEstudio }: { abrirEstudio: boolean }) {
   const [cuenta, setCuenta] = useState<
     'crear' | 'entrar' | 'contrasena-nueva' | null
   >(null)
-  const [guardados, setGuardados] = useState(false)
   const [estiloBuscado, setEstiloBuscado] = useState<string | null>(null)
 
+  // Guardados → Colecciones (ADR-030): tres pantallas propias, en vez del
+  // único booleano que bastaba para `SavedScreen`.
+  type ColeccionesRuta =
+    | { screen: 'list' }
+    | { screen: 'detail'; id: string; addTo?: string }
+    | { screen: 'new' }
+  const [colecciones, setColecciones] = useState<ColeccionesRuta | null>(null)
+  const [configuracion, setConfiguracion] = useState(false)
+  const [fotoPerfil, setFotoPerfil] = useState(false)
+  const [ubicacionPerfil, setUbicacionPerfil] = useState(false)
+
   const contenido = (() => {
-    if (guardados) {
+    if (colecciones?.screen === 'new') {
       return (
-        <SavedScreen
+        <NewCollectionScreen
           userId={USUARIO}
+          onCancel={() => setColecciones({ screen: 'list' })}
+          onCreated={(id) => setColecciones({ screen: 'detail', id })}
+        />
+      )
+    }
+    if (colecciones?.screen === 'detail') {
+      return (
+        <CollectionDetailScreen
+          userId={USUARIO}
+          collectionId={colecciones.id}
+          addToCollectionId={colecciones.addTo ?? null}
+          onBack={() =>
+            setColecciones(
+              colecciones.addTo != null
+                ? { screen: 'detail', id: colecciones.addTo }
+                : { screen: 'list' },
+            )
+          }
           onOpenArtist={(slug) => {
-            setGuardados(false)
+            setColecciones(null)
             setPerfil(slug)
           }}
           onExplore={() => {
-            setGuardados(false)
+            setColecciones(null)
             setPestana('explorar')
           }}
-          onBack={() => setGuardados(false)}
+          onAddFromSaved={() =>
+            setColecciones({
+              screen: 'detail',
+              id: ALL_COLLECTION_ID,
+              addTo: colecciones.id,
+            })
+          }
+          onDeleted={() => setColecciones({ screen: 'list' })}
+        />
+      )
+    }
+    if (colecciones?.screen === 'list') {
+      return (
+        <CollectionsScreen
+          onBack={() => setColecciones(null)}
+          onOpenCollection={(id) => setColecciones({ screen: 'detail', id })}
+          onNewCollection={() => setColecciones({ screen: 'new' })}
+          onExplore={() => {
+            setColecciones(null)
+            setPestana('explorar')
+          }}
+        />
+      )
+    }
+    if (fotoPerfil) {
+      return (
+        <AvatarPickerScreen
+          userId={USUARIO}
+          onBack={() => setFotoPerfil(false)}
+          onDone={() => setFotoPerfil(false)}
+        />
+      )
+    }
+    if (ubicacionPerfil) {
+      // Mismo componente que `/perfil/ubicacion` en la app real, sin el
+      // store de Zustand: acá no hace falta devolver el valor a través de
+      // una ruta empujada, es la misma función de cierre.
+      return (
+        <SearchLocationScreen
+          value={searchLocation.value}
+          onChange={(next) => {
+            void (async () => {
+              if (next.mode === 'none') {
+                await updateAccount({ cityLocationId: null })
+                return
+              }
+              if (next.mode === 'neighborhood' && next.neighborhoodSlug != null) {
+                const id = await resolveLocationId(next.neighborhoodSlug)
+                await updateAccount({ cityLocationId: id })
+              }
+            })()
+          }}
+          onClose={() => setUbicacionPerfil(false)}
+          deviceStatus={device.status}
+          onRequestDevice={device.request}
+        />
+      )
+    }
+    if (configuracion) {
+      return (
+        <ConfiguracionScreen
+          userId={USUARIO}
+          isAnonymous
+          email={null}
+          onCreateAccount={() => setCuenta('crear')}
+          onSignIn={() => setCuenta('entrar')}
+          onSignOut={() => undefined}
+          onDeleted={() => {
+            setConfiguracion(false)
+            setPestana('inicio')
+          }}
+          onBack={() => setConfiguracion(false)}
         />
       )
     }
@@ -408,19 +515,15 @@ function Shell({ abrirEstudio }: { abrirEstudio: boolean }) {
         return (
           <AccountScreen
             userId={USUARIO}
-            onOpenStudio={() => setEstudio(true)}
-            onOpenSaved={() => setGuardados(true)}
-            // Anónimo a propósito: es el estado en el que se ve la puerta a
-            // crear cuenta, que es lo que hay que poder mirar.
+            // Anónimo a propósito: es el estado en el que se ve el bloque de
+            // cuenta anónima en el header, que es lo que hay que poder mirar.
             isAnonymous
-            email={null}
-            onCreateAccount={() => setCuenta('crear')}
-            onSignIn={() => setCuenta('entrar')}
-            onSignOut={() => undefined}
-            // En el preview no borra nada: la garantía de que el borrado es
-            // real vive en `supabase/tests/56_account_deletion.sql`. Acá está
-            // para poder mirar la pantalla y su confirmación escrita.
-            onDeleted={() => setPestana('inicio')}
+            onOpenStudio={() => setEstudio(true)}
+            onOpenColecciones={() => setColecciones({ screen: 'list' })}
+            onOpenConfiguracion={() => setConfiguracion(true)}
+            onOpenAvatarPicker={() => setFotoPerfil(true)}
+            onOpenLocationEditor={() => setUbicacionPerfil(true)}
+            onOpenArtist={(slug) => setPerfil(slug)}
           />
         )
       case 'para-vos':
@@ -460,7 +563,10 @@ function Shell({ abrirEstudio }: { abrirEstudio: boolean }) {
           setChat(null)
           setEstudio(false)
           setCuenta(null)
-          setGuardados(false)
+          setColecciones(null)
+          setConfiguracion(false)
+          setFotoPerfil(false)
+          setUbicacionPerfil(false)
           setPestana(id)
         }}
       />
