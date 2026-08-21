@@ -75,20 +75,31 @@ tamaños: sm, md, lg; estados: normal, presionado, deshabilitado, cargando) ·
 
 **Contenido** — `ArtworkCard` (la tarjeta del mazo) · `ProfessionalCard` ·
 `MatchCard` (profesional + banda + hasta 3 razones) · `MatchBadge` (banda, nunca
-un número pelado) · `Avatar` · `PortfolioGrid` · `StyleMeter` (la barra de
-gusto) · `PriceRange` · `AvailabilityPill` (no renderiza nada cuando la
-disponibilidad está vieja — la regla de frescura vive en el componente para que
-no se pueda olvidar).
+un número pelado) · ✅ `Avatar` (circular, **nunca inicial generada** — sin foto
+dibuja una silueta genérica, es una regla de producto y no una preferencia
+visual) · `PortfolioGrid` · ✅ `StaggeredGrid` (grilla escalonada de N columnas,
+estática — comparte el reparto por altura de `ArtworkGrid` sin heredar su
+respiración animada; ver §9) · ✅ `CollectionTile` (nombre, cantidad y mosaico de
+hasta 4 portadas — variantes de carga y de colección vacía de portadas
+incluidas) · ✅ `NoticeRow` (una línea + acción opcional + descartar, para avisos
+puntuales apilables) · `StyleMeter` (la barra de gusto) · `PriceRange` ·
+`AvailabilityPill` (no renderiza nada cuando la disponibilidad está vieja — la
+regla de frescura vive en el componente para que no se pueda olvidar).
 
 **Superficies** — `BottomSheet` · `Modal` · `Scrim`.
 
-**Estados** — ✅ `Skeleton` (no pulsa con movimiento reducido) · ✅ `EmptyState`
-(la acción es una prop **requerida**: un estado vacío sin salida es un callejón,
-y hacerlo un tipo requerido es más fuerte que documentarlo) · ✅ `ErrorState`
-(causa de un conjunto cerrado; `permission` y `notFound` dicen lo mismo para no
-filtrar existencia) · ✅ `Toast` · `ProgressIndicator` (Fase 8).
+**Estados** — ✅ `Skeleton` (no pulsa con movimiento reducido; el alto acepta
+número o porcentaje, para los casos donde el skeleton vive dentro de un
+contenedor con `aspectRatio` propio) · ✅ `EmptyState` (la acción es una prop
+**requerida**: un estado vacío sin salida es un callejón, y hacerlo un tipo
+requerido es más fuerte que documentarlo) · ✅ `ErrorState` (causa de un
+conjunto cerrado; `permission` y `notFound` dicen lo mismo para no filtrar
+existencia) · ✅ `Toast` · `ProgressIndicator` (Fase 8).
 
-**Estructura** — `ScreenHeader` · `TabBarIcon` · `SectionHeader` · `Divider`.
+**Estructura** — `ScreenHeader` · `TabBarIcon` · ✅ `SectionHeader`
+(`accessibilityRole="header"` — la regla que resuelve es que un lector de
+pantalla que navega por encabezados encuentre las secciones de una pantalla
+larga como Configuración) · `Divider`.
 
 Deliberadamente ausentes: `Card` (demasiado genérico — hay tres tarjetas
 específicas en su lugar), `Badge` (solo las bandas de match necesitan una),
@@ -165,3 +176,35 @@ terminado. La revisión se hace en ambos.
 - Acciones principales solo con ícono.
 - Skeletons que no coinciden con la forma del contenido que reemplazan.
 - Un componente que renderiza `null` ante un error en vez de un `ErrorState`.
+
+## 9. `ArtworkGrid` y `StaggeredGrid`: mismo reparto, coreografía distinta
+
+Explorar (`ArtworkGrid`, D-013) y una colección propia necesitan la misma
+cuenta — repartir obras en columnas balanceadas por altura acumulada, no
+alternando — pero **no la misma sensación**. D-013 fue explícito en que la
+respiración vertical de Explorar (las columnas subiendo y bajando solas,
+desfasadas) es de descubrimiento; una superficie de administración personal
+como Guardados o una colección no la hereda — un movimiento perpetuo ahí
+compite con lo que la persona vino a hacer, que es ordenar sus cosas.
+
+Por eso **no es un componente con una prop `animated`**. Son dos:
+
+- `balanceColumns(items, columns, weightOf)` — la cuenta pura, sin React,
+  exportada por `StaggeredGrid.tsx`. `ArtworkGrid.splitIntoColumns` es hoy un
+  envoltorio de una línea sobre esto, para que las dos grillas no puedan
+  divergir en silencio sobre cómo se reparte.
+- `StaggeredGrid` — el componente estático, N columnas (dos por defecto),
+  sin reloj ni desfasaje. Lo usa la grilla de dos columnas dentro de una
+  colección.
+- `ArtworkGrid` sigue siendo dueña de su propia respiración: vive en
+  `features/discovery/`, no en el design system, porque es coreografía
+  específica de una pantalla y no una regla que otra superficie deba heredar.
+
+Antes de esto, `ProfileScreen.tsx` y `SavedScreen.tsx` ya resolvían su propia
+grilla de dos columnas a mano —con `columnWidth` calculado con
+`useWindowDimensions` y `aspectRatio` fijo en 1, para evitar que la grilla
+saltara mientras cargan las fotos—, duplicada entre las dos pantallas.
+`StaggeredGrid` no las reemplazó en este pase: son consumidores candidatos,
+no consumidores obligados, porque migrarlas de un recorte cuadrado fijo a la
+relación de aspecto real de cada obra es una decisión de UX aparte, no una
+consecuencia automática de tener el componente disponible.

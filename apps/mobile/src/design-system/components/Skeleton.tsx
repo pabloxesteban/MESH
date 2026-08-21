@@ -13,7 +13,14 @@ import { duration, easing } from '../tokens/motion.ts'
 
 export interface SkeletonProps {
   width?: number | `${number}%`
-  height: number
+  /**
+   * Casi siempre un número: la mayoría de los skeletons reemplazan algo de
+   * alto fijo. El porcentaje existe para el caso contrario — un cuadrante
+   * dentro de un contenedor con `aspectRatio` propio, como el mosaico de
+   * `CollectionTile`, donde el alto en píxeles no se conoce de antemano y
+   * depende del ancho que le toque al padre.
+   */
+  height: number | `${number}%`
   radius?: Radius
   testID?: string
 }

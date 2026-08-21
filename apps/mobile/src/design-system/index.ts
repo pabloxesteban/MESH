@@ -39,6 +39,25 @@ export {
 } from './components/SearchField.tsx'
 export { Tag, type TagProps } from './components/Tag.tsx'
 
+// Contenido
+export { Avatar, type AvatarProps, type AvatarSize } from './components/Avatar.tsx'
+export {
+  CollectionTile,
+  type CollectionTileProps,
+} from './components/CollectionTile.tsx'
+export {
+  balanceColumns,
+  StaggeredGrid,
+  type StaggeredGridProps,
+} from './components/StaggeredGrid.tsx'
+export { NoticeRow, type NoticeRowAction, type NoticeRowProps } from './components/NoticeRow.tsx'
+
+// Estructura
+export {
+  SectionHeader,
+  type SectionHeaderProps,
+} from './components/SectionHeader.tsx'
+
 // Estados
 export { EmptyState, type EmptyStateProps } from './components/EmptyState.tsx'
 export {

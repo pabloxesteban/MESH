@@ -48,6 +48,7 @@ import Animated, {
 } from 'react-native-reanimated'
 
 import {
+  balanceColumns,
   Box,
   SCREEN_GUTTER,
   spacing,
@@ -87,6 +88,12 @@ const PERIOD_MS = 20_000
 /**
  * Reparte las obras en columnas balanceadas por altura.
  *
+ * La cuenta en sí —a qué columna va cada elemento— vive en el design system
+ * (`balanceColumns`), compartida con la grilla de dos columnas de una
+ * colección: es la misma regla de reparto, y dos copias divergirían con el
+ * tiempo sin que nadie lo decidiera. Lo único propio de acá es CÓMO se mide
+ * el alto de una obra.
+ *
  * La altura de cada obra se calcula con la relación de aspecto sobre un ancho
  * unitario — no hace falta saber el ancho real, porque las columnas lo
  * comparten y solo importa la proporción entre ellas.
@@ -95,26 +102,15 @@ export function splitIntoColumns(
   items: readonly FeedItem[],
   columns: number = COLUMNS,
 ): ReadonlyArray<readonly FeedItem[]> {
-  const cuantas = Math.max(1, Math.floor(columns))
-  const reparto: FeedItem[][] = Array.from({ length: cuantas }, () => [])
-  const altos = new Array<number>(cuantas).fill(0)
-
-  for (const item of items) {
+  return balanceColumns(
+    items,
+    columns,
     // El inverso de la relación de aspecto: acá se acumulan altos, no anchos.
-    // El default sale del mismo lugar que el de la tarjeta y el del hero, para
-    // que las tres pantallas coincidan sobre la forma de una obra sin medidas.
-    const ratio = 1 / ratioOf(item.mediaWidth, item.mediaHeight)
-
-    let masCorta = 0
-    for (let i = 1; i < cuantas; i++) {
-      if ((altos[i] ?? 0) < (altos[masCorta] ?? 0)) masCorta = i
-    }
-
-    reparto[masCorta]?.push(item)
-    altos[masCorta] = (altos[masCorta] ?? 0) + ratio
-  }
-
-  return reparto
+    // El default sale del mismo lugar que el de la tarjeta y el del hero,
+    // para que las tres pantallas coincidan sobre la forma de una obra sin
+    // medidas.
+    (item) => 1 / ratioOf(item.mediaWidth, item.mediaHeight),
+  )
 }
 
 /**
