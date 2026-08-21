@@ -391,6 +391,24 @@ ubicación ordena pero no filtra: **nunca se esconde a nadie por distancia**, y
 quien no publicó dónde trabaja aparece igual, al final. El día que el catálogo
 crezca, filtrar por radio es una decisión nueva y hay que tomarla mirando datos.
 
+> **Enmendada el 2026-08-21 por [ADR-031](../decisions/ADR-031-request-first.md).**
+> Esta decisión cierra con *"una grilla de artistas no promete nada que no
+> muestre"*, y eso era cierto y era el punto: arreglaba el sobre-prometer del
+> encaje puntuado. Lo que no se vio en el momento es que dejaba **cero
+> promesa**, y que la hipótesis entera de V1 —escrita en `product-spec.md` §2—
+> quedaba sin nada que la reemplace. Se construyeron unas quince features
+> arriba de ese hueco antes de que alguien lo notara.
+>
+> Lo que D-010 decide sigue en pie, todo: no hay mazo, no hay pantalla de
+> encajes, Explorar es una pestaña, la distancia ordena y nunca filtra, y los
+> motores de gusto y matching siguen apagados. **Lo único que cambia es qué
+> está primero.** La grilla de artistas deja de ser la puerta de entrada —queda
+> un desplazamiento abajo, con su búsqueda por nombre y su encabezado de
+> ubicación intactos— y arriba va el pedido de quien mira.
+>
+> Dicho de otro modo: D-010 tenía razón sobre qué sacar y no dijo nada sobre
+> qué poner. ADR-031 contesta eso.
+
 ---
 
 ## D-011 · La obra crece hasta ser el perfil, y el hero es la obra que tocaste

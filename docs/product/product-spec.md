@@ -1,6 +1,14 @@
 # MESH — Especificación de producto (V1)
 
-**Estado:** Borrador para aprobación · **Responsable:** product-architect · **Última actualización:** 2026-08-17
+**Estado:** Borrador para aprobación · **Responsable:** product-architect · **Última actualización:** 2026-08-21
+
+> **La tesis cambió el 2026-08-21.** Las secciones §1, §2, §11 y §13 están
+> actualizadas; **§6, §7 y §8 describen un producto que ya no existe** —el mazo
+> de obra, el gusto aprendido y la pantalla de encajes se desenchufaron el
+> 2026-08-19 ([D-010](../design/MESH-DESIGN-DECISIONS.md))— y se conservan como
+> registro de lo que se construyó y por qué. Leelas sabiendo eso. Ver
+> [ADR-031](../decisions/ADR-031-request-first.md) y
+> [por-que-mesh.md](por-que-mesh.md).
 
 ---
 
@@ -9,18 +17,29 @@
 MESH ayuda a la gente a descubrir a la persona indicada para hacer realidad una
 idea.
 
-El problema: *"Sé lo que quiero, o lo que me gusta, pero no sé quién es la
-persona indicada para hacerlo."*
+El problema: *"Tengo medio pensado lo que quiero. Le escribo a ocho tatuadores,
+seis me dejan en visto, y ninguno me dice un precio hasta la tercera
+respuesta."*
+
+No es un problema de descubrimiento —Instagram lo resuelve mejor que nosotros y
+va a seguir haciéndolo— es un problema de **coordinación y de información**. Un
+feed no lo puede resolver porque un feed no tiene la forma de un pedido.
 
 El loop:
 
 ```
-DESCUBRIR → GUSTO → GENTE → MATCH → ACCIÓN
+CONTÁS LA IDEA → SE VUELVE UN PEDIDO → LE LLEGA A QUIEN LA PUEDE HACER → TE CONTESTAN CON UN PRECIO
 ```
 
 La promesa, en palabras del usuario:
 
-> "Mostranos lo que te gusta. Te ayudamos a descubrir quién puede hacerlo."
+> "Contá tu idea una vez. Te contestan los que la pueden hacer, con precio."
+
+> **Qué decía hasta el 2026-08-21.** El loop era
+> `DESCUBRIR → GUSTO → GENTE → MATCH → ACCIÓN`, y la promesa *"mostranos lo que
+> te gusta, te ayudamos a descubrir quién puede hacerlo"*. Se desenchufó el
+> 2026-08-19 con D-010 y el documento tardó dos días en enterarse — el
+> diagnóstico de eso está en [por-que-mesh.md §1](por-que-mesh.md).
 
 ## 2. Alcance de V1
 
@@ -29,21 +48,31 @@ La promesa, en palabras del usuario:
 | Categoría | Solo tatuajes |
 | Mercado | Buenos Aires / CABA, Argentina |
 | Oferta | Arranca con 8–15 artistas reales curados, con consentimiento; desde 2026-08-19 cualquier artista puede darse de alta solo ([ADR-013](../decisions/ADR-013-artist-self-signup.md)) |
-| Demanda | Cualquiera; sin restricción de quién puede explorar. Desde 2026-08-19 una búsqueda se puede abrir para que los tatuadores la vean ([ADR-014](../decisions/ADR-014-two-sided.md)), apagado por default |
+| Demanda | Cualquiera; sin restricción de quién puede explorar. Una búsqueda se abre para que los tatuadores la vean ([ADR-014](../decisions/ADR-014-two-sided.md)); desde 2026-08-21 **no hay default**: se contesta o no se publica ([ADR-031](../decisions/ADR-031-request-first.md)) |
 | Contacto | Chat propio adentro de MESH ([ADR-012](../decisions/ADR-012-chat.md)); WhatsApp e Instagram para los perfiles sin dueño |
-| Reservas / pagos | Fuera de alcance |
+| Turnos | Adentro desde 2026-08-20 ([ADR-018](../decisions/ADR-018-availability.md)). **Pagos y seña siguen afuera** |
 | Mensajería in-app | Adentro de V1 desde 2026-08-19 ([ADR-012](../decisions/ADR-012-chat.md)) |
-| Reseñas | Fuera de alcance (ver §12) |
+| Reseñas | Adentro desde 2026-08-20, y solo colgadas de un turno que ocurrió ([ADR-019](../decisions/ADR-019-reviews.md)) |
 | Autogestión de profesionales | Adentro: alta propia, estilos, ubicación del estudio y portafolio desde la app ([ADR-013](../decisions/ADR-013-artist-self-signup.md)) |
 | Locale | `es-AR` primario, `en` secundario |
 
 V1 existe para testear una sola hipótesis:
 
-> La gente descubre tatuadores de manera más efectiva cuando MESH aprende su
-> gusto visual y le recomienda profesionales en base a ese gusto.
+> Decir lo que querés tatuarte cuesta **una sola vez**, y la respuesta incluye
+> **un precio**. Eso vale lo suficiente como para dejar Instagram.
 
 Todo lo que no ayude a testear eso está fuera de alcance, por más razonable que
 suene.
+
+**Cómo se falsea**, que importa más que cómo se confirma. La hipótesis muere si
+la gente prefiere mirar fotos y escribir por su cuenta, o si los artistas no
+quieren dar un precio sin ver a la persona — y las dos se prueban con veinte
+conversaciones, no con código. Ver
+[por-que-mesh.md §5](por-que-mesh.md).
+
+> **Qué decía hasta el 2026-08-21.** *"La gente descubre tatuadores de manera
+> más efectiva cuando MESH aprende su gusto visual y le recomienda
+> profesionales en base a ese gusto."* Ver ADR-031.
 
 ## 3. Usuarios
 
@@ -225,28 +254,48 @@ Reglas:
 - Si el artista no tiene WhatsApp, el CTA es Instagram y el copy cambia — no
   fingimos un canal.
 
-## 11. Proyectos
+## 11. El pedido
 
-Un proyecto es un brief liviano: título, categoría, descripción, estilos,
-ubicación, banda de presupuesto opcional, tiempos opcionales, nota de tamaño
-opcional, imágenes de referencia opcionales.
+Un pedido es un brief liviano: título, descripción, estilo, rasgos de la
+taxonomía ([ADR-020](../decisions/ADR-020-brief.md)), ubicación, imágenes de
+referencia opcionales, y presupuesto y tiempos opcionales.
 
-Crear un proyecto produce una lista rankeada de profesionales puntuados contra
-el proyecto (ver `matching.md` §5) en lugar de contra el gusto ambiente.
+Se arma de dos maneras y ninguna es un formulario: **con una foto**
+([ADR-011](../decisions/ADR-011-photo-classification.md)) o **contándolo con
+palabras** ([ADR-021](../decisions/ADR-021-brief-assistant.md)). El formulario
+largo existió, no se llegaba a él desde ninguna pestaña, y se borró el
+2026-08-21.
 
-Explícitamente fuera de V1: pujas, subastas, propuestas, presupuestos, escrow,
-deadlines, flujos de estado de proyecto. Un proyecto en V1 es una búsqueda mejor
-formada, no una publicación de trabajo.
+**Es la puerta de entrada del producto.** Inicio abre con tu pedido y su estado
+—sin pedido, cerrado, abierto sin respuestas, o con propuestas— y la grilla de
+artistas queda un desplazamiento abajo. Ver
+[ADR-031](../decisions/ADR-031-request-first.md).
+
+Al publicarlo se contesta, **obligatoriamente y sin default**, si los tatuadores
+lo pueden ver. Con el sí, le llega a quienes hacen ese estilo y pueden
+responder con un rango de precio y una cantidad de sesiones. Con el no, queda
+guardado y no le llega a nadie — y la pantalla lo dice antes de confirmar, no
+después de esperar una semana. La decisión se puede cambiar más tarde.
+
+Explícitamente fuera de V1: pujas, subastas, escrow, deadlines, flujos de estado
+de proyecto, y cualquier cosa que ponga plata de por medio.
+
+> **Qué decía hasta el 2026-08-21.** *"Crear un proyecto produce una lista
+> rankeada de profesionales puntuados contra el proyecto"*, y *"un proyecto en
+> V1 es una búsqueda mejor formada, no una publicación de trabajo"*. Lo primero
+> se desenchufó con D-010; lo segundo se dio vuelta con ADR-031: un pedido **es**
+> una publicación, con la diferencia de que sale hacia una lista corta de gente
+> que hace ese estilo y no hacia un tablón.
 
 ## 12. Omisiones deliberadas, y por qué
 
 | Omitido | Motivo |
 |---|---|
-| Conversaciones / mensajes in-app | §10 pone el contacto en WhatsApp. Hacer las dos cosas significa construir una superficie de mensajería que nadie pidió, más su carga de moderación, notificaciones y abuso. Revisitar cuando haya evidencia de que la gente quiere salir de WhatsApp. |
-| Reseñas y ratings | Con ~12 artistas y sin transacciones, cualquier UI de reseñas queda vacía o falsa. Las dos opciones dañan más la confianza que la ausencia de reseñas. |
-| Tabla `availability` de calendario | Los artistas de V1 no van a mantener un calendario. Un calendario desactualizado es peor que ninguno. V1 guarda un estado autodeclarado con marca de frescura y lo oculta cuando envejece. |
+| ~~Conversaciones / mensajes in-app~~ | **Ya no se omite** (2026-08-19, [ADR-012](../decisions/ADR-012-chat.md)). El chat propio es lo que hace posible que una propuesta con precio llegue a algún lado. |
+| ~~Reseñas y ratings~~ | **Ya no se omiten** (2026-08-20, [ADR-019](../decisions/ADR-019-reviews.md)), con el candado de que solo reseña quien tuvo un turno que ya pasó. |
+| ~~Tabla `availability` de calendario~~ | **Ya no se omite** (2026-08-20, [ADR-018](../decisions/ADR-018-availability.md)). El artista carga su horario semanal y el perfil muestra cuántos huecos quedan, nunca cuáles. |
+| ~~Tabla `saved_items`~~ | **Ya no se omite** (2026-08-19, [ADR-016](../decisions/ADR-016-saved-items.md)). |
 | Tabla `ProfessionalProfile` separada | Partir `professionals` 1:1 agrega un join y dos juegos de políticas sin diferencia de comportamiento. La separación que importa —*usuario* vs *profesional*— se conserva. Ver [ADR-003](../decisions/ADR-003-domain-model.md). |
-| Tabla `saved_items` | Guardar es una interacción. Modelarlo dos veces invita a que las dos representaciones se contradigan. |
 | Panel de administración | 8–15 artistas se cargan desde archivos de contenido versionados y validados por esquema. |
 | Notificaciones push | Nada en V1 amerita interrumpir a nadie. |
 
@@ -254,36 +303,47 @@ formada, no una publicación de trabajo.
 
 V1 está terminado cuando todo lo siguiente es verdadero.
 
-1. Un usuario nuevo llega a ver una obra a segundos del primer arranque, sin
+1. Un usuario nuevo puede empezar un pedido a segundos del primer arranque, sin
    muro de registro.
-2. Puede reaccionar al trabajo por gesto **y** por botón, con deshacer.
-3. Sus reacciones mueven un perfil de gusto que puede inspeccionar y editar.
-4. Puede ver un resumen de su gusto con un encuadre honesto.
-5. Ve profesionales personalizados solo cuando hay señal real.
-6. Cada match lleva razones derivadas de términos que aportaron al puntaje.
-7. Puede abrir un perfil y recorrer el portfolio con fluidez en un dispositivo
-   real.
-8. Puede contactar al artista por WhatsApp o Instagram con un mensaje
-   precargado, editable y veraz.
-9. Puede crear un proyecto y obtener recomendaciones relevantes y explicadas.
-10. Puede crear una cuenta durable y conservar su gusto.
-11. La autenticación es segura; RLS bloquea todo acceso cruzado entre usuarios,
-    demostrado por tests.
-12. Toda superficie que depende de la red tiene estados de carga, vacío, error y
+2. Puede armarlo con una foto **o** contándolo con palabras, y lo que se
+   publica es lo que quedó en el campo, no lo que propuso el modelo.
+3. Antes de publicarlo contesta, sin default, si los tatuadores lo pueden ver, y
+   sabe qué pasa con cada respuesta.
+4. Al volver a abrir la app ve **su pedido y su estado** antes que cualquier
+   otra cosa, sin que ese estado invente una espera ni un número.
+5. Puede cambiar de opinión: abrir un pedido cerrado, o cerrar uno abierto.
+6. Un artista que hace ese estilo lo recibe, y puede contestar con un rango de
+   precio y una cantidad de sesiones.
+7. Quien pidió ve la propuesta con su precio, abre el perfil de quien contestó y
+   le escribe, todo sin salir de MESH.
+8. Puede además encontrar a alguien por nombre y recorrer quién tatúa cerca
+   suyo, con fluidez en un dispositivo real.
+9. Puede crear una cuenta durable y conservar su pedido.
+10. La autenticación es segura; RLS bloquea todo acceso cruzado entre usuarios,
+    demostrado por tests. Un pedido cerrado no lo ve nadie, ni conociendo su
+    uuid.
+11. Toda superficie que depende de la red tiene estados de carga, vacío, error y
     reintento.
-13. 8–15 perfiles reales de artistas se cargan de forma confiable y repetible
+12. 8–15 perfiles reales de artistas se cargan de forma confiable y repetible
     desde archivos de contenido.
-14. Agregar una segunda categoría no requiere ningún cambio de esquema central.
-15. No queda ningún hallazgo crítico de seguridad abierto.
-16. No queda ningún callejón sin salida de UX: toda pantalla tiene una forma de
+13. Agregar una segunda categoría no requiere ningún cambio de esquema central.
+14. No queda ningún hallazgo crítico de seguridad abierto.
+15. No queda ningún callejón sin salida de UX: toda pantalla tiene una forma de
     avanzar y una de volver.
+
+> **Qué decía hasta el 2026-08-21.** Cinco de los dieciséis criterios eran sobre
+> el mazo de obra, el perfil de gusto y las razones de match. Los tres motores
+> siguen versionados y testeados en `packages/domain`, pero ninguna pantalla los
+> ejecuta desde el 2026-08-19, así que como criterio de "V1 terminado" eran
+> imposibles de cumplir sin volver a enchufarlos. Ver ADR-031.
 
 ## 14. Preguntas abiertas
 
 | # | Pregunta | Responsable | Necesaria para |
 |---|---|---|---|
 | ~~Q1~~ | **Resuelta (2026-08-17): banda.** El puntaje numérico queda en `matches.score` y en builds de debug. Ver ADR-005. | product-critic | — |
-| Q2 | ¿Cuatro pestañas (Descubrir / Matches / Proyectos / Vos) o tres con Proyectos anidado? Recomendación: cuatro, y después medir. | ux-product-designer | Fase 8 |
+| ~~Q2~~ | **Resuelta (2026-08-19): cuatro, y distintas según a qué vino la persona.** Ver [ADR-014](../decisions/ADR-014-two-sided.md) y D-010. | ux-product-designer | — |
 | ~~Q3~~ | **Resuelta (2026-08-17): anónima primero.** Ya configurada en `supabase/config.toml`. Ver ADR-002. | product-architect | — |
-| Q4 | ¿Cuántas interacciones decisivas antes de que el gusto esté "listo"? Valor inicial 12. | matching-engineer | Fase 9 |
-| Q5 | ¿Es honesto mostrar un precio desde cuando los precios argentinos se mueven con la inflación? Recomendación: mostrar una banda con fecha `priced_at`, u omitirlo. | product-architect | Fase 11 |
+| ~~Q4~~ | **Sin objeto por ahora.** El gusto no se ejecuta desde ninguna pantalla (D-010). Vuelve a estar abierta el día que se decida reenchufarlo. | matching-engineer | — |
+| Q5 | ¿Es honesto mostrar un precio desde cuando los precios argentinos se mueven con la inflación? Recomendación: mostrar una banda con fecha `priced_at`, u omitirlo. **Subió de prioridad con ADR-031**: el precio dejó de ser un adorno del perfil y pasó a ser la mitad de la promesa. | product-architect | — |
+| Q6 | ¿Los artistas de CABA aceptan dar un rango de precio sobre un pedido, sin ver a la persona? Es el riesgo más grande de la tesis y no se contesta con código. | product-architect | Antes de sumar oferta |

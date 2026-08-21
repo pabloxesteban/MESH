@@ -1,6 +1,6 @@
 # ADR-014 — MESH tiene dos lados
 
-**Estado:** Aceptado (2026-08-19) · **Fecha:** 2026-08-19 · **Responsable:** product-architect
+**Estado:** Aceptado (2026-08-19), enmendado por [ADR-031](ADR-031-request-first.md) · **Fecha:** 2026-08-19 · **Responsable:** product-architect
 
 ## Contexto
 
@@ -45,6 +45,15 @@ sino que son parte de la decisión:
 **Nada se muestra sin que la persona lo encienda.** `projects` gana
 `is_open_to_professionals`, que arranca en `false`. Una búsqueda cerrada no la
 ve ningún artista, ni por el feed ni por la tabla ni por storage.
+
+> **Enmendado el 2026-08-21 por [ADR-031](ADR-031-request-first.md): la columna
+> sigue arrancando en `false`, pero la pantalla ya no tiene default.** Se
+> pregunta con dos botones y no se publica sin contestar. El motivo: un
+> interruptor apagado es una decisión solo para quien lo nota, y quien no lo
+> miraba se quedaba con un pedido guardado que no le llegaba a nadie, sin
+> saberlo. Lo que este ADR protege es que nadie publique sin querer, no que
+> casi nadie publique. Y ahora se puede cambiar de opinión: `setProjectOpen`
+> abre o cierra un pedido ya publicado, la vuelta atrás que acá faltaba.
 
 **El artista no puede escribir primero.** Manda interés; a la persona le
 aparece en su pestaña; el chat lo abre ella. Es la regla que
@@ -104,8 +113,9 @@ el mismo y sigue corriendo en una sola dirección.
 **Lo que se abre, dicho sin vueltas.** Una búsqueda abierta expone fotos que la
 persona subió para sí misma, más el estilo, el barrio, el presupuesto y la
 urgencia si los escribió. Eso lo ve cualquier artista publicado que haga ese
-estilo. El interruptor está apagado por default y el texto dice las dos cosas
-que importan —qué se muestra y qué no— pero el riesgo existe y es real.
+estilo. El texto dice las dos cosas que importan —qué se muestra y qué no— y
+desde ADR-031 la pregunta es obligatoria en vez de un interruptor apagado, pero
+el riesgo existe y es real.
 
 **No hay moderación, otra vez.** Igual que en ADR-012 y ADR-013: no hay
 denuncia, ni bloqueo, ni forma de reportar a un artista que manda interés a

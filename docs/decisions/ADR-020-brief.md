@@ -2,6 +2,11 @@
 
 **Estado:** Aceptado (2026-08-20) · **Fecha:** 2026-08-20 · **Responsable:** product-architect
 
+> **Actualizado el 2026-08-21.** El brief dejó de ser un objeto central que vive
+> adentro de una pantalla y pasó a ser **la puerta de entrada**: Inicio abre con
+> él. Nada de lo que este ADR decide cambió; cambió dónde está. Ver
+> [ADR-031](ADR-031-request-first.md).
+
 ## Contexto
 
 MESH tiene hoy dos mitades sueltas que nunca se tocan.

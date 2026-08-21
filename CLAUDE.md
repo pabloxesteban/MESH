@@ -4,9 +4,17 @@ Leé esto antes de cambiar nada. Es corto a propósito.
 
 ## Qué es MESH
 
-MESH ayuda a la gente a descubrir a la persona indicada para hacer realidad una
-idea. Muestra **quién trabaja cerca tuyo**, con una muestra de su obra, y
-**toda la obra que hay** para buscar ideas. Tatuadores, Buenos Aires / CABA.
+MESH existe para que **decir lo que querés tatuarte cueste una sola vez, y para
+que la respuesta incluya un precio**. Contás tu idea —con una foto o con
+palabras—, se vuelve un pedido, le llega a quienes hacen ese estilo, y te
+contestan con un rango de precio y una cantidad de sesiones. Ver
+[ADR-031](docs/decisions/ADR-031-request-first.md) y
+[por-que-mesh.md](docs/product/por-que-mesh.md).
+
+Eso es lo que Instagram no puede hacer: un feed no tiene la forma de un pedido.
+Lo demás —**quién trabaja cerca tuyo** con una muestra de su obra, y **toda la
+obra que hay** para buscar ideas— sigue estando, un desplazamiento abajo, pero
+no es la promesa. Tatuadores, Buenos Aires / CABA.
 El catálogo arranca con 8–15 artistas reales
 curados desde `content/artists/`, y **desde la app cualquier artista puede darse
 de alta solo** — ver [ADR-013](docs/decisions/ADR-013-artist-self-signup.md),
@@ -15,7 +23,8 @@ va por chat propio con los artistas que tienen su perfil reclamado o creado, y
 por WhatsApp/Instagram con el resto.
 
 MESH **no** desliza obra para aprender tu gusto ni puntúa encajes: eso existió y
-se sacó. Los motores de gusto y matching siguen en `packages/domain`,
+se sacó — y durante dos días eso dejó al producto sin ninguna promesa, que es
+el agujero que tapa ADR-031. Los motores de gusto y matching siguen en `packages/domain`,
 versionados y con sus tests, pero hoy **ninguna pantalla de quien busca los
 ejecuta** — ver [D-010](docs/design/MESH-DESIGN-DECISIONS.md). Volver a
 enchufarlos es una decisión de producto, y se escribe antes de codearla.
@@ -189,12 +198,12 @@ depende de a qué vino la persona. Ver
 
 | | Busca a alguien | Ofrece un servicio |
 |---|---|---|
-| **Inicio** | La grilla de artistas: un carrusel chico de la obra de cada uno y, debajo, nombre, foto y ubicación. Contesta *quién tatúa cerca mío*. Arriba dice desde dónde se mide y se cambia — GPS, un barrio, o nada ([D-012](docs/design/MESH-DESIGN-DECISIONS.md)). Ordena por **anillo** de cercanía y **nunca filtra por ella**; adentro de cada
+| **Inicio** | **Tu pedido, arriba de todo**, y debajo la grilla de artistas. El pedido tiene cuatro estados —sin pedido, cerrado, abierto sin respuestas, con propuestas— y ninguno inventa una espera ni un número ([ADR-031](docs/decisions/ADR-031-request-first.md)). La grilla: un carrusel chico de la obra de cada uno y, debajo, nombre, foto y ubicación. Contesta *quién tatúa cerca mío*. Arriba dice desde dónde se mide y se cambia — GPS, un barrio, o nada ([D-012](docs/design/MESH-DESIGN-DECISIONS.md)). Ordena por **anillo** de cercanía y **nunca filtra por ella**; adentro de cada
 anillo el orden se remezcla en cada sesión, para que nadie quede clavado arriba
 ([ADR-030](docs/decisions/ADR-030-first-run.md)). La ubicación se pregunta una
-sola vez, al arrancar. Y arriba de todo, un campo para **buscar a alguien por nombre**, que es como llega quien ya sabe a quién busca ([ADR-029](docs/decisions/ADR-029-search-by-name.md)). | El mazo de búsquedas de gente. Un tatuador no quiere deslizar obra de otros tatuadores. |
+sola vez, al arrancar. Y un campo para **buscar a alguien por nombre**, que es como llega quien ya sabe a quién busca ([ADR-029](docs/decisions/ADR-029-search-by-name.md)) — mientras se busca, el pedido y la ubicación se esconden. | El mazo de búsquedas de gente. Un tatuador no quiere deslizar obra de otros tatuadores. |
 | **Segunda** | **Explorar**: toda la obra de todos los que se registraron, cerca o lejos. Contesta *qué me quiero tatuar*. Desde acá se entra a las dos formas de armar un pedido: **con una foto** ([ADR-011](docs/decisions/ADR-011-photo-classification.md)) o **contándolo con palabras** ([ADR-021](docs/decisions/ADR-021-brief-assistant.md)). | **Estudio**: tu perfil, tus estilos, tu ubicación, tu obra. |
-| **Tercera** | **Chats** | **Chats**: nada más. MESH no le recomienda tatuadores a un tatuador. |
+| **Tercera** | **Chats**: conversaciones y nada más. Las propuestas se ven en Inicio, colgadas del pedido que las provocó. | **Chats**: nada más. MESH no le recomienda tatuadores a un tatuador. |
 | **Cuarta** | **Perfil** | **Perfil** |
 
 Ni Inicio ni Explorar terminan en una obra: **las dos terminan en una persona**,
@@ -212,8 +221,10 @@ El estudio no es una pestaña para quien busca: se visita cada tanto, no cada
 sesión, y se llega desde Perfil.
 
 **Una búsqueda es privada salvo que su dueña la abra.** Las fotos de referencia
-que alguien sube son suyas; que un tatuador las vea es una decisión explícita,
-con un interruptor apagado por default. Y un artista nunca escribe primero:
+que alguien sube son suyas; que un tatuador las vea es una decisión explícita —
+y desde el 2026-08-21 **obligatoria y sin default**: se contesta o no se
+publica, y decir que no lleva su costo escrito al lado. Se puede cambiar
+después. Y un artista nunca escribe primero:
 manda interés, y el chat lo abre la persona. Ver
 [ADR-012](docs/decisions/ADR-012-chat.md) y
 [ADR-014](docs/decisions/ADR-014-two-sided.md).
