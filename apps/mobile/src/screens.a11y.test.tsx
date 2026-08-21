@@ -38,7 +38,7 @@ import { ChatsScreen } from '@/features/chat/ChatsScreen.tsx'
 import { AuthForm } from '@/features/auth/AuthForm.tsx'
 import { NewPasswordScreen } from '@/features/auth/NewPasswordScreen.tsx'
 import { SavedScreen } from '@/features/saved/SavedScreen.tsx'
-import { AgeScreen } from '@/features/onboarding/AgeScreen.tsx'
+import { LocationScreen } from '@/features/onboarding/LocationScreen.tsx'
 import { AssistantScreen } from '@/features/assistant/AssistantScreen.tsx'
 import { ProjectsScreen } from '@/features/projects/ProjectsScreen.tsx'
 import { SearchLocationScreen } from '@/features/location/SearchLocationScreen.tsx'
@@ -968,19 +968,17 @@ describe('barrido de accesibilidad y callejones', () => {
   })
   // --- las cuatro que se habían quedado afuera del barrido -------------------
 
-  it('mayoría de edad, la pregunta y el "no"', () => {
-    render(<AgeScreen busy={false} onConfirm={jest.fn()} onSkip={jest.fn()} />)
-    sweep('edad · la pregunta')
-    sweepShouting('edad · la pregunta')
-    sweepDynamicType('edad · la pregunta')
-
-    // Decir que no es el estado que más fácil se convierte en pared: no se
-    // guarda nada, así que la pantalla tiene que ofrecer volver.
-    fireEvent.press(screen.getByTestId('age-no'))
-    expect(screen.getByTestId('age-minor')).toBeTruthy()
-    sweep('edad · dijo que no')
-    sweepShouting('edad · dijo que no')
-    sweepDynamicType('edad · dijo que no')
+  it('la ubicación, preguntada una sola vez al arrancar', () => {
+    render(
+      <LocationScreen busy={false} onAllow={jest.fn()} onSkip={jest.fn()} />,
+    )
+    // Las dos salidas son botones: "ahora no" es una respuesta válida, no un
+    // enlace chiquito al pie.
+    expect(screen.getByTestId('onboarding-location-allow')).toBeTruthy()
+    expect(screen.getByTestId('onboarding-location-skip')).toBeTruthy()
+    sweepShouting('ubicación · se pregunta una vez')
+    sweep('ubicación · se pregunta una vez')
+    sweepDynamicType('ubicación · se pregunta una vez')
   })
 
   it('tus pedidos, sin ninguno', async () => {

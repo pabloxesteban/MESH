@@ -522,7 +522,7 @@ acierta.
 |---|---|---|
 | **Mi ubicación** (GPS) | distancia real, `sortByProximity` | **sí** |
 | **Un barrio** elegido a mano | cercanía de barrio, `sortByNeighborhood` | **no** |
-| **Sin ubicación** | nada — queda el orden del servidor | no |
+| **Sin ubicación** | nada — queda la mezcla de la sesión | no |
 
 **Elegir un barrio no da kilómetros, y eso no es una limitación técnica que
 haya que resolver.** Los barrios de la taxonomía no tienen coordenadas, y aunque
@@ -536,9 +536,17 @@ negás el permiso. Quien no quiere compartir dónde está tiene que poder usar l
 app sin que se lo vuelvan a pedir en cada pantalla.
 
 **El GPS elegido sin permiso no finge.** El encabezado dice "sin ubicación" —
-que es la verdad— y el aviso de abajo explica qué falta y cómo activarlo. Es el
-caso que más se rompe en silencio: el modo dice `device` y la app se comporta
-como si supiera dónde está.
+que es la verdad. Es el caso que más se rompe en silencio: el modo dice `device`
+y la app se comporta como si supiera dónde está.
+
+> **Enmienda del 2026-08-21 — se pregunta una sola vez, y el aviso se fue.**
+> Debajo del encabezado había un aviso que pedía el permiso, y volvía **en cada
+> sesión** hasta que alguien cediera. Eso contradice de frente lo que dice tres
+> párrafos más arriba: *"sin que se lo vuelvan a pedir en cada pantalla"*. Ahora
+> la ubicación se pregunta una vez, en el onboarding, con "ahora no" del mismo
+> peso que "usar mi ubicación", y la respuesta se respeta para siempre. El
+> encabezado sigue siendo la forma de cambiar de idea — lo que se fue es la
+> insistencia, no la puerta. Ver [ADR-030](../decisions/ADR-030-first-run.md).
 
 **La ubicación ordena y nunca filtra.** Está dicho arriba del selector, porque
 es lo que más se malinterpreta de un control de ubicación: en casi todas las

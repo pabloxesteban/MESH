@@ -156,7 +156,7 @@ select isnt_empty(
 -- trae. Los estilos viven en el perfil.
 select ok(
   (select pg_get_function_result(
-     'public.get_artist_grid(text, integer, integer)'::regprocedure)
+     'public.get_artist_grid(text, integer, integer, text)'::regprocedure)
    ) not like '%style%',
   'La grilla no devuelve estilos: no los muestra, no los baja'
 );
@@ -192,7 +192,7 @@ select results_eq(
 -- es el que se entera si alguien la baja a SQL.
 select ok(
   (select pg_get_function_result(
-     'public.get_artist_grid(text, integer, integer)'::regprocedure)
+     'public.get_artist_grid(text, integer, integer, text)'::regprocedure)
    ) not like '%distance%',
   'La grilla no devuelve distancia: el orden por cercanía vive en el dominio'
 );
@@ -200,7 +200,7 @@ select ok(
 -- --- permisos ----------------------------------------------------------------
 
 select ok(
-  not has_function_privilege('anon', 'public.get_artist_grid(text, integer, integer)', 'execute'),
+  not has_function_privilege('anon', 'public.get_artist_grid(text, integer, integer, text)', 'execute'),
   'anon no puede ejecutar la grilla'
 );
 

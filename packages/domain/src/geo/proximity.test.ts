@@ -1,4 +1,9 @@
-import { sortByNeighborhood, sortByProximity } from './proximity.ts'
+import {
+  DISTANCE_BANDS_KM,
+  distanceBand,
+  sortByNeighborhood,
+  sortByProximity,
+} from './proximity.ts'
 
 const PALERMO = { lat: -34.5875, lng: -58.4371 }
 const SAN_TELMO = { lat: -34.6212, lng: -58.3731 }
@@ -125,5 +130,54 @@ describe('sortByNeighborhood', () => {
     // sería inventarlo.
     const [primero] = sortByNeighborhood([artista('a', 'palermo')], 'palermo')
     expect(primero).not.toHaveProperty('distanceKm')
+  })
+})
+
+describe('anillos de distancia', () => {
+  it('quien está igual de lejos en la práctica queda empatado', () => {
+    // Cien metros de diferencia no cambian el viaje de nadie, y en un catálogo
+    // chico ordenar por el kilómetro exacto le regala el primer puesto de por
+    // vida a quien lo tenga.
+    expect(distanceBand(0.4)).toBe(distanceBand(1.9))
+    expect(distanceBand(2.1)).toBe(distanceBand(4.8))
+  })
+
+  it('pero un anillo más lejos sigue yendo después', () => {
+    expect(distanceBand(1.9)).toBeLessThan(distanceBand(2.1))
+    expect(distanceBand(9)).toBeLessThan(distanceBand(11))
+    expect(distanceBand(19)).toBeLessThan(distanceBand(40))
+  })
+
+  it('los cortes están en el límite, no después', () => {
+    for (const corte of DISTANCE_BANDS_KM) {
+      expect(distanceBand(corte)).toBeLessThan(distanceBand(corte + 0.001))
+    }
+  })
+
+  it('el orden dentro del anillo es el que trajo la base', () => {
+    // **El test de la decisión.** La base manda una mezcla nueva en cada
+    // sesión; el dominio no puede pisarla reordenando por el kilómetro exacto,
+    // porque ahí se pierde todo el azar.
+    const cerca = { lat: -34.5885, lng: -58.4381 } // ~0,15 km de PALERMO
+    const masCerca = { lat: -34.5876, lng: -58.4372 } // ~0,015 km
+
+    const primero = sortByProximity(
+      [artista('b', cerca), artista('a', masCerca)],
+      PALERMO,
+    ).map((e) => e.item.nombre)
+    expect(primero).toEqual(['b', 'a'])
+
+    // La misma pareja al revés: el orden lo sigue decidiendo quién vino
+    // primero, no cuál está a quince metros menos.
+    const segundo = sortByProximity(
+      [artista('a', masCerca), artista('b', cerca)],
+      PALERMO,
+    ).map((e) => e.item.nombre)
+    expect(segundo).toEqual(['a', 'b'])
+  })
+
+  it('la distancia que se muestra sigue siendo la real, no la del anillo', () => {
+    const [primero] = sortByProximity([artista('a', SAN_TELMO)], PALERMO)
+    expect(primero?.distanceKm).toBeCloseTo(7.2, 0)
   })
 })

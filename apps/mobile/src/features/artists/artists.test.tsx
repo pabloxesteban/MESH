@@ -177,7 +177,9 @@ describe('grilla de artistas', () => {
     // Sin las dos puntas no hay distancia, y una estimada sería peor que
     // ninguna.
     expect(screen.queryByText(/km/)).toBeNull()
-    expect(screen.getByTestId('artists-location-prompt')).toBeTruthy()
+    // Y **no** hay ningún cartel pidiendo el permiso: eso se pregunta una sola
+    // vez, en el onboarding, y la respuesta se respeta. Ver ADR-030.
+    expect(screen.queryByTestId('artists-location-prompt')).toBeNull()
   })
 
   it('sin barrio ni distancia lo dice, no rellena con "CABA"', async () => {
@@ -331,8 +333,9 @@ describe('desde dónde se mira', () => {
       'Sin ubicación',
     )
     expect(screen.queryByText(/km/)).toBeNull()
-    // Y ahí sí hay algo que arreglar, así que el aviso aparece.
-    expect(screen.getByTestId('artists-location-prompt')).toBeTruthy()
+    // El encabezado dice la verdad y ofrece cambiarla; lo que ya no hay es un
+    // cartel insistiendo con el permiso en cada sesión. Ver ADR-030.
+    expect(screen.queryByTestId('artists-location-prompt')).toBeNull()
   })
 
   it('ningún modo esconde a nadie', async () => {

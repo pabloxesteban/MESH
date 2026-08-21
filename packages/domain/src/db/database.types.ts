@@ -1714,7 +1714,12 @@ export type Database = {
       delete_own_account: { Args: never; Returns: undefined }
       export_own_account: { Args: never; Returns: Json }
       get_artist_grid: {
-        Args: { p_category_slug: string; p_limit?: number; p_pieces?: number }
+        Args: {
+          p_category_slug: string
+          p_limit?: number
+          p_pieces?: number
+          p_seed?: string
+        }
         Returns: {
           avatar_path: string
           display_name: string

@@ -60,10 +60,12 @@ están**:
   fotos, chats, reseñas, el hilo del asistente y el perfil de artista si lo hay.
   Sin período de gracia. Queda un solo registro —un uuid y una fecha— para poder
   demostrar que se cumplió. Ver [ADR-024](docs/decisions/ADR-024-account-deletion.md).
-- **Mayoría de edad.** Se pregunta una vez, **sin pedir fecha de nacimiento**, y
-  sin esa declaración no se puede cerrar un turno — la puerta vive adentro de
-  `schedule_appointment()`. Decir que no, no se guarda: sería un registro de
-  menores de edad. Ver [ADR-025](docs/decisions/ADR-025-age-gate.md).
+- **Mayoría de edad.** Se pregunta **al crear la cuenta** —no al abrir la app—,
+  **sin pedir fecha de nacimiento**, y sin esa declaración no se puede cerrar un
+  turno: la puerta vive adentro de `schedule_appointment()`. Quien usa la app sin
+  cuenta la declara desde Perfil. Decir que no, no se guarda: sería un registro
+  de menores de edad. Ver [ADR-025](docs/decisions/ADR-025-age-gate.md) y
+  [ADR-030](docs/decisions/ADR-030-first-run.md).
 - **Buscar a alguien por nombre.** Ya existe, arriba de Inicio. Sin acentos y
   sin mayúsculas, y **el resultado no se ordena por cercanía** —si escribiste un
   nombre querés ese nombre—. A quien todavía no subió obra también se lo
@@ -187,7 +189,10 @@ depende de a qué vino la persona. Ver
 
 | | Busca a alguien | Ofrece un servicio |
 |---|---|---|
-| **Inicio** | La grilla de artistas: un carrusel chico de la obra de cada uno y, debajo, nombre, foto y ubicación. Contesta *quién tatúa cerca mío*. Arriba dice desde dónde se mide y se cambia — GPS, un barrio, o nada ([D-012](docs/design/MESH-DESIGN-DECISIONS.md)). Ordena por cercanía, **nunca filtra por ella**. Y arriba de todo, un campo para **buscar a alguien por nombre**, que es como llega quien ya sabe a quién busca ([ADR-029](docs/decisions/ADR-029-search-by-name.md)). | El mazo de búsquedas de gente. Un tatuador no quiere deslizar obra de otros tatuadores. |
+| **Inicio** | La grilla de artistas: un carrusel chico de la obra de cada uno y, debajo, nombre, foto y ubicación. Contesta *quién tatúa cerca mío*. Arriba dice desde dónde se mide y se cambia — GPS, un barrio, o nada ([D-012](docs/design/MESH-DESIGN-DECISIONS.md)). Ordena por **anillo** de cercanía y **nunca filtra por ella**; adentro de cada
+anillo el orden se remezcla en cada sesión, para que nadie quede clavado arriba
+([ADR-030](docs/decisions/ADR-030-first-run.md)). La ubicación se pregunta una
+sola vez, al arrancar. Y arriba de todo, un campo para **buscar a alguien por nombre**, que es como llega quien ya sabe a quién busca ([ADR-029](docs/decisions/ADR-029-search-by-name.md)). | El mazo de búsquedas de gente. Un tatuador no quiere deslizar obra de otros tatuadores. |
 | **Segunda** | **Explorar**: toda la obra de todos los que se registraron, cerca o lejos. Contesta *qué me quiero tatuar*. Desde acá se entra a las dos formas de armar un pedido: **con una foto** ([ADR-011](docs/decisions/ADR-011-photo-classification.md)) o **contándolo con palabras** ([ADR-021](docs/decisions/ADR-021-brief-assistant.md)). | **Estudio**: tu perfil, tus estilos, tu ubicación, tu obra. |
 | **Tercera** | **Chats** | **Chats**: nada más. MESH no le recomienda tatuadores a un tatuador. |
 | **Cuarta** | **Perfil** | **Perfil** |

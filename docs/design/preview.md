@@ -131,6 +131,19 @@ son fixtures, y en el preview todo el catálogo lo es. La misma limitación que 
 tenía el almanaque. Para verlas hay que crear un perfil propio desde
 **Perfil → Tu estudio**.
 
+**El arranque cambió el 2026-08-21 y se mira de una.** Primero la pregunta de
+intención, después la de ubicación —con "ahora no" del mismo peso— y listo. La
+edad **ya no se pregunta al abrir**: está en crear cuenta, y en Perfil para
+quien no tiene. Como cada recarga del preview es una sesión nueva, las dos
+preguntas vuelven a aparecer cada vez; en la app real la ubicación se guarda en
+el teléfono y se pregunta una sola vez. Ver
+[ADR-030](../decisions/ADR-030-first-run.md).
+
+**Y el orden de Inicio cambia en cada recarga.** No es un bug del preview: es la
+mezcla por sesión. Los quince fixtures no tienen coordenadas, así que caen todos
+en el mismo grupo y se remezclan enteros; con ubicaciones reales el remezclado
+pasa adentro de cada anillo de distancia.
+
 **Buscar por nombre sí se puede mirar entero.** El campo está arriba de Inicio,
 y el catálogo de prueba tiene quince nombres reales para escribirle: "ro"
 devuelve a Delfina Roig primero, después a Milena Ostrovsky y a Nahuel

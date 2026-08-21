@@ -46,12 +46,26 @@ export interface ArtistCardData {
  */
 const MAX_ARTISTS = 100
 
+/**
+ * La semilla de esta sesión.
+ *
+ * Se calcula una sola vez, al cargar el módulo, y por eso vive acá afuera y no
+ * adentro de la función: si se sorteara en cada llamada, la lista se rebarajaría
+ * sola cada vez que volvés de un perfil. Una lista que se mueve bajo los dedos
+ * es peor que una clavada.
+ *
+ * Con esto, el orden es distinto cada vez que se abre la app y el mismo mientras
+ * dura la sesión. Ver `supabase/migrations/20260821000800_session_shuffle.sql`.
+ */
+const SESSION_SEED = Math.random().toString(36).slice(2)
+
 export async function fetchArtistGrid(
   categorySlug: string,
 ): Promise<readonly ArtistCardData[]> {
   const { data, error } = await supabase.rpc('get_artist_grid', {
     p_category_slug: categorySlug,
     p_limit: MAX_ARTISTS,
+    p_seed: SESSION_SEED,
   })
 
   if (error != null) throw error

@@ -23,14 +23,40 @@ export type { ArtistCardData, ArtistPiece } from './queries.ts'
 /** Cuántas obras entran en el carrusel. El mismo número que el RPC. */
 const PIECES = 6
 
+/**
+ * La semilla de esta sesión, igual que en `queries.ts`.
+ *
+ * Sin esto el preview enseñaría lo contrario de lo que hace el producto: la
+ * base remezcla en cada sesión (ADR-030) y acá el orden quedaría clavado en el
+ * del catálogo horneado, que además está alfabetizado. Lo encontró el paseo del
+ * 2026-08-21 — dos aperturas seguidas devolvían exactamente la misma lista.
+ */
+const SESSION_SEED = Math.floor(Math.random() * 0xffffffff)
+
+/**
+ * La misma mezcla que hace `order by md5(semilla || id)` en la base.
+ *
+ * FNV-1a sobre la semilla y el slug: dos sesiones distintas dan órdenes
+ * distintos, y adentro de una sesión el orden no se mueve, que es la mitad que
+ * importa. `>>> 0` en cada paso mantiene el entero sin signo de 32 bits.
+ */
+function mezcla(slug: string): number {
+  let hash = (2166136261 ^ SESSION_SEED) >>> 0
+  for (const letra of slug) {
+    hash = (hash ^ letra.charCodeAt(0)) >>> 0
+    hash = Math.imul(hash, 16777619) >>> 0
+  }
+  return hash
+}
+
 export async function fetchArtistGrid(
   _categorySlug: string,
 ): Promise<readonly ArtistCardData[]> {
-  return (
-    (await todos())
-      // El RPC esconde a quien no tiene una sola obra: su tarjeta saldría vacía.
-      .filter((artist) => artist.pieces.length > 0)
-  )
+  return (await todos())
+    .filter((artist) => artist.pieces.length > 0)
+    .map((artist) => ({ artist, orden: mezcla(artist.slug) }))
+    .sort((a, b) => a.orden - b.orden)
+    .map(({ artist }) => artist)
 }
 
 /**

@@ -3,6 +3,7 @@ import { router } from 'expo-router'
 import { AuthForm } from '@/features/auth/AuthForm.tsx'
 import { upgradeToAccount } from '@/features/auth/queries.ts'
 import { useGoogle } from '@/features/auth/useGoogle.ts'
+import { useConfirmAdult } from '@/features/auth/useConfirmAdult.ts'
 
 /**
  * Crear cuenta = convertir la sesión anónima en una cuenta.
@@ -12,9 +13,13 @@ import { useGoogle } from '@/features/auth/useGoogle.ts'
  *
  * Con Google pasa lo mismo por otro camino: se **vincula** la identidad al
  * usuario que ya existe en vez de abrir uno nuevo. Ver ADR-015.
+ *
+ * **Y acá se pregunta la edad**, que hasta el 2026-08-21 era la primera
+ * pantalla de la app. Ver ADR-030.
  */
 export default function SignUpScreen() {
   const google = useGoogle()
+  const declararMayor = useConfirmAdult()
 
   return (
     <AuthForm
@@ -23,6 +28,7 @@ export default function SignUpScreen() {
       submitKey="auth.signUp.submit"
       onSubmit={upgradeToAccount}
       onGoogle={google}
+      onAdultConfirmed={declararMayor}
       onDone={() => router.back()}
       links={[
         {

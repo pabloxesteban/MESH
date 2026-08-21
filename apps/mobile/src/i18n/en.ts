@@ -61,6 +61,11 @@ export const en: Readonly<Record<TranslationKey, string>> = {
   'auth.field.password': 'Password',
   'auth.field.password.hint': 'At least 10 characters',
 
+  'auth.adult.label': 'I am 18 or older',
+  'auth.adult.checked': 'Declared: I am 18 or older. Tap to clear.',
+  'auth.adult.unchecked': 'Declare that I am 18 or older',
+  'auth.adult.hint':
+    'Needed to book an appointment. We do not ask for your date of birth or store it.',
   'auth.or': 'or',
   'auth.google': 'Continue with Google',
   'auth.google.hint':
@@ -100,6 +105,13 @@ export const en: Readonly<Record<TranslationKey, string>> = {
   'artists.location.body':
     'With your location on we sort by distance and tell you how far each one is. Without it the list still shows, in another order.',
   'artists.location.action': 'Turn on my location',
+  'onboardingLocation.title': 'Where should we measure from?',
+  'onboardingLocation.body':
+    'With your location we sort the list nearest first and tell you how many kilometres away each studio is. Without it the list looks the same, in a different order.',
+  'onboardingLocation.privacy':
+    'It is only used on your phone, to sort. We do not store it or show it to anyone.',
+  'onboardingLocation.allow': 'Use my location',
+  'onboardingLocation.skip': 'Not now',
   'searchLocation.title': 'Where from',
   'searchLocation.hint':
     'Changes the order of the list. It never hides anyone: whoever is far away still shows up, further down.',
@@ -580,14 +592,7 @@ export const en: Readonly<Record<TranslationKey, string>> = {
   'replyHabit.own': 'This is how your replying looks on your profile',
 
   'age.title': 'One thing before you come in',
-  'age.body':
-    'You have to be 18 or older to book a tattoo appointment. We do not ask for your date of birth or any document.',
   'age.yes': "Yes, I'm 18 or older",
-  'age.no': 'Not yet',
-  'age.back': 'Back',
-  'age.minor.body':
-    'You can still browse work and save what you like. What you cannot do is book an appointment until you turn 18.',
-  'age.minor.continue': 'Come in anyway',
   'age.blocked':
     'Booking an appointment needs you to confirm you are 18 or older. You can do it from your profile.',
 

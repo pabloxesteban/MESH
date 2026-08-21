@@ -78,6 +78,11 @@ export const esAR = {
   // Los errores de auth no distinguen "no existe ese correo" de "la contraseña
   // está mal": esa diferencia le confirma a cualquiera si una persona tiene
   // cuenta.
+  'auth.adult.label': 'Tengo 18 años o más',
+  'auth.adult.checked': 'Declarado: tengo 18 años o más. Tocá para desmarcar.',
+  'auth.adult.unchecked': 'Declarar que tengo 18 años o más',
+  'auth.adult.hint':
+    'Hace falta para sacar un turno. No te pedimos la fecha de nacimiento ni la guardamos.',
   'auth.or': 'o',
   'auth.google': 'Continuar con Google',
   'auth.google.hint':
@@ -123,6 +128,13 @@ export const esAR = {
     'Con tu ubicación activada ordenamos por cercanía y te decimos a cuántos kilómetros está cada uno. Sin eso la lista igual se ve, en otro orden.',
   'artists.location.action': 'Activar mi ubicación',
   // --- desde dónde se mira ---
+  'onboardingLocation.title': '¿Desde dónde te mostramos?',
+  'onboardingLocation.body':
+    'Con tu ubicación ordenamos la lista de más cerca a más lejos y te decimos a cuántos kilómetros queda cada estudio. Sin ella la lista se ve igual, en otro orden.',
+  'onboardingLocation.privacy':
+    'Solo se usa en tu teléfono para ordenar. No la guardamos ni se la mostramos a nadie.',
+  'onboardingLocation.allow': 'Usar mi ubicación',
+  'onboardingLocation.skip': 'Ahora no',
   'searchLocation.title': 'Desde dónde',
   'searchLocation.hint':
     'Cambia el orden de la lista. Nunca esconde a nadie: quien está lejos aparece igual, más abajo.',
@@ -641,14 +653,7 @@ export const esAR = {
   // con ella tendríamos un dato sensible para calcular un booleano que ya nos
   // dieron.
   'age.title': 'Una sola cosa antes de entrar',
-  'age.body':
-    'Para arreglar un turno de tatuaje hay que ser mayor de 18. No te pedimos la fecha de nacimiento ni ningún documento.',
   'age.yes': 'Sí, tengo 18 o más',
-  'age.no': 'Todavía no',
-  'age.back': 'Volver',
-  'age.minor.body':
-    'Podés seguir mirando obra y guardar lo que te gusta. Lo que no vas a poder es cerrar un turno hasta que cumplas 18.',
-  'age.minor.continue': 'Entrar igual',
   'age.blocked':
     'Para cerrar un turno hace falta confirmar que sos mayor de 18. Se hace desde Perfil.',
 

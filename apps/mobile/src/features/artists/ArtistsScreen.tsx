@@ -22,6 +22,12 @@
  * Ninguna esconde a nadie: quien está lejos, o no publicó dónde trabaja,
  * aparece igual y más abajo.
  *
+ * **Acá no se pide la ubicación.** Se pregunta una sola vez al arrancar, en el
+ * onboarding, y se respeta la respuesta. Antes había un cartel en esta pantalla
+ * que volvía en cada sesión hasta que alguien cediera; se sacó el 2026-08-21.
+ * Quien quiera cambiar de idea lo hace desde el encabezado, que ya estaba.
+ * Ver [ADR-030](../../../../docs/decisions/ADR-030-first-run.md).
+ *
  * **Y arriba de todo, buscar por nombre.** Es la tercera forma de llegar a
  * una persona, y la única que sirve cuando ya sabés a quién buscás: hasta
  * ahora quien llegaba con un nombre en la mano tenía que desplazarse hasta
@@ -47,12 +53,10 @@ import { sortByNeighborhood, sortByProximity } from '@mesh/domain'
 
 import {
   Box,
-  Button,
   EmptyState,
   SCREEN_GUTTER,
   SearchField,
   Skeleton,
-  Text,
   spacing,
   useMotion,
   useTheme,
@@ -262,25 +266,14 @@ export function ArtistsScreen({
 
         {/* Mientras se busca, el encabezado de ubicación se va: dice desde
             dónde se mide la cercanía, y en un resultado por nombre la cercanía
-            no mide nada. Dejarlo sería prometer un orden que no está pasando.
-            El mismo motivo vale para el pedido de GPS. */}
+            no mide nada. Dejarlo sería prometer un orden que no está pasando. */}
         {buscando ? null : (
-          <>
-            <SearchLocationHeader
-              value={searchLocation.value}
-              deviceNeighborhoodSlug={device.location?.neighborhoodSlug ?? null}
-              deviceReady={deviceCoordinates != null}
-              onChange={onChangeLocation}
-            />
-
-            {/* El aviso aparece solo cuando hay algo que arreglar: elegiste el
-                GPS y todavía no lo diste. En los otros modos no falta nada, así
-                que no hay nada que pedir. */}
-            {searchLocation.value.mode === 'device' &&
-            (device.status === 'unrequested' || device.status === 'denied') ? (
-              <LocationPrompt onRequest={device.request} />
-            ) : null}
-          </>
+          <SearchLocationHeader
+            value={searchLocation.value}
+            deviceNeighborhoodSlug={device.location?.neighborhoodSlug ?? null}
+            deviceReady={deviceCoordinates != null}
+            onChange={onChangeLocation}
+          />
         )}
         {body}
       </ScrollView>
@@ -297,38 +290,6 @@ export function ArtistsScreen({
         />
       ) : null}
     </View>
-  )
-}
-
-/**
- * Por qué la lista no está ordenada por cercanía.
- *
- * No dice "activá la ubicación para una mejor experiencia": dice qué falta y
- * qué cambia. Y no bloquea nada — la lista está abajo igual.
- */
-function LocationPrompt({ onRequest }: { onRequest: () => void }) {
-  const t = useT()
-
-  return (
-    <Box
-      gap="xs"
-      paddingX="lg"
-      paddingBottom="md"
-      testID="artists-location-prompt"
-    >
-      <Text role="body" color="textSecondary">
-        {t('artists.location.body')}
-      </Text>
-      <View style={{ alignItems: 'flex-start' }}>
-        <Button
-          label={t('artists.location.action')}
-          variant="secondary"
-          size="sm"
-          onPress={onRequest}
-          testID="artists-location-request"
-        />
-      </View>
-    </Box>
   )
 }
 

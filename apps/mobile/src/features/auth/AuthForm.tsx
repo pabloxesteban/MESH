@@ -42,6 +42,18 @@ export interface AuthFormProps {
    * arrepentí" en "algo se rompió".
    */
   onGoogle?: () => Promise<TranslationKey | null | 'ok'>
+  /**
+   * Pedir que declare tener 18 años. Solo al **crear cuenta**.
+   *
+   * Es donde vive la pregunta desde el 2026-08-21. Antes era la primera
+   * pantalla de la app, antes de que nadie supiera qué era MESH — que no es lo
+   * que hace ninguna app y además no hacía falta: lo que impone la regla es
+   * `schedule_appointment()` del lado de la base. Ver ADR-030.
+   *
+   * Se llama después de un alta exitosa, por cualquiera de los dos caminos
+   * (correo o Google). Si el alta falla no se declara nada.
+   */
+  onAdultConfirmed?: () => void
   testID?: string
 }
 
@@ -54,6 +66,7 @@ export function AuthForm({
   onDone,
   links = [],
   onGoogle,
+  onAdultConfirmed,
   testID,
 }: AuthFormProps) {
   const t = useT()
@@ -62,10 +75,14 @@ export function AuthForm({
   const [errorKey, setErrorKey] = useState<TranslationKey | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isGoogling, setIsGoogling] = useState(false)
+  const [esMayor, setEsMayor] = useState(false)
+
+  const pideEdad = onAdultConfirmed != null
 
   const canSubmit =
     email.trim().length > 0 &&
-    (!withPassword || password.length >= MIN_PASSWORD_LENGTH)
+    (!withPassword || password.length >= MIN_PASSWORD_LENGTH) &&
+    (!pideEdad || esMayor)
 
   async function submit() {
     if (isSubmitting) return
@@ -74,6 +91,9 @@ export function AuthForm({
     const result = await onSubmit(email, password)
     setIsSubmitting(false)
     if (result.ok) {
+      // Solo después de que el alta salió bien: declarar la edad de una cuenta
+      // que no llegó a existir no le sirve a nadie.
+      if (pideEdad && esMayor) onAdultConfirmed()
       onDone()
       return
     }
@@ -88,6 +108,7 @@ export function AuthForm({
     setIsGoogling(false)
 
     if (outcome === 'ok') {
+      if (pideEdad && esMayor) onAdultConfirmed()
       onDone()
       return
     }
@@ -106,6 +127,31 @@ export function AuthForm({
         ) : null}
       </Box>
 
+      {pideEdad ? (
+        <Box gap="xxs" testID="auth-adult">
+          {/* Arriba de los dos caminos y no abajo del botón: es una condición
+              para crear la cuenta, no una aclaración al pie.
+
+              Es un botón que se marca y no un interruptor: un interruptor
+              sugiere una preferencia que se puede dejar en cualquiera de los
+              dos lados, y esto es un requisito. La etiqueta accesible lleva el
+              estado porque el tilde no se lee en voz alta. */}
+          <Button
+            label={`${esMayor ? '☑' : '☐'}  ${t('auth.adult.label')}`}
+            accessibilityLabel={t(
+              esMayor ? 'auth.adult.checked' : 'auth.adult.unchecked',
+            )}
+            variant="secondary"
+            onPress={() => setEsMayor((antes) => !antes)}
+            fullWidth
+            testID="auth-adult-toggle"
+          />
+          <Text role="label" color="textTertiary">
+            {t('auth.adult.hint')}
+          </Text>
+        </Box>
+      ) : null}
+
       {onGoogle != null ? (
         <Box gap="md">
           <Box gap="xs">
@@ -114,7 +160,9 @@ export function AuthForm({
               variant="secondary"
               onPress={() => void google()}
               loading={isGoogling}
-              disabled={isSubmitting}
+              // También espera la declaración: si no, entrar con Google sería
+              // la puerta de atrás de la única pregunta que la app hace.
+              disabled={isSubmitting || (pideEdad && !esMayor)}
               fullWidth
               testID="auth-google"
             />
