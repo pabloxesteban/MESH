@@ -6,10 +6,9 @@ import { useSession } from '@/features/auth/SessionProvider.tsx'
 /**
  * El asistente que arma el pedido. Ver ADR-021.
  *
- * Termina en la lista de propuestas y no en Explorar —a diferencia de "buscar
- * con una foto"— porque acá el resultado es un pedido publicado: lo que la
- * persona espera después de cerrarlo es quién le contesta, no más obra para
- * mirar.
+ * Termina en Inicio, que desde el 2026-08-21 **es tu pedido**: lo que la
+ * persona espera después de cerrarlo es saber si le llegó a alguien, no más
+ * obra para mirar. Ver `docs/product/por-que-mesh.md`.
  */
 export default function AsistenteRoute() {
   const { userId } = useSession()
@@ -23,7 +22,7 @@ export default function AsistenteRoute() {
     <AssistantScreen
       userId={userId}
       onBack={() => router.back()}
-      onPublished={() => router.replace('/(tabs)/para-vos')}
+      onPublished={() => router.replace('/')}
     />
   )
 }

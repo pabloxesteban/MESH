@@ -27,7 +27,6 @@ import { ExploreScreen } from '@/features/discovery/ExploreScreen.tsx'
 import { ArtistsScreen } from '@/features/artists/ArtistsScreen.tsx'
 import { ProfileScreen } from '@/features/profile/ProfileScreen.tsx'
 import { ContactScreen } from '@/features/contact/ContactScreen.tsx'
-import { ProjectFormScreen } from '@/features/projects/ProjectFormScreen.tsx'
 import { QuickSearchScreen } from '@/features/quick-search/QuickSearchScreen.tsx'
 import { AccountScreen } from '@/features/account/AccountScreen.tsx'
 import { IntentScreen } from '@/features/onboarding/IntentScreen.tsx'
@@ -40,7 +39,7 @@ import { NewPasswordScreen } from '@/features/auth/NewPasswordScreen.tsx'
 import { SavedScreen } from '@/features/saved/SavedScreen.tsx'
 import { LocationScreen } from '@/features/onboarding/LocationScreen.tsx'
 import { AssistantScreen } from '@/features/assistant/AssistantScreen.tsx'
-import { ProjectsScreen } from '@/features/projects/ProjectsScreen.tsx'
+import { RequestBand } from '@/features/request/RequestBand.tsx'
 import { SearchLocationScreen } from '@/features/location/SearchLocationScreen.tsx'
 import { ReportSheet } from '@/features/moderation/ReportSheet.tsx'
 import { LeaveReview } from '@/features/reviews/LeaveReview.tsx'
@@ -178,6 +177,7 @@ jest.mock('@/features/notifications/queries.ts', () => ({
 }))
 jest.mock('@/features/projects/queries.ts', () => ({
   fetchProjects: jest.fn().mockResolvedValue([]),
+  setProjectOpen: jest.fn(),
   archiveProject: jest.fn(),
 }))
 jest.mock('@/features/assistant/queries.ts', () => ({
@@ -453,6 +453,32 @@ function sweepDynamicType(name: string) {
   expect({ pantalla: name, sinTope }).toEqual({ pantalla: name, sinTope: [] })
 }
 
+/**
+ * Un pedido publicado y abierto, para los tres estados de `RequestBand`.
+ *
+ * Con estilo: sin él la tarjeta esconde el botón que lleva a Explorar, y el
+ * barrido pasaría sin haberlo mirado nunca.
+ */
+const PEDIDO_ABIERTO = {
+  id: 'p1',
+  title: 'Línea fina en el antebrazo',
+  description: 'Algo chico, en negro.',
+  status: 'active' as const,
+  timing: null,
+  budget: null,
+  locationSlug: null,
+  styles: [{ styleSlug: 'fine-line', weight: 1 }],
+  referenceCount: 0,
+  openToProfessionals: true,
+}
+
+const ACCIONES_DEL_PEDIDO = {
+  onSearchByPhotos: jest.fn(),
+  onSearchByWords: jest.fn(),
+  onOpenArtist: jest.fn(),
+  onExploreStyle: jest.fn(),
+}
+
 describe('barrido de accesibilidad y callejones', () => {
   it('artistas cerca, sin nadie dado de alta todavía', async () => {
     ;(fetchArtistGrid as jest.Mock).mockResolvedValue([])
@@ -617,13 +643,6 @@ describe('barrido de accesibilidad y callejones', () => {
       expect(screen.getByTestId('contact-fixture-blocked')).toBeTruthy(),
     )
     sweep('contacto · ficticio')
-  })
-
-  it('formulario de proyecto', () => {
-    render(<ProjectFormScreen onSubmit={jest.fn()} onCancel={jest.fn()} />)
-    sweep('proyecto · formulario')
-    sweepShouting('proyecto · formulario')
-    sweepDynamicType('proyecto · formulario')
   })
 
   it('la pregunta de onboarding', () => {
@@ -986,15 +1005,39 @@ describe('barrido de accesibilidad y callejones', () => {
     sweepDynamicType('ubicación · se pregunta una vez')
   })
 
-  it('tus pedidos, sin ninguno', async () => {
+  it('tu pedido, cuando todavía no hay ninguno', async () => {
     ;(fetchProjects as jest.Mock).mockResolvedValue([])
-    render(<ProjectsScreen onNew={jest.fn()} onMatches={jest.fn()} />)
+    render(<RequestBand userId="u1" {...ACCIONES_DEL_PEDIDO} />)
     await waitFor(() =>
-      expect(screen.getByTestId('projects-empty')).toBeTruthy(),
+      expect(screen.getByTestId('request-empty')).toBeTruthy(),
     )
-    sweep('pedidos · vacío')
-    sweepShouting('pedidos · vacío')
-    sweepDynamicType('pedidos · vacío')
+    sweep('pedido · vacío')
+    sweepShouting('pedido · vacío')
+    sweepDynamicType('pedido · vacío')
+  })
+
+  it('tu pedido, publicado y sin respuestas', async () => {
+    ;(fetchProjects as jest.Mock).mockResolvedValue([PEDIDO_ABIERTO])
+    render(<RequestBand userId="u1" {...ACCIONES_DEL_PEDIDO} />)
+    await waitFor(() =>
+      expect(screen.getByTestId('request-waiting')).toBeTruthy(),
+    )
+    sweep('pedido · esperando')
+    sweepShouting('pedido · esperando')
+    sweepDynamicType('pedido · esperando')
+  })
+
+  it('tu pedido, cerrado a los tatuadores', async () => {
+    ;(fetchProjects as jest.Mock).mockResolvedValue([
+      { ...PEDIDO_ABIERTO, openToProfessionals: false },
+    ])
+    render(<RequestBand userId="u1" {...ACCIONES_DEL_PEDIDO} />)
+    await waitFor(() =>
+      expect(screen.getByTestId('request-closed')).toBeTruthy(),
+    )
+    sweep('pedido · cerrado')
+    sweepShouting('pedido · cerrado')
+    sweepDynamicType('pedido · cerrado')
   })
 
   it('desde dónde mirar, con el permiso denegado', () => {

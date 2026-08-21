@@ -338,42 +338,26 @@ export const esAR = {
   'contact.message.references': 'Te mando algunas referencias aparte.',
   'contact.message.closing': '¿Te sirve? Cualquier cosa avisame. Gracias.',
 
-  // --- proyectos -------------------------------------------------------------
-  'projects.title': 'Tus proyectos',
-  'projects.empty.title': 'Todavía no tenés ningún proyecto',
-  'projects.empty.body':
-    'Un proyecto es una idea concreta: qué querés hacerte, más o menos cuándo, y cuánto podés gastar. Sirve para buscar con eso en la mano en vez de solo con tu gusto.',
-  'projects.empty.action': 'Crear un proyecto',
-  'projects.new': 'Nuevo proyecto',
-  'projects.form.title': 'Qué querés hacerte',
-  'projects.form.title.placeholder': 'Rama de olivo en el antebrazo',
-  'projects.form.description': 'Contalo con tus palabras',
-  'projects.form.description.hint':
-    'Opcional. Tamaño, lugar del cuerpo, lo que se te ocurra.',
-  'projects.form.styles': 'Estilos que te gustan para esto',
-  'projects.form.budget': 'Cuánto podés gastar',
-  'projects.form.budget.hint':
-    'Opcional. Solo lo usamos para no mostrarte gente fuera de tu alcance.',
-  'projects.form.budget.min': 'Desde',
-  'projects.form.budget.max': 'Hasta',
-  'projects.form.location': 'Tu barrio',
-  'projects.form.location.hint':
-    'Para ordenar por qué tan cerca te queda cada artista. Podés no decirlo.',
-  'projects.form.timing': 'Para cuándo',
-  'projects.form.timing.asap': 'Lo antes posible',
-  'projects.form.timing.weeks': 'En las próximas semanas',
-  'projects.form.timing.months': 'En los próximos meses',
-  'projects.form.timing.flexible': 'Sin apuro',
-  'projects.form.submit': 'Guardar proyecto',
-  'projects.references': 'Referencias',
-  'projects.references.add': 'Agregar una imagen',
-  'projects.references.hint':
-    'Las guardamos privadas y les sacamos la información de ubicación antes de subirlas.',
-  'projects.references.count': '{n} de {max}',
-  'projects.references.full': 'Llegaste al máximo de {max} imágenes',
-  'projects.archive': 'Archivar proyecto',
-  'projects.archive.confirm': 'Tocá de nuevo para archivarlo',
-  'projects.matches': 'Ver quién encaja',
+  // --- tu pedido (Inicio) -----------------------------------------------------
+  //
+  // Cuidado con las promesas acá. Nada de "te van a contestar" ni de "en 24
+  // horas": el innegociable 2 prohíbe inventar disponibilidad, y una espera
+  // estimada es exactamente eso. Todo lo que se dice es condicional o es un
+  // hecho ya ocurrido.
+  'request.title': 'Tu pedido',
+  'request.empty.title': '¿Qué te querés tatuar?',
+  'request.empty.body':
+    'Contanos tu idea y le llega a los tatuadores que la pueden hacer. Si a alguno le interesa, te responde con un precio.',
+  'request.empty.photos': 'Tengo una foto',
+  'request.empty.words': 'Lo cuento con palabras',
+  'request.empty.orBrowse': 'O mirá quién tatúa cerca tuyo, más abajo.',
+  'request.exploreStyle': 'Ver obra de {estilo}',
+  'request.closed.body':
+    'Elegiste que no lo vea nadie, así que no le llegó a ningún tatuador. Está guardado para vos.',
+  'request.closed.action': 'Que lo vean los tatuadores',
+  'request.waiting.body':
+    'Lo pueden ver los tatuadores que hacen ese estilo. Todavía no te contestó nadie.',
+  'request.waiting.close': 'Que no lo vean más',
 
   // --- ajustes ---------------------------------------------------------------
   'settings.analytics.title': 'Datos de uso',

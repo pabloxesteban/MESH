@@ -29,11 +29,6 @@ export default function ChatsRoute() {
               )
           : undefined
       }
-      // Quién se interesó en tu búsqueda es del lado de quien busca: un artista
-      // no tiene búsquedas propias en las que alguien pueda interesarse.
-      {...(intent === 'looking'
-        ? { onOpenArtist: (slug: string) => router.push(`/artista/${slug}`) }
-        : {})}
       onOpenHome={() => router.replace('/')}
     />
   )

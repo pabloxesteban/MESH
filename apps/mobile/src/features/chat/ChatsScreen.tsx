@@ -33,7 +33,6 @@ import {
 import type { OnboardingIntent } from '@/features/account/queries.ts'
 import { useT } from '@/i18n/I18nProvider.tsx'
 
-import { InterestList } from '../demand/InterestList.tsx'
 import { NotificationList } from '../notifications/NotificationList.tsx'
 import { Agenda } from '../scheduling/Agenda.tsx'
 import { ConversationList } from './ConversationList.tsx'
@@ -42,14 +41,6 @@ import { fetchConversations } from './queries.ts'
 export interface ChatsScreenProps {
   /** Ausente sin sesión: entonces no hay hilo que abrir. */
   onOpenChat?: ((conversationId: string, title: string) => void) | undefined
-  /**
-   * Abre el perfil de un artista que se interesó en tu búsqueda.
-   *
-   * Esa lista vivía en Matches. Matches dejó de existir (ver D-010) y esto es
-   * lo único que queda que sea una bandeja: si alguien levantó la mano por vos,
-   * tenés que verlo en algún lado.
-   */
-  onOpenArtist?: ((slug: string) => void) | undefined
   /**
    * Lleva a Inicio: la grilla de artistas si busca, el mazo de búsquedas si
    * ofrece.
@@ -64,7 +55,6 @@ export interface ChatsScreenProps {
 
 export function ChatsScreen({
   onOpenChat,
-  onOpenArtist,
   onOpenHome,
   intent,
 }: ChatsScreenProps) {
@@ -150,11 +140,10 @@ export function ChatsScreen({
 
       <NotificationList />
 
-      {onOpenArtist != null ? (
-        <Box paddingBottom="md">
-          <InterestList onOpenProfile={onOpenArtist} />
-        </Box>
-      ) : null}
+      {/* Las propuestas se fueron a Inicio el 2026-08-21.
+          Una propuesta es la respuesta a un pedido, no una conversación: vive
+          pegada al pedido que la provocó, y acá quedaban lejos de lo único que
+          las explica. Ver `docs/product/por-que-mesh.md`. */}
 
       {body}
     </ScrollView>

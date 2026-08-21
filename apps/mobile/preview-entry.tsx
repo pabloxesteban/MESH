@@ -23,6 +23,7 @@ import { AuthForm } from '@/features/auth/AuthForm.tsx'
 import { NewPasswordScreen } from '@/features/auth/NewPasswordScreen.tsx'
 import { SavedScreen } from '@/features/saved/SavedScreen.tsx'
 import { ArtistsScreen } from '@/features/artists/ArtistsScreen.tsx'
+import { RequestBand } from '@/features/request/RequestBand.tsx'
 import { useOnboardingIntent } from '@/features/account/useIntent.ts'
 import { fetchOwnedProfessional } from '@/features/artist/queries.ts'
 import { StudioScreen } from '@/features/artist/StudioScreen.tsx'
@@ -333,9 +334,10 @@ function Shell({ abrirEstudio }: { abrirEstudio: boolean }) {
         <AssistantScreen
           userId={USUARIO}
           onBack={() => setContando(false)}
+          // A Inicio, que ahora es tu pedido. Lo mismo que hace la app.
           onPublished={() => {
             setContando(false)
-            setPestana('para-vos')
+            setPestana('inicio')
           }}
         />
       )
@@ -344,10 +346,9 @@ function Shell({ abrirEstudio }: { abrirEstudio: boolean }) {
       return (
         <QuickSearchScreen
           userId={USUARIO}
-          onCreated={(_projectId, styleSlug) => {
-            setEstiloBuscado(styleSlug)
+          onCreated={() => {
             setBuscando(false)
-            setPestana('explorar')
+            setPestana('inicio')
           }}
           onCancel={() => setBuscando(false)}
         />
@@ -379,6 +380,22 @@ function Shell({ abrirEstudio }: { abrirEstudio: boolean }) {
           <ArtistsScreen
             categorySlug="tattoo"
             userId={USUARIO}
+            // Arriba de la grilla, tu pedido. Es el orden de la app desde el
+            // 2026-08-21 y el preview tiene que mostrarlo: si acá siguiera
+            // abriendo con desconocidos, el preview estaría demostrando el
+            // producto anterior.
+            header={
+              <RequestBand
+                userId={USUARIO}
+                onSearchByPhotos={() => setBuscando(true)}
+                onSearchByWords={() => setContando(true)}
+                onOpenArtist={(slug) => setPerfil(slug)}
+                onExploreStyle={(styleSlug) => {
+                  setEstiloBuscado(styleSlug)
+                  setPestana('explorar')
+                }}
+              />
+            }
             onOpenArtist={(slug) => setPerfil(slug)}
             onExplore={() => setPestana('explorar')}
             onChangeLocation={() => setEligiendoUbicacion(true)}

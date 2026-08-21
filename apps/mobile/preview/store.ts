@@ -527,8 +527,10 @@ export function markPreviewConversationRead(conversationId: string): void {
 export interface PreviewProject {
   readonly id: string
   readonly title: string
+  readonly description: string | null
   readonly styleSlugs: readonly string[]
   readonly locationSlug: string | null
+  readonly openToProfessionals: boolean
 }
 
 const previewProjects = new Map<string, PreviewProject>()
@@ -536,22 +538,67 @@ let previewProjectCounter = 0
 
 export function createPreviewProject(input: {
   title: string
+  description?: string | undefined
   styleSlugs: readonly string[]
   locationSlug?: string | undefined
+  openToProfessionals?: boolean | undefined
 }): string {
   previewProjectCounter += 1
   const id = `preview-project-${String(previewProjectCounter)}`
   previewProjects.set(id, {
     id,
     title: input.title,
+    // Vacío es `null`, igual que en la base: la pantalla distingue "no lo
+    // escribió" de "escribió nada".
+    description:
+      input.description == null || input.description.trim() === ''
+        ? null
+        : input.description,
     styleSlugs: input.styleSlugs,
     locationSlug: input.locationSlug ?? null,
+    openToProfessionals: input.openToProfessionals ?? false,
   })
   return id
 }
 
 export function previewProject(id: string): PreviewProject | undefined {
   return previewProjects.get(id)
+}
+
+/** Los pedidos propios, el más nuevo primero. Es lo que Inicio lee. */
+export function previewProjectList(): readonly PreviewProject[] {
+  return [...previewProjects.values()].reverse()
+}
+
+/**
+ * Abrir o cerrar un pedido ya creado.
+ *
+ * Toca las dos mitades a la vez, que es exactamente lo que hace la columna en
+ * la base: el pedido guarda la decisión, y el mazo del artista lo tiene o no
+ * lo tiene. Si esto solo cambiara el pedido, el preview mostraría "abierto"
+ * con el mazo vacío y demostraría algo falso.
+ */
+export function setPreviewProjectOpen(id: string, open: boolean): void {
+  const project = previewProjects.get(id)
+  if (project == null) return
+  previewProjects.set(id, { ...project, openToProfessionals: open })
+
+  const indice = busquedasPropias.findIndex(
+    (search) => search.projectId === id,
+  )
+  if (open) {
+    if (indice !== -1) return
+    busquedasPropias.unshift({
+      projectId: id,
+      title: project.title,
+      styleSlugs: project.styleSlugs,
+      locationSlug: project.locationSlug,
+      referenceIds: [],
+      createdAt: nextPreviewTimestamp(),
+    })
+    return
+  }
+  if (indice !== -1) busquedasPropias.splice(indice, 1)
 }
 
 // --- búsquedas abiertas ---------------------------------------------------------

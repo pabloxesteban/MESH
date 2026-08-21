@@ -1,10 +1,13 @@
 /**
  * Versión de preview de `queries.ts`. Ver apps/mobile/preview/store.ts.
  *
- * Solo implementa lo que el flujo de preview realmente ejercita: crear un
- * proyecto liviano desde "buscar por fotos" y volver a leerlo por id. No hay
- * lista de proyectos ni formulario completo en el preview — esa pantalla
- * necesitaría su propia versión si algún día se agrega.
+ * Implementa lo que el flujo de preview ejercita: crear un pedido liviano
+ * desde "buscar por fotos" o desde el asistente, leerlo, listarlo para Inicio,
+ * y abrirlo o cerrarlo a los tatuadores.
+ *
+ * Lo que el preview NO prueba es lo único que importa de esa última parte: que
+ * un pedido cerrado no lo vea nadie. Eso lo decide RLS, y está en
+ * supabase/tests/46_open_searches.sql.
  */
 
 import type { WeightedStyle } from '@mesh/domain'
@@ -15,6 +18,8 @@ import {
   nextPreviewTimestamp,
   openPreviewSearch,
   previewProject,
+  previewProjectList,
+  setPreviewProjectOpen,
 } from '../../../preview/store.ts'
 
 export interface ProjectSummary {
@@ -27,6 +32,7 @@ export interface ProjectSummary {
   readonly locationSlug: string | null
   readonly styles: readonly WeightedStyle[]
   readonly referenceCount: number
+  readonly openToProfessionals: boolean
 }
 
 export interface ProjectDraft {
@@ -52,7 +58,9 @@ export async function createProject(
 ): Promise<string> {
   const projectId = createPreviewProject({
     title: draft.title,
+    ...(draft.description != null ? { description: draft.description } : {}),
     styleSlugs: draft.styleSlugs,
+    openToProfessionals: draft.openToProfessionals ?? false,
     ...(draft.locationSlug != null ? { locationSlug: draft.locationSlug } : {}),
   })
 
@@ -74,20 +82,43 @@ export async function createProject(
   return projectId
 }
 
-export async function fetchProject(id: string): Promise<ProjectSummary | null> {
-  const project = previewProject(id)
-  if (project == null) return null
+function toSummary(project: {
+  id: string
+  title: string
+  description: string | null
+  styleSlugs: readonly string[]
+  locationSlug: string | null
+  openToProfessionals: boolean
+}): ProjectSummary {
   return {
     id: project.id,
     title: project.title,
-    description: null,
+    description: project.description,
     status: 'active',
     timing: null,
     budget: null,
     locationSlug: project.locationSlug,
     styles: toWeightedStyles(project.styleSlugs),
     referenceCount: 0,
+    openToProfessionals: project.openToProfessionals,
   }
+}
+
+export async function fetchProject(id: string): Promise<ProjectSummary | null> {
+  const project = previewProject(id)
+  return project == null ? null : toSummary(project)
+}
+
+/** Los pedidos propios. Es lo que Inicio lee para saber en qué anda. */
+export async function fetchProjects(): Promise<readonly ProjectSummary[]> {
+  return previewProjectList().map(toSummary)
+}
+
+export async function setProjectOpen(
+  id: string,
+  open: boolean,
+): Promise<void> {
+  setPreviewProjectOpen(id, open)
 }
 
 export async function attachReference(

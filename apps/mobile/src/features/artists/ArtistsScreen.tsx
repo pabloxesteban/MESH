@@ -82,6 +82,17 @@ import {
 export interface ArtistsScreenProps {
   categorySlug: string
   userId: string | null
+  /**
+   * Lo que va arriba de todo. Hoy es `RequestBand`: tu pedido.
+   *
+   * La grilla dejó de ser la puerta de entrada —abría con desconocidos y con
+   * la misma respuesta para todos— pero no se fue a ningún lado: sigue acá,
+   * un desplazamiento abajo. Ver `docs/product/por-que-mesh.md`.
+   *
+   * Se va mientras se busca por nombre, por lo mismo que se va el encabezado
+   * de ubicación: quien escribió un nombre quiere ese nombre.
+   */
+  header?: React.ReactNode
   onOpenArtist: (slug: string) => void
   /** Lleva a Explorar. Es la salida cuando todavía no hay nadie cerca. */
   onExplore: () => void
@@ -92,6 +103,7 @@ export interface ArtistsScreenProps {
 export function ArtistsScreen({
   categorySlug,
   userId,
+  header,
   onOpenArtist,
   onExplore,
   onChangeLocation,
@@ -253,6 +265,8 @@ export function ArtistsScreen({
         }}
         testID="screen-artists"
       >
+        {buscando ? null : header}
+
         <Box paddingX="lg" paddingBottom="sm">
           <SearchField
             value={texto}

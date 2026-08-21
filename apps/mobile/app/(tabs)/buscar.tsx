@@ -17,12 +17,12 @@ export default function QuickSearchRoute() {
   return (
     <QuickSearchScreen
       userId={userId}
-      // Termina en Explorar filtrado por el estilo que detectó la IA. Antes
-      // terminaba en una lista de encajes; ahora termina en obra, que es lo que
-      // la persona fue a ver. Ver MESH-DESIGN-DECISIONS D-010.
-      onCreated={(_projectId, styleSlug) =>
-        router.replace(`/(tabs)/explorar?estilo=${styleSlug}`)
-      }
+      // Termina en Inicio, que desde el 2026-08-21 es tu pedido. Antes
+      // terminaba en Explorar filtrado por el estilo detectado (D-010): eso
+      // dejaba a la persona mirando obra y sin ninguna pantalla que le dijera
+      // qué pasó con lo que acababa de publicar. El estilo no se pierde — la
+      // tarjeta del pedido lleva a Explorar filtrado con un toque.
+      onCreated={() => router.replace('/')}
       onCancel={() => router.back()}
     />
   )

@@ -344,6 +344,20 @@ try {
     process.exit(1)
   }
 
+  // Lo primero de Inicio es tu pedido, no la grilla. Es el giro del
+  // 2026-08-21 y es exactamente lo que un preview puede demostrar y una
+  // suite de unit tests no: que la app abre preguntando qué querés y no
+  // mostrando desconocidos. Ver docs/product/por-que-mesh.md.
+  const pedido = page.getByTestId('request-empty')
+  if ((await pedido.count()) === 0) {
+    console.error(
+      '✗ Inicio abrió sin la banda del pedido. La app volvió a ser una ' +
+        'vidriera: lo primero que se ve son desconocidos.',
+    )
+    console.error(`  Primeros 200 caracteres: ${JSON.stringify(text.slice(0, 200))}`)
+    process.exit(1)
+  }
+
   const faltantes = CANARIOS.filter((canario) => !text.includes(canario))
   if (faltantes.length === CANARIOS.length) {
     console.error(

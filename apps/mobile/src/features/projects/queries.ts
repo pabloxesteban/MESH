@@ -24,6 +24,12 @@ export interface ProjectSummary {
   readonly locationSlug: string | null
   readonly styles: readonly WeightedStyle[]
   readonly referenceCount: number
+  /**
+   * Si los tatuadores lo pueden ver. Es lo primero que hay que poder leer de
+   * un pedido: un pedido cerrado está guardado y no le llegó a nadie, y eso
+   * hay que decirlo en vez de dejar a alguien esperando. Ver ADR-014.
+   */
+  readonly openToProfessionals: boolean
 }
 
 export interface ProjectDraft {
@@ -46,7 +52,7 @@ export interface ProjectDraft {
 }
 
 const SELECT = `
-  id, title, description, status, timing,
+  id, title, description, status, timing, is_open_to_professionals,
   budget_min_cents, budget_max_cents, budget_currency,
   locations ( slug ),
   project_styles ( weight, styles ( slug ) ),
@@ -59,6 +65,7 @@ interface ProjectRow {
   description: string | null
   status: ProjectStatus
   timing: ProjectTiming | null
+  is_open_to_professionals: boolean
   budget_min_cents: number | null
   budget_max_cents: number | null
   budget_currency: string | null
@@ -115,6 +122,7 @@ function toSummary(row: ProjectRow): ProjectSummary {
         weight: Number(style.weight),
       })),
     referenceCount: row.project_references.length,
+    openToProfessionals: row.is_open_to_professionals,
   }
 }
 
@@ -207,6 +215,29 @@ export async function attachReference(
   const { error } = await supabase
     .from('project_references')
     .insert({ project_id: projectId, media_id: mediaId, sort_order: sortOrder })
+  if (error != null) throw error
+}
+
+/**
+ * Abrir o cerrar el pedido a los tatuadores, después de haberlo publicado.
+ *
+ * Existe porque la decisión se toma una vez, al confirmar, y hasta acá no
+ * había forma de cambiarla: quien elegía que no lo viera nadie se quedaba con
+ * un pedido guardado y sin vuelta atrás. Una decisión que no se puede
+ * revisar deja de ser una decisión.
+ *
+ * No hace falta política nueva: `projects_update_own` ya guarda `using` y
+ * `with check` por `auth.uid()`, así que esto no puede tocar el pedido de
+ * otro.
+ */
+export async function setProjectOpen(
+  id: string,
+  open: boolean,
+): Promise<void> {
+  const { error } = await supabase
+    .from('projects')
+    .update({ is_open_to_professionals: open })
+    .eq('id', id)
   if (error != null) throw error
 }
 
