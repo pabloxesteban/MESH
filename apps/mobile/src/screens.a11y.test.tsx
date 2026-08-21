@@ -38,6 +38,15 @@ import { ChatsScreen } from '@/features/chat/ChatsScreen.tsx'
 import { AuthForm } from '@/features/auth/AuthForm.tsx'
 import { NewPasswordScreen } from '@/features/auth/NewPasswordScreen.tsx'
 import { SavedScreen } from '@/features/saved/SavedScreen.tsx'
+import { AgeScreen } from '@/features/onboarding/AgeScreen.tsx'
+import { AssistantScreen } from '@/features/assistant/AssistantScreen.tsx'
+import { ProjectsScreen } from '@/features/projects/ProjectsScreen.tsx'
+import { SearchLocationScreen } from '@/features/location/SearchLocationScreen.tsx'
+import { ReportSheet } from '@/features/moderation/ReportSheet.tsx'
+import { LeaveReview } from '@/features/reviews/LeaveReview.tsx'
+import { ProposalComposer } from '@/features/brief/ProposalComposer.tsx'
+import { Agenda } from '@/features/scheduling/Agenda.tsx'
+import { NotificationList } from '@/features/notifications/NotificationList.tsx'
 
 const mockRpc = jest.fn()
 jest.mock('@/data/supabase.ts', () => ({
@@ -63,7 +72,9 @@ jest.mock('@/data/supabase.ts', () => ({
 
 jest.mock('@/features/profile/queries.ts', () => ({ fetchProfile: jest.fn() }))
 jest.mock('@/features/artists/queries.ts', () => ({
+  ...jest.requireActual('@/features/artists/queries.ts'),
   fetchArtistGrid: jest.fn().mockResolvedValue([]),
+  searchArtists: jest.fn().mockResolvedValue([]),
   avatarUrl: (path: string) => `https://ejemplo.test/${path}`,
   mediaUrl: (path: string) => `https://ejemplo.test/${path}`,
 }))
@@ -106,6 +117,7 @@ jest.mock('@/features/scheduling/queries.ts', () => ({
   fetchExceptions: jest.fn().mockResolvedValue([]),
   fetchBusySlots: jest.fn().mockResolvedValue([]),
   fetchAppointments: jest.fn().mockResolvedValue([]),
+  fetchAgenda: jest.fn().mockResolvedValue([]),
   fetchOwnProfessionalForConversation: jest.fn().mockResolvedValue(null),
   addWeeklyRule: jest.fn(),
   removeWeeklyRule: jest.fn(),
@@ -138,6 +150,46 @@ jest.mock('@/features/artist/gps.ts', () => ({
 }))
 jest.mock('@/features/artist/upload.ts', () => ({
   uploadPortfolioPiece: jest.fn(),
+}))
+jest.mock('@/features/moderation/queries.ts', () => ({
+  ...jest.requireActual('@/features/moderation/queries.ts'),
+  sendReport: jest.fn(),
+  blockProfessional: jest.fn(),
+  blockUser: jest.fn(),
+  unblock: jest.fn(),
+  unblockProfessional: jest.fn(),
+  isProfessionalBlocked: jest.fn().mockResolvedValue(false),
+  fetchBlockedProfessionals: jest.fn().mockResolvedValue([]),
+}))
+jest.mock('@/features/brief/queries.ts', () => ({
+  ...jest.requireActual('@/features/brief/queries.ts'),
+  sendProposal: jest.fn(),
+  fetchTraits: jest.fn().mockResolvedValue([]),
+  fetchProposals: jest.fn().mockResolvedValue([]),
+}))
+jest.mock('@/features/notifications/queries.ts', () => ({
+  ...jest.requireActual('@/features/notifications/queries.ts'),
+  fetchNotifications: jest.fn().mockResolvedValue([]),
+  // Con valor resuelto y no `jest.fn()` a secas: la lista hace
+  // `markNotificationsRead().catch(...)`, y sobre `undefined` eso tira
+  // adentro de un efecto — o sea, desmonta el árbol sin decir por qué.
+  markNotificationsRead: jest.fn().mockResolvedValue(undefined),
+  dismissNotification: jest.fn().mockResolvedValue(undefined),
+}))
+jest.mock('@/features/projects/queries.ts', () => ({
+  fetchProjects: jest.fn().mockResolvedValue([]),
+  archiveProject: jest.fn(),
+}))
+jest.mock('@/features/assistant/queries.ts', () => ({
+  startAssistantThread: jest.fn().mockResolvedValue('hilo-1'),
+  fetchAssistantTurns: jest.fn().mockResolvedValue([]),
+  deleteAssistantThread: jest.fn(),
+  attachThreadProject: jest.fn(),
+  fetchOwnBrief: jest.fn().mockResolvedValue(null),
+}))
+jest.mock('@/features/assistant/assistant.ts', () => ({
+  ...jest.requireActual('@/features/assistant/assistant.ts'),
+  sendToAssistant: jest.fn(),
 }))
 jest.mock('expo-image-picker', () => ({
   launchImageLibraryAsync: jest.fn().mockResolvedValue({ canceled: true }),
@@ -191,6 +243,11 @@ import { fetchArtistGrid } from '@/features/artists/queries.ts'
 import { fetchOwnedProfessional } from '@/features/artist/queries.ts'
 import { fetchOpenSearchFeed } from '@/features/demand/queries.ts'
 import { fetchDiscoveryFeed } from '@/features/discovery/queries.ts'
+import { searchArtists } from '@/features/artists/queries.ts'
+import { fetchProjects } from '@/features/projects/queries.ts'
+import { fetchAssistantTurns } from '@/features/assistant/queries.ts'
+import { fetchAgenda } from '@/features/scheduling/queries.ts'
+import { fetchNotifications } from '@/features/notifications/queries.ts'
 
 const HOY = '2026-08-18'
 
@@ -203,6 +260,19 @@ function render(element: ReactElement) {
       <I18nProvider locale="es-AR">{element}</I18nProvider>
     </QueryClientProvider>,
   )
+}
+
+/**
+ * ¿El texto de adentro alcanza como nombre?
+ *
+ * No, si son puros símbolos. La app dibuja varios botones cuyo contenido es un
+ * glifo —`✕` para borrar, `♥` para guardar, `•` para el punto de no leído— y
+ * un lector de pantalla los anuncia literalmente: "botón, equis". Eso no es un
+ * nombre, es un dibujo leído en voz alta. Esos botones tienen que declarar
+ * `accessibilityLabel`, y este barrido es el que lo verifica.
+ */
+function esNombre(texto: string): boolean {
+  return /\p{L}|\p{N}/u.test(texto)
 }
 
 /** Nombre accesible de un nodo: etiqueta explícita, o el texto que contiene. */
@@ -275,8 +345,12 @@ function sweep(name: string) {
         children: unknown[]
       },
     )
-    if (label.length === 0) {
-      sinNombre.push(JSON.stringify(node.props['testID'] ?? '(sin testID)'))
+    if (!esNombre(label)) {
+      sinNombre.push(
+        `${String(node.props['testID'] ?? '(sin testID)')}${
+          label.length > 0 ? ` (solo "${label}")` : ''
+        }`,
+      )
       continue
     }
 
@@ -823,5 +897,169 @@ describe('barrido de accesibilidad y callejones', () => {
     )
     sweep('contraseña nueva')
     sweepDynamicType('contraseña nueva')
+  })
+  // --- las cuatro que se habían quedado afuera del barrido -------------------
+
+  it('mayoría de edad, la pregunta y el "no"', () => {
+    render(<AgeScreen busy={false} onConfirm={jest.fn()} onSkip={jest.fn()} />)
+    sweep('edad · la pregunta')
+    sweepDynamicType('edad · la pregunta')
+
+    // Decir que no es el estado que más fácil se convierte en pared: no se
+    // guarda nada, así que la pantalla tiene que ofrecer volver.
+    fireEvent.press(screen.getByTestId('age-no'))
+    expect(screen.getByTestId('age-minor')).toBeTruthy()
+    sweep('edad · dijo que no')
+    sweepDynamicType('edad · dijo que no')
+  })
+
+  it('tus pedidos, sin ninguno', async () => {
+    ;(fetchProjects as jest.Mock).mockResolvedValue([])
+    render(<ProjectsScreen onNew={jest.fn()} onMatches={jest.fn()} />)
+    await waitFor(() =>
+      expect(screen.getByTestId('projects-empty')).toBeTruthy(),
+    )
+    sweep('pedidos · vacío')
+    sweepDynamicType('pedidos · vacío')
+  })
+
+  it('desde dónde mirar, con el permiso denegado', () => {
+    render(
+      <SearchLocationScreen
+        value={{ mode: 'none', neighborhoodSlug: null }}
+        onChange={jest.fn()}
+        onClose={jest.fn()}
+        deviceStatus="denied"
+        onRequestDevice={jest.fn()}
+      />,
+    )
+    sweep('ubicación · permiso denegado')
+    sweepDynamicType('ubicación · permiso denegado')
+  })
+
+  it('el asistente, con el hilo recién abierto', async () => {
+    ;(fetchAssistantTurns as jest.Mock).mockResolvedValue([])
+    render(
+      <AssistantScreen
+        userId="u1"
+        onBack={jest.fn()}
+        onPublished={jest.fn()}
+      />,
+    )
+    await waitFor(() =>
+      expect(screen.getByTestId('screen-assistant')).toBeTruthy(),
+    )
+    sweep('asistente · hilo nuevo')
+    sweepDynamicType('asistente · hilo nuevo')
+  })
+
+  it('buscar por nombre, sin resultados', async () => {
+    ;(fetchArtistGrid as jest.Mock).mockResolvedValue([])
+    ;(searchArtists as jest.Mock).mockResolvedValue([])
+    render(
+      <ArtistsScreen
+        categorySlug="tattoo"
+        userId="u1"
+        onOpenArtist={jest.fn()}
+        onExplore={jest.fn()}
+        onChangeLocation={jest.fn()}
+      />,
+    )
+    await waitFor(() =>
+      expect(screen.getByTestId('artists-empty')).toBeTruthy(),
+    )
+
+    fireEvent.changeText(screen.getByTestId('artists-search'), 'zzz')
+    await waitFor(() =>
+      expect(screen.getByTestId('artists-search-empty')).toBeTruthy(),
+    )
+    sweep('buscar por nombre · sin resultados')
+    sweepDynamicType('buscar por nombre · sin resultados')
+  })
+  // --- las superficies que no son pantallas ---------------------------------
+  //
+  // Una hoja de denuncia o un formulario de reseña no son `*Screen`, así que
+  // se habían quedado afuera del recorrido por nombre de archivo. Son
+  // exactamente donde este barrido más sirve: aparecen encima de otra cosa,
+  // se miran poco, y un botón sin etiqueta ahí no lo ve nadie.
+
+  it('denunciar, con los motivos a la vista', () => {
+    render(
+      <ReportSheet
+        userId="u1"
+        target={{ kind: 'professional', professionalId: 'pro-1' }}
+        onDone={jest.fn()}
+        onCancel={jest.fn()}
+      />,
+    )
+    sweep('denunciar')
+    sweepDynamicType('denunciar')
+  })
+
+  it('dejar una reseña, en blanco', () => {
+    render(
+      <LeaveReview
+        appointmentId="t1"
+        professionalId="pro-1"
+        userId="u1"
+        onDone={jest.fn()}
+        onCancel={jest.fn()}
+      />,
+    )
+    sweep('dejar reseña')
+    sweepDynamicType('dejar reseña')
+  })
+
+  it('proponerle un precio a una búsqueda', () => {
+    render(
+      <ProposalComposer
+        projectId="pj1"
+        professionalId="pro-1"
+        searchTitle="Una golondrina en el antebrazo"
+        onSent={jest.fn()}
+        onCancel={jest.fn()}
+      />,
+    )
+    sweep('propuesta del artista')
+    sweepDynamicType('propuesta del artista')
+  })
+
+  it('tu semana, con un turno', async () => {
+    ;(fetchAgenda as jest.Mock).mockResolvedValue([
+      {
+        id: 't1',
+        startsAt: '2026-08-24T18:00:00.000Z',
+        endsAt: '2026-08-24T20:00:00.000Z',
+        note: null,
+        conversationId: 'c1',
+        professionalId: 'pro-1',
+        viewerIsProfessional: true,
+        counterpartName: 'Ana',
+      },
+    ])
+    render(<Agenda onOpenChat={jest.fn()} />)
+    await waitFor(() =>
+      expect(screen.getByTestId('agenda-entry-t1')).toBeTruthy(),
+    )
+    sweep('tu semana · con un turno')
+    sweepDynamicType('tu semana · con un turno')
+  })
+
+  it('avisos, con uno sin leer', async () => {
+    ;(fetchNotifications as jest.Mock).mockResolvedValue([
+      {
+        id: 'n1',
+        kind: 'appointment_scheduled',
+        outcome: null,
+        createdAt: '2026-08-20T12:00:00.000Z',
+        read: false,
+      },
+    ])
+    render(<NotificationList />)
+    await waitFor(() =>
+      expect(screen.getByTestId('notification-n1')).toBeTruthy(),
+    )
+    sweep('avisos · uno sin leer')
+    sweepDynamicType('avisos · uno sin leer')
   })
 })
