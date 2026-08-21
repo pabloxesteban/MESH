@@ -114,6 +114,8 @@ valor— cuesta más en usuarios reales de lo que ahorra en abuso a esta escala.
 | `messages` | participante del hilo padre | participante, y `sender_user_id = auth.uid()` | ✗ | ✗ |
 | `project_interests` | el artista dueño (todas las suyas) · la persona (solo `verdict = 'interest'`) | el artista dueño, con perfil publicado y sobre una búsqueda abierta | ✗ | las dos partes |
 | `saved_items` | propios | propios (`user_id = auth.uid()`) | ✗ (guardar es insert, desguardar es delete) | propios |
+| `collections` | propias | propias (`user_id = auth.uid()`) | ✗ (el nombre se pone una vez) | propias |
+| `collection_items` | de una colección propia | colección propia **y** `saved_item` propio (las dos condiciones) | ✗ (agregar es insert, sacar es delete) | de una colección propia |
 | `availability_rules`, `availability_exceptions` | de cualquier profesional **publicado** | el dueño del perfil | ✗ | el dueño |
 | `appointments` | las dos partes | ✗ (solo vía `schedule_appointment()`) | ✗ (solo vía `cancel_appointment()`) | ✗ |
 | `reviews` | **solo las propias** (lo público sale de `get_reviews()`) | quien tuvo un turno propio, con ese artista, no cancelado y ya terminado | la autora, con las columnas de origen congeladas por trigger | la autora |
@@ -142,6 +144,26 @@ agregados y columnas elegidas a mano:
 **Ninguna de las dos devuelve `user_id`.** Se abrió el agregado, no la
 identidad. Está verificado en `supabase/tests/48_saved_items.sql`, que falla si
 alguien le agrega una columna de identidad a cualquiera de las dos.
+
+**Una colección es una etiqueta, y su fila de pertenencia no tiene dueño
+propio.** `collection_items` no lleva `user_id` — la propiedad se prueba
+contra las dos tablas que referencia, y el INSERT exige **las dos
+condiciones** en el mismo `with check`: la colección referenciada es propia
+**y** el `saved_item` referenciado es propio. Sin la segunda condición,
+cualquiera que se entere de un `saved_item_id` ajeno (mirando la red, por
+ejemplo) podría colgarlo de una colección propia — filtrando que esa persona
+guardó esa obra, que es exactamente el tipo de filtración que `saved_items` ya
+cuida. Sin la primera, podría escribir en la colección de otro. Verificado en
+`supabase/tests/62_collections.sql`, que cubre los dos lados por separado.
+
+Las FK de `collection_items` cascadean en sentidos distintos a propósito:
+hacia `collections` para que borrar la colección se lleve la etiqueta y nunca
+la obra; hacia `saved_items` para que desguardar la obra —directo, o en
+cascada de dos saltos porque el artista borró el `portfolio_item`, que ya
+cascadea sobre `saved_items` desde ADR-016— también se lleve cualquier
+pertenencia a colección que la tuviera. Ninguno de los dos caminos necesita un
+trigger; Postgres los resuelve solo dentro de la misma transacción. Ver
+[ADR-030](../decisions/ADR-030-collections.md).
 
 **Ver el almanaque y ver la agenda son cosas distintas.** El horario de un
 artista publicado es público —es lo que la persona viene a mirar antes de

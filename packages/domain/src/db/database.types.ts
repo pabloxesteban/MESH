@@ -418,6 +418,68 @@ export type Database = {
         }
         Relationships: []
       }
+      collection_items: {
+        Row: {
+          collection_id: string
+          created_at: string
+          saved_item_id: string
+        }
+        Insert: {
+          collection_id: string
+          created_at?: string
+          saved_item_id: string
+        }
+        Update: {
+          collection_id?: string
+          created_at?: string
+          saved_item_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "collection_items_collection_id_fkey"
+            columns: ["collection_id"]
+            isOneToOne: false
+            referencedRelation: "collections"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "collection_items_saved_item_id_fkey"
+            columns: ["saved_item_id"]
+            isOneToOne: false
+            referencedRelation: "saved_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      collections: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "collections_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       conversations: {
         Row: {
           created_at: string
@@ -1734,6 +1796,7 @@ export type Database = {
           starts_at: string
         }[]
       }
+      get_completed_appointments_count: { Args: never; Returns: number }
       get_discovery_feed: {
         Args: {
           p_category_slug: string
@@ -1768,6 +1831,16 @@ export type Database = {
           professional_id: string
           starts_at: string
           viewer_is_professional: boolean
+        }[]
+      }
+      get_my_collections: {
+        Args: never
+        Returns: {
+          cover_media_paths: string[]
+          created_at: string
+          id: string
+          item_count: number
+          name: string
         }[]
       }
       get_open_search_feed: {

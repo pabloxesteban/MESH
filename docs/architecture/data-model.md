@@ -371,6 +371,41 @@ guardarla una vez. Sin UPDATE — desguardar es borrar la fila, no apagar un
 booleano, porque un booleano deja la fila de quien se arrepintió y esa fila es
 la que después alguien cuenta como interés.
 
+**`collections`** / **`collection_items`** — una colección es una etiqueta
+*encima* de lo ya guardado, nunca un lugar nuevo: nombrarla no guarda nada, y
+borrarla no desguarda nada. `saved_items` sigue siendo el único lugar donde
+vive el hecho de "guardado". Ver [ADR-030](../decisions/ADR-030-collections.md).
+
+| Columna (`collections`) | Tipo | Notas |
+|---|---|---|
+| `id` | uuid PK | |
+| `user_id` | uuid NOT NULL | → `profiles` ON DELETE CASCADE (no `auth.users`: `saved_items` es la excepción histórica, no la convención) |
+| `name` | text NOT NULL | CHECK 1–40 caracteres |
+| `created_at` | timestamptz NOT NULL | |
+
+Sin `updated_at` y sin política de UPDATE: el nombre se pone una vez, y
+renombrar queda fuera de V1 a propósito. Sin `unique(user_id, name)`: decisión
+deliberada del ADR, no un olvido — normalizarlo para que "Ideas" e "ideas" no
+convivan es un costo real por un requisito que nadie escribió.
+
+| Columna (`collection_items`) | Tipo | Notas |
+|---|---|---|
+| `collection_id` | uuid NOT NULL | → `collections` ON DELETE CASCADE |
+| `saved_item_id` | uuid NOT NULL | → `saved_items` ON DELETE CASCADE |
+| `created_at` | timestamptz NOT NULL | orden de la grilla de una colección |
+
+`primary key (collection_id, saved_item_id)`: agregar dos veces la misma obra
+a la misma colección es agregarla una vez. Sin `user_id` propio — la fila no
+tiene dueño directo, la propiedad se prueba contra las dos tablas que
+referencia (ver mapa de políticas en `security-model.md`).
+
+Las dos FK cascadean, pero en sentidos que hacen cosas distintas: borrar la
+`collection` se lleva la pertenencia y **no** la obra (la etiqueta desaparece,
+lo guardado sigue en "Todo"); borrar el `saved_item` —directo, o en cascada
+porque el artista borró el `portfolio_item`— se lleva la pertenencia con él,
+en dos saltos que Postgres resuelve solo dentro de la misma transacción, sin
+trigger. Verificado en `supabase/tests/62_collections.sql`.
+
 **`conversations`** — un hilo entre una persona y un artista con perfil
 reclamado.
 
@@ -423,6 +458,17 @@ si MESH armó uno. Es una preferencia de arranque y nada más — la que crea el
 perfil es la persona, tocando el botón. Ver
 [ADR-013](../decisions/ADR-013-artist-self-signup.md).
 
+**`city_location_id` se reactiva** para "Vivís en" en el header de Perfil, con
+granularidad de barrio (`locations.kind = 'neighborhood'`), reusando el mismo
+selector que ya usa `set_studio_location()`. La columna, la FK (`ON DELETE SET
+NULL`) y la política que la cubre (`profiles_update_own`, que no restringe por
+columna) ya existían desde `20260817000200_profiles.sql` y
+`20260817000400_media.sql` — no hizo falta ninguna migración nueva, solo que
+el cliente empiece a leerla y escribirla. Sin índice: la única lectura es "mi
+propio perfil por id", que ya resuelve por primary key, y no hay ninguna
+consulta conocida que filtre `profiles` por barrio. Ver
+[ADR-030](../decisions/ADR-030-collections.md).
+
 ## 4. Índices
 
 ```sql
@@ -443,6 +489,10 @@ create index on projects (user_id, status);
 create index on analytics_events (occurred_at);
 -- buscar por nombre
 create index on professionals using gin (search_key(display_name) gin_trgm_ops);
+-- colecciones
+create index on collections (user_id, created_at desc);
+create index on collection_items (collection_id, created_at desc);
+create index on collection_items (saved_item_id);
 ```
 
 Cada índice de acá existe porque una consulta concreta de
@@ -583,6 +633,24 @@ caracteres, en la base y en el cliente. Ver
 **Ninguna de las dos toca el ranking.** El motor de matching que puntúa y ordena
 sigue siendo el determinístico de arriba; lo que estas funciones producen entra
 como un dato más.
+
+**`get_my_collections()`** — `SECURITY INVOKER`, sin argumentos, `search_path`
+fijado. Las colecciones de quien llama, con cuántos ítems tiene cada una y
+hasta 4 miniaturas de portada (las últimas agregadas), en un solo round trip.
+INVOKER y no DEFINER porque no cruza ningún límite de confianza: cada tabla
+del join (`collections`, `collection_items`, `saved_items`, `portfolio_items`,
+`media_assets`) ya es legible para quien llama sobre sus propias filas — las
+políticas existentes alcanzan solas. Ver
+`supabase/migrations/20260821000800_collections.sql` y
+[ADR-030](../decisions/ADR-030-collections.md).
+
+**`get_completed_appointments_count()`** — `SECURITY INVOKER`, sin argumentos.
+Cuántos turnos propios (como profesional) ya terminaron (`ends_at < now()`,
+calculado en el servidor) sin haberse cancelado. INVOKER: la política
+`appointments_select_participants` (ADR-018) ya deja al dueño del perfil leer
+sus propios turnos completos, así que no hace falta cruzar RLS como sí hace
+`get_review_summary`. Devuelve `0` si quien llama no tiene perfil de artista,
+en vez de fallar. Ver [ADR-030](../decisions/ADR-030-collections.md).
 
 ## 5. Enums
 
