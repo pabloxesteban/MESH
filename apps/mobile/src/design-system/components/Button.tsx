@@ -49,8 +49,11 @@ export function Button({
 }: ButtonProps) {
   const theme = useTheme()
 
-  // El acento aparece como máximo una vez por pantalla; `primary` es quien lo
-  // usa. Ver docs/design/visual-language.md §4.
+  // `primary` es el único con permiso de llevar `accentFill` como relleno
+  // grande — el acento de ACCIÓN, que sigue limitado a uno por pantalla
+  // incluso después de ADR-032 (que sí volvió recurrente al acento de
+  // ESTADO: tab activo, chip seleccionado, foco de un campo). Ver
+  // docs/design/visual-language.md §4.
   const palette = {
     primary: {
       background: theme.accentFill,
@@ -78,10 +81,10 @@ export function Button({
       onPress={onPress}
       disabled={isDisabled}
       hapticIntent={hapticIntent}
-      // Compresión física solo en `primary` — ADR-031, segunda etapa. El
-      // acento aparece como máximo una vez por pantalla, y este feedback
-      // tiene que reforzar esa regla, no volverse un efecto genérico de
-      // cualquier botón.
+      // Compresión física solo en `primary` — ADR-031, segunda etapa. Sigue
+      // siendo el único con relleno grande de acento (acento de ACCIÓN,
+      // ADR-032), y este feedback tiene que reforzar esa regla, no volverse
+      // un efecto genérico de cualquier botón.
       pressedScale={variant === 'primary'}
       accessibilityLabel={accessibilityLabel ?? label}
       {...(accessibilityHint != null ? { accessibilityHint } : {})}
@@ -113,9 +116,11 @@ export function Button({
           <ActivityIndicator color={theme[style.text]} />
         </View>
       ) : (
-        // `labelBold` (InstrumentSans-Bold) solo en `primary` — ADR-031. El
-        // acento aparece como máximo una vez por pantalla, y es ese mismo
-        // botón el que se gana el peso tipográfico más audaz.
+        // `labelBold` (InstrumentSans-Bold) en `primary` — ADR-031. Desde
+        // ADR-032 `labelBold` ya no es exclusivo de este botón (el tab
+        // activo y el chip seleccionado también lo llevan, como acento de
+        // ESTADO), pero acá sigue marcando el único acento de ACCIÓN de la
+        // pantalla.
         <Text
           role={variant === 'primary' ? 'labelBold' : 'label'}
           color={style.text}

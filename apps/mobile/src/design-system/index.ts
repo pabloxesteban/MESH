@@ -51,6 +51,7 @@ export {
   type StaggeredGridProps,
 } from './components/StaggeredGrid.tsx'
 export { NoticeRow, type NoticeRowAction, type NoticeRowProps } from './components/NoticeRow.tsx'
+export { HeroGlow, type HeroGlowProps } from './components/HeroGlow.tsx'
 
 // Estructura
 export {

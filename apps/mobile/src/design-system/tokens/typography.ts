@@ -51,16 +51,27 @@ export const textRoles = {
    */
   display: {
     fontFamily: fontFamily.serifDisplay,
-    fontSize: 40,
-    lineHeight: 44,
-    letterSpacing: -0.4,
+    // ADR-032: 40/44 → 48/52. `Fraunces-SemiBold.ttf` ya se instanció con
+    // `opsz: 144`, el extremo del eje óptico de Fraunces, pensado para texto
+    // bastante más grande que 40px — 48px acerca el tamaño de uso al tamaño
+    // para el que el corte ya está optimizado, no lo aleja.
+    fontSize: 48,
+    lineHeight: 52,
+    // -0,4 → -0,8: duplica la relación proporcional que ya tenía (de ≈-1% a
+    // ≈-1,7%), un salto moderado para un serif editorial. Verificado en
+    // specimen — ver npm run brand:specimen antes de tocar este valor de
+    // nuevo.
+    letterSpacing: -0.8,
   },
   /** Títulos de pantalla, nombre del artista en el perfil. */
   titleLg: {
     fontFamily: fontFamily.serif,
     fontSize: 30,
     lineHeight: 36,
-    letterSpacing: -0.2,
+    // ADR-032: -0,2 → -0,35. Solo el tracking — tamaño y peso se quedan
+    // igual, el veredicto de ADR-031 sobre un peso mayor a 24-30px sigue
+    // vigente.
+    letterSpacing: -0.35,
   },
   /** Encabezados de sección. */
   title: {

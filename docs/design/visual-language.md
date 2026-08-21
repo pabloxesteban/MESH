@@ -167,10 +167,16 @@ rompe el build, y una familia sin estilos también.
 Derivados mezclando `ink` y `paper` — no gris, así todo el sistema se mantiene
 cálido, y sobre un neutro cálido la fotografía de piel se ve como piel.
 
-`ink-900 #0C0C0E` · `ink-800 #1A1A1D` · `ink-700 #2C2B2E` ·
+`ink-950 #040406` · `ink-900 #0C0C0E` · `ink-800 #1A1A1D` · `ink-700 #2C2B2E` ·
 `ink-500 #56545A` · `ink-300 #8C8A90` ·
 `paper-300 #C9C2B6` · `paper-200 #E2DCD1` · `paper-100 #F4EFE6` ·
 `paper-050 #FAF7F1`
+
+**`ink-950` (ADR-032) es `surface` del tema oscuro**, no `ink-900`: el mismo
+negro-cálido de la escala, un escalón más cerca de negro real, sin cruzar a
+negro puro acromático. `surfaceRaised` (`ink-800`) y `surfaceSunken`
+(`black`, `#000000`) no cambian — la elevación se nota más que antes, no
+menos, porque la tarjeta ahora salta desde un fondo más oscuro.
 
 ### Tokens semánticos
 
@@ -205,18 +211,42 @@ advertencia.
 
 ### Disciplina
 
-- **El acento de marca aparece como máximo una vez por pantalla.** Marca la
-  única acción más importante, o la única cosa que hay que notar. Esta regla es
-  sobre `accent`, no sobre el color en general — los colores de estilo pueden
-  aparecer muchas veces, porque no compiten por la atención: la reparten.
-  *(Antes esta regla decía "el acento aparece como máximo una vez por pantalla"
-  a secas, escrita cuando el sistema tenía un solo color. La reemplaza esta.)*
+- **El acento de marca tiene dos registros, no uno.** ADR-032 reemplaza la
+  regla que decía "el acento aparece como máximo una vez por pantalla" —
+  incluso en su segunda versión (arriba), que ya la limitaba a `accent` y no
+  al color en general, se seguía leyendo como un solo botón por pantalla.
+
+  1. **Acento de estado — recurrente, sin tope.** Marca qué está
+     seleccionado, activo, o es una cifra que importa: tab activo, chip de
+     filtro seleccionado, borde de foco de un campo, cifras destacadas
+     (huecos libres, "N guardados"), badge de aviso sin leer, punto activo de
+     un paginador. Puede haber varios a la vez en la misma pantalla, porque
+     cada uno responde una pregunta distinta. Nunca en: fondo de una tarjeta
+     completa, halo o borde de una miniatura de obra, texto de párrafo, ni
+     como reemplazo del color de una familia de estilo.
+  2. **Acento de acción — sigue siendo único por pantalla.** El único
+     botón/CTA primario con relleno grande y `accentContrast` encima. Esta es
+     la parte de la regla vieja que no se negocia: si dos botones compitieran
+     por relleno de acento a la vez, ninguno se leería como "el" siguiente
+     paso. `Button` primary sigue siendo la única combinación con ese
+     permiso.
+
+  Esta regla es sobre `accent`/`accentFill`, no sobre el color en general —
+  los colores de estilo pueden aparecer muchas veces, porque no compiten por
+  la atención: la reparten. Ver ADR-032 para la tabla completa de dónde vive
+  cada registro.
 - Un color de estilo solo aparece **donde ese estilo está siendo nombrado**. No
   se usa como decoración ni para dar variedad.
 - Las obras nunca se tiñen, ni se superponen con un color de marca, ni reciben
   un borde de color. El color vive en el cromo alrededor de la imagen, nunca
   encima.
 - Los velos sobre imágenes son `ink` con opacidad medida, nunca coloreados.
+- **Un solo degradado existe en el sistema: `heroGlow` (ADR-032).** Puntual y
+  acotado — acento al borde de un área chica, apagándose a transparente antes
+  de tocar el contenido de abajo. Nunca un degradado de marca completo (eso
+  sigue prohibido sin excepción), nunca sobre una tarjeta, nunca sobre una
+  miniatura de obra, nunca como fondo permanente de una pantalla entera. Vive
+  como `theme.heroGlow` y el componente `HeroGlow` del design system.
 
 ### Tema
 
@@ -242,7 +272,7 @@ pareja con Fraunces por construcción.
 
 | Token | Familia | Tamaño / interlínea | Uso |
 |---|---|---|---|
-| `display` | Serif | 40 / 44 | Revelación del gusto, momentos de marca |
+| `display` | Serif | 48 / 52 | Revelación del gusto, momentos de marca (ADR-032; antes 40/44) |
 | `title-lg` | Serif | 30 / 36 | Títulos de pantalla, nombre del artista en el perfil |
 | `title` | Serif | 24 / 30 | Encabezados de sección |
 | `body-lg` | Sans | 17 / 26 | Bios, descripciones de proyecto |

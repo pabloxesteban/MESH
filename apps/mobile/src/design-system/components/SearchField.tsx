@@ -65,7 +65,8 @@ export function SearchField({
         flexDirection: 'row',
         alignItems: 'center',
         borderWidth: HAIRLINE,
-        borderColor: focused ? theme.textPrimary : theme.borderSubtle,
+        // ADR-032: foco de teclado es acento de estado, igual que `Input`.
+        borderColor: focused ? theme.accentFill : theme.borderSubtle,
         borderRadius: radius.full,
         backgroundColor: theme.surfaceRaised,
         paddingLeft: spacing.sm,

@@ -73,10 +73,15 @@ con blurhash, dimensionado y defaults de reciclado — Fase 8).
 
 **Controles** — ✅ `Button` (variantes: primary, secondary, ghost, destructive;
 tamaños: sm, md, lg; estados: normal, presionado, deshabilitado, cargando;
-`primary` enciende `pressedScale` de `Pressable` — es el único, para que el
-acento siga apareciendo como máximo una vez por pantalla) ·
-✅ `FilterChip` · ✅ `Tag` · ✅ `Input` (etiqueta, ayuda, error, contador) ·
-`IconButton` · `Stepper`.
+`primary` enciende `pressedScale` de `Pressable` — es el único, porque es el
+único elemento con permiso de llevar el **acento de acción**, que sigue
+limitado a uno por pantalla incluso después de ADR-032) ·
+✅ `FilterChip` (el borde y la etiqueta del chip seleccionado usan el
+**acento de estado** — `accentFill`/`accent` y `labelBold` — desde ADR-032,
+en vez del `textPrimary` neutro que usaba antes) · ✅ `Tag` (color por
+familia de estilo, no acento de marca — no cambia con ADR-032) ·
+✅ `Input` (etiqueta, ayuda, error, contador; el borde de foco usa el acento
+de estado desde ADR-032) · `IconButton` · `Stepper`.
 
 **Contenido** — `ArtworkCard` (la tarjeta del mazo) · `ProfessionalCard` ·
 `MatchCard` (profesional + banda + hasta 3 razones) · `MatchBadge` (banda, nunca
@@ -91,7 +96,11 @@ puntuales apilables) · `StyleMeter` (la barra de gusto) · `PriceRange` ·
 `AvailabilityPill` (no renderiza nada cuando la disponibilidad está vieja — la
 regla de frescura vive en el componente para que no se pueda olvidar).
 
-**Superficies** — `BottomSheet` · `Modal` · `Scrim`.
+**Superficies** — `BottomSheet` · `Modal` · `Scrim` · ✅ `HeroGlow`
+(degradado de héroe puntual, ADR-032 — envuelve `expo-linear-gradient` con los
+stops/locations de `theme.heroGlow`; nunca sobre una tarjeta ni una miniatura
+de obra, nunca fondo permanente de pantalla; `IntentScreen.tsx` es su primer
+consumidor).
 
 **Estados** — ✅ `Skeleton` (no pulsa con movimiento reducido; el alto acepta
 número o porcentaje, para los casos donde el skeleton vive dentro de un

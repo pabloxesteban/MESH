@@ -10,7 +10,12 @@
  * buena vista en una buena pantalla, y obvio para un test.
  */
 
-import { AA_LARGE, AA_TEXT, contrastRatio } from '../contrast.ts'
+import {
+  AA_LARGE,
+  AA_TEXT,
+  blendOverBackground,
+  contrastRatio,
+} from '../contrast.ts'
 import { palette } from './palette.ts'
 import { darkTheme, lightTheme, type Theme } from './theme.ts'
 
@@ -116,6 +121,53 @@ describe.each([
     ).toBeGreaterThanOrEqual(AA_TEXT)
   })
 })
+
+describe('heroGlow (ADR-032)', () => {
+  // El fondo real del gradiente es `theme.surface` — es donde vive
+  // `IntentScreen.tsx`, el primer consumidor. El pico (location 0) es el
+  // punto más intenso, y es el que tiene que convivir con `textPrimary`
+  // dibujado encima.
+  it.each([
+    ['oscuro', darkTheme],
+    ['claro', lightTheme],
+  ])(
+    'el pico deja textPrimary con el doble del mínimo AA — tema %s',
+    (_name, theme) => {
+      const peak = blendOverBackground(theme.heroGlow.colors[0], theme.surface)
+      const ratio = contrastRatio(theme.textPrimary, peak)
+      expect(ratio).toBeGreaterThanOrEqual(AA_TEXT * 2)
+    },
+  )
+
+  it('el segundo stop es transparente, no un hex — no compite con el contenido de abajo', () => {
+    for (const theme of [darkTheme, lightTheme]) {
+      expect(theme.heroGlow.colors[1]).toBe('transparent')
+    }
+  })
+
+  it('locations van de 0 a 0,55 — se apaga antes de llegar a las tarjetas de abajo', () => {
+    for (const theme of [darkTheme, lightTheme]) {
+      expect(theme.heroGlow.locations).toEqual([0, 0.55])
+    }
+  })
+
+  // El control que explica por qué el techo quedó en 28%/16% y no más alto:
+  // reproduce, corriendo, el punto que el ADR describe a mano — al 50% de
+  // opacidad el mismo pico en tema oscuro ya no sostiene AA para el texto
+  // encima. No es una aserción sobre el token real (el token nunca usa 50%);
+  // es la evidencia de por qué no lo hace.
+  it('control: al 50% de opacidad en oscuro, el mismo pico ya NO pasa AA', () => {
+    const fiftyPercent = `${peakBase(darkTheme)}80`
+    const blend = blendOverBackground(fiftyPercent, darkTheme.surface)
+    const ratio = contrastRatio(darkTheme.textPrimary, blend)
+    expect(ratio).toBeLessThan(AA_TEXT)
+  })
+})
+
+/** El color base (sin sufijo de alfa) del stop más intenso de `heroGlow`. */
+function peakBase(theme: Theme): string {
+  return theme.heroGlow.colors[0].slice(0, 7)
+}
 
 describe('disciplina de la paleta', () => {
   it('todo relleno lleva su texto con AA', () => {

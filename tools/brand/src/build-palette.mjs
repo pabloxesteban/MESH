@@ -316,6 +316,15 @@ for (const family of FAMILIES) {
 const NEUTROS = `  // Tinta → papel. Son mezclas de tinta y papel, no gris: el sistema se
   // mantiene cálido, y sobre un neutro cálido la fotografía de piel se ve como
   // piel. Ver docs/design/visual-language.md §4.
+  //
+  // ADR-032: ink950 es la superficie del tema oscuro. Sigue la misma
+  // proporción de canal que ink900 (R=G, B levemente mayor) escalada hacia
+  // black sin llegar a acromático — el mismo negro-cálido de la escala, un
+  // escalón más cerca de negro real. No sale del solver OKLCH: como el resto
+  // de esta escala, es un neutro fijado a mano por la misma razón que ink900 y
+  // ink800 ya lo eran (un neutro cálido no es un tono a resolver por contraste
+  // contra sí mismo, es la base de la que el resto se resuelve).
+  ink950: '#040406',
   ink900: '#0C0C0E',
   ink800: '#1A1A1D',
   ink700: '#2C2B2E',

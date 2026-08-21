@@ -76,3 +76,36 @@ export function meetsContrast(
 ): boolean {
   return contrastRatio(foreground, background) >= minimum
 }
+
+/**
+ * Compone un color translúcido (`#rrggbbaa`, u opaco `#rrggbb`/`#rgb`) sobre
+ * un fondo opaco, y devuelve el resultado como `#rrggbb`.
+ *
+ * La mezcla es en sRGB codificado (no en luz lineal): es el espacio en el que
+ * compone de verdad la GPU un `LinearGradient` sobre una superficie, así que
+ * es el que hay que usar para que un test de contraste sobre un degradado
+ * (`heroGlow`, ADR-032) refleje lo que se ve en pantalla y no una
+ * aproximación.
+ */
+export function blendOverBackground(
+  foregroundWithAlpha: string,
+  background: string,
+): string {
+  const value = foregroundWithAlpha.replace('#', '')
+  const hasAlpha = value.length === 8 || value.length === 4
+  const opaqueLength = value.length === 8 ? 6 : value.length === 4 ? 3 : value.length
+  const alphaHex = hasAlpha ? value.slice(opaqueLength) : null
+  const alpha = alphaHex == null ? 1 : Number.parseInt(alphaHex, 16) / (alphaHex.length === 1 ? 15 : 255)
+
+  const fg = parseHex(`#${value.slice(0, opaqueLength)}`)
+  const bg = parseHex(background)
+
+  const mix = (f: number, b: number) => Math.round(alpha * f + (1 - alpha) * b)
+
+  return (
+    '#' +
+    [mix(fg.r, bg.r), mix(fg.g, bg.g), mix(fg.b, bg.b)]
+      .map((channel) => channel.toString(16).padStart(2, '0'))
+      .join('')
+  )
+}

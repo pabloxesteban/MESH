@@ -1,6 +1,7 @@
 import { fireEvent, screen } from '@testing-library/react-native'
 import { BOTH_THEMES, renderWithProviders } from '../test-utils.tsx'
 import { MIN_TOUCH_TARGET } from '../tokens/layout.ts'
+import { darkTheme, lightTheme } from '../tokens/theme.ts'
 import { FilterChip } from './FilterChip.tsx'
 import { Input } from './Input.tsx'
 import { Tag } from './Tag.tsx'
@@ -60,6 +61,25 @@ describe.each(BOTH_THEMES)('FilterChip · tema %s', (_name, theme) => {
     expect(
       flatStyle(screen.getByTestId('chip')).minHeight,
     ).toBeGreaterThanOrEqual(MIN_TOUCH_TARGET)
+  })
+
+  // ADR-032: la selección pasa a ser acento de estado — accentFill/accent en
+  // vez de textPrimary/borderSubtle. Es un chip de filtro, no una acción: no
+  // usa relleno grande, solo borde y etiqueta.
+  it('seleccionado usa el acento de estado (ADR-032), no textPrimary', () => {
+    renderWithProviders(
+      <FilterChip
+        label="Old School"
+        selected
+        onToggle={jest.fn()}
+        testID="chip"
+      />,
+      { theme },
+    )
+    const chipTheme = theme === 'dark' ? darkTheme : lightTheme
+    const style = flatStyle(screen.getByTestId('chip'))
+    expect(style.borderColor).toBe(chipTheme.accentFill)
+    expect(style.backgroundColor).toBe('transparent')
   })
 
   it('deshabilitado no alterna', () => {
@@ -145,5 +165,18 @@ describe.each(BOTH_THEMES)('Input · tema %s', (_name, theme) => {
       { theme },
     )
     expect(screen.getByText('8/120')).toBeTruthy()
+  })
+
+  // ADR-032: el borde de foco pasa a ser acento de estado (accentFill), no
+  // textPrimary — es el mismo registro que un chip seleccionado o el tab
+  // activo, no una acción.
+  it('el borde de foco usa el acento de estado (ADR-032)', () => {
+    const inputTheme = theme === 'dark' ? darkTheme : lightTheme
+    renderWithProviders(<Input label="Título" />, { theme })
+    const field = screen.getByLabelText('Título')
+
+    expect(flatStyle(field).borderColor).toBe(inputTheme.borderSubtle)
+    fireEvent(field, 'focus')
+    expect(flatStyle(field).borderColor).toBe(inputTheme.accentFill)
   })
 })

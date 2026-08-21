@@ -23,22 +23,36 @@ mkdirSync(OUT, { recursive: true })
 const SERIF = 'Fraunces'
 const SANS = 'Instrument Sans'
 
-/** Espejo de docs/design/visual-language.md §5. */
+/**
+ * Espejo de docs/design/visual-language.md §5 y
+ * apps/mobile/src/design-system/tokens/typography.ts.
+ *
+ * `tracking` es una FRACCIÓN del tamaño (se multiplica por `size` más abajo),
+ * no los píxeles absolutos de `letterSpacing` en `typography.ts` — convertir
+ * al tocar un valor: `tracking = letterSpacing / size`.
+ */
 const SCALE = [
   {
+    // ADR-032: 40/44 → 48/52, tracking -0,4 → -0,8 (-0,8/48 ≈ -0,0167).
+    // Peso 600 (Fraunces-SemiBold, ADR-031) — no 400: el corte que
+    // `display` usa de verdad en la app.
     token: 'display',
     family: SERIF,
-    weight: 400,
-    size: 40,
-    leading: 44,
+    weight: 600,
+    size: 48,
+    leading: 52,
+    tracking: -0.8 / 48,
     sample: 'Tu gusto',
   },
   {
+    // ADR-032: tracking -0,2 → -0,35 (-0,35/30 ≈ -0,0117). Tamaño y peso sin
+    // cambios.
     token: 'title-lg',
     family: SERIF,
     weight: 400,
     size: 30,
     leading: 36,
+    tracking: -0.35 / 30,
     sample: 'Encontrá a tu gente',
   },
   {

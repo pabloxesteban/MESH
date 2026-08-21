@@ -44,10 +44,12 @@ export interface PressableProps extends Omit<
    * presionado. Se suma al cambio de opacidad, no lo reemplaza.
    *
    * Por defecto apagado. Es un préstamo deliberado de `Button`, que lo enciende
-   * únicamente en `variant="primary"` (ADR-031, segunda etapa) — el acento
-   * aparece como máximo una vez por pantalla, y este feedback tiene que
-   * reforzar esa regla, no volverse un efecto genérico que cualquier pantalla
-   * prende porque "queda mejor".
+   * únicamente en `variant="primary"` (ADR-031, segunda etapa) — el único
+   * elemento con permiso de llevar el acento de ACCIÓN, que sigue limitado a
+   * uno por pantalla incluso después de ADR-032 (que sí volvió recurrente al
+   * acento de ESTADO). Este feedback tiene que reforzar esa regla, no
+   * volverse un efecto genérico que cualquier pantalla prende porque "queda
+   * mejor".
    */
   pressedScale?: boolean
   /**

@@ -62,12 +62,17 @@ export const STAGGER = 60
  * Compresión física del botón `primary` al presionar. Ver ADR-031 (segunda
  * etapa — movimiento).
  *
- * Solo `primary`: el acento aparece como máximo una vez por pantalla, y este
- * feedback tiene que reforzar esa regla, no romperla — no es un valor de
- * conveniencia para cualquier `Pressable`. Anima con `duration.instant` y
- * `easing.out`, vía `withTiming` — nunca `withSpring`: visual-language.md §7
- * prohíbe "UI que rebota", así que no hay overshoot ni resorte, solo una
- * transición lineal de ida y vuelta.
+ * Solo `primary`: sigue siendo el único elemento con permiso de llevar
+ * `accentFill` como relleno grande — el **acento de acción**, que sigue
+ * limitado a uno por pantalla incluso después de ADR-032. (ADR-032 partió la
+ * regla vieja en dos: el acento de *estado* — tab activo, chip seleccionado,
+ * foco de un campo — ahora puede aparecer varias veces a la vez, sin este
+ * feedback de compresión; el acento de *acción*, el único CTA con relleno
+ * grande, sigue siendo uno solo, y es el que este token refuerza.) No es un
+ * valor de conveniencia para cualquier `Pressable`. Anima con
+ * `duration.instant` y `easing.out`, vía `withTiming` — nunca `withSpring`:
+ * visual-language.md §7 prohíbe "UI que rebota", así que no hay overshoot ni
+ * resorte, solo una transición lineal de ida y vuelta.
  */
 export const PRESS_SCALE = 0.97
 

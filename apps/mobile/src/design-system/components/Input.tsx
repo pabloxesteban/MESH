@@ -38,10 +38,12 @@ export function Input({
   const errorId = useId()
 
   const hasError = error != null && error.length > 0
+  // ADR-032: el foco pasa a ser acento de estado (accentFill), reemplazando
+  // el borde neutro (textPrimary) que usaba antes de esta ADR.
   const borderColor = hasError
     ? theme.stateNegative
     : focused
-      ? theme.textPrimary
+      ? theme.accentFill
       : theme.borderSubtle
 
   return (

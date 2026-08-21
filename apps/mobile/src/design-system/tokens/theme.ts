@@ -102,12 +102,40 @@ export interface Theme {
   // Estados de interacción, como opacidad.
   readonly pressedOpacity: number
   readonly disabledOpacity: number
+
+  /**
+   * Degradado de héroe. ADR-032.
+   *
+   * Puntual y acotado: acento al borde de un área chica, apagándose a
+   * transparente antes de tocar el contenido de abajo. Nunca un degradado de
+   * marca completo, nunca fondo permanente de pantalla, nunca sobre una
+   * tarjeta o una miniatura de obra — eso sigue prohibido sin excepción
+   * (visual-language.md §4). `HeroGlow` es el único componente que lo
+   * consume.
+   *
+   * `colors` son strings con sufijo de alfa sobre un token de `palette.ts` ya
+   * existente (nunca un hex nuevo escrito a mano) más la palabra reservada de
+   * React Native `'transparent'` — no un hex, así que no hace falta vivir en
+   * `palette.ts`. `locations` es dónde cae cada stop en el degradado, de 0 a
+   * 1. El pico de opacidad está fijado en el doble del mínimo AA que necesita
+   * el texto que se dibuja encima, no en el borde de lo que un test acepta —
+   * ver theme.test.ts y ADR-032 para los números reales.
+   */
+  readonly heroGlow: {
+    readonly colors: readonly [string, string]
+    readonly locations: readonly [number, number]
+  }
 }
 
 export const darkTheme: Theme = {
   name: 'dark',
 
-  surface: palette.ink900,
+  // ADR-032: ink950, no ink900. Un negro-cálido casi real (1,03:1 contra
+  // `black`, invisible a ojo) en vez del gris-tinta que compartía con el tema
+  // anterior — el fondo pasa a ser negro de verdad sin cruzar a negro puro
+  // acromático. `surfaceRaised` se queda en `ink800`: la tarjeta salta más
+  // que antes, así que la elevación se nota más, no menos.
+  surface: palette.ink950,
   surfaceRaised: palette.ink800,
   surfaceSunken: palette.black,
 
@@ -143,6 +171,14 @@ export const darkTheme: Theme = {
 
   pressedOpacity: 0.62,
   disabledOpacity: 0.38,
+
+  // 28% del pico (`brandVivid47`) → transparente. Verificado con
+  // contrastRatio(): `textPrimary` encima del pico mide 9,18:1, el doble del
+  // mínimo AA — a 50% ya cae a 4,47:1 y no pasa (theme.test.ts). Ver ADR-032.
+  heroGlow: {
+    colors: [`${palette.brandVivid}47`, 'transparent'],
+    locations: [0, 0.55],
+  },
 }
 
 export const lightTheme: Theme = {
@@ -187,6 +223,15 @@ export const lightTheme: Theme = {
 
   pressedOpacity: 0.62,
   disabledOpacity: 0.38,
+
+  // 16% del pico (`brandDeepVivid29`) → transparente. Un lima oscuro sobre
+  // papel se ve más apagado por naturaleza —no hay negro de fondo contra el
+  // que "prender"—, así que el techo seguro es más bajo que en oscuro:
+  // `textPrimary` encima mide 13,91:1. Ver ADR-032.
+  heroGlow: {
+    colors: [`${palette.brandDeepVivid}29`, 'transparent'],
+    locations: [0, 0.55],
+  },
 }
 
 export const themes = { dark: darkTheme, light: lightTheme } as const
