@@ -371,9 +371,9 @@ export const en: Readonly<Record<TranslationKey, string>> = {
   'studio.claim.label': 'Code',
   'studio.claim.submit': 'Claim',
   'studio.claim.invalid': 'That code is not valid, or it was already used.',
-  'studio.add.styles': 'Styles for this piece',
+  'studio.add.title': 'Upload a piece',
   'studio.add.styles.hint':
-    'Tap in order: the first one weighs most. Up to three.',
+    'Pick the styles of this piece, up to three, in order: the first one weighs most.',
   'studio.add.styles.max': 'You picked {n}. Remove one to change it.',
   'studio.add.featured.on': 'Will open your profile',
   'studio.add.featured.off': 'Open my profile with this',
@@ -575,6 +575,8 @@ export const en: Readonly<Record<TranslationKey, string>> = {
   'replyHabit.slower': 'Usually slow to reply',
   'replyHabit.source':
     'Calculated from their conversations in the last 90 days.',
+  'replyHabit.source.own':
+    'Worked out from your conversations over the last 90 days.',
   'replyHabit.own': 'This is how your replying looks on your profile',
 
   'age.title': 'One thing before you come in',

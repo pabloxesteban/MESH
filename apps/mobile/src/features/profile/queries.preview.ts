@@ -7,6 +7,7 @@ import type { AvailabilityStatus, Professional } from '@mesh/domain'
 import {
   artistBySlug,
   previewLocation,
+  previewOwnProfile,
   previewOwnedProfessional,
   previewPiecesOf,
   previewProfessionalId,
@@ -108,10 +109,23 @@ export type ReplyHabit = 'same_day' | 'few_days' | 'slower'
  *
  * No todos rápido: el estado que hay que poder mirar es el malo, porque es el
  * que decide si este indicador sirve para algo o es publicidad. Ver ADR-022.
+ *
+ * **Tu propio perfil nunca tiene hábito**, y no es un detalle: acabás de
+ * crearlo, así que tiene cero conversaciones, y el piso de ADR-022 son tres.
+ * Antes el hash le tocaba "Suele contestar en el día" a un perfil de un minuto
+ * de vida — una disponibilidad inventada sobre uno mismo, que es justo lo que
+ * el innegociable 2 prohíbe. En la base esto no pasa porque la RPC devuelve
+ * null por debajo del piso; acá tiene que pasar lo mismo o el preview enseña
+ * lo contrario de lo que hace el producto.
  */
 export async function fetchReplyHabit(
   professionalId: string,
 ): Promise<ReplyHabit | null> {
+  const own = previewOwnProfile()
+  if (own != null && professionalId === previewProfessionalId(own.slug)) {
+    return null
+  }
+
   const posicion = [...professionalId].reduce(
     (total, letra) => total + letra.charCodeAt(0),
     0,

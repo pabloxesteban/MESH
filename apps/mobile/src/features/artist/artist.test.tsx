@@ -20,6 +20,7 @@ import { MotionProvider, ThemeProvider } from '@/design-system/index.ts'
 import { I18nProvider } from '@/i18n/I18nProvider.tsx'
 
 import { StudioScreen } from './StudioScreen.tsx'
+import { fetchReplyHabit } from '@/features/profile/queries.ts'
 import { readDeviceGps } from './gps.ts'
 import {
   addPiece,
@@ -41,6 +42,10 @@ jest.mock('./upload.ts', () => ({
     byteSize: 1000,
   }),
 }))
+jest.mock('@/features/profile/queries.ts', () => ({
+  ...jest.requireActual('@/features/profile/queries.ts'),
+  fetchReplyHabit: jest.fn().mockResolvedValue(null),
+}))
 jest.mock('expo-image-picker', () => ({
   launchImageLibraryAsync: jest
     .fn()
@@ -55,6 +60,7 @@ const setLocationMock = setStudioLocation as jest.Mock
 const readGpsMock = readDeviceGps as jest.Mock
 const createMock = createOwnProfessional as jest.Mock
 const setStylesMock = setOwnStyles as jest.Mock
+const replyHabitMock = fetchReplyHabit as jest.Mock
 
 /** Un perfil propio ya cargado. Los tests que lo pisan solo cambian lo suyo. */
 function ownedProfile(patch: Record<string, unknown> = {}) {
@@ -413,5 +419,35 @@ describe('StudioScreen', () => {
         ),
       )
     })
+  })
+})
+
+describe('con qué frecuencia contesta, en el Estudio propio', () => {
+  it('le habla en segunda persona: son TUS conversaciones, no las de un tercero', async () => {
+    // La misma clave de i18n se usaba en el perfil que ve un visitante y en el
+    // Estudio del propio artista, así que a alguien le decía "calculado con
+    // SUS conversaciones" sobre sí mismo, en su propia pantalla.
+    fetchProfileMock.mockResolvedValue(ownedProfile())
+    replyHabitMock.mockResolvedValue('same_day')
+    renderStudio()
+
+    await waitFor(() =>
+      expect(screen.getByTestId('studio-reply-habit')).toBeTruthy(),
+    )
+    expect(screen.getByText(/tus conversaciones/i)).toBeTruthy()
+    expect(screen.queryByText(/sus conversaciones/i)).toBeNull()
+  })
+
+  it('sin dato no dibuja nada: el piso son tres conversaciones', async () => {
+    // ADR-022. Un artista recién dado de alta tiene cero, y una frecuencia
+    // inventada sobre uno mismo es exactamente lo que prohíbe el innegociable 2.
+    fetchProfileMock.mockResolvedValue(ownedProfile())
+    replyHabitMock.mockResolvedValue(null)
+    renderStudio()
+
+    await waitFor(() =>
+      expect(screen.getByTestId('studio-content')).toBeTruthy(),
+    )
+    expect(screen.queryByTestId('studio-reply-habit')).toBeNull()
   })
 })

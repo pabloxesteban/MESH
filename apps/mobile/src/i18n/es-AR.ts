@@ -411,9 +411,9 @@ export const esAR = {
   'studio.claim.label': 'Código',
   'studio.claim.submit': 'Reclamar',
   'studio.claim.invalid': 'Ese código no es válido o ya se usó.',
-  'studio.add.styles': 'Estilos de la pieza',
+  'studio.add.title': 'Subir una obra',
   'studio.add.styles.hint':
-    'Tocá en orden: el primero es el que más pesa. Hasta tres.',
+    'Elegí los estilos de esta pieza, hasta tres y en orden: el primero es el que más pesa.',
   'studio.add.styles.max': 'Ya elegiste {n}. Sacá uno para cambiar.',
   'studio.add.featured.on': 'Va a abrir tu perfil',
   'studio.add.featured.off': 'Que abra mi perfil',
@@ -632,6 +632,8 @@ export const esAR = {
   'replyHabit.slower': 'Suele tardar en contestar',
   'replyHabit.source':
     'Calculado con sus conversaciones de los últimos 90 días.',
+  'replyHabit.source.own':
+    'Calculado con tus conversaciones de los últimos 90 días.',
   'replyHabit.own': 'Así se ve tu respuesta en tu perfil',
 
   // --- mayoría de edad --------------------------------------------------------

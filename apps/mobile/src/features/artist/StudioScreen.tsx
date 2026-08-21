@@ -577,9 +577,16 @@ function AddPiece({
 
   return (
     <Box gap="sm" testID="studio-add">
+      {/* El encabezado de sección que faltaba.
+          Sin él, este bloque arrancaba directo con su grilla de estilos —doce
+          fichas idénticas a las de "Tus estilos", cuatrocientos píxeles más
+          arriba— y las dos se leían como una sola cosa repetida. Son tareas
+          distintas: arriba se declara qué hacés vos, acá qué es esta foto. Un
+          artista que toca la grilla equivocada cambia su perfil creyendo que
+          etiqueta una obra, y nada se lo dice. */}
       <Box gap="xxs">
         <Text role="label" color="textSecondary">
-          {t('studio.add.styles')}
+          {t('studio.add.title')}
         </Text>
         <Text role="label" color="textTertiary">
           {t('studio.add.styles.hint')}
@@ -840,8 +847,13 @@ function OwnReplyHabit({ professionalId }: { professionalId: string }) {
       <Text role="body">
         {t(`replyHabit.${habito.data}` as TranslationKey)}
       </Text>
+      {/* `source.own` y no `source`: la misma frase decía "calculado con
+          SUS conversaciones" en el Estudio del propio artista. Hablarle a
+          alguien en tercera persona sobre sí mismo en su propia pantalla se
+          lee como un texto copiado de otro lado — que es exactamente lo que
+          era. */}
       <Text role="label" color="textTertiary">
-        {t('replyHabit.source')}
+        {t('replyHabit.source.own')}
       </Text>
     </Box>
   )
