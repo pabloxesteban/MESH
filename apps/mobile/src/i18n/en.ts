@@ -643,6 +643,11 @@ export const en: Readonly<Record<TranslationKey, string>> = {
   'account.delete.submit': 'Delete my account',
   'account.delete.error': "We couldn't delete the account. Try again.",
 
+  'agenda.title': 'Your week',
+  'agenda.noName': 'No name set',
+  'agenda.open': 'Open the chat',
+  'agenda.open.one': 'Open the chat with {quien}',
+
   'notif.title': 'What happened',
   'notif.report.actioned': 'We looked at what you reported and took action.',
   'notif.report.dismissed':

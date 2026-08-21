@@ -711,6 +711,14 @@ export const esAR = {
   'account.delete.submit': 'Borrar mi cuenta',
   'account.delete.error': 'No pudimos borrar la cuenta. Probá de nuevo.',
 
+  // --- tu semana ---------------------------------------------------------------
+  // La agenda que faltaba de ADR-018. Sin turnos no se dibuja nada, así que no
+  // hay estado vacío que traducir.
+  'agenda.title': 'Tu semana',
+  'agenda.noName': 'No puso su nombre',
+  'agenda.open': 'Abrir el chat',
+  'agenda.open.one': 'Abrir el chat con {quien}',
+
   // --- avisos ------------------------------------------------------------------
   // Ver ADR-027. La frase la arma la app, no la base: por eso un aviso no puede
   // decir "se te escapa". Cada uno corresponde a un hecho que ocurrió.

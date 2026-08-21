@@ -305,7 +305,14 @@ function Shell({ abrirEstudio }: { abrirEstudio: boolean }) {
       )
     }
     if (estudio) {
-      return <StudioScreen userId={USUARIO} onBack={() => setEstudio(false)} />
+      return (
+        <StudioScreen
+          userId={USUARIO}
+          onBack={() => setEstudio(false)}
+          // Desde un turno de la agenda al chat del que salió.
+          onOpenChat={(id, quien) => setChat({ id, titulo: quien ?? '' })}
+        />
+      )
     }
     if (eligiendoUbicacion) {
       return (
@@ -390,7 +397,12 @@ function Shell({ abrirEstudio }: { abrirEstudio: boolean }) {
         )
       case 'estudio':
         return (
-          <StudioScreen userId={USUARIO} onBack={() => setPestana('inicio')} />
+          <StudioScreen
+            userId={USUARIO}
+            onBack={() => setPestana('inicio')}
+            // Desde un turno de la agenda al chat del que salió.
+            onOpenChat={(id, quien) => setChat({ id, titulo: quien ?? '' })}
+          />
         )
       case 'perfil':
         return (

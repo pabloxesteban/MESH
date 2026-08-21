@@ -39,6 +39,7 @@ import { useT } from '@/i18n/I18nProvider.tsx'
 
 import { StudioSaves } from '@/features/saved/StudioSaves.tsx'
 import { AvailabilityEditor } from '@/features/scheduling/AvailabilityEditor.tsx'
+import { Agenda } from '@/features/scheduling/Agenda.tsx'
 import { fetchReplyHabit } from '@/features/profile/queries.ts'
 import type { TranslationKey } from '@/i18n/index.ts'
 
@@ -66,9 +67,22 @@ interface PendingLocation {
 export interface StudioScreenProps {
   userId: string | null
   onBack: () => void
+  /**
+   * Abrir el chat del que salió un turno de la agenda.
+   *
+   * Opcional para que el preview y los tests puedan montar la pantalla sin
+   * navegación; sin esto, cada turno se ve pero no lleva a ningún lado.
+   */
+  onOpenChat?:
+    | ((conversationId: string, counterpartName: string | null) => void)
+    | undefined
 }
 
-export function StudioScreen({ userId, onBack }: StudioScreenProps) {
+export function StudioScreen({
+  userId,
+  onBack,
+  onOpenChat,
+}: StudioScreenProps) {
   const t = useT()
   const theme = useTheme()
   const insets = useSafeAreaInsets()
@@ -299,6 +313,11 @@ export function StudioScreen({ userId, onBack }: StudioScreenProps) {
             </Text>
           ) : null}
         </Box>
+
+        {/* Primero la semana: es lo que un artista abre el Estudio para ver.
+            Todo lo demás —estilos, ubicación, obra— se toca cada tanto; esto
+            cambia todos los días. Enmienda a ADR-018. */}
+        <Agenda {...(onOpenChat != null ? { onOpenChat } : {})} />
 
         {/* Arriba de todo lo editable: es lo único de esta pantalla que cambia
             sin que el artista haga nada, así que es lo que vino a mirar. */}

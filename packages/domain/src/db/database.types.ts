@@ -1757,6 +1757,19 @@ export type Database = {
           year: number
         }[]
       }
+      get_my_appointments: {
+        Args: never
+        Returns: {
+          conversation_id: string
+          counterpart_name: string
+          ends_at: string
+          id: string
+          note: string
+          professional_id: string
+          starts_at: string
+          viewer_is_professional: boolean
+        }[]
+      }
       get_open_search_feed: {
         Args: { p_category_slug: string; p_cursor?: string; p_limit?: number }
         Returns: {

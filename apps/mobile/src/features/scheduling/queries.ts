@@ -243,3 +243,44 @@ export async function fetchOwnProfessionalForConversation(
     ?.owner_user_id
   return owner === userId ? data.professional_id : null
 }
+
+/** Un turno que viene, con el nombre de la otra parte. */
+export interface AgendaEntry {
+  readonly id: string
+  readonly startsAt: string
+  readonly endsAt: string
+  readonly note: string | null
+  readonly conversationId: string | null
+  readonly professionalId: string
+  /** De qué lado mira quien pregunta. Lo dice la base, no lo adivina la pantalla. */
+  readonly viewerIsProfessional: boolean
+  /** Nombre para mostrar de la otra parte. `null` si no puso ninguno. */
+  readonly counterpartName: string | null
+}
+
+/**
+ * Los turnos propios que vienen, de cualquiera de los dos lados.
+ *
+ * Es lo que faltaba de ADR-018: hasta acá cada turno vivía adentro de la
+ * conversación de la que salió, y alguien con cinco tenía que abrir cinco chats
+ * para saber cómo venía su semana.
+ *
+ * Va por RPC y no por `from('appointments')` porque hace falta el nombre de la
+ * otra parte, y `profiles` está cerrado a la fila propia. Con un turno
+ * confirmado esa excepción se abre — y solo ahí.
+ */
+export async function fetchAgenda(): Promise<readonly AgendaEntry[]> {
+  const { data, error } = await supabase.rpc('get_my_appointments')
+  if (error != null) throw error
+
+  return (data ?? []).map((row) => ({
+    id: row.id,
+    startsAt: row.starts_at,
+    endsAt: row.ends_at,
+    note: row.note,
+    conversationId: row.conversation_id,
+    professionalId: row.professional_id,
+    viewerIsProfessional: row.viewer_is_professional,
+    counterpartName: row.counterpart_name,
+  }))
+}

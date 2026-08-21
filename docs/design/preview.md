@@ -118,6 +118,13 @@ a un registro de prueba no se lo denuncia ni se lo bloquea porque no es una
 persona. Lo que sí se ve entero es **Perfil → Borrar mi cuenta**, con su
 confirmación escrita.
 
+**Tu semana viene con dos turnos horneados**, y eso es andamio, no producto: en
+el preview no hay forma de llegar a tener un turno futuro —los quince perfiles
+son fixtures y con un fixture no se puede chatear— así que sin esas dos filas la
+pantalla no se podría mirar nunca. Están el mismo día a propósito, para poder
+ver el agrupado, y una no tiene nombre, que es el estado que importa. Se ven en
+Chats; en el Estudio hacen falta un perfil propio primero.
+
 **Dos cosas nuevas no se pueden mirar con el catálogo de prueba.** «Suele
 contestar en el día» y «Tenés un pedido armado» solo aparecen en perfiles que no
 son fixtures, y en el preview todo el catálogo lo es. La misma limitación que ya

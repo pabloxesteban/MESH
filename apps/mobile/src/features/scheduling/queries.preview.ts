@@ -143,3 +143,79 @@ export async function fetchOwnProfessionalForConversation(
   if (profesional == null || own == null) return null
   return profesional === previewProfessionalId(own.slug) ? profesional : null
 }
+
+export interface AgendaEntry {
+  readonly id: string
+  readonly startsAt: string
+  readonly endsAt: string
+  readonly note: string | null
+  readonly conversationId: string | null
+  readonly professionalId: string
+  readonly viewerIsProfessional: boolean
+  readonly counterpartName: string | null
+}
+
+/**
+ * La agenda en el preview.
+ *
+ * **Andamio, no comportamiento del producto** — el mismo criterio que
+ * `sembrarTurnoPasado` en `preview/store.ts`. En el preview no hay forma de
+ * llegar a tener un turno futuro: los quince perfiles del catálogo son fixtures
+ * y con un fixture no se puede chatear, así que nadie te puede dar uno. Sin
+ * estas dos filas, la pantalla no se puede mirar nunca.
+ *
+ * Los turnos que la persona sí consigue en el preview —agendando contra su
+ * propio perfil— se suman a estos.
+ *
+ * Las dos filas son el mismo día a propósito: lo que hay que poder ver es el
+ * agrupado. Y **una no tiene nombre**, porque la mayoría de las personas no
+ * pone ninguno y ese es el estado que importa mirar, no el del nombre completo.
+ */
+export async function fetchAgenda(): Promise<readonly AgendaEntry[]> {
+  const ahora = Date.now()
+
+  const propios = previewAppointments()
+    .filter((turno) => Date.parse(turno.endsAt) >= ahora)
+    .map((turno) => ({
+      id: turno.id,
+      startsAt: turno.startsAt,
+      endsAt: turno.endsAt,
+      note: turno.note,
+      conversationId: turno.conversationId,
+      professionalId: turno.professionalId,
+      viewerIsProfessional: false,
+      counterpartName: null,
+    }))
+
+  return [...horneados(), ...propios].sort((a, b) =>
+    a.startsAt.localeCompare(b.startsAt),
+  )
+}
+
+/** Dos turnos del mismo día, dentro de tres. Ver el comentario de arriba. */
+function horneados(): readonly AgendaEntry[] {
+  const dia = new Date()
+  dia.setDate(dia.getDate() + 3)
+
+  const armar = (hora: number, nombre: string | null, id: string) => {
+    const inicio = new Date(dia)
+    inicio.setHours(hora, 0, 0, 0)
+    const fin = new Date(inicio)
+    fin.setHours(hora + 2, 0, 0, 0)
+    return {
+      id,
+      startsAt: inicio.toISOString(),
+      endsAt: fin.toISOString(),
+      note: null,
+      conversationId: null,
+      professionalId: 'preview-professional',
+      viewerIsProfessional: false,
+      counterpartName: nombre,
+    }
+  }
+
+  return [
+    armar(15, 'Delfina Roig', 'preview-agenda-1'),
+    armar(18, null, 'preview-agenda-2'),
+  ]
+}

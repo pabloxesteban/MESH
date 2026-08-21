@@ -35,6 +35,7 @@ import { useT } from '@/i18n/I18nProvider.tsx'
 
 import { InterestList } from '../demand/InterestList.tsx'
 import { NotificationList } from '../notifications/NotificationList.tsx'
+import { Agenda } from '../scheduling/Agenda.tsx'
 import { ConversationList } from './ConversationList.tsx'
 import { fetchConversations } from './queries.ts'
 
@@ -135,6 +136,18 @@ export function ChatsScreen({
           nada de la persona. Si no pasó nada, la sección no existe: una bandeja
           vacía permanente enseña a mirar ahí todos los días, que es justo lo que
           el innegociable 3 prohíbe. Ver ADR-027. */}
+      {/* El próximo turno, y uno solo: quien busca tiene uno o ninguno, y una
+          agenda entera acá sería la pantalla del artista puesta del lado
+          equivocado. */}
+      {/* Con su propio espacio abajo: sin esto el nombre del turno queda pegado
+          al título de los avisos y se leen como una sola cosa. */}
+      <Box paddingBottom="md">
+        <Agenda
+          limit={1}
+          onOpenChat={(id, quien) => onOpenChat?.(id, quien ?? '')}
+        />
+      </Box>
+
       <NotificationList />
 
       {onOpenArtist != null ? (

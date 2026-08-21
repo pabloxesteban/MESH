@@ -129,6 +129,47 @@ Dos detalles que parecen chicos y no lo son:
   tienen anotado en su semana.
 - La restricción de exclusión necesita `btree_gist`. Está en la migración.
 
+## Enmienda del 2026-08-21 — Tu semana
+
+Esta ADR construyó el horario, los huecos, el turno que nace del chat y la
+restricción que impide que dos se pisen. **Nunca construyó dónde mira un artista
+sus turnos.** Cada uno vivía adentro de la conversación de la que salió, así que
+alguien con cinco tenía que abrir cinco chats para saber cómo venía su semana.
+
+Un artista que usa MESH para *conseguir* turnos y otra cosa para *manejarlos* es
+un artista que en algún momento deja de abrir MESH.
+
+**Lo que se agrega:** `get_my_appointments()` y un componente `Agenda`, arriba
+de todo en el Estudio — es lo único de esa pantalla que cambia todos los días,
+mientras que estilos, ubicación y obra se tocan cada tanto. Del lado de quien
+busca, el mismo componente con `limit={1}` arriba de Chats: tiene un turno o
+ninguno, y una agenda entera ahí sería la pantalla del artista puesta del lado
+equivocado.
+
+### La decisión de privacidad que esto obligó a tomar
+
+El artista **no podía leer el nombre de la persona**: `profiles` tiene lectura
+restringida a la fila propia, y con razón. Pero una agenda que dice «un turno el
+jueves a las 15» sin decir con quién no sirve para nada.
+
+**Con un turno confirmado, las dos partes ven el nombre para mostrar de la
+otra.** No es un aflojamiento general: es exactamente el momento en que dejan de
+ser desconocidos — acordaron una fecha para verse en persona. Nadie puede correr
+un turno de tatuaje contra un identificador anónimo.
+
+Lo que **no** se abre: el correo, ni nada de `profiles` que no sea el nombre que
+esa persona eligió mostrar. Y si no puso ninguno, no se inventa: la función
+devuelve `null` y la pantalla dice «No puso su nombre». Hay un test que verifica
+que, fuera de la agenda, la ficha de la persona sigue cerrada.
+
+### Lo que NO entra a la agenda
+
+- **Lo que ya pasó.** La agenda es para planificar; lo de atrás se ve en el
+  chat, donde además se puede reseñar.
+- **Lo cancelado.** Desaparece de los dos lados en cuanto se cancela.
+- **Un calendario mensual.** Lo que un artista mira no es «los próximos siete
+  turnos» sino «cómo viene el jueves», y para eso alcanza con agrupar por día.
+
 ## Referencias
 
 - `supabase/migrations/20260820000300_availability.sql`

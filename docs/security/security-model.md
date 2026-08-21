@@ -490,6 +490,16 @@ Dos cosas que definen el riesgo:
 Sobrevive una fila en `audit_events` con el uuid, la fecha y si tenía perfil de
 artista. `actor_user_id` no tiene FK desde el primer día, justamente para esto.
 
+**La agenda abre el nombre, y solo el nombre.** `get_my_appointments()` es
+`security definer` por una sola cosa: leer `profiles.display_name` de la otra
+parte, que RLS esconde. Se acepta porque con un turno confirmado las dos partes
+acordaron verse en persona — un turno de tatuaje no se corre contra un
+identificador anónimo. No se abre el correo ni ninguna otra columna, y hay un
+test que verifica que fuera de la agenda `profiles` sigue cerrado. El candado de
+la función son los dos `or` del `where`: solo devuelve filas donde quien llama es
+una de las dos partes. Ver la enmienda del 2026-08-21 en
+[ADR-018](../decisions/ADR-018-availability.md).
+
 **Llevarse los datos** es `export_own_account()`, que arma el JSON entero del
 lado de Postgres. `security definer` por una sola cosa —leer el correo de
 `auth.users`— y con el mismo candado: **no recibe a quién exportar**, saca el id
