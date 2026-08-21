@@ -3,6 +3,7 @@ import { router } from 'expo-router'
 import { AuthForm } from '@/features/auth/AuthForm.tsx'
 import { upgradeToAccount } from '@/features/auth/queries.ts'
 import { useGoogle } from '@/features/auth/useGoogle.ts'
+import { useApple } from '@/features/auth/useApple.ts'
 import { useConfirmAdult } from '@/features/auth/useConfirmAdult.ts'
 
 /**
@@ -19,6 +20,7 @@ import { useConfirmAdult } from '@/features/auth/useConfirmAdult.ts'
  */
 export default function SignUpScreen() {
   const google = useGoogle()
+  const apple = useApple()
   const declararMayor = useConfirmAdult()
 
   return (
@@ -28,6 +30,7 @@ export default function SignUpScreen() {
       submitKey="auth.signUp.submit"
       onSubmit={upgradeToAccount}
       onGoogle={google}
+      onApple={apple}
       onAdultConfirmed={declararMayor}
       onDone={() => router.back()}
       links={[

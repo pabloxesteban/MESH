@@ -920,10 +920,11 @@ describe('barrido de accesibilidad y callejones', () => {
     sweepDynamicType('buscar por fotos')
   })
 
-  it('crear cuenta, con Google arriba del correo', () => {
-    // El botón de Google entra al barrido como cualquier otro: si algún día se
-    // dibuja con el logo y sin texto, "sin nombre accesible" lo agarra acá y no
-    // en la tienda.
+  it('crear cuenta, con Apple y Google arriba del correo', () => {
+    // Los dos botones de proveedor entran al barrido como cualquier otro: si
+    // algún día se dibujan con el logo y sin texto, "sin nombre accesible" los
+    // agarra acá y no en la tienda. Y la casilla de edad también, que es la
+    // única del formulario y sin ella no se puede crear la cuenta.
     render(
       <AuthForm
         titleKey="auth.signUp.title"
@@ -931,10 +932,14 @@ describe('barrido de accesibilidad y callejones', () => {
         submitKey="auth.signUp.submit"
         onSubmit={jest.fn().mockResolvedValue({ ok: true })}
         onGoogle={jest.fn().mockResolvedValue('ok')}
+        onApple={jest.fn().mockResolvedValue('ok')}
+        onAdultConfirmed={jest.fn()}
         onDone={jest.fn()}
         links={[{ key: 'auth.signUp.toSignIn', onPress: jest.fn() }]}
       />,
     )
+    expect(screen.getByTestId('auth-apple')).toBeTruthy()
+    expect(screen.getByTestId('auth-adult-toggle')).toBeTruthy()
     sweep('crear cuenta')
     sweepShouting('crear cuenta')
     sweepDynamicType('crear cuenta')

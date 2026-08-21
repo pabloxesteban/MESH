@@ -147,6 +147,42 @@ verdad: el perfil, las búsquedas y los chats.
 - **`manual_linking_disabled`** → falta `enable_manual_linking = true`.
 - **`redirect_to` no permitido** → la URL de Expo Go no está en la lista.
 
+## Enmienda del 2026-08-21 — Apple, y por qué va por otro camino
+
+Se sumó **Sign in with Apple**. No es una preferencia: la guideline 4.8 de la
+App Store lo exige junto a cualquier otro inicio de sesión social, así que con
+Google solo la app no se publica en iOS.
+
+**La regla de arriba no cambia**: con sesión anónima se vincula. Lo que cambia
+es el mecanismo, y vale la pena escribir por qué.
+
+Google va por el navegador contra el OAuth hospedado de Supabase. Apple **no**:
+usa la hoja del sistema, con Face ID, vía `expo-apple-authentication`. Dos
+razones que se suman:
+
+1. **Solo se muestra en iOS**, que es donde Apple lo exige y donde la gente lo
+   reconoce. En Android un botón de Apple es ruido, y el hook devuelve `null`
+   fuera de iOS para que ni se dibuje.
+2. **En un iPhone, pedir la contraseña de Apple en una pestaña de navegador se
+   lee como una estafa.** Es de las cosas que un revisor mira.
+
+**Dos suposiciones que había que verificar, y una estaba mal.**
+
+- Se supuso que el camino nativo no podía vincular, porque `signInWithIdToken()`
+  abre un usuario nuevo. **Falso**: `linkIdentity()` tiene una sobrecarga que
+  acepta un id token. Se comprobó contra los tipos de `@supabase/auth-js` antes
+  de escribir el módulo. Si no existiera, habría habido que elegir entre la hoja
+  nativa y no perderle los datos a nadie — y habría ganado lo segundo.
+- `docs/launch/sso-setup.md` afirmaba que Sign in with Apple "no corre en Expo
+  Go". **También falso**: los docs de la SDK 57 dicen *"Included in Expo Go"*.
+  Corregido ahí.
+
+**Lo que queda sin probar, y hay que decirlo:** la hoja del sistema nunca se
+ejecutó. Necesita iOS y una cuenta de Apple Developer configurada. Lo que sí
+está probado es todo lo que la rodea —vincular contra entrar, cancelar, los
+mensajes, el teléfono sin soporte— con las mismas costuras inyectables que usa
+Google. La primera vez que alguien la corra de verdad va a ser en un iPhone.
+
 ## Referencias
 
 - [ADR-002](ADR-002-authentication.md) — anónimo primero, y por qué el id no cambia

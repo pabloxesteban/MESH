@@ -43,6 +43,14 @@ export interface AuthFormProps {
    */
   onGoogle?: () => Promise<TranslationKey | null | 'ok'>
   /**
+   * Entrar con Apple. `null` fuera de iOS, y ahí el botón no se dibuja.
+   *
+   * Va **arriba** del de Google. No es capricho: Apple pide que su botón no
+   * quede por debajo de los de otros proveedores, y de todas formas en un
+   * iPhone es el que más gente reconoce. Ver `apple.ts`.
+   */
+  onApple?: (() => Promise<TranslationKey | null | 'ok'>) | null
+  /**
    * Pedir que declare tener 18 años. Solo al **crear cuenta**.
    *
    * Es donde vive la pregunta desde el 2026-08-21. Antes era la primera
@@ -66,6 +74,7 @@ export function AuthForm({
   onDone,
   links = [],
   onGoogle,
+  onApple,
   onAdultConfirmed,
   testID,
 }: AuthFormProps) {
@@ -75,6 +84,7 @@ export function AuthForm({
   const [errorKey, setErrorKey] = useState<TranslationKey | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isGoogling, setIsGoogling] = useState(false)
+  const [isAppling, setIsAppling] = useState(false)
   const [esMayor, setEsMayor] = useState(false)
 
   const pideEdad = onAdultConfirmed != null
@@ -106,7 +116,20 @@ export function AuthForm({
     setErrorKey(null)
     const outcome = await onGoogle()
     setIsGoogling(false)
+    resolverProveedor(outcome)
+  }
 
+  async function apple() {
+    if (onApple == null || isAppling) return
+    setIsAppling(true)
+    setErrorKey(null)
+    const outcome = await onApple()
+    setIsAppling(false)
+    resolverProveedor(outcome)
+  }
+
+  /** Lo que sigue después de cualquiera de los dos proveedores. */
+  function resolverProveedor(outcome: TranslationKey | null | 'ok') {
     if (outcome === 'ok') {
       if (pideEdad && esMayor) onAdultConfirmed()
       onDone()
@@ -152,20 +175,37 @@ export function AuthForm({
         </Box>
       ) : null}
 
-      {onGoogle != null ? (
+      {onGoogle != null || onApple != null ? (
         <Box gap="md">
           <Box gap="xs">
-            <Button
-              label={t('auth.google')}
-              variant="secondary"
-              onPress={() => void google()}
-              loading={isGoogling}
-              // También espera la declaración: si no, entrar con Google sería
-              // la puerta de atrás de la única pregunta que la app hace.
-              disabled={isSubmitting || (pideEdad && !esMayor)}
-              fullWidth
-              testID="auth-google"
-            />
+            {/* Apple primero: su guía pide que su botón no quede por debajo de
+                los de otros proveedores, y fuera de iOS `onApple` es `null`, así
+                que ni se dibuja. */}
+            {onApple != null ? (
+              <Button
+                label={t('auth.apple')}
+                variant="secondary"
+                onPress={() => void apple()}
+                loading={isAppling}
+                disabled={isSubmitting || isGoogling || (pideEdad && !esMayor)}
+                fullWidth
+                testID="auth-apple"
+              />
+            ) : null}
+
+            {onGoogle != null ? (
+              <Button
+                label={t('auth.google')}
+                variant="secondary"
+                onPress={() => void google()}
+                loading={isGoogling}
+                // También espera la declaración: si no, entrar con Google sería
+                // la puerta de atrás de la única pregunta que la app hace.
+                disabled={isSubmitting || isAppling || (pideEdad && !esMayor)}
+                fullWidth
+                testID="auth-google"
+              />
+            ) : null}
             {/* Lo que más se pregunta al ver un botón de Google en una app donde
                 ya venías usando algo: si se pierde lo hecho. No se pierde. */}
             <Text role="label" color="textTertiary">

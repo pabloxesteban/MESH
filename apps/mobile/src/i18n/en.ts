@@ -70,6 +70,12 @@ export const en: Readonly<Record<TranslationKey, string>> = {
   'auth.google': 'Continue with Google',
   'auth.google.hint':
     'What you already did on this phone is kept: signing in with Google does not switch your user.',
+  'auth.apple': 'Continue with Apple',
+  'auth.error.apple': 'Could not sign in with Apple. Try again.',
+  'auth.error.appleTaken':
+    'That Apple account already belongs to another MESH account. Sign in with it here, or use a different one.',
+  'auth.error.appleUnavailable':
+    'This phone does not have Sign in with Apple available. You can use Google or your email.',
   'auth.error.google': 'Could not sign in with Google. Try again.',
   'auth.error.googleTaken':
     'That Google account is already linked to another MESH account. Sign in with it here, or use a different Google account.',

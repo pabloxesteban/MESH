@@ -676,8 +676,21 @@ Lo que falta, y no se puede hacer desde acá:
    paso a paso está en [sso-setup.md](../launch/sso-setup.md).
 2. **Sign in with Apple.** La guideline 4.8 de Apple la exige junto a cualquier
    otro ingreso social, así que ofrecer Google la vuelve obligatoria para
-   publicar en iOS. Necesita un build propio: no corre en Expo Go. Es el
-   próximo paso de esta línea, y es el costo que ADR-002 había anticipado.
+   publicar en iOS. Es el costo que ADR-002 había anticipado.
+
+   > **Hecho el 2026-08-21**, salvo las credenciales. El botón está en crear
+   > cuenta y en entrar, solo en iOS, con la hoja nativa del sistema y
+   > vinculando la identidad como corresponde. Falta una cuenta de Apple
+   > Developer (USD 99/año): un App ID, un Services ID, una clave `.p8` y
+   > cargarlos en Supabase. Paso a paso en
+   > [sso-setup.md](../launch/sso-setup.md).
+   >
+   > Y una corrección: acá decía que "necesita un build propio: no corre en Expo
+   > Go". Es falso — `expo-apple-authentication` viene incluido en Expo Go en
+   > iOS. Lo que necesita un build propio es publicar, no probar.
+   >
+   > **La hoja del sistema nunca se ejecutó**: hace falta un iPhone y las
+   > credenciales. Todo lo que la rodea sí está probado.
 
 ### El enlace que no llevaba a ningún lado (2026-08-20)
 

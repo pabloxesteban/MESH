@@ -329,6 +329,86 @@ describe('AuthForm con Google', () => {
   })
 })
 
+describe('entrar con Apple', () => {
+  function render(onApple: jest.Mock, onGoogle = jest.fn()) {
+    const onDone = jest.fn()
+    renderWithProviders(
+      <I18nProvider locale="es-AR">
+        <AuthForm
+          titleKey="auth.signUp.title"
+          submitKey="auth.signUp.submit"
+          onSubmit={jest.fn().mockResolvedValue({ ok: true })}
+          onGoogle={onGoogle}
+          onApple={onApple}
+          onDone={onDone}
+        />
+      </I18nProvider>,
+    )
+    return { onDone }
+  }
+
+  it('va arriba de Google: la guía de Apple pide que no quede abajo', () => {
+    render(jest.fn())
+
+    const orden = screen.UNSAFE_root.findAll(
+      (node) => typeof node.props?.testID === 'string',
+    )
+      .map((node) => String(node.props['testID']))
+      .filter((id) => id === 'auth-apple' || id === 'auth-google')
+
+    expect(orden[0]).toBe('auth-apple')
+  })
+
+  it('fuera de iOS no se dibuja: `onApple` llega en null', () => {
+    // `useApple()` devuelve null en Android y en la web. Un botón de Apple en
+    // un Android es ruido, y Apple no lo pide ahí.
+    renderWithProviders(
+      <I18nProvider locale="es-AR">
+        <AuthForm
+          titleKey="auth.signUp.title"
+          submitKey="auth.signUp.submit"
+          onSubmit={jest.fn().mockResolvedValue({ ok: true })}
+          onGoogle={jest.fn()}
+          onApple={null}
+          onDone={jest.fn()}
+        />
+      </I18nProvider>,
+    )
+    expect(screen.queryByTestId('auth-apple')).toBeNull()
+    expect(screen.getByTestId('auth-google')).toBeTruthy()
+  })
+
+  it('entra cuando sale bien', async () => {
+    const { onDone } = render(jest.fn().mockResolvedValue('ok'))
+    fireEvent.press(screen.getByTestId('auth-apple'))
+    await waitFor(() => expect(onDone).toHaveBeenCalledTimes(1))
+  })
+
+  it('cancelar no deja ningún cartel', async () => {
+    const onApple = jest.fn().mockResolvedValue(null)
+    const { onDone } = render(onApple)
+
+    fireEvent.press(screen.getByTestId('auth-apple'))
+
+    await waitFor(() => expect(onApple).toHaveBeenCalledTimes(1))
+    expect(onDone).not.toHaveBeenCalled()
+    expect(screen.queryByRole('alert')).toBeNull()
+  })
+
+  it('avisa cuando esa cuenta de Apple ya es de otro', async () => {
+    const { onDone } = render(
+      jest.fn().mockResolvedValue('auth.error.appleTaken'),
+    )
+
+    fireEvent.press(screen.getByTestId('auth-apple'))
+
+    await waitFor(() =>
+      expect(screen.getByText(/ya está asociada a otra cuenta/)).toBeTruthy(),
+    )
+    expect(onDone).not.toHaveBeenCalled()
+  })
+})
+
 describe('contraseña nueva', () => {
   function render(onSubmit = jest.fn().mockResolvedValue({ ok: true })) {
     const onDone = jest.fn()

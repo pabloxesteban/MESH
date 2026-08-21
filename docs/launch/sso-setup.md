@@ -115,9 +115,93 @@ Y la prueba que de verdad importa, que es la que ADR-015 existe para proteger:
 | `access_denied` | La cuenta no está en la lista de usuarios de prueba, y la app sigue en modo *Testing*. |
 | "Esa cuenta de Google ya está asociada a otra cuenta de MESH" | **No es un error.** Esa persona ya tiene cuenta desde otro teléfono; tiene que entrar con ella desde *Entrar*. Ver ADR-015. |
 
-## Lo que todavía falta para la App Store
+# Entrar con Apple: lo que hay que hacer una sola vez
 
-La guideline 4.8 de Apple exige ofrecer **Sign in with Apple** junto a
-cualquier otro inicio de sesión social. Google solo no alcanza para publicar en
-iOS, y Sign in with Apple necesita un build propio: no corre en Expo Go. Es el
-próximo paso de esta línea, y está anotado en el roadmap.
+**El código ya está** desde el 2026-08-21, con el botón en crear cuenta y en
+entrar, solo en iOS. Lo que falta son credenciales de una cuenta de Apple
+Developer, que cuesta USD 99 por año y no se puede evitar: la guideline 4.8 de
+la App Store exige ofrecer Sign in with Apple junto a cualquier otro inicio de
+sesión social, así que **con Google solo, la app no se publica en iOS**.
+
+> **Corrección del 2026-08-21.** Esta página decía antes que Sign in with Apple
+> "necesita un build propio: no corre en Expo Go". Es falso:
+> [los docs de la SDK 57](https://docs.expo.dev/versions/v57.0.0/sdk/apple-authentication/)
+> dicen *"Included in Expo Go"* y *"You can test this library in Expo Go on iOS
+> without following any of the instructions above"*. Lo que sí necesita un build
+> propio es **publicar**, no probar.
+
+## Por qué acá sí hay módulo nativo y en Google no
+
+Google abre el navegador contra Supabase. Apple usa la hoja del sistema, con
+Face ID. No es coquetería: en un iPhone, pedir la contraseña de Apple en una
+pestaña de navegador se lee como una estafa, y es de las cosas que un revisor
+mira. Ver `apps/mobile/src/features/auth/apple.ts`.
+
+## 1 · Apple Developer (~20 minutos, y hay que pagar)
+
+1. Entrá a <https://developer.apple.com/account/> con el Apple ID de MESH.
+2. **Certificates, Identifiers & Profiles → Identifiers**:
+   - Creá un **App ID** con el bundle de la app, y tildá **Sign In with Apple**.
+   - Creá un **Services ID** aparte —es el que usa Supabase— y tildá también
+     *Sign In with Apple*. Anotá el identificador: es el `client_id`.
+   - Configurá el Services ID:
+     - *Domains*: el dominio de tu proyecto de Supabase.
+     - *Return URLs*: la callback de Supabase,
+       `https://<proyecto>.supabase.co/auth/v1/callback`.
+3. **Keys → +**: creá una clave con *Sign In with Apple* habilitado. Bajá el
+   `.p8`. **Se baja una sola vez**; si lo perdés hay que hacer otra clave.
+   Anotá el *Key ID* y tu *Team ID* (arriba a la derecha en la consola).
+
+## 2 · Supabase (~5 minutos)
+
+En **Authentication → Providers → Apple**, encendelo y cargá:
+
+| Campo | De dónde sale |
+|---|---|
+| *Client IDs* | El **Services ID** del paso 1.2, y además el **bundle de la app** separado por coma — el nativo manda el bundle como audiencia, no el Services ID. |
+| *Secret Key* | El contenido del `.p8`, entero, con las líneas `BEGIN`/`END`. |
+| *Key ID* | Del paso 1.3. |
+| *Team ID* | Del paso 1.3. |
+
+Y en **Authentication → URL Configuration**, *Manual linking* tiene que seguir
+encendido: sin eso, `linkIdentity()` responde `manual_linking_disabled` y la
+persona pierde lo que hizo sin cuenta.
+
+> **Los dos client IDs no son opcionales.** Es el error más difícil de
+> diagnosticar de esta configuración: si solo cargás el Services ID, la hoja
+> nativa funciona, devuelve un token, y Supabase lo rechaza porque la audiencia
+> del token es el bundle. El síntoma es "no se pudo entrar con Apple" sin más
+> pistas.
+
+## 3 · La app
+
+`expo-apple-authentication` ya está en `package.json`. Para **EAS Build** hay
+que agregar su config plugin en `app.json`; para probar en Expo Go no hace
+falta nada.
+
+## Probarlo
+
+Igual que con Google, y la prueba que importa es la misma:
+
+1. Sin cuenta, andá a **Perfil → Ofrezco un servicio** y creá tu perfil de
+   artista con un par de fotos.
+2. Recién ahí, **Crear cuenta → Continuar con Apple**.
+3. **El perfil de artista tiene que seguir ahí.** Si desapareció, se llamó a
+   `signInWithIdToken()` donde correspondía `linkIdentity()`.
+
+## Cuando algo falla, del lado de Apple
+
+| Lo que se ve | Qué es |
+|---|---|
+| "No se pudo entrar con Apple", sin más | Casi siempre falta el bundle en *Client IDs* de Supabase. Ver el recuadro de arriba. |
+| `invalid_client` | El *Services ID*, el *Key ID* o el *Team ID* no coinciden con la clave. |
+| La hoja no aparece y sale "este teléfono no lo tiene" | Estás en Android, en la web, o en un iOS anterior a 13. El botón no debería ni dibujarse fuera de iOS; si lo ves, es un bug del guard de plataforma. |
+| "Esa cuenta de Apple ya está asociada a otra cuenta de MESH" | **No es un error.** Esa persona ya tiene cuenta desde otro teléfono. |
+| El correo llega como `…@privaterelay.appleid.com` | **Es normal.** Eligió esconderlo. Es una dirección real que reenvía. |
+
+## Una cosa que Apple hace y conviene tener presente
+
+**El nombre viene una sola vez**, en la primera autorización, y nunca más. MESH
+no lo usa —el nombre para mostrar se elige en Perfil— así que no lo pedimos ni
+lo guardamos. Si algún día alguien quiere prellenarlo con lo que da Apple, hay
+que hacerlo en esa primera vez o no hay segunda.

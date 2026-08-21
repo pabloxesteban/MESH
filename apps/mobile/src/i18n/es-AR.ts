@@ -87,6 +87,12 @@ export const esAR = {
   'auth.google': 'Continuar con Google',
   'auth.google.hint':
     'Lo que ya hiciste en este teléfono se conserva: entrar con Google no te cambia de usuario.',
+  'auth.apple': 'Continuar con Apple',
+  'auth.error.apple': 'No se pudo entrar con Apple. Probá de nuevo.',
+  'auth.error.appleTaken':
+    'Esa cuenta de Apple ya está asociada a otra cuenta de MESH. Entrá con ella desde acá, o usá otra.',
+  'auth.error.appleUnavailable':
+    'Este teléfono no tiene disponible entrar con Apple. Podés usar Google o tu correo.',
   'auth.error.google': 'No se pudo entrar con Google. Probá de nuevo.',
   'auth.error.googleTaken':
     'Esa cuenta de Google ya está asociada a otra cuenta de MESH. Entrá con ella desde acá, o usá otra cuenta de Google.',

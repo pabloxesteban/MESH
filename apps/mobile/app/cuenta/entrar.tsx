@@ -3,6 +3,7 @@ import { router } from 'expo-router'
 import { AuthForm } from '@/features/auth/AuthForm.tsx'
 import { signIn } from '@/features/auth/queries.ts'
 import { useGoogle } from '@/features/auth/useGoogle.ts'
+import { useApple } from '@/features/auth/useApple.ts'
 
 /**
  * Entrar y crear cuenta comparten el botón de Google a propósito: con Google no
@@ -12,6 +13,7 @@ import { useGoogle } from '@/features/auth/useGoogle.ts'
  */
 export default function SignInScreen() {
   const google = useGoogle()
+  const apple = useApple()
 
   return (
     <AuthForm
@@ -19,6 +21,7 @@ export default function SignInScreen() {
       submitKey="auth.signIn.submit"
       onSubmit={signIn}
       onGoogle={google}
+      onApple={apple}
       onDone={() => router.back()}
       links={[
         {
