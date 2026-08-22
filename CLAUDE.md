@@ -83,6 +83,15 @@ están**:
   con un bloqueo activo no se abre un chat, no se escribe en uno ya abierto, no
   llega una propuesta y la búsqueda sale del mazo. Nadie sabe quién lo denunció
   ni quién lo bloqueó. Ver [ADR-023](docs/decisions/ADR-023-moderation.md).
+- **Diseños propios.** Ya existen: un artista puede marcar una pieza de su
+  portfolio como diseño propio (flash o boceto que todavía no tatuó en
+  nadie), con tamaño y precio **declarados por él, nunca verificados**, mismo
+  patrón de confianza que el precio general del profesional. Se muestran en
+  su propia sección del perfil, separada de "Obra". **Nunca la palabra
+  "disponible" sola y nunca una reserva**: tocar una pieza abre el chat de
+  siempre con un mensaje armado y editable — el turno lo sigue asignando el
+  artista, ADR-018 no cambia. Ver
+  [ADR-034](docs/decisions/ADR-034-original-design-pieces.md).
 
 Sigue afuera, sin cambios: abrir a otras categorías o a otras ciudades, y volver
 a enchufar el gusto y el matching a una pantalla.

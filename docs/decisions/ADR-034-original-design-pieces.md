@@ -1,6 +1,6 @@
 # ADR-034 — Diseño propio: tamaño y precio por pieza
 
-**Estado:** Propuesto (2026-08-22) · **Fecha:** 2026-08-22 · **Responsable:** product-architect
+**Estado:** Aceptado (2026-08-22) · **Fecha:** 2026-08-22 · **Responsable:** product-architect
 
 ## Contexto
 
