@@ -1,9 +1,11 @@
 /**
  * Locale de la app.
  *
- * Se resuelve una sola vez, del locale del sistema. No hay selector de idioma:
- * el mercado es CABA, y un selector le pide a la persona que tome una decisión
- * que el teléfono ya tomó.
+ * Se resuelve una sola vez, y es siempre `es-AR` — no hay selector de idioma
+ * ni detección del teléfono. El mercado de V1 es Buenos Aires, y un selector
+ * le pide a la persona que tome una decisión que ya está tomada: nadie que
+ * viva ahí debería abrir MESH en inglés porque el sistema operativo de su
+ * teléfono vino así de fábrica. Ver `resolveLocale` en `./index.ts`.
  */
 
 import { createContext, useContext, useMemo, type ReactNode } from 'react'
@@ -28,9 +30,11 @@ const I18nContext = createContext<I18n | null>(null)
 /**
  * Locale del sistema.
  *
- * Hermes trae Intl completo en RN 0.86, así que no hace falta un módulo nativo
- * para esto. Si por algún motivo no está, cae en el locale de origen — que es
- * el correcto para el 100% del mercado de V1.
+ * `resolveLocale` no lo usa hoy — siempre devuelve `es-AR` — pero se sigue
+ * leyendo y pasando para que el día que haga falta mirarlo de nuevo (un
+ * segundo mercado) sea un cambio de una función, no de toda la cadena de
+ * llamadas. Hermes trae Intl completo en RN 0.86, así que no hace falta un
+ * módulo nativo para esto.
  */
 function systemLocale(): string | undefined {
   try {

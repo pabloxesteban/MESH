@@ -24,13 +24,21 @@ const CATALOGS: Readonly<
 /**
  * Elige el catálogo para un locale del sistema.
  *
- * Cualquier variante de español cae en `es-AR`: alguien con el teléfono en
- * `es-MX` entiende el voseo mucho mejor que el inglés. Todo lo demás cae en
- * inglés.
+ * V1 lanza solo en Buenos Aires, y siempre en `es-AR` — nunca en inglés, sea
+ * cual sea el idioma del teléfono. No es un fallback ni una preferencia:
+ * `en.ts` sigue existiendo como destino de traducción para cuando haya un
+ * mercado que lo necesite (ver `es-AR.ts`, "este archivo es el origen"), pero
+ * mientras el único mercado sea CABA, mostrarle inglés a alguien de Buenos
+ * Aires porque su teléfono vino de fábrica en inglés es exactamente el error
+ * contrario al que el comentario viejo de esta función quería evitar.
+ *
+ * El parámetro se conserva sin usar: el día que haya un segundo mercado, esta
+ * función vuelve a mirarlo — no hace falta rediseñar la firma para eso.
  */
-export function resolveLocale(systemLocale: string | undefined | null): Locale {
-  if (systemLocale == null) return SOURCE_LOCALE
-  return systemLocale.toLowerCase().startsWith('es') ? 'es-AR' : 'en'
+export function resolveLocale(
+  _systemLocale: string | undefined | null,
+): Locale {
+  return SOURCE_LOCALE
 }
 
 /**

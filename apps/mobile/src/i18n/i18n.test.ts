@@ -104,20 +104,13 @@ describe('catálogos', () => {
 })
 
 describe('resolveLocale', () => {
-  it('manda cualquier español a es-AR', () => {
-    // Alguien con el teléfono en es-MX entiende el voseo mucho mejor que el
-    // inglés.
+  // V1 lanza solo en Buenos Aires, siempre en es-AR — sin importar el locale
+  // del teléfono. Nadie ve inglés porque su sistema operativo vino así de
+  // fábrica.
+  it('siempre devuelve es-AR, sea cual sea el locale del sistema', () => {
     expect(resolveLocale('es-AR')).toBe('es-AR')
-    expect(resolveLocale('es-MX')).toBe('es-AR')
-    expect(resolveLocale('ES')).toBe('es-AR')
-  })
-
-  it('manda el resto a inglés', () => {
-    expect(resolveLocale('en-US')).toBe('en')
-    expect(resolveLocale('pt-BR')).toBe('en')
-  })
-
-  it('cae en el locale de origen si el sistema no dice nada', () => {
+    expect(resolveLocale('en-US')).toBe('es-AR')
+    expect(resolveLocale('pt-BR')).toBe('es-AR')
     expect(resolveLocale(undefined)).toBe('es-AR')
     expect(resolveLocale(null)).toBe('es-AR')
   })
