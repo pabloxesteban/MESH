@@ -25,12 +25,7 @@
 import { Image } from 'expo-image'
 import { useQuery } from '@tanstack/react-query'
 import { useCallback, useRef, useState } from 'react'
-import {
-  ScrollView,
-  View,
-  useWindowDimensions,
-  type NativeScrollEvent,
-} from 'react-native'
+import { ScrollView, View, type NativeScrollEvent } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import {
@@ -638,12 +633,20 @@ function Hero({
   )
 }
 
+/** Ancho fijo de cada foto de la grilla de obra — ver el comentario de `Grid`. */
+const PORTFOLIO_PIECE_WIDTH = 168
+
 /**
  * Grilla de obra.
  *
- * Dos columnas con `aspectRatio` fijo: la grilla **no puede saltar** mientras
- * cargan las imágenes. Con altura derivada de cada foto, cada llegada
- * reacomodaría lo que ya se está mirando.
+ * Una sola fila que se recorre **horizontal**, no columnas que envuelven: con
+ * `aspectRatio` fijo y ancho fijo (no derivado del ancho de pantalla, a
+ * diferencia de la versión anterior de dos columnas) la grilla no puede
+ * saltar mientras cargan las imágenes, y no hay techo de cuántas piezas
+ * entran — todo el portfolio se recorre deslizando, en vez de crecer la
+ * pantalla hacia abajo indefinidamente. El último ítem asoma a medias a
+ * propósito (`contentContainerStyle` no resta el ancho del último elemento):
+ * es la señal de que hay más para el costado.
  */
 function Grid({
   pieces,
@@ -656,15 +659,21 @@ function Grid({
   onToggleSaved: (portfolioItemId: string) => void
 }) {
   const theme = useTheme()
-  const { width } = useWindowDimensions()
-  const columnWidth = (width - SCREEN_GUTTER * 2 - spacing.xxs) / 2
 
   return (
-    <Box direction="row" gap="xxs" wrap>
+    <ScrollView
+      horizontal
+      showsHorizontalScrollIndicator={false}
+      contentContainerStyle={{
+        gap: spacing.xxs,
+        paddingHorizontal: SCREEN_GUTTER,
+      }}
+      testID="profile-portfolio-grid"
+    >
       {pieces.map((piece) => (
-        <View key={piece.id} style={{ width: columnWidth }}>
+        <View key={piece.id} style={{ width: PORTFOLIO_PIECE_WIDTH }}>
           <Image
-            // `sm` en la grilla: una miniatura de 190pt no necesita 1600px.
+            // `sm` en la grilla: una miniatura de 168pt no necesita 1600px.
             source={mediaUrl(piece.mediaPath, 'sm')}
             placeholder={
               piece.blurhash != null ? { blurhash: piece.blurhash } : null
@@ -678,7 +687,7 @@ function Grid({
             accessibilityLabel={piece.caption ?? ''}
             testID={`profile-piece-${piece.id}`}
             style={{
-              width: columnWidth,
+              width: PORTFOLIO_PIECE_WIDTH,
               aspectRatio: 1,
               borderRadius: radius.md,
               backgroundColor: theme.surfaceRaised,
@@ -701,6 +710,6 @@ function Grid({
           ) : null}
         </View>
       ))}
-    </Box>
+    </ScrollView>
   )
 }
