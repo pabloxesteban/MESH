@@ -36,11 +36,30 @@
  *
  * La obra que se toca en un carrusel crece hasta ser el perfil, y al volver
  * encoge hasta su lugar. Ver features/transitions.
+ *
+ * **El traspaso de foco entre tarjetas al scrollear es continuo, no un
+ * estado.** La tarjeta centrada en la pantalla se ve a tamaño real; la que
+ * sale arriba y la que entra abajo recesan un poco (`ArtistCard.tsx`,
+ * `verticalDepth`) — sin snap, sigue siendo la misma lista vertical de
+ * siempre. Los dos bordes de la pantalla se funden a `theme.surface` con un
+ * degradado (`EdgeFade`, sin `MaskedView`: pinta el mismo color que ya está
+ * detrás, así que no hace falta una máscara real para esto). Reemplaza al
+ * intento revertido en c4bd77c, que usaba un clip rectangular a mano sin
+ * verificar cobertura en todo el rango.
  */
 
 import { useQuery } from '@tanstack/react-query'
 import { useMemo, useState } from 'react'
-import { ScrollView, View } from 'react-native'
+import { View, type ViewStyle } from 'react-native'
+import { LinearGradient } from 'expo-linear-gradient'
+import Animated, {
+  Extrapolation,
+  interpolate,
+  useAnimatedScrollHandler,
+  useAnimatedStyle,
+  useSharedValue,
+  type AnimatedStyle,
+} from 'react-native-reanimated'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import { sortByNeighborhood, sortByProximity } from '@mesh/domain'
@@ -68,6 +87,7 @@ import { GrowingArtwork } from '@/features/transitions/GrowingArtwork.tsx'
 import { useArtworkReturn } from '@/features/transitions/useArtworkReturn.ts'
 
 import { ArtistCard } from './ArtistCard.tsx'
+import { EDGE_FADE_H } from './carouselMotion.ts'
 import { useDebounced } from './useDebounced.ts'
 import {
   MIN_SEARCH_LENGTH,
@@ -100,6 +120,40 @@ export function ArtistsScreen({
   const { durationOf } = useMotion()
   const back = useArtworkReturn('artists')
   const searchLocation = useSearchLocation()
+
+  // Offset vertical del scroll de la lista, en el hilo de UI — un solo shared
+  // value para toda la pantalla. Cada `ArtistCard` lo lee para calcular su
+  // propio foco vertical (`verticalDepth`, ver ArtistCard.tsx), y el
+  // degradado superior lo lee para saber si el buscador todavía está a la
+  // vista (ver `EdgeFade` más abajo).
+  const scrollY = useSharedValue(0)
+  const scrollHandler = useAnimatedScrollHandler({
+    onScroll: (event) => {
+      scrollY.value = event.contentOffset.y
+    },
+  })
+
+  // Alto del bloque de cabecera (buscador + encabezado de ubicación), medido
+  // una sola vez por `onLayout` — no por frame, cambia solo cuando cambia qué
+  // se muestra ahí (buscando o no, con o sin `LocationPrompt`). Arranca en un
+  // número grande a propósito: hasta que se mide de verdad, `topOverlayStyle`
+  // clampea a opacidad 0 (el estado seguro — sin degradado en vez de uno mal
+  // calculado tapando el buscador).
+  const [headerHeight, setHeaderHeight] = useState(9999)
+
+  // El degradado superior se apaga solo mientras el buscador todavía está a
+  // la vista arriba de todo — si no, un overlay fijo a `insets.top` lo
+  // taparía con `theme.surface` opaco antes de que el usuario scrollee nada.
+  // Ver el comentario de `EdgeFade`.
+  const topOverlayStyle = useAnimatedStyle<ViewStyle>(() => {
+    const opacity = interpolate(
+      scrollY.value,
+      [headerHeight - 40, headerHeight],
+      [0, 1],
+      Extrapolation.CLAMP,
+    )
+    return { opacity }
+  }, [headerHeight])
 
   const [texto, setTexto] = useState('')
   const consulta = useDebounced(texto).trim()
@@ -170,6 +224,7 @@ export function ArtistsScreen({
           distanceKm={distanceKm}
           onPress={() => onOpenArtist(item.slug)}
           hiddenPieceId={back.hiddenPieceId}
+          scrollY={scrollY}
           testID={`artist-${item.slug}`}
         />
       ))}
@@ -249,61 +304,75 @@ export function ArtistsScreen({
     // La raíz existe por la vuelta: la copia se posiciona en coordenadas de
     // ventana, y adentro del ScrollView quedaría atada al scroll.
     <View style={{ flex: 1, backgroundColor: theme.surface }}>
-      <ScrollView
+      <Animated.ScrollView
         style={{ flex: 1 }}
         contentContainerStyle={{
           paddingTop: insets.top + spacing.sm,
           paddingBottom: insets.bottom + spacing.xxl,
         }}
+        onScroll={scrollHandler}
+        scrollEventThrottle={16}
         testID="screen-artists"
       >
-        <Box
-          paddingX="lg"
-          // `xl` cuando el campo es lo último antes de la lista de resultados
-          // (buscando): mismo salto de registro tipográfico que abajo, entre
-          // el campo de búsqueda y el nombre en `titleLg` de la primera
-          // `ArtistCard`. `sm` cuando debajo viene el encabezado de ubicación:
-          // ahí es aire entre dos controles utilitarios, no la costura hacia
-          // la obra.
-          paddingBottom={buscando ? 'xl' : 'sm'}
-        >
-          <SearchField
-            value={texto}
-            onChangeText={setTexto}
-            placeholder={t('artists.search.placeholder')}
-            accessibilityLabel={t('artists.search.label')}
-            clearLabel={t('artists.search.clear')}
-            testID="artists-search"
-          />
-        </Box>
-
-        {/* Mientras se busca, el encabezado de ubicación se va: dice desde
-            dónde se mide la cercanía, y en un resultado por nombre la cercanía
-            no mide nada. Dejarlo sería prometer un orden que no está pasando.
-            El mismo motivo vale para el pedido de GPS. */}
-        {buscando ? null : (
-          <>
-            <SearchLocationHeader
-              value={searchLocation.value}
-              deviceNeighborhoodSlug={device.location?.neighborhoodSlug ?? null}
-              deviceReady={deviceCoordinates != null}
-              onChange={onChangeLocation}
+        <View onLayout={(e) => setHeaderHeight(e.nativeEvent.layout.height)}>
+          <Box
+            paddingX="lg"
+            // `xl` cuando el campo es lo último antes de la lista de resultados
+            // (buscando): mismo salto de registro tipográfico que abajo, entre
+            // el campo de búsqueda y el nombre en `titleLg` de la primera
+            // `ArtistCard`. `sm` cuando debajo viene el encabezado de ubicación:
+            // ahí es aire entre dos controles utilitarios, no la costura hacia
+            // la obra.
+            paddingBottom={buscando ? 'xl' : 'sm'}
+          >
+            <SearchField
+              value={texto}
+              onChangeText={setTexto}
+              placeholder={t('artists.search.placeholder')}
+              accessibilityLabel={t('artists.search.label')}
+              clearLabel={t('artists.search.clear')}
+              testID="artists-search"
             />
+          </Box>
 
-            {showLocationPrompt ? (
-              <LocationPrompt onRequest={device.request} />
-            ) : (
-              // Sin aviso que mostrar, el encabezado es lo último antes de la
-              // lista. Su propio `paddingBottom` (`xs`, interno al
-              // componente) más este `lg` suman la misma costura de `xl` que
-              // deja `LocationPrompt` cuando sí aparece — la primera
-              // `ArtistCard` ve siempre el mismo aire, sea cual sea el estado.
-              <Box paddingBottom="lg" />
-            )}
-          </>
-        )}
+          {/* Mientras se busca, el encabezado de ubicación se va: dice desde
+              dónde se mide la cercanía, y en un resultado por nombre la
+              cercanía no mide nada. Dejarlo sería prometer un orden que no
+              está pasando. El mismo motivo vale para el pedido de GPS. */}
+          {buscando ? null : (
+            <>
+              <SearchLocationHeader
+                value={searchLocation.value}
+                deviceNeighborhoodSlug={
+                  device.location?.neighborhoodSlug ?? null
+                }
+                deviceReady={deviceCoordinates != null}
+                onChange={onChangeLocation}
+              />
+
+              {showLocationPrompt ? (
+                <LocationPrompt onRequest={device.request} />
+              ) : (
+                // Sin aviso que mostrar, el encabezado es lo último antes de
+                // la lista. Su propio `paddingBottom` (`xs`, interno al
+                // componente) más este `lg` suman la misma costura de `xl`
+                // que deja `LocationPrompt` cuando sí aparece — la primera
+                // `ArtistCard` ve siempre el mismo aire, sea cual sea el
+                // estado.
+                <Box paddingBottom="lg" />
+              )}
+            </>
+          )}
+        </View>
         {body}
-      </ScrollView>
+      </Animated.ScrollView>
+
+      {/* Foco vertical entre tarjetas, capa B — ver el comentario de `EdgeFade`
+          más abajo. El de arriba se apaga mientras el buscador todavía está a
+          la vista (`topOverlayStyle`); el de abajo es estático, no hay ningún
+          control fijo ahí que pudiera tapar. */}
+      <EdgeFade edge="top" topInset={insets.top} style={topOverlayStyle} />
+      <EdgeFade edge="bottom" />
 
       {back.shrinking != null ? (
         <GrowingArtwork
@@ -317,6 +386,57 @@ export function ArtistsScreen({
         />
       ) : null}
     </View>
+  )
+}
+
+/**
+ * Un borde de pantalla que se funde a `theme.surface`.
+ *
+ * Existe para que el traspaso de foco vertical entre tarjetas (ver el
+ * comentario de cabecera de este archivo y `verticalDepth` en
+ * `ArtistCard.tsx`) no termine en un corte duro contra el borde de la
+ * pantalla. **Nunca un segundo color** — los dos extremos del degradado son
+ * `theme.surface`, el mismo que ya pinta el fondo detrás de todo — así que no
+ * hace falta una prueba de cobertura acá como la que sí exige
+ * `IMAGE_OVERSCALE`: pintar `theme.surface` sobre `theme.surface` es un no-op
+ * visual en cualquier punto del rango, nunca puede revelar un color
+ * equivocado. Por la misma razón no necesita `MaskedView`: lo que se recorta
+ * acá es un velo pintado, no la obra en sí. Reemplaza al intento revertido en
+ * c4bd77c, que usaba un clip rectangular a mano sin esta garantía.
+ */
+function EdgeFade({
+  edge,
+  topInset = 0,
+  style,
+}: {
+  edge: 'top' | 'bottom'
+  /** Solo para `edge="top"`: el degradado empieza debajo del notch/status bar. */
+  topInset?: number
+  /** Solo para `edge="top"`: se apaga mientras el buscador todavía está a la vista. */
+  style?: AnimatedStyle<ViewStyle>
+}) {
+  const theme = useTheme()
+  const colors: readonly [string, string] =
+    edge === 'top'
+      ? [theme.surface, 'transparent']
+      : ['transparent', theme.surface]
+
+  return (
+    <Animated.View
+      pointerEvents="none"
+      style={[
+        {
+          position: 'absolute',
+          left: 0,
+          right: 0,
+          height: EDGE_FADE_H,
+          ...(edge === 'top' ? { top: topInset } : { bottom: 0 }),
+        },
+        style,
+      ]}
+    >
+      <LinearGradient colors={colors} style={{ flex: 1 }} />
+    </Animated.View>
   )
 }
 

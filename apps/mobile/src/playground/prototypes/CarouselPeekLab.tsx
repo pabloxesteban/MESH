@@ -32,7 +32,7 @@
  * Qué mirar con la mano: arrastrar despacio y ver a la pieza centrada quedar
  * a tamaño real mientras las vecinas se achican y atenúan levemente; que
  * NINGÚN borde de ninguna foto muestre el fondo de la caja al encogerse —
- * eso es lo que confirma la cuenta de `IMAGE_OVERSCALE_PEEK`; soltar cerca de
+ * eso es lo que confirma la cuenta de `IMAGE_OVERSCALE`; soltar cerca de
  * un borde y ver el snap terminar de alinear; activar movimiento reducido y
  * ver que el carrusel queda en el showcase spread estático, sin escala ni
  * velo, con el snap todavía funcionando (es física de scroll, no animación).
@@ -61,7 +61,7 @@ import {
 } from '@/design-system/index.ts'
 import {
   DIM_PEEK,
-  IMAGE_OVERSCALE_PEEK,
+  IMAGE_OVERSCALE,
   PIECE_WIDTH,
   PITCH,
   SCALE_PEEK,
@@ -111,10 +111,10 @@ const FOTOS: readonly { id: string; uri: string }[] = [
 // viaja tanto a un `Animated.View` como a la `Image` de expo-image.
 const OVERSCALE_FRAME_STYLE = {
   position: 'absolute',
-  left: `${-(IMAGE_OVERSCALE_PEEK - 1) * 50}%`,
-  top: `${-(IMAGE_OVERSCALE_PEEK - 1) * 50}%`,
-  width: `${IMAGE_OVERSCALE_PEEK * 100}%`,
-  height: `${IMAGE_OVERSCALE_PEEK * 100}%`,
+  left: `${-(IMAGE_OVERSCALE - 1) * 50}%`,
+  top: `${-(IMAGE_OVERSCALE - 1) * 50}%`,
+  width: `${IMAGE_OVERSCALE * 100}%`,
+  height: `${IMAGE_OVERSCALE * 100}%`,
 } as const
 
 export function CarouselPeekLab() {

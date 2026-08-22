@@ -120,15 +120,24 @@ const ANCHOR_TEST_ID = 'pieza-1'
  * gesto de scroll real que lo mueva (`useAnimatedScrollHandler` es un no-op
  * bajo el mock de Reanimated), así que el valor se fija al crear el shared
  * value, no mutándolo después de montar.
+ *
+ * `verticalDepthValue` es opcional a propósito: el foco vertical entre
+ * tarjetas (ArtistCard.tsx) es el segundo canal que compone con el `scale`/
+ * `dim` de acá, y la regla del ancla tiene que valer para los dos por igual.
+ * Sin pasarlo, `CarouselPiece` usa su propio default (`?? 1`, sin `ArtistCard`
+ * de por medio) — el caso que ya cubrían los tests existentes.
  */
 function Wrapper({
   scrollXValue,
+  verticalDepthValue,
   onPress,
 }: {
   scrollXValue: number
+  verticalDepthValue?: number
   onPress: () => void
 }) {
   const scrollX = useSharedValue(scrollXValue)
+  const verticalDepth = useSharedValue(verticalDepthValue ?? 1)
   return (
     <ThemeProvider>
       <MotionProvider>
@@ -141,6 +150,7 @@ function Wrapper({
             index={0}
             scrollX={scrollX}
             testID={ANCHOR_TEST_ID}
+            {...(verticalDepthValue != null ? { verticalDepth } : {})}
           />
         </I18nProvider>
       </MotionProvider>
@@ -166,6 +176,23 @@ describe('seguridad del ancla — CarouselPiece', () => {
     'el Pressable ancla nunca lleva transform (scrollX=%s)',
     (scrollXValue) => {
       render(<Wrapper scrollXValue={scrollXValue} onPress={jest.fn()} />)
+
+      const anchor = screen.getByTestId(ANCHOR_TEST_ID)
+      const style = flattenStyle(anchor.props.style)
+      expect(style.transform).toBeUndefined()
+    },
+  )
+
+  it.each([-PITCH, 0, PITCH])(
+    'tampoco lleva transform con el foco vertical en receso total (scrollX=%s, verticalDepth=0)',
+    (scrollXValue) => {
+      render(
+        <Wrapper
+          scrollXValue={scrollXValue}
+          verticalDepthValue={0}
+          onPress={jest.fn()}
+        />,
+      )
 
       const anchor = screen.getByTestId(ANCHOR_TEST_ID)
       const style = flattenStyle(anchor.props.style)
