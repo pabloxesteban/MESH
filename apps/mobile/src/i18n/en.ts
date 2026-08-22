@@ -484,12 +484,12 @@ export const en: Readonly<Record<TranslationKey, string>> = {
   'onboarding.title': 'What brings you here?',
   'onboarding.body':
     "We only ask once. Whatever you pick, you'll still be able to do both.",
-  'onboarding.looking.title': "I'm looking for someone",
+  'onboarding.looking.title': 'I want a tattoo',
   'onboarding.looking.body':
-    'You want a tattoo and you are looking for the right person.',
-  'onboarding.offering.title': 'I offer a service',
+    "You're looking for the right person to tattoo you.",
+  'onboarding.offering.title': 'I tattoo',
   'onboarding.offering.body':
-    "You tattoo and MESH already built your profile. We'll ask for your code so you can run it.",
+    'MESH already built your profile. Redeem your code to run it.',
   'tabs.home': 'Home',
   'tabs.search': 'Search',
   'tabs.matches': 'Matches',

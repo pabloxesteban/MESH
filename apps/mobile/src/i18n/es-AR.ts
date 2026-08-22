@@ -528,11 +528,11 @@ export const esAR = {
   'onboarding.title': '¿A qué viniste?',
   'onboarding.body':
     'Lo preguntamos una sola vez. Elijas lo que elijas vas a poder hacer las dos cosas.',
-  'onboarding.looking.title': 'Busco a alguien',
-  'onboarding.looking.body': 'Querés tatuarte y buscás a la persona indicada.',
-  'onboarding.offering.title': 'Ofrezco un servicio',
+  'onboarding.looking.title': 'Quiero tatuarme',
+  'onboarding.looking.body': 'Buscás a quién tatuarte.',
+  'onboarding.offering.title': 'Tatúo',
   'onboarding.offering.body':
-    'Tatuás y MESH ya armó tu perfil. Te pedimos tu código para que lo manejes vos.',
+    'MESH ya armó tu perfil. Canjeás tu código para manejarlo.',
   // --- pestañas ---
   'tabs.home': 'Inicio',
   'tabs.search': 'Buscar',

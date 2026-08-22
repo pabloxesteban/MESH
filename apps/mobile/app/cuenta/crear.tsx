@@ -23,7 +23,10 @@ export default function SignUpScreen() {
       submitKey="auth.signUp.submit"
       onSubmit={upgradeToAccount}
       onGoogle={google}
-      onDone={() => router.back()}
+      // ADR-033: la pregunta de edad se dispara acá, no en el arranque. Con
+      // `replace` y no `push`: el "volver" de la pantalla de edad tiene que
+      // volver a lo que había ANTES de crear cuenta, no a esta pantalla.
+      onDone={() => router.replace('/cuenta/edad')}
       links={[
         {
           key: 'auth.signUp.toSignIn',

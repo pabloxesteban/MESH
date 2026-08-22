@@ -47,8 +47,9 @@ import { sortByNeighborhood, sortByProximity } from '@mesh/domain'
 
 import {
   Box,
-  Button,
   EmptyState,
+  MIN_TOUCH_TARGET,
+  Pressable,
   SCREEN_GUTTER,
   SearchField,
   Skeleton,
@@ -305,29 +306,46 @@ export function ArtistsScreen({
  *
  * No dice "activá la ubicación para una mejor experiencia": dice qué falta y
  * qué cambia. Y no bloquea nada — la lista está abajo igual.
+ *
+ * Una fila, no un bloque: mismo lenguaje visual que `NoticeRow` (fondo
+ * `surfaceRaised`, una línea de texto, una acción chica al lado), pero sin su
+ * botón de cerrar. D-012 es explícito: mientras no haya ubicación, esto se
+ * queda a la vista — no es un aviso que se pueda descartar.
  */
 function LocationPrompt({ onRequest }: { onRequest: () => void }) {
   const t = useT()
 
   return (
-    <Box
-      gap="xs"
-      paddingX="lg"
-      paddingBottom="md"
-      testID="artists-location-prompt"
-    >
-      <Text role="body" color="textSecondary">
-        {t('artists.location.body')}
-      </Text>
-      <View style={{ alignItems: 'flex-start' }}>
-        <Button
-          label={t('artists.location.action')}
-          variant="secondary"
-          size="sm"
+    <Box paddingX="lg" paddingBottom="md" testID="artists-location-prompt">
+      <Box
+        direction="row"
+        align="center"
+        gap="xs"
+        paddingX="sm"
+        paddingY="xxs"
+        radius="md"
+        background="surfaceRaised"
+      >
+        <Box flex={1}>
+          <Text role="label" color="textSecondary" numberOfLines={2}>
+            {t('artists.location.body')}
+          </Text>
+        </Box>
+        <Pressable
           onPress={onRequest}
+          accessibilityLabel={t('artists.location.action')}
+          style={{
+            minHeight: MIN_TOUCH_TARGET,
+            paddingHorizontal: spacing.xxs,
+            justifyContent: 'center',
+          }}
           testID="artists-location-request"
-        />
-      </View>
+        >
+          <Text role="label" color="accent">
+            {t('artists.location.action')}
+          </Text>
+        </Pressable>
+      </Box>
     </Box>
   )
 }

@@ -21,7 +21,11 @@ import {
 import { AccountScreen } from '@/features/account/AccountScreen.tsx'
 import { AvatarPickerScreen } from '@/features/account/AvatarPickerScreen.tsx'
 import { ConfiguracionScreen } from '@/features/account/ConfiguracionScreen.tsx'
-import { resolveLocationId, updateAccount } from '@/features/account/queries.ts'
+import {
+  confirmAdult,
+  resolveLocationId,
+  updateAccount,
+} from '@/features/account/queries.ts'
 import { AuthForm } from '@/features/auth/AuthForm.tsx'
 import { NewPasswordScreen } from '@/features/auth/NewPasswordScreen.tsx'
 import {
@@ -39,6 +43,7 @@ import { ChatsScreen } from '@/features/chat/ChatsScreen.tsx'
 import { SearchDeckScreen } from '@/features/demand/SearchDeckScreen.tsx'
 import { useOpenChat } from '@/features/chat/useOpenChat.ts'
 import { OnboardingGate } from '@/features/onboarding/OnboardingGate.tsx'
+import { AgeScreen } from '@/features/onboarding/AgeScreen.tsx'
 import { ContactScreen } from '@/features/contact/ContactScreen.tsx'
 import { ExploreScreen } from '@/features/discovery/ExploreScreen.tsx'
 import { QuickSearchScreen } from '@/features/quick-search/QuickSearchScreen.tsx'
@@ -232,8 +237,13 @@ function Shell({ abrirEstudio }: { abrirEstudio: boolean }) {
   const [contando, setContando] = useState(false)
   // Crear cuenta y entrar son rutas en la app; acá son una sobrecapa, que es
   // todo lo que hace falta para MIRARLAS.
+  //
+  // 'edad' (ADR-033): ya no aparece en el arranque frío — `OnboardingGate` no
+  // la muestra más. Se dispara solo al terminar de crear cuenta, así que en
+  // este `useState` a mano es el paso siguiente a 'crear', no una pantalla
+  // aparte con su propia entrada.
   const [cuenta, setCuenta] = useState<
-    'crear' | 'entrar' | 'contrasena-nueva' | null
+    'crear' | 'entrar' | 'contrasena-nueva' | 'edad' | null
   >(null)
   const [estiloBuscado, setEstiloBuscado] = useState<string | null>(null)
 
@@ -354,6 +364,20 @@ function Shell({ abrirEstudio }: { abrirEstudio: boolean }) {
         />
       )
     }
+    if (cuenta === 'edad') {
+      // ADR-033: la pregunta de edad ya no vive en el arranque, vive acá — al
+      // terminar de crear cuenta. `onSkip` no llama a `confirmAdult`, igual
+      // que en `app/cuenta/edad.tsx`: decir que no no se guarda.
+      return (
+        <AgeScreen
+          busy={false}
+          onConfirm={() => {
+            void confirmAdult().then(() => setCuenta(null))
+          }}
+          onSkip={() => setCuenta(null)}
+        />
+      )
+    }
     if (cuenta === 'contrasena-nueva') {
       // A esta pantalla se llega desde el correo, no desde un botón. Acá está
       // colgada de "olvidé mi contraseña" para poder mirarla.
@@ -383,7 +407,8 @@ function Shell({ abrirEstudio }: { abrirEstudio: boolean }) {
             }
             onSubmit={async () => ({ ok: true }) as const}
             onGoogle={async () => 'ok' as const}
-            onDone={() => setCuenta(null)}
+            // ADR-033: crear cuenta encadena a la pregunta de edad; entrar no.
+            onDone={() => setCuenta(cuenta === 'crear' ? 'edad' : null)}
             links={[
               {
                 key:

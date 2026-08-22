@@ -11,25 +11,15 @@ import { I18nProvider } from '@/i18n/I18nProvider.tsx'
 import { Text } from '@/design-system/index.ts'
 
 import { OnboardingGate } from './OnboardingGate.tsx'
-import {
-  confirmAdult,
-  fetchAccount,
-  updateAccount,
-} from '../account/queries.ts'
+import { fetchAccount, updateAccount } from '../account/queries.ts'
 
 jest.mock('../account/queries.ts', () => ({
   fetchAccount: jest.fn(),
   updateAccount: jest.fn(),
-  confirmAdult: jest.fn(),
 }))
 
 const fetchMock = fetchAccount as jest.Mock
 const updateMock = updateAccount as jest.Mock
-const confirmMock = confirmAdult as jest.Mock
-
-/** La declaración de edad ya hecha. Sin esto, el gate pregunta la edad primero
- *  y ninguno de los tests de intención llega a su pantalla. Ver ADR-025. */
-const MAYOR = '2026-08-20T12:00:00.000Z'
 
 function renderGate(onOffering = jest.fn()) {
   const client = new QueryClient({
@@ -54,14 +44,17 @@ function renderGate(onOffering = jest.fn()) {
 beforeEach(() => {
   jest.clearAllMocks()
   updateMock.mockResolvedValue(undefined)
-  confirmMock.mockResolvedValue(undefined)
 })
 
+// ADR-033: la pregunta de edad se mudó de acá a `cuenta/crear.tsx` /
+// `cuenta/edad.tsx`. `OnboardingGate` ya no la muestra en ningún caso —ni
+// siquiera con `adultConfirmedAt: null`— así que el arranque frío va directo
+// a "busco o ofrezco". Esa cobertura vive ahora en `edad.test.tsx`.
 describe('OnboardingGate', () => {
   it('sin respuesta todavía, pregunta antes de mostrar la app', async () => {
     fetchMock.mockResolvedValue({
       displayName: null,
-      adultConfirmedAt: MAYOR,
+      adultConfirmedAt: null,
       onboardingIntent: null,
     })
     renderGate()
@@ -75,7 +68,7 @@ describe('OnboardingGate', () => {
   it('con respuesta, no vuelve a preguntar', async () => {
     fetchMock.mockResolvedValue({
       displayName: null,
-      adultConfirmedAt: MAYOR,
+      adultConfirmedAt: null,
       onboardingIntent: 'looking',
     })
     renderGate()
@@ -87,7 +80,7 @@ describe('OnboardingGate', () => {
   it('"busco" guarda la intención y deja pasar', async () => {
     fetchMock.mockResolvedValue({
       displayName: null,
-      adultConfirmedAt: MAYOR,
+      adultConfirmedAt: null,
       onboardingIntent: null,
     })
     const { onOffering } = renderGate()
@@ -107,7 +100,7 @@ describe('OnboardingGate', () => {
   it('"ofrezco" lleva al canje del código, no da de alta a nadie', async () => {
     fetchMock.mockResolvedValue({
       displayName: null,
-      adultConfirmedAt: MAYOR,
+      adultConfirmedAt: null,
       onboardingIntent: null,
     })
     const { onOffering } = renderGate()
@@ -131,79 +124,20 @@ describe('OnboardingGate', () => {
       expect(screen.getByTestId('onboarding-error')).toBeTruthy(),
     )
   })
-})
 
-describe('la puerta de edad', () => {
-  it('pregunta la edad antes que nada, incluso antes de la intención', async () => {
-    // El orden importa: es la única pregunta con una consecuencia física del
-    // otro lado. Ver ADR-025.
+  it('nunca muestra la pregunta de edad, ni siquiera sin declarar', async () => {
+    // Antes de ADR-033 esto disparaba `screen-onboarding-age`. Ahora la
+    // pregunta vive en `cuenta/edad.tsx` y acá no se monta nunca.
     fetchMock.mockResolvedValue({
       displayName: null,
-      onboardingIntent: null,
       adultConfirmedAt: null,
+      onboardingIntent: null,
     })
     renderGate()
-
-    await waitFor(() =>
-      expect(screen.getByTestId('screen-onboarding-age')).toBeTruthy(),
-    )
-    expect(screen.queryByTestId('screen-onboarding-intent')).toBeNull()
-  })
-
-  it('no pide la fecha de nacimiento ni ningún documento', async () => {
-    fetchMock.mockResolvedValue({
-      displayName: null,
-      onboardingIntent: null,
-      adultConfirmedAt: null,
-    })
-    renderGate()
-
-    await waitFor(() =>
-      expect(screen.getByTestId('screen-onboarding-age')).toBeTruthy(),
-    )
-    // Dos botones y ningún campo: con una fecha de nacimiento tendríamos un
-    // dato sensible para calcular un booleano que ya nos dieron.
-    expect(screen.getByTestId('age-yes')).toBeTruthy()
-    expect(screen.getByTestId('age-no')).toBeTruthy()
-    expect(screen.queryByLabelText(/nacimiento/i)).toBeNull()
-  })
-
-  it('guarda la declaración cuando dice que sí', async () => {
-    fetchMock.mockResolvedValue({
-      displayName: null,
-      onboardingIntent: null,
-      adultConfirmedAt: null,
-    })
-    renderGate()
-
-    await waitFor(() => expect(screen.getByTestId('age-yes')).toBeTruthy())
-    fireEvent.press(screen.getByTestId('age-yes'))
-
-    await waitFor(() => expect(confirmMock).toHaveBeenCalled())
-  })
-
-  it('**no guarda nada cuando dice que no**, y lo deja pasar igual', async () => {
-    // Guardar "declaró ser menor" sería armar un registro de menores de edad.
-    // Y un muro completo empuja a mentir, que es el resultado contrario.
-    fetchMock.mockResolvedValue({
-      displayName: null,
-      onboardingIntent: null,
-      adultConfirmedAt: null,
-    })
-    renderGate()
-
-    await waitFor(() => expect(screen.getByTestId('age-no')).toBeTruthy())
-    fireEvent.press(screen.getByTestId('age-no'))
-
-    expect(screen.getByTestId('age-minor')).toBeTruthy()
-    fireEvent.press(screen.getByTestId('age-minor-continue'))
 
     await waitFor(() =>
       expect(screen.getByTestId('screen-onboarding-intent')).toBeTruthy(),
     )
-    expect(confirmMock).not.toHaveBeenCalled()
-    expect(updateMock).not.toHaveBeenCalledWith(
-      expect.objectContaining({ adultConfirmedAt: expect.anything() }),
-    )
+    expect(screen.queryByTestId('screen-onboarding-age')).toBeNull()
   })
 })
