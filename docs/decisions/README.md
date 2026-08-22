@@ -38,11 +38,12 @@ todo el repositorio.
 | [022](ADR-022-reply-habit.md) | Con qué frecuencia contesta un artista, en tres frases de las que una es mala | **Aceptado** |
 | [023](ADR-023-moderation.md) | Denunciar y bloquear; el bloqueo se impone en la base y corta chat, propuestas y visibilidad | **Aceptado** |
 | [024](ADR-024-account-deletion.md) | Borrar la cuenta desde la app: inmediato, completo, sin período de gracia | **Aceptado** |
-| [025](ADR-025-age-gate.md) | Mayoría de edad declarada, sin fecha de nacimiento; la puerta vive en `schedule_appointment` | **Aceptado** |
+| [025](ADR-025-age-gate.md) | Mayoría de edad declarada, sin fecha de nacimiento; la puerta vive en `schedule_appointment` | Enmendado por ADR-033 |
 | [026](ADR-026-observability.md) | Reportes de error sin id de nadie y logs estructurados; sin dependencia nueva, para no salir de Expo Go | **Aceptado** |
 | [027](ADR-027-notifications.md) | Avisos sin texto libre: un tipo y una referencia, sin bandeja vacía y sin número | **Aceptado** |
 | [028](ADR-028-account-export.md) | Llevarte lo tuyo antes de borrarlo: lo que escribiste vos, no lo que escribieron otros | **Aceptado** |
 | [029](ADR-029-search-by-name.md) | Buscar a alguien por nombre: sin acentos, sin ordenar por cercanía, y a quien no subió obra también se lo encuentra | **Aceptado** |
 | [030](ADR-030-collections.md) | Colecciones: etiquetas múltiples sobre lo guardado, sin borrar la obra al borrar la carpeta; **enmienda ADR-016** | **Aceptado** |
 | [031](ADR-031-brand-energy-refresh.md) | Rebrand: acento de marca verde ácido en el mismo generador OKLCH, tipografía existente con cortes más pesados; **extiende ADR-010** | Enmendado por ADR-032 |
-| [032](ADR-032-brand-boldness.md) | Negro casi real (`ink950`), acento recurrente en vez de "una vez por pantalla", un degradado de héroe con `expo-linear-gradient`, `display` más grande; **enmienda ADR-031 y ADR-010 §4** | Propuesto |
+| [032](ADR-032-brand-boldness.md) | Negro casi real (`ink950`), acento recurrente en vez de "una vez por pantalla", un degradado de héroe con `expo-linear-gradient`, `display` más grande; **enmienda ADR-031 y ADR-010 §4** | **Aceptado** |
+| [033](ADR-033-age-gate-at-signup.md) | La pregunta de mayoría de edad se muda del arranque frío a crear cuenta; el candado en `schedule_appointment` no cambia; **enmienda ADR-025** | **Aceptado** |
