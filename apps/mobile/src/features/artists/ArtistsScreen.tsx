@@ -39,9 +39,14 @@
  */
 
 import { useQuery } from '@tanstack/react-query'
-import { useMemo, useState } from 'react'
-import { ScrollView, View } from 'react-native'
+import { useMemo, useRef, useState } from 'react'
+import { View, type ScrollView } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import Animated, {
+  runOnJS,
+  useAnimatedScrollHandler,
+  useSharedValue,
+} from 'react-native-reanimated'
 
 import { sortByNeighborhood, sortByProximity } from '@mesh/domain'
 
@@ -68,6 +73,7 @@ import { GrowingArtwork } from '@/features/transitions/GrowingArtwork.tsx'
 import { useArtworkReturn } from '@/features/transitions/useArtworkReturn.ts'
 
 import { ArtistCard } from './ArtistCard.tsx'
+import { cardTopEdges } from './cardLayoutRegistry.ts'
 import { useDebounced } from './useDebounced.ts'
 import {
   MIN_SEARCH_LENGTH,
@@ -75,6 +81,8 @@ import {
   mediaUrl,
   searchArtists,
 } from './queries.ts'
+import { SNAP_CAPTURE } from './scrollReveal.ts'
+import { ScrollMotionProvider, type ScrollMotion } from './ScrollMotionContext.tsx'
 
 export interface ArtistsScreenProps {
   categorySlug: string
@@ -97,9 +105,71 @@ export function ArtistsScreen({
   const theme = useTheme()
   const insets = useSafeAreaInsets()
   const device = useDeviceLocation()
-  const { durationOf } = useMotion()
+  const { durationOf, reduceMotion } = useMotion()
   const back = useArtworkReturn('artists')
   const searchLocation = useSearchLocation()
+
+  // El revelado editorial: la posición de scroll y su velocidad, en shared
+  // values, compartidas con cada `ArtistCard` por `ScrollMotionProvider` —
+  // nunca por estado de React. `listTop` es el offset de la lista dentro del
+  // contenido scrolleable, lo que le falta al `itemTop` de cada tarjeta
+  // (medido relativo a esa lista) para ser una posición absoluta.
+  const scrollRef = useRef<ScrollView>(null)
+  const scrollY = useSharedValue(0)
+  const speed = useSharedValue(0)
+  const listTop = useSharedValue(0)
+  const scrollMotion = useMemo<ScrollMotion>(
+    () => ({ scrollY, speed, listTop }),
+    [scrollY, speed, listTop],
+  )
+
+  // El snap: solo al terminar el momentum, nunca a mitad de trayecto. Corre
+  // en el hilo de JS (vía `runOnJS`) porque es un evento único por gesto, no
+  // por frame — la misma razón por la que `cardTopEdges` lee shared values
+  // sincrónicamente ahí en vez de suscribirse a ellos.
+  function handleMomentumEnd(finalY: number) {
+    if (reduceMotion) return // Snap apagado del todo con movimiento reducido.
+
+    const edges = cardTopEdges(listTop.value)
+    let nearestEdge: number | null = null
+    let nearestDistance = Infinity
+    for (const edge of edges) {
+      const distance = Math.abs(finalY - edge)
+      if (distance < nearestDistance) {
+        nearestDistance = distance
+        nearestEdge = edge
+      }
+    }
+
+    if (nearestEdge != null && nearestDistance <= SNAP_CAPTURE) {
+      scrollRef.current?.scrollTo({ y: nearestEdge, animated: true })
+    }
+  }
+
+  const scrollHandler = useAnimatedScrollHandler<{
+    lastY: number
+    lastT: number
+  }>({
+    onScroll: (event, context) => {
+      // `speed` a mano, de deltas de posición/tiempo entre eventos
+      // consecutivos: `event.velocity` no es confiable en Android.
+      const y = event.contentOffset.y
+      const now = Date.now()
+      if (context.lastT > 0) {
+        const dt = now - context.lastT
+        if (dt > 0) {
+          speed.value = Math.abs(((y - context.lastY) / dt) * 1000)
+        }
+      }
+      context.lastY = y
+      context.lastT = now
+      scrollY.value = y
+    },
+    onMomentumEnd: (event) => {
+      speed.value = 0
+      runOnJS(handleMomentumEnd)(event.contentOffset.y)
+    },
+  })
 
   const [texto, setTexto] = useState('')
   const consulta = useDebounced(texto).trim()
@@ -162,7 +232,16 @@ export function ArtistsScreen({
     }[],
     testID: string,
   ) => (
-    <Box gap="lg" testID={testID}>
+    <Box
+      gap="lg"
+      testID={testID}
+      // El offset absoluto de la lista dentro del contenido scrolleable — lo
+      // que cada `ArtistCard` necesita sumarle a su propio `itemTop` (medido
+      // relativo a este `Box`) para saber dónde está de verdad.
+      onLayout={(e) => {
+        listTop.value = e.nativeEvent.layout.y
+      }}
+    >
       {items.map(({ item, distanceKm }) => (
         <ArtistCard
           key={item.professionalId}
@@ -249,7 +328,10 @@ export function ArtistsScreen({
     // La raíz existe por la vuelta: la copia se posiciona en coordenadas de
     // ventana, y adentro del ScrollView quedaría atada al scroll.
     <View style={{ flex: 1, backgroundColor: theme.surface }}>
-      <ScrollView
+      <Animated.ScrollView
+        ref={scrollRef}
+        onScroll={scrollHandler}
+        scrollEventThrottle={16}
         style={{ flex: 1 }}
         contentContainerStyle={{
           paddingTop: insets.top + spacing.sm,
@@ -257,53 +339,57 @@ export function ArtistsScreen({
         }}
         testID="screen-artists"
       >
-        <Box
-          paddingX="lg"
-          // `xl` cuando el campo es lo último antes de la lista de resultados
-          // (buscando): mismo salto de registro tipográfico que abajo, entre
-          // el campo de búsqueda y el nombre en `titleLg` de la primera
-          // `ArtistCard`. `sm` cuando debajo viene el encabezado de ubicación:
-          // ahí es aire entre dos controles utilitarios, no la costura hacia
-          // la obra.
-          paddingBottom={buscando ? 'xl' : 'sm'}
-        >
-          <SearchField
-            value={texto}
-            onChangeText={setTexto}
-            placeholder={t('artists.search.placeholder')}
-            accessibilityLabel={t('artists.search.label')}
-            clearLabel={t('artists.search.clear')}
-            testID="artists-search"
-          />
-        </Box>
-
-        {/* Mientras se busca, el encabezado de ubicación se va: dice desde
-            dónde se mide la cercanía, y en un resultado por nombre la cercanía
-            no mide nada. Dejarlo sería prometer un orden que no está pasando.
-            El mismo motivo vale para el pedido de GPS. */}
-        {buscando ? null : (
-          <>
-            <SearchLocationHeader
-              value={searchLocation.value}
-              deviceNeighborhoodSlug={device.location?.neighborhoodSlug ?? null}
-              deviceReady={deviceCoordinates != null}
-              onChange={onChangeLocation}
+        <ScrollMotionProvider value={scrollMotion}>
+          <Box
+            paddingX="lg"
+            // `xl` cuando el campo es lo último antes de la lista de resultados
+            // (buscando): mismo salto de registro tipográfico que abajo, entre
+            // el campo de búsqueda y el nombre en `titleLg` de la primera
+            // `ArtistCard`. `sm` cuando debajo viene el encabezado de ubicación:
+            // ahí es aire entre dos controles utilitarios, no la costura hacia
+            // la obra.
+            paddingBottom={buscando ? 'xl' : 'sm'}
+          >
+            <SearchField
+              value={texto}
+              onChangeText={setTexto}
+              placeholder={t('artists.search.placeholder')}
+              accessibilityLabel={t('artists.search.label')}
+              clearLabel={t('artists.search.clear')}
+              testID="artists-search"
             />
+          </Box>
 
-            {showLocationPrompt ? (
-              <LocationPrompt onRequest={device.request} />
-            ) : (
-              // Sin aviso que mostrar, el encabezado es lo último antes de la
-              // lista. Su propio `paddingBottom` (`xs`, interno al
-              // componente) más este `lg` suman la misma costura de `xl` que
-              // deja `LocationPrompt` cuando sí aparece — la primera
-              // `ArtistCard` ve siempre el mismo aire, sea cual sea el estado.
-              <Box paddingBottom="lg" />
-            )}
-          </>
-        )}
-        {body}
-      </ScrollView>
+          {/* Mientras se busca, el encabezado de ubicación se va: dice desde
+              dónde se mide la cercanía, y en un resultado por nombre la cercanía
+              no mide nada. Dejarlo sería prometer un orden que no está pasando.
+              El mismo motivo vale para el pedido de GPS. */}
+          {buscando ? null : (
+            <>
+              <SearchLocationHeader
+                value={searchLocation.value}
+                deviceNeighborhoodSlug={
+                  device.location?.neighborhoodSlug ?? null
+                }
+                deviceReady={deviceCoordinates != null}
+                onChange={onChangeLocation}
+              />
+
+              {showLocationPrompt ? (
+                <LocationPrompt onRequest={device.request} />
+              ) : (
+                // Sin aviso que mostrar, el encabezado es lo último antes de la
+                // lista. Su propio `paddingBottom` (`xs`, interno al
+                // componente) más este `lg` suman la misma costura de `xl` que
+                // deja `LocationPrompt` cuando sí aparece — la primera
+                // `ArtistCard` ve siempre el mismo aire, sea cual sea el estado.
+                <Box paddingBottom="lg" />
+              )}
+            </>
+          )}
+          {body}
+        </ScrollMotionProvider>
+      </Animated.ScrollView>
 
       {back.shrinking != null ? (
         <GrowingArtwork
