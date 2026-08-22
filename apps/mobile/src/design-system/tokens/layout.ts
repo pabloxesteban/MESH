@@ -22,6 +22,15 @@ export type Spacing = keyof typeof spacing
 export const radius = {
   /** Chips y etiquetas. */
   sm: 4,
+  /**
+   * Obra de portafolio mostrada como protagonista — el showcase spread de
+   * Inicio, no una grilla de descubrimiento. Un corte, no un contenedor: la
+   * mitad de `md` a propósito, para que la pieza se lea como objeto fotográfico
+   * y no como una ficha de UI más. `radius.lg` no sirve acá — ese es el radio
+   * del mazo, tarado para el gesto de swipe, y esta superficie ni se arrastra
+   * ni se suelta.
+   */
+  art: 8,
   /** Tarjetas, hojas, campos. */
   md: 12,
   /** Tarjetas del mazo. Suavizadas, no redondeadas. */

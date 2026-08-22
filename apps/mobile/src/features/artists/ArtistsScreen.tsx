@@ -129,6 +129,13 @@ export function ArtistsScreen({
       ? (device.location?.coordinates ?? null)
       : null
 
+  // El aviso aparece solo cuando hay algo que arreglar: elegiste el GPS y
+  // todavía no lo diste. En los otros modos no falta nada, así que no hay nada
+  // que pedir.
+  const showLocationPrompt =
+    searchLocation.value.mode === 'device' &&
+    (device.status === 'unrequested' || device.status === 'denied')
+
   const ordenados = useMemo(() => {
     const catalogo = artists.data ?? []
 
@@ -250,7 +257,16 @@ export function ArtistsScreen({
         }}
         testID="screen-artists"
       >
-        <Box paddingX="lg" paddingBottom="sm">
+        <Box
+          paddingX="lg"
+          // `xl` cuando el campo es lo último antes de la lista de resultados
+          // (buscando): mismo salto de registro tipográfico que abajo, entre
+          // el campo de búsqueda y el nombre en `titleLg` de la primera
+          // `ArtistCard`. `sm` cuando debajo viene el encabezado de ubicación:
+          // ahí es aire entre dos controles utilitarios, no la costura hacia
+          // la obra.
+          paddingBottom={buscando ? 'xl' : 'sm'}
+        >
           <SearchField
             value={texto}
             onChangeText={setTexto}
@@ -274,13 +290,16 @@ export function ArtistsScreen({
               onChange={onChangeLocation}
             />
 
-            {/* El aviso aparece solo cuando hay algo que arreglar: elegiste el
-                GPS y todavía no lo diste. En los otros modos no falta nada, así
-                que no hay nada que pedir. */}
-            {searchLocation.value.mode === 'device' &&
-            (device.status === 'unrequested' || device.status === 'denied') ? (
+            {showLocationPrompt ? (
               <LocationPrompt onRequest={device.request} />
-            ) : null}
+            ) : (
+              // Sin aviso que mostrar, el encabezado es lo último antes de la
+              // lista. Su propio `paddingBottom` (`xs`, interno al
+              // componente) más este `lg` suman la misma costura de `xl` que
+              // deja `LocationPrompt` cuando sí aparece — la primera
+              // `ArtistCard` ve siempre el mismo aire, sea cual sea el estado.
+              <Box paddingBottom="lg" />
+            )}
           </>
         )}
         {body}
@@ -316,7 +335,11 @@ function LocationPrompt({ onRequest }: { onRequest: () => void }) {
   const t = useT()
 
   return (
-    <Box paddingX="lg" paddingBottom="md" testID="artists-location-prompt">
+    // `xl` y no `md`: es lo último que se ve antes de la primera `ArtistCard`,
+    // y el nombre del artista ahora vive en `titleLg` (30px Fraunces) en vez
+    // de `body`. El salto de una fila de UI chica a foto + titular editorial
+    // necesita más aire que el que separa dos controles utilitarios entre sí.
+    <Box paddingX="lg" paddingBottom="xl" testID="artists-location-prompt">
       <Box
         direction="row"
         align="center"
@@ -356,8 +379,8 @@ function Loading() {
       {[0, 1].map((fila) => (
         <Box key={fila} gap="xs">
           <Box direction="row" gap="xxs">
-            <Skeleton height={267} width={200} radius="md" />
-            <Skeleton height={267} width={200} radius="md" />
+            <Skeleton height={267} width={200} radius="art" />
+            <Skeleton height={267} width={200} radius="art" />
           </Box>
           <Box direction="row" gap="xs" align="center">
             <Skeleton height={36} width={36} radius="full" />

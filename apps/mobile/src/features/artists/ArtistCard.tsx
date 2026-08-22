@@ -202,6 +202,13 @@ function CarouselPiece({
   const theme = useTheme()
   const view = useArtworkAnchor('artists', piece.id)
 
+  // La relación de aspecto real de la pieza, no la de la caja que la recorta
+  // (esa es fija en 3:4). Sirve para dos cosas independientes: la transición
+  // hacia el perfil (abajo) y qué derivado pedirle a `mediaUrl` (ver debajo del
+  // return): una pieza apaisada necesita más ancho real para cubrir el alto de
+  // la caja sin upscale que una retrato o cuadrada.
+  const aspectRatio = ratioOf(piece.width, piece.height)
+
   return (
     <Pressable
       ref={view}
@@ -213,7 +220,7 @@ function CarouselPiece({
             professionalSlug: artist.slug,
             mediaPath: piece.mediaPath,
             blurhash: piece.blurhash,
-            aspectRatio: ratioOf(piece.width, piece.height),
+            aspectRatio,
             scope: 'artists',
           },
           open: onPress,
@@ -226,7 +233,7 @@ function CarouselPiece({
       style={{
         width: PIECE_WIDTH,
         aspectRatio: 3 / 4,
-        borderRadius: radius.md,
+        borderRadius: radius.art,
         overflow: 'hidden',
         backgroundColor: theme.surfaceRaised,
         // El hueco mientras la copia vuelve. Ver features/transitions.
@@ -234,7 +241,14 @@ function CarouselPiece({
       }}
     >
       <Image
-        source={mediaUrl(piece.mediaPath, 'md')}
+        // `cover` sobre una caja 3:4 fija a 200pt de ancho, a 3x: 800px de
+        // alto a cubrir. El derivado `md` sale a 900px de ancho preservando la
+        // proporción original — de sobra para una pieza retrato o cuadrada,
+        // pero para una apaisada (ancho/alto > ~1.125) esos 900px de ancho dan
+        // menos de 800px de alto y `cover` la escala hacia arriba. `lg` evita
+        // ese upscale; pedirlo siempre gastaría bytes de más en el caso común,
+        // que es retrato.
+        source={mediaUrl(piece.mediaPath, aspectRatio > 1.125 ? 'lg' : 'md')}
         style={{ width: '100%', height: '100%' }}
         contentFit="cover"
         {...(piece.blurhash != null

@@ -32,7 +32,7 @@ design-system/
     palette.ts      escalas literales — el único archivo con valores hex
     theme.ts        tokens semánticos, oscuro + claro
     typography.ts   familias, escala, roles
-    layout.ts       espaciado 4 8 12 16 24 32 48 64 · radios 4 12 20 999 ·
+    layout.ts       espaciado 4 8 12 16 24 32 48 64 · radios 4 8 12 20 999 ·
                     área táctil mínima · grosor de borde
     motion.ts       duraciones, easings como puntos de Bézier, resortes
     haptics.ts      intenciones hápticas con nombre
