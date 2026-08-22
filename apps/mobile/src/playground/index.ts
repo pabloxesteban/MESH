@@ -16,6 +16,7 @@ import { SwipePhysicsLab } from './prototypes/SwipePhysicsLab.tsx'
 import { BottomSheetLab } from './prototypes/BottomSheetLab.tsx'
 import { SharedGrowLab } from './prototypes/SharedGrowLab.tsx'
 import { TasteMapLab } from './prototypes/TasteMapLab.tsx'
+import { CarouselPeekLab } from './prototypes/CarouselPeekLab.tsx'
 import { EditorialDark } from './directions/EditorialDark.tsx'
 import { WarmGallery } from './directions/WarmGallery.tsx'
 import { SpatialApple } from './directions/SpatialApple.tsx'
@@ -140,6 +141,20 @@ export const PLAYGROUND_ENTRIES: readonly PlaygroundEntry[] = [
     notes:
       'A diferencia de SwipePhysicsLab, usa el componente real (GrowingArtwork) y la geometría real. Lo único de juguete es de dónde salen los rectángulos. Ver D-007 y D-011.',
     component: SharedGrowLab,
+  },
+  {
+    id: 'carousel-peek',
+    name: 'Foco del carrusel',
+    category: 'motion',
+    purpose:
+      'Verificar con la mano y con fotos reales el efecto de escala/atenuación del carrusel de obra de ArtistCard antes de integrarlo — en particular que ningún borde de imagen quede sin cubrir al encogerse.',
+    interaction:
+      'Arrastrar el carrusel horizontal. La pieza centrada queda a tamaño real; las vecinas se achican y atenúan según su distancia al centro, con snap nativo al soltar.',
+    accessibility:
+      'Con movimiento reducido, escala fija en 1 y velo fijo en 0 — el showcase spread estático de siempre. El snap sigue activo: es física de scroll, no animación.',
+    notes:
+      'Usa fotos reales del banco de `tools/seed` (content/artists/*/photos.yaml), no bloques de color — un placeholder sólido esconde justo el bug de cobertura que este laboratorio existe para cazar. Importa las constantes de carouselMotion.ts en vez de copiarlas.',
+    component: CarouselPeekLab,
   },
   {
     id: 'bottom-sheet',

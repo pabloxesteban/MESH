@@ -14,6 +14,7 @@ import { I18nProvider } from '@/i18n/I18nProvider.tsx'
 import { SwipePhysicsLab } from './SwipePhysicsLab.tsx'
 import { BottomSheetLab } from './BottomSheetLab.tsx'
 import { TasteMapLab } from './TasteMapLab.tsx'
+import { CarouselPeekLab } from './CarouselPeekLab.tsx'
 
 function withProviders(node: React.ReactElement) {
   return (
@@ -59,5 +60,35 @@ describe('TasteMapLab', () => {
     expect(screen.getByTestId('lab-taste-map-center')).toBeTruthy()
     expect(screen.getByTestId('lab-taste-node-fine-line')).toBeTruthy()
     expect(screen.getByTestId('lab-taste-node-japanese')).toBeTruthy()
+  })
+})
+
+describe('CarouselPeekLab', () => {
+  it('monta el carrusel completo, sin tirar', () => {
+    render(withProviders(<CarouselPeekLab />))
+    expect(screen.getByTestId('lab-carousel-peek')).toBeTruthy()
+    expect(screen.getByTestId('lab-peek-piece-0')).toBeTruthy()
+    expect(screen.getByTestId('lab-peek-piece-7')).toBeTruthy()
+  })
+
+  it('con movimiento reducido monta igual, sin animar', () => {
+    render(
+      <ThemeProvider>
+        <MotionProvider forceReduceMotion>
+          <I18nProvider locale="es-AR">
+            <CarouselPeekLab />
+          </I18nProvider>
+        </MotionProvider>
+      </ThemeProvider>,
+    )
+    expect(screen.getByTestId('lab-carousel-peek')).toBeTruthy()
+  })
+
+  it('el control forzado de movimiento reducido alterna el aviso', () => {
+    render(withProviders(<CarouselPeekLab />))
+    expect(screen.queryByText(/showcase spread estático/)).toBeNull()
+
+    fireEvent.press(screen.getByTestId('lab-peek-reduce-motion'))
+    expect(screen.getByText(/showcase spread estático/)).toBeTruthy()
   })
 })

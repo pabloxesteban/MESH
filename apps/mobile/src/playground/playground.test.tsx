@@ -24,6 +24,9 @@ const BUILT_IDS = [
   // La transición obra → artista. Ver D-007, que decidió construirla a mano, y
   // D-011, que la implementó.
   'shared-grow',
+  // El efecto de foco del carrusel de obra de ArtistCard. Paso 1 de la
+  // verificación que pide la spec de interaction-designer, con fotos reales.
+  'carousel-peek',
 ]
 
 describe('PLAYGROUND_ENTRIES', () => {
