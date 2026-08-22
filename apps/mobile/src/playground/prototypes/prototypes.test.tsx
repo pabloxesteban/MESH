@@ -14,7 +14,6 @@ import { I18nProvider } from '@/i18n/I18nProvider.tsx'
 import { SwipePhysicsLab } from './SwipePhysicsLab.tsx'
 import { BottomSheetLab } from './BottomSheetLab.tsx'
 import { TasteMapLab } from './TasteMapLab.tsx'
-import { ScrollRevealLab } from './ScrollRevealLab.tsx'
 
 function withProviders(node: React.ReactElement) {
   return (
@@ -60,27 +59,5 @@ describe('TasteMapLab', () => {
     expect(screen.getByTestId('lab-taste-map-center')).toBeTruthy()
     expect(screen.getByTestId('lab-taste-node-fine-line')).toBeTruthy()
     expect(screen.getByTestId('lab-taste-node-japanese')).toBeTruthy()
-  })
-})
-
-describe('ScrollRevealLab', () => {
-  it('monta la lista de juguete completa, sin tirar', () => {
-    render(withProviders(<ScrollRevealLab />))
-    expect(screen.getByTestId('lab-scroll-reveal-list')).toBeTruthy()
-    expect(screen.getByTestId('lab-card-lab-artist-1')).toBeTruthy()
-    expect(screen.getByTestId('lab-card-lab-artist-10')).toBeTruthy()
-  })
-
-  it('con movimiento reducido monta igual, sin animar', () => {
-    render(
-      <ThemeProvider>
-        <MotionProvider forceReduceMotion>
-          <I18nProvider locale="es-AR">
-            <ScrollRevealLab />
-          </I18nProvider>
-        </MotionProvider>
-      </ThemeProvider>,
-    )
-    expect(screen.getByTestId('lab-scroll-reveal-list')).toBeTruthy()
   })
 })
