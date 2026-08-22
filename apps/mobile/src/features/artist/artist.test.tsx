@@ -362,7 +362,7 @@ describe('StudioScreen', () => {
         expect(screen.getByTestId('studio-pieces')).toBeTruthy(),
       )
       const pieza = within(screen.getByTestId('studio-piece-flash-1'))
-      expect(pieza.getByText(/Diseño propio · 8x10cm ·/)).toBeTruthy()
+      expect(pieza.getByText(/Flash · 8x10cm ·/)).toBeTruthy()
     })
 
     it('una pieza que no es diseño propio no muestra la línea de tamaño y precio', async () => {
@@ -383,7 +383,7 @@ describe('StudioScreen', () => {
         expect(screen.getByTestId('studio-pieces')).toBeTruthy(),
       )
       const pieza = within(screen.getByTestId('studio-piece-pieza-1'))
-      expect(pieza.queryByText(/Diseño propio ·/)).toBeNull()
+      expect(pieza.queryByText(/Flash ·/)).toBeNull()
     })
 
     it('con el interruptor en ON, tamaño o precio vacíos dejan el botón deshabilitado', async () => {

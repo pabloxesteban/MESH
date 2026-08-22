@@ -25,7 +25,12 @@
 import { Image } from 'expo-image'
 import { useQuery } from '@tanstack/react-query'
 import { useCallback, useRef, useState } from 'react'
-import { ScrollView, View, type NativeScrollEvent } from 'react-native'
+import {
+  ScrollView,
+  View,
+  useWindowDimensions,
+  type NativeScrollEvent,
+} from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import {
@@ -193,14 +198,18 @@ export function ProfileScreen({
 
     return (
       <Box gap="lg" testID="profile-content">
-        {/* Invisible mientras la copia viaja: si los dos se vieran a la vez,
-            la transición mostraría el truco. */}
+        {/* La obra y el resto de la obra, en un solo carrusel horizontal
+            grande — no una foto estática seguida, más abajo, de una fila de
+            miniaturas. El hero sigue siendo el primero (D-011: es la obra que
+            se tocó, o la destacada) y es el único invisible mientras la copia
+            que crece viaja hacia acá: si los dos se vieran a la vez, la
+            transición mostraría el truco. */}
         {hero != null ? (
-          <Hero
-            piece={hero}
-            hidden={entrance.growing != null}
-            saved={userId != null ? saved.isSaved(hero.id) : null}
-            onToggleSaved={() => saved.toggle(hero.id)}
+          <HeroCarousel
+            pieces={[hero, ...obraPieces]}
+            heroHidden={entrance.growing != null}
+            isSaved={userId == null ? null : saved.isSaved}
+            onToggleSaved={saved.toggle}
           />
         ) : null}
 
@@ -361,16 +370,6 @@ export function ProfileScreen({
                     }
                   : null
               }
-            />
-          </Section>
-        ) : null}
-
-        {obraPieces.length > 0 ? (
-          <Section title={t('profile.portfolio')}>
-            <Grid
-              pieces={obraPieces}
-              isSaved={userId == null ? null : saved.isSaved}
-              onToggleSaved={saved.toggle}
             />
           </Section>
         ) : null}
@@ -623,143 +622,116 @@ function BackControl({
   )
 }
 
-function Hero({
-  piece,
-  hidden,
-  saved,
-  onToggleSaved,
-}: {
-  piece: PortfolioPiece
-  hidden: boolean
-  /** `null` cuando no hay sesión: sin dónde guardarlo, no se ofrece. */
-  saved: boolean | null
-  onToggleSaved: () => void
-}) {
-  const theme = useTheme()
-  const aspectRatio = ratioOf(piece.width, piece.height)
-
-  return (
-    <View>
-      <Image
-        // `lg` solo acá: es la única imagen a ancho completo de la pantalla.
-        source={mediaUrl(piece.mediaPath, 'lg')}
-        placeholder={
-          piece.blurhash != null ? { blurhash: piece.blurhash } : null
-        }
-        placeholderContentFit="cover"
-        contentFit="cover"
-        transition={0}
-        accessible={false}
-        style={{
-          width: '100%',
-          aspectRatio,
-          borderRadius: radius.lg,
-          backgroundColor: theme.surfaceRaised,
-          opacity: hidden ? 0 : 1,
-        }}
-      />
-      {/* Abajo a la derecha, encima de la obra. Ponerlo debajo empujaría el
-          nombre del artista fuera de la primera pantalla, y el nombre es lo
-          que contesta a quién estás mirando. */}
-      {saved != null && !hidden ? (
-        <View
-          style={{
-            position: 'absolute',
-            right: spacing.xs,
-            bottom: spacing.xs,
-          }}
-        >
-          <SaveHeart
-            isSaved={saved}
-            onToggle={onToggleSaved}
-            testID="profile-hero-heart"
-          />
-        </View>
-      ) : null}
-    </View>
-  )
-}
-
-/** Ancho fijo de cada foto de la grilla de obra — ver el comentario de `Grid`. */
-const PORTFOLIO_PIECE_WIDTH = 168
-
 /**
- * Grilla de obra.
+ * El hero y el resto de la obra, en un solo carrusel horizontal grande.
  *
- * Una sola fila que se recorre **horizontal**, no columnas que envuelven: con
- * `aspectRatio` fijo y ancho fijo (no derivado del ancho de pantalla, a
- * diferencia de la versión anterior de dos columnas) la grilla no puede
- * saltar mientras cargan las imágenes, y no hay techo de cuántas piezas
- * entran — todo el portfolio se recorre deslizando, en vez de crecer la
- * pantalla hacia abajo indefinidamente. El último ítem asoma a medias a
- * propósito (`contentContainerStyle` no resta el ancho del último elemento):
- * es la señal de que hay más para el costado.
+ * Antes eran dos cosas: una foto estática a ancho completo (`Hero`) y, más
+ * abajo, una fila de miniaturas de 168pt (`Grid`). Un pedido directo cambió
+ * eso: la obra tiene que verse grande, deslizable, arriba de todo, junto con
+ * lo que antes era solo el hero.
+ *
+ * **La geometría del hero no cambió — sigue siendo la que espera D-011.**
+ * `heroRect()` calcula el destino de la transición obra → perfil con estas
+ * mismas cuentas: ancho de pantalla menos `SCREEN_GUTTER` de cada lado, y
+ * `y = insetTop + spacing.md`. Acá la primera página (`pieces[0]`, siempre el
+ * hero) ocupa exactamente esa caja — mismo ancho, mismo `y`, sin `gap` ni
+ * `peek` que la angoste — porque el `ScrollView` vive adentro del mismo
+ * `padding: SCREEN_GUTTER` que ya tenía `Hero`, y `pagingEnabled` pagina por
+ * el ancho propio del `ScrollView`, que es esa misma caja. Si esto cambiara,
+ * la transición aterrizaría en un rectángulo que ya no coincide con lo que se
+ * ve — y no hay test que lo cace, a diferencia de la geometría de
+ * `heroRect()` misma, que si tiene uno. Tocar esta función es tocar esa
+ * geometría.
+ *
+ * **El alto es fijo, según la proporción real del hero, no de cada foto.**
+ * Las demás piezas de obra pueden tener otra relación de aspecto real —se
+ * recortan con `cover` dentro de la misma caja, mismo criterio que ya usa
+ * `OwnDesignsGrid`— para que el alto no salte al deslizar de una página a
+ * otra.
+ *
+ * **Sin peek.** El carrusel de Inicio (`carouselMotion.ts`) sí lo tiene
+ * porque ahí conviene mostrar que hay más al costado; acá angostar la
+ * primera página rompería la geometría de arriba. La señal de que hay más
+ * fotos es el gesto mismo, no un asomo visual.
  */
-function Grid({
+function HeroCarousel({
   pieces,
+  heroHidden,
   isSaved,
   onToggleSaved,
 }: {
   pieces: readonly PortfolioPiece[]
+  /** La primera página (el hero) es invisible mientras la copia que crece viaja hacia acá. */
+  heroHidden: boolean
   /** `null` cuando no hay sesión: sin dónde guardarlo, no se ofrece. */
   isSaved: ((portfolioItemId: string) => boolean) | null
   onToggleSaved: (portfolioItemId: string) => void
 }) {
   const theme = useTheme()
+  const { width } = useWindowDimensions()
+  const pageWidth = Math.max(width - SCREEN_GUTTER * 2, 0)
+  const heroAspectRatio = ratioOf(pieces[0]?.width, pieces[0]?.height)
 
   return (
     <ScrollView
       horizontal
+      pagingEnabled
       showsHorizontalScrollIndicator={false}
-      contentContainerStyle={{
-        gap: spacing.xxs,
-        paddingHorizontal: SCREEN_GUTTER,
-      }}
-      testID="profile-portfolio-grid"
+      testID="profile-hero-carousel"
     >
-      {pieces.map((piece) => (
-        <View key={piece.id} style={{ width: PORTFOLIO_PIECE_WIDTH }}>
-          <Image
-            // `sm` en la grilla: una miniatura de 168pt no necesita 1600px.
-            source={mediaUrl(piece.mediaPath, 'sm')}
-            placeholder={
-              piece.blurhash != null ? { blurhash: piece.blurhash } : null
-            }
-            placeholderContentFit="cover"
-            contentFit="cover"
-            recyclingKey={piece.id}
-            transition={0}
-            accessible
-            accessibilityRole="image"
-            accessibilityLabel={piece.caption ?? ''}
-            testID={`profile-piece-${piece.id}`}
-            style={{
-              width: PORTFOLIO_PIECE_WIDTH,
-              aspectRatio: 1,
-              borderRadius: radius.md,
-              backgroundColor: theme.surfaceRaised,
-            }}
-          />
-          {isSaved != null ? (
-            <View
+      {pieces.map((piece, index) => {
+        const hidden = index === 0 && heroHidden
+        return (
+          <View key={piece.id} style={{ width: pageWidth }}>
+            <Image
+              // `lg`: son las únicas imágenes a ancho completo de la pantalla.
+              source={mediaUrl(piece.mediaPath, 'lg')}
+              placeholder={
+                piece.blurhash != null ? { blurhash: piece.blurhash } : null
+              }
+              placeholderContentFit="cover"
+              contentFit="cover"
+              recyclingKey={piece.id}
+              transition={0}
+              accessible
+              accessibilityRole="image"
+              accessibilityLabel={piece.caption ?? ''}
+              testID={`profile-piece-${piece.id}`}
               style={{
-                position: 'absolute',
-                right: spacing.xxs,
-                bottom: spacing.xxs,
+                width: pageWidth,
+                aspectRatio: heroAspectRatio,
+                borderRadius: radius.lg,
+                backgroundColor: theme.surfaceRaised,
+                opacity: hidden ? 0 : 1,
               }}
-            >
-              <SaveHeart
-                isSaved={isSaved(piece.id)}
-                onToggle={() => onToggleSaved(piece.id)}
-                testID={`profile-piece-heart-${piece.id}`}
-              />
-            </View>
-          ) : null}
-        </View>
-      ))}
+            />
+            {/* Abajo a la derecha, encima de la obra. Ponerlo debajo
+                empujaría el nombre del artista fuera de la primera pantalla,
+                y el nombre es lo que contesta a quién estás mirando. */}
+            {isSaved != null && !hidden ? (
+              <View
+                style={{
+                  position: 'absolute',
+                  right: spacing.xs,
+                  bottom: spacing.xs,
+                }}
+              >
+                <SaveHeart
+                  isSaved={isSaved(piece.id)}
+                  onToggle={() => onToggleSaved(piece.id)}
+                  testID={`profile-piece-heart-${piece.id}`}
+                />
+              </View>
+            ) : null}
+          </View>
+        )
+      })}
     </ScrollView>
   )
 }
+
+/** Ancho fijo de cada foto de la grilla de diseños propios — ver `OwnDesignsGrid`. */
+const PORTFOLIO_PIECE_WIDTH = 168
 
 /**
  * Grilla de diseños propios (ADR-034).

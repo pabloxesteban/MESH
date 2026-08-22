@@ -198,16 +198,15 @@ export const esAR = {
   'profile.availability.asOf': 'Según el artista, el {fecha}',
   'profile.availability.stale': 'Sin novedades desde el {fecha}',
   'profile.travels': 'Viaja',
-  // --- diseños propios (ADR-034) ---
-  'profile.ownDesigns': 'Diseños propios',
+  // --- diseños propios / flashes (ADR-034) ---
+  'profile.ownDesigns': 'Flashes',
   'profile.ownDesigns.hint':
-    'Diseños que el artista ya tiene listos para tatuar. Para pedir uno, escribile por chat.',
+    'Flashes que el artista ya tiene listos para tatuar. Para pedir uno, escribile por chat.',
   'profile.ownDesigns.price.asOf': 'Declarado el {fecha}',
   'profile.ownDesigns.piece.a11yLabel':
-    'Diseño propio, {size}, {price}, declarado el {fecha}.',
+    'Flash, {size}, {price}, declarado el {fecha}.',
   'profile.ownDesigns.piece.a11yHint':
     'Abre el chat con un mensaje armado para preguntar por este diseño.',
-  'profile.portfolio': 'Obra',
   'profile.back': 'Volver',
   'profile.contact': 'Escribirle',
   'profile.fixture': 'Registro de prueba. No es una persona real.',
@@ -432,9 +431,9 @@ export const esAR = {
   'studio.empty.title': 'Todavía no subiste nada',
   'studio.empty.body':
     'Tu obra es lo único que alguien ve antes de decidir escribirte.',
-  // --- diseños propios (ADR-034) ---
-  'studio.ownDesign.off': 'Marcar como diseño propio',
-  'studio.ownDesign.on': 'Es un diseño propio, no un tatuaje ya hecho',
+  // --- diseños propios / flashes (ADR-034) ---
+  'studio.ownDesign.off': 'Marcar como flash',
+  'studio.ownDesign.on': 'Es un flash, no un tatuaje ya hecho',
   'studio.ownDesign.hint':
     'Para un flash o boceto que todavía no tatuaste en nadie. La obra sigue siendo para tatuajes ya hechos.',
   'studio.ownDesign.size.label': 'Tamaño',
@@ -444,7 +443,7 @@ export const esAR = {
   'studio.ownDesign.price.hint':
     'Lo que cobrás por este diseño en este tamaño. Se muestra con la fecha de hoy.',
   'studio.piece.featured': 'Abre tu perfil',
-  'studio.piece.ownDesign': 'Diseño propio · {size} · {price}',
+  'studio.piece.ownDesign': 'Flash · {size} · {price}',
   'studio.piece.remove': 'Sacar',
   'studio.piece.removed': 'La sacamos',
   'studio.entry.label': '¿Tatuás?',
@@ -888,7 +887,7 @@ export const esAR = {
   // --- diseños propios: mensaje pre-armado (ADR-034) ---
   // Editable, nunca enviado solo — mismo principio que sendBrief.*.
   'ownDesign.chat.draft':
-    'Hola, me interesa uno de tus diseños propios ({size}, {price}).',
+    'Hola, me interesa uno de tus flashes ({size}, {price}).',
 
   // --- chat ---
   'chat.title': 'Mensajes',
