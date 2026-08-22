@@ -886,8 +886,13 @@ export type Database = {
           id: string
           is_featured: boolean
           is_fixture: boolean
+          is_original_design: boolean
           media_id: string
+          price_cents: number | null
+          price_currency: string | null
+          priced_at: string | null
           professional_id: string
+          size_label: string | null
           sort_order: number
           year: number | null
         }
@@ -897,8 +902,13 @@ export type Database = {
           id?: string
           is_featured?: boolean
           is_fixture?: boolean
+          is_original_design?: boolean
           media_id: string
+          price_cents?: number | null
+          price_currency?: string | null
+          priced_at?: string | null
           professional_id: string
+          size_label?: string | null
           sort_order?: number
           year?: number | null
         }
@@ -908,8 +918,13 @@ export type Database = {
           id?: string
           is_featured?: boolean
           is_fixture?: boolean
+          is_original_design?: boolean
           media_id?: string
+          price_cents?: number | null
+          price_currency?: string | null
+          priced_at?: string | null
           professional_id?: string
+          size_label?: string | null
           sort_order?: number
           year?: number | null
         }

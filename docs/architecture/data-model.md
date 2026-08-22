@@ -147,6 +147,35 @@ NULL, `is_featured`, `sort_order`, `is_fixture`, `created_at`. UNIQUE sobre
 `media_id`: dos piezas apuntando al mismo archivo serían dos tarjetas idénticas
 en el mazo.
 
+**Diseño propio: tamaño y precio por pieza** (ADR-034). Columnas sobre la
+misma fila, no una tabla aparte — misma razón que ADR-003 para
+`professionals`/`ProfessionalProfile`.
+
+| Columna | Tipo | Notas |
+|---|---|---|
+| `is_original_design` | boolean NOT NULL DEFAULT false | `true` = diseño propio del artista, ofrecido tal cual está; `false` = tatuaje ya hecho en un cliente |
+| `size_label` | text NULL | Tamaño real de esta pieza, en palabras del artista ("8x10cm", "mano chica"). Texto libre a propósito: no reusa `traits/size`, que describe una intención sin definir, no un objeto ya fijo (ADR-034 §3). CHECK longitud 1–60 |
+| `price_cents` | integer NULL | Precio puntual de ESTA pieza, declarado por el artista. CHECK `> 0` |
+| `price_currency` | char(3) NULL | ISO-4217 |
+| `priced_at` | date NULL | requerido si hay precio |
+
+Dos restricciones nuevas, verificadas con tests de rechazo en
+`supabase/tests/10_constraints.sql`:
+
+- **`portfolio_items_price_complete`**: precio completo (las tres columnas) o
+  ausente — mismo espíritu que `professionals_price_complete`, y puntual en
+  vez de rango porque el objeto ya existe con un tamaño ya fijo (ADR-034 §4);
+- **`portfolio_items_offer_shape`**: `size_label` y las columnas de precio
+  solo pueden tener valor si `is_original_design = true` — un tatuaje ya hecho
+  no se vende.
+
+Sin RLS nueva: las políticas de owner que ya tiene la tabla
+(`portfolio_items_insert_own`/`_update_own`/`_delete_own`, sin grants por
+columna) cubren las columnas nuevas igual que el resto de la fila. Sin índice
+nuevo: `size_label` es texto libre y no se agrupa, y la sub-sección de diseños
+propios se trae con el mismo `where professional_id = X` que ya cubre
+`portfolio_items_professional_sort_idx`.
+
 **`portfolio_item_styles`** — PK `(portfolio_item_id, style_id)`, `weight`
 numeric CHECK `> 0 AND <= 1`. Los pesos suman 1 por pieza; impuesto por el
 validador del seed y verificado por un test de base de datos, no por un trigger

@@ -69,6 +69,19 @@ export interface Availability {
   readonly updatedAt: string
 }
 
+/**
+ * Un precio puntual — a diferencia de `MoneyRange`, que es una estimación
+ * sobre trabajo futuro todavía sin definir, esto describe algo que ya existe
+ * con una forma fija: un diseño ya dibujado, a un tamaño ya elegido. Ver
+ * ADR-034.
+ */
+export interface Price {
+  readonly cents: number
+  readonly currency: string
+  /** Requerido: un precio sin fecha no es información. */
+  readonly pricedAt: string
+}
+
 export interface Location {
   readonly id: Uuid
   readonly slug: string
@@ -112,6 +125,20 @@ export interface PortfolioItem {
   readonly isFeatured: boolean
   readonly styles: readonly WeightedStyle[]
   readonly isFixture: boolean
+  /**
+   * true = diseño propio del artista (lo que la UI llame "flash"/"boceto" vía
+   * i18n), ofrecido tal cual está. false = tatuaje real ya hecho en un
+   * cliente. Ver ADR-034.
+   */
+  readonly isOriginalDesign: boolean
+  /**
+   * Tamaño real de esta pieza, en palabras del artista ("8x10cm", "mano
+   * chica"). Texto libre, no un slug de taxonomía — ver ADR-034 §3. Solo
+   * no-null si isOriginalDesign.
+   */
+  readonly sizeLabel: string | null
+  /** Solo no-null si isOriginalDesign. */
+  readonly price: Price | null
 }
 
 /**

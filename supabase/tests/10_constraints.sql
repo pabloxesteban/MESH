@@ -5,7 +5,7 @@
 -- que no molesta. Lo que hay que verificar es que efectivamente RECHACE.
 
 begin;
-select plan(21);
+select plan(28);
 
 -- --- fixtures ----------------------------------------------------------------
 
@@ -161,6 +161,123 @@ select throws_ok(
   23505,
   null,
   'Dos piezas sobre la misma imagen se rechazan — serían dos tarjetas idénticas'
+);
+
+-- --- diseño propio (ADR-034) --------------------------------------------------
+
+insert into public.media_assets (id, bucket, path, mime_type) values
+  ('bbbbbbbb-0000-0000-0000-000000000010', 'portfolio', 'x/od-size.jpg', 'image/jpeg'),
+  ('bbbbbbbb-0000-0000-0000-000000000011', 'portfolio', 'x/od-price-cents.jpg', 'image/jpeg'),
+  ('bbbbbbbb-0000-0000-0000-000000000012', 'portfolio', 'x/od-currency.jpg', 'image/jpeg'),
+  ('bbbbbbbb-0000-0000-0000-000000000013', 'portfolio', 'x/od-incomplete.jpg', 'image/jpeg'),
+  ('bbbbbbbb-0000-0000-0000-000000000014', 'portfolio', 'x/od-shape.jpg', 'image/jpeg'),
+  ('bbbbbbbb-0000-0000-0000-000000000015', 'portfolio', 'x/od-complete.jpg', 'image/jpeg'),
+  ('bbbbbbbb-0000-0000-0000-000000000016', 'portfolio', 'x/od-plain.jpg', 'image/jpeg');
+
+select throws_ok(
+  $$
+    insert into public.portfolio_items (professional_id, media_id, is_original_design, size_label)
+    values (
+      'cccccccc-0000-0000-0000-000000000001',
+      'bbbbbbbb-0000-0000-0000-000000000010',
+      true, repeat('x', 61)
+    )
+  $$,
+  23514,
+  null,
+  'Un size_label de más de 60 caracteres se rechaza'
+);
+
+select throws_ok(
+  $$
+    insert into public.portfolio_items (
+      professional_id, media_id, is_original_design,
+      price_cents, price_currency, priced_at
+    )
+    values (
+      'cccccccc-0000-0000-0000-000000000001',
+      'bbbbbbbb-0000-0000-0000-000000000011',
+      true, 0, 'ARS', '2026-08-01'
+    )
+  $$,
+  23514,
+  null,
+  'Un price_cents de cero (o negativo) se rechaza'
+);
+
+select throws_ok(
+  $$
+    insert into public.portfolio_items (
+      professional_id, media_id, is_original_design,
+      price_cents, price_currency, priced_at
+    )
+    values (
+      'cccccccc-0000-0000-0000-000000000001',
+      'bbbbbbbb-0000-0000-0000-000000000012',
+      true, 50000, 'ars', '2026-08-01'
+    )
+  $$,
+  23514,
+  null,
+  'Una moneda que no está en mayúsculas ISO-4217 se rechaza'
+);
+
+select throws_ok(
+  $$
+    insert into public.portfolio_items (
+      professional_id, media_id, is_original_design, price_cents
+    )
+    values (
+      'cccccccc-0000-0000-0000-000000000001',
+      'bbbbbbbb-0000-0000-0000-000000000013',
+      true, 50000
+    )
+  $$,
+  23514,
+  null,
+  'Un precio sin moneda ni fecha se rechaza — precio completo o ausente'
+);
+
+select throws_ok(
+  $$
+    insert into public.portfolio_items (
+      professional_id, media_id, is_original_design, size_label
+    )
+    values (
+      'cccccccc-0000-0000-0000-000000000001',
+      'bbbbbbbb-0000-0000-0000-000000000014',
+      false, '8x10cm'
+    )
+  $$,
+  23514,
+  null,
+  'size_label sobre una pieza que NO es diseño propio se rechaza — un tatuaje ya hecho no se vende'
+);
+
+select lives_ok(
+  $$
+    insert into public.portfolio_items (
+      professional_id, media_id, is_original_design,
+      size_label, price_cents, price_currency, priced_at
+    )
+    values (
+      'cccccccc-0000-0000-0000-000000000001',
+      'bbbbbbbb-0000-0000-0000-000000000015',
+      true, '8x10cm', 50000, 'ARS', '2026-08-01'
+    )
+  $$,
+  'Un diseño propio completo — marca, tamaño y precio fechado — se acepta'
+);
+
+select lives_ok(
+  $$
+    insert into public.portfolio_items (professional_id, media_id)
+    values (
+      'cccccccc-0000-0000-0000-000000000001',
+      'bbbbbbbb-0000-0000-0000-000000000016'
+    )
+  $$,
+  'Una pieza normal, sin ninguno de los campos de diseño propio, se acepta'
 );
 
 -- --- media_assets ------------------------------------------------------------

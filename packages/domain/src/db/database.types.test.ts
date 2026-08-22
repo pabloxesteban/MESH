@@ -40,6 +40,7 @@ type Equal<A, B> =
 type Assert<T extends true> = T
 
 type ProfessionalRow = Tables['professionals']['Row']
+type PortfolioItemRow = Tables['portfolio_items']['Row']
 type InteractionRow = Tables['interactions']['Row']
 type MatchRow = Tables['matches']['Row']
 type TasteProfileRow = Tables['taste_profiles']['Row']
@@ -123,6 +124,22 @@ interface Reconciliacion {
   >
   professionalAvailability: Assert<
     Equal<ProfessionalRow['availability_status'], AvailabilityStatus | null>
+  >
+  // ADR-034: diseño propio, tamaño y precio puntual sobre portfolio_items.
+  portfolioItemIsOriginalDesign: Assert<
+    Equal<PortfolioItemRow['is_original_design'], boolean>
+  >
+  portfolioItemSizeLabel: Assert<
+    Equal<PortfolioItemRow['size_label'], string | null>
+  >
+  portfolioItemPriceCents: Assert<
+    Equal<PortfolioItemRow['price_cents'], number | null>
+  >
+  portfolioItemPriceCurrency: Assert<
+    Equal<PortfolioItemRow['price_currency'], string | null>
+  >
+  portfolioItemPricedAt: Assert<
+    Equal<PortfolioItemRow['priced_at'], string | null>
   >
   interactionVerdictColumn: Assert<
     Equal<InteractionRow['verdict'], InteractionVerdict>
