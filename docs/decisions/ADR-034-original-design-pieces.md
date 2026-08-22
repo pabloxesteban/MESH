@@ -22,11 +22,11 @@ Tres tensiones, no una:
    `portfolio_items` es una de las cinco entidades centrales
    (Category/Style/Professional/PortfolioItem/Project, innegociable 7). "Flash"
    no puede ser un nombre de columna ni de valor de enum.
-2. **Cómo declarar un tamaño sin inventar un segundo vocabulario.** MESH ya
+2. **Cómo declarar un tamaño real sin inventar precisión falsa.** MESH ya
    tiene una dimensión `size` en `traits` (ADR-020: mini/chico/mediano/
-   grande/gran-formato), construida a propósito para ser agnóstica de rubro.
-   Duplicarla como texto libre o como un nuevo enum sería reinventar algo que
-   ya existe y ya se mantiene.
+   grande/gran-formato), pero se construyó para una intención de brief
+   todavía sin definir — no para un objeto ya dibujado, con una medida real.
+   Reusarla ahí sería la respuesta obvia y la equivocada (ver §3).
 3. **Cómo declarar un precio sin contradecir la forma que ya eligió
    `professionals.price`, ni prometer más precisión de la que hay.** El precio
    general de un artista es un **rango** (`price_min_cents`/`price_max_cents`)
@@ -45,9 +45,11 @@ Las cinco preguntas de `.claude/workflows/database-change.md`:
   "Obra" — es la misma fila, filtrada.
 - **¿Qué se rompe sin eso?** Sin marca en la pieza, no hay forma de separar
   "diseño propio" de "obra ya hecha" — la sub-sección no existe.
-- **¿Es derivable de datos existentes?** El tamaño sí, de `traits` — no se
-  duplica. El precio y la marca de "es diseño propio" no son derivables de
-  nada: son hechos nuevos que declara el artista.
+- **¿Es derivable de datos existentes?** No. El tamaño real, el precio y la
+  marca de "es diseño propio" son los tres hechos nuevos que declara el
+  artista sobre una pieza puntual — ninguno se puede calcular a partir de
+  columnas que ya existen (ver §3 sobre por qué el tamaño tampoco sale de
+  `traits`, pese a que a primera vista parecía derivable de ahí).
 - **¿Filtra conocimiento de categoría al núcleo?** No, si los nombres son
   genéricos — ver §2 y §3.
 - **¿Duplica un hecho representado en otro lado?** No. Es información nueva
@@ -80,35 +82,39 @@ fotógrafa también puede distinguir "una composición propia que ofrece" de "un
 foto de una sesión ya hecha"). El copy ("Diseños", "Flash", lo que decida
 `ux-product-designer`) vive en i18n, nunca en el esquema.
 
-### 3. El tamaño reusa `traits` (dimensión `size`), vía FK compuesta
+### 3. El tamaño es texto libre, declarado por el artista — no `traits`
 
-No se crea vocabulario nuevo. `traits` con `dimension = 'size'` ya existe
-desde ADR-020, ya es agnóstico de categoría por diseño ("los nombres son
-genéricos a propósito: otro rubro puede usar `size`... con otros slugs"), y ya
-tiene su propia pantalla y su propio mantenimiento. Agregar
-`portfolio_items.size_trait_id` es "derivar de datos que ya tenemos", el caso
-textual de la pregunta 3 del workflow.
+**Revisión respecto del borrador original de esta ADR.** La primera versión
+proponía reusar `traits` con `dimension = 'size'` (ADR-020: mini/chico/
+mediano/grande/gran-formato), con una FK compuesta para forzar la dimensión.
+`ux-product-designer`, trabajando el mismo campo en paralelo, señaló el error:
+esa dimensión se construyó para describir una **intención todavía sin
+definir** dentro de un brief ("quiero algo mediano en el antebrazo"), no un
+objeto que ya existe, ya está dibujado y ya tiene una forma fija. Un flash de
+"8x10cm" perdido dentro del casillero "mediano" es exactamente el mismo error
+de categoría que esta misma ADR ya identificó en §4 para el precio — forzar
+algo con forma fija dentro de una representación pensada para una estimación.
+Cometerlo dos veces en la misma decisión, con la misma lógica ya escrita
+arriba, no tenía forma de defenderse. Se revierte.
 
-**Por qué una columna y no una tabla de unión** (a diferencia de
-`project_traits`, que sí es una tabla de unión): un proyecto puede describirse
-con varios rasgos de varias dimensiones a la vez (zona + tamaño + paleta). Una
-pieza de diseño propio tiene **un** tamaño, no un conjunto. Modelarlo como
-junction table obligaría a un trigger para imponer "como mucho un `size` por
-pieza" — exactamente el tipo de trigger frágil que el propio comentario de
-`portfolio_item_styles` señala y evita. Una columna nullable con una FK expresa
-"cero o uno" sin trigger.
+**Decisión final: `size_label text`, declarado por el artista, sin
+vocabulario.** Mismo criterio que ya tienen `professionals.bio`,
+`project_interests.note` o `portfolio_items.caption`: texto libre, acotado en
+longitud, nunca validado contra una taxonomía — porque acá no hay una
+taxonomía que describa con precisión real un tamaño ya fijo ("8x10cm", "mano
+chica", "antebrazo entero" son formas de decirlo que ni una lista cerrada de
+cinco valores ni una FK podrían anticipar todas).
 
-**Por qué una FK compuesta y no una FK simple:** `traits.id` ya es único por
-sí solo, así que una FK simple a `traits(id)` dejaría entrar un trait de
-`body_area` o `palette` en una columna que se llama `size_trait_id` — un
-estado que no tiene sentido y que rompería el render de la pantalla (mostrar
-"Brazo" donde se espera un tamaño). Se impone en la base con el mismo patrón
-que ya usa `matches.project_key`: una columna generada constante más un
-`unique (id, dimension)` en `traits`, para poder declarar
-`foreign key (size_trait_id, size_trait_dimension) references traits (id, dimension)`.
-Con `size_trait_id` en `null`, la FK compuesta no se evalúa (comportamiento
-MATCH SIMPLE de Postgres), así que el campo sigue siendo opcional sin caso
-especial.
+Esto además simplifica el esquema: sin FK compuesta, sin columna generada, sin
+tocar `traits` con una restricción nueva. Una sola columna, con la misma
+restricción de "completo o ausente" que ya rige el precio.
+
+**El costo, dicho explícito:** se pierde la posibilidad de filtrar u ordenar
+piezas por tamaño con una consulta indexada — un texto libre no se agrupa. Hoy
+no existe ninguna pantalla que lo pida (ver §Lo que NO está), así que no es un
+costo que se esté pagando por adelantado; si algún día aparece esa pantalla,
+es una decisión de producto nueva, con su propio vocabulario si hace falta,
+no una que corresponda anticipar acá.
 
 ### 4. El precio es puntual, no un rango
 
@@ -129,8 +135,8 @@ sin `priced_at` no es información acá tampoco.
 
 `caption`/`year` de una pieza de "tatuaje ya hecho" con un precio de venta al
 lado no tiene sentido — ese tatuaje ya está en la piel de otra persona, no se
-vende. Una restricción impide que `size_trait_id` o cualquier columna de
-precio tengan valor cuando `is_original_design = false`.
+vende. Una restricción impide que `size_label` o cualquier columna de precio
+tengan valor cuando `is_original_design = false`.
 
 ### 6. Ningún cambio de RLS
 
@@ -139,9 +145,9 @@ precio tengan valor cuando `is_original_design = false`.
 columna) desde `20260818000300_artist_portfolio.sql`, y la política de
 `select` pública ya filtra por `professionals.is_published`. Columnas nuevas
 en una tabla existente quedan cubiertas por las políticas que ya existen sobre
-la fila entera — no hace falta (ni se debe) escribir política nueva. `traits`
-ya es de lectura pública para `authenticated`, así que el formulario que
-ofrece los tamaños no necesita ningún acceso nuevo.
+la fila entera — no hace falta (ni se debe) escribir política nueva. Al ser
+texto libre y no una FK, `size_label` tampoco necesita ningún acceso nuevo a
+`traits`.
 
 ### 7. El límite de ADR-018 no se toca
 
@@ -155,18 +161,13 @@ columna ni tabla que pueda leerse como el principio de una cola de pedidos.
 *(Propuesta para `backend-engineer` — no es la migración.)*
 
 ```sql
-alter table public.traits
-  add constraint traits_id_dimension_key unique (id, dimension);
-  -- Necesaria para que la FK compuesta de abajo pueda referenciar (id, dimension).
-
 alter table public.portfolio_items
   add column is_original_design boolean not null default false,
 
-  -- Tamaño: FK a un trait de dimensión 'size', opcional, forzada a esa
-  -- dimensión sin trigger — mismo patrón que matches.project_key.
-  add column size_trait_id uuid,
-  add column size_trait_dimension public.trait_dimension
-    generated always as ('size'::public.trait_dimension) stored,
+  -- Tamaño real de ESTA pieza, en palabras del artista. Texto libre a
+  -- propósito — ver §3: un objeto ya dibujado necesita precisión real
+  -- ("8x10cm"), no una categoría de intención como traits/size.
+  add column size_label text check (size_label is null or length(size_label) between 1 and 60),
 
   -- Precio puntual, no un rango: ver §4. Mismo patrón de "declarado + fechado"
   -- que professionals.price, forma distinta.
@@ -176,13 +177,6 @@ alter table public.portfolio_items
   add column priced_at date;
 
 alter table public.portfolio_items
-  add constraint portfolio_items_size_trait_fk
-    foreign key (size_trait_id, size_trait_dimension)
-    references public.traits (id, dimension)
-    on delete restrict,
-    -- RESTRICT: igual que portfolio_item_styles.style_id — borrar un trait de
-    -- talle por debajo de piezas vivas tiene que ser imposible por accidente.
-
   -- Precio completo o ausente. Mismo espíritu que professionals_price_complete.
   add constraint portfolio_items_price_complete check (
     (price_cents is null and price_currency is null and priced_at is null)
@@ -195,7 +189,7 @@ alter table public.portfolio_items
   add constraint portfolio_items_offer_shape check (
     is_original_design
     or (
-      size_trait_id is null
+      size_label is null
       and price_cents is null
       and price_currency is null
       and priced_at is null
@@ -204,13 +198,15 @@ alter table public.portfolio_items
 
 comment on column public.portfolio_items.is_original_design is
   'true = diseño propio del artista, ofrecido tal cual está. false = tatuaje ya hecho en un cliente. Ver ADR-034.';
+comment on column public.portfolio_items.size_label is
+  'Tamaño real de esta pieza, en palabras del artista ("8x10cm", "mano chica"). Texto libre, no taxonomía: ver ADR-034 §3. Solo con is_original_design.';
 comment on column public.portfolio_items.price_cents is
   'Precio puntual de ESTA pieza, declarado por el artista. Solo con is_original_design. Nunca un rango: el objeto ya tiene una forma fija. Ver ADR-034.';
 ```
 
-Sin índice nuevo: no hay ninguna consulta con nombre que filtre por
-`size_trait_id`, y la sub-sección de diseños propios se trae con el mismo
-`where professional_id = X` que ya usa el índice
+Sin índice nuevo: no hay ninguna consulta con nombre que filtre u ordene por
+`size_label` (es texto libre, no se agrupa), y la sub-sección de diseños
+propios se trae con el mismo `where professional_id = X` que ya usa el índice
 `portfolio_items_professional_sort_idx` — un portfolio tiene decenas de
 piezas, no miles; filtrar `is_original_design` sobre eso no necesita su propio
 índice.
@@ -247,8 +243,12 @@ export interface PortfolioItem {
    * cliente. Ver ADR-034.
    */
   readonly isOriginalDesign: boolean
-  /** Slug de un trait de dimensión `size`. Solo no-null si isOriginalDesign. */
-  readonly sizeTraitSlug: string | null
+  /**
+   * Tamaño real de esta pieza, en palabras del artista ("8x10cm", "mano
+   * chica"). Texto libre, no un slug de taxonomía — ver ADR-034 §3. Solo
+   * no-null si isOriginalDesign.
+   */
+  readonly sizeLabel: string | null
   /** Solo no-null si isOriginalDesign. */
   readonly price: Price | null
 }
@@ -261,16 +261,16 @@ hoy `MoneyRange`, solo agrega un tipo hermano más chico.
 ## Chequeo de agnosticismo de categoría
 
 Nada acá sabe qué es un tatuaje. `is_original_design` es una afirmación sobre
-la naturaleza de la pieza, aplicable a cualquier rubro. El tamaño no inventa
-vocabulario: lee la misma tabla `traits` que ADR-020 ya declaró genérica. El
-precio reusa exactamente la forma de "declarado + fechado" que
-`professionals.price` ya validó, con la única diferencia de ser puntual en vez
-de rango — una diferencia de cardinalidad, no de categoría. El test de
-aceptación de `system-architecture.md` §9 sigue pasando: agregar fotografía no
-toca ninguna columna nueva de esta ADR, solo agrega filas de `traits` con
-`dimension = 'size'` propias del rubro si hiciera falta un vocabulario
-distinto — y ni siquiera eso, porque "mini/chico/mediano/grande/gran-formato"
-ya sirve para cualquier objeto físico.
+la naturaleza de la pieza, aplicable a cualquier rubro. `size_label` es texto
+libre puesto por quien ya sabe medir su propio objeto — una fotógrafa
+declarando "30x40cm, papel fine art" cabe en la misma columna sin que nada la
+sepa de tatuajes; no hay ningún slug, enum ni valor que mencione una zona del
+cuerpo o una técnica. El precio reusa exactamente la forma de "declarado +
+fechado" que `professionals.price` ya validó, con la única diferencia de ser
+puntual en vez de rango — una diferencia de cardinalidad, no de categoría. El
+test de aceptación de `system-architecture.md` §9 sigue pasando: agregar
+fotografía no toca ninguna columna nueva de esta ADR ni requiere una fila de
+taxonomía nueva para que el tamaño tenga sentido.
 
 ## Lo que NO está
 
@@ -290,6 +290,11 @@ ya sirve para cualquier objeto físico.
   etiquetados, y no se le agrega ningún filtro nuevo.
 - **Una moneda de referencia distinta a la que ya usa `professionals.price`.**
   Mismo `char(3)` ISO-4217, mismo criterio.
+- **Filtrar o agrupar por tamaño con una consulta indexada.** `size_label` es
+  texto libre a propósito (§3); no soporta "mostrame los flashes medianos".
+  Ninguna pantalla de esta feature lo pide. Si algún día se pide, es una
+  decisión de producto nueva y no algo que esta ADR debería haber anticipado
+  con una taxonomía que ya identificó como la representación equivocada.
 
 ## Consecuencias
 
@@ -303,10 +308,12 @@ ya sirve para cualquier objeto físico.
   `Price` (puntual). Es un costo real y chico — un tipo hermano, no una
   reescritura — y evita la alternativa peor, que sería forzar un rango
   `min = max` en un lugar donde eso siempre sería una mentira de forma.
-- **Una FK compuesta con columna generada**, patrón ya usado en `matches`, se
-  repite acá. Vale la pena decirlo explícito porque no es una técnica de uso
-  diario: si aparece una tercera vez, es candidato a documentarse como
-  convención en `database-design`.
+- **`traits/size` queda con un solo consumidor** (`project_traits`, para
+  briefs), no dos. No es una regresión: nunca llegó a tener el segundo, y esta
+  ADR documenta por qué no debía tenerlo — la dimensión describe una intención
+  sin definir, no un objeto ya fijo. Queda como precedente escrito para la
+  próxima vez que alguien proponga reusar una taxonomía de intención para
+  describir algo que ya existe.
 
 ## Referencias
 
@@ -315,10 +322,8 @@ ya sirve para cualquier objeto físico.
 - [ADR-018](ADR-018-availability.md) — el límite que esta ADR no toca: el
   turno lo asigna el artista desde el chat
 - [ADR-020](ADR-020-brief.md) — de donde sale la dimensión `size` de `traits`,
-  ya pensada para ser agnóstica de rubro
+  y por qué describe una intención sin definir y no un objeto ya fijo (§3)
 - `supabase/migrations/20260817000500_professionals.sql` — la forma de precio
   declarado + fechado que esta ADR extiende, no reemplaza
-- `supabase/migrations/20260817001000_matches.sql` — el precedente de columna
-  generada + FK/índice compuesto (`project_key`)
 - `docs/architecture/data-model.md` §2 — a actualizar en el mismo commit que
   la migración
