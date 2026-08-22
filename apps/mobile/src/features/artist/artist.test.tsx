@@ -344,6 +344,48 @@ describe('StudioScreen', () => {
   })
 
   describe('diseño propio (ADR-034)', () => {
+    it('en la lista del Estudio, una pieza propia muestra tamaño y precio', async () => {
+      fetchProfileMock.mockResolvedValue(ownedProfile())
+      fetchPiecesMock.mockResolvedValue([
+        {
+          id: 'flash-1',
+          mediaPath: 'briza/flash-1/lg.jpg',
+          isFeatured: false,
+          styleSlugs: ['lettering'],
+          isOwnDesign: true,
+          sizeLabel: '8x10cm',
+          price: { cents: 500_000, currency: 'ARS' },
+        },
+      ])
+      renderStudio()
+      await waitFor(() =>
+        expect(screen.getByTestId('studio-pieces')).toBeTruthy(),
+      )
+      const pieza = within(screen.getByTestId('studio-piece-flash-1'))
+      expect(pieza.getByText(/Diseño propio · 8x10cm ·/)).toBeTruthy()
+    })
+
+    it('una pieza que no es diseño propio no muestra la línea de tamaño y precio', async () => {
+      fetchProfileMock.mockResolvedValue(ownedProfile())
+      fetchPiecesMock.mockResolvedValue([
+        {
+          id: 'pieza-1',
+          mediaPath: 'briza/m1/lg.jpg',
+          isFeatured: false,
+          styleSlugs: ['lettering'],
+          isOwnDesign: false,
+          sizeLabel: null,
+          price: null,
+        },
+      ])
+      renderStudio()
+      await waitFor(() =>
+        expect(screen.getByTestId('studio-pieces')).toBeTruthy(),
+      )
+      const pieza = within(screen.getByTestId('studio-piece-pieza-1'))
+      expect(pieza.queryByText(/Diseño propio ·/)).toBeNull()
+    })
+
     it('con el interruptor en ON, tamaño o precio vacíos dejan el botón deshabilitado', async () => {
       fetchProfileMock.mockResolvedValue(ownedProfile())
       renderStudio()

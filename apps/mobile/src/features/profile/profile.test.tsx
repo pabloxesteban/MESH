@@ -410,6 +410,30 @@ describe('diseños propios (ADR-034)', () => {
     expect(draft).toContain('8x10cm')
   })
 
+  it('un diseño propio todavía sin precio no se muestra en la grilla', async () => {
+    // ADR-034, "Lo que NO está": tamaño y precio no son obligatorios juntos a
+    // nivel de base cuando is_original_design es true — un artista puede
+    // subir el diseño y declarar el precio después. Mientras falte, la pieza
+    // no aparece: ni en "Diseños propios" (sin precio no hay nada que
+    // ofrecer) ni en "Obra" (ya está marcada is_original_design).
+    const A_MEDIAS = pieza('flash-a-medias', {
+      isOriginalDesign: true,
+      sizeLabel: 'mano chica',
+      price: null,
+    })
+    fetchMock.mockResolvedValue(data({}, [OBRA, DISENO, A_MEDIAS]))
+    render()
+
+    await waitFor(() =>
+      expect(screen.getByTestId('profile-content')).toBeTruthy(),
+    )
+    expect(screen.getByTestId('profile-own-design-flash-1')).toBeTruthy()
+    expect(
+      screen.queryByTestId('profile-own-design-flash-a-medias'),
+    ).toBeNull()
+    expect(screen.queryByTestId('profile-piece-flash-a-medias')).toBeNull()
+  })
+
   it('tocar el corazón sobre una tarjeta tocable no dispara el chat', async () => {
     fetchMock.mockResolvedValue(data({}, [OBRA, DISENO], true))
     const onChat = jest.fn()

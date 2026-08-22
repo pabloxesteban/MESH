@@ -114,4 +114,33 @@ describe('fetchProfile — mapeo de piezas', () => {
       price: null,
     })
   })
+
+  it('diseño propio a medias — tamaño declarado, precio todavía sin completar', async () => {
+    // La base no obliga a completar los tres campos juntos cuando
+    // is_original_design es true (ADR-034, "Lo que NO está"): un artista puede
+    // subir el diseño y declarar el precio después. El mapeo no debe inventar
+    // un precio que no está.
+    mockFrom.mockImplementation((table: string) =>
+      table === 'professionals'
+        ? chain({ data: PROFESSIONAL_ROW, error: null })
+        : chain({
+            data: [
+              pieceRow({
+                id: 'flash-a-medias',
+                is_original_design: true,
+                size_label: 'mano chica',
+              }),
+            ],
+            error: null,
+          }),
+    )
+
+    const data = await fetchProfile('aguja-fina')
+
+    expect(data?.pieces[0]).toMatchObject({
+      isOriginalDesign: true,
+      sizeLabel: 'mano chica',
+      price: null,
+    })
+  })
 })

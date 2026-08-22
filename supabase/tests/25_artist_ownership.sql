@@ -8,7 +8,7 @@
 -- ninguna noticia.
 
 begin;
-select plan(23);
+select plan(26);
 
 -- --- fixtures (como postgres) ------------------------------------------------
 
@@ -228,6 +228,24 @@ select throws_ok(
   'Una artista con perfil propio NO puede escribir en el de otra'
 );
 
+-- ADR-034: las columnas nuevas (is_original_design, tamaño, precio) no tienen
+-- política propia — las cubre la misma política de owner de la fila entera.
+-- Este test existe para probar esa premisa y no solo confiar en la ADR: sin
+-- `with check` cubriendo estas columnas, un insert así pasaría igual.
+select throws_ok(
+  $$
+    insert into public.portfolio_items
+      (professional_id, media_id, is_original_design, size_label,
+       price_cents, price_currency, priced_at)
+    values ('cccccccc-0000-0000-0000-0000000000c1',
+            'bbbbbbbb-0000-0000-0000-0000000000b3',
+            true, '8x10cm', 500000, 'ARS', current_date)
+  $$,
+  '42501',
+  null,
+  'Una artista con perfil propio NO puede insertar un diseño propio con precio en el perfil de otra'
+);
+
 -- Un update tampoco puede mover una pieza de un perfil a otro. Sin `with check`
 -- en la política, este pasaría.
 reset role;
@@ -235,6 +253,13 @@ insert into public.portfolio_items (id, professional_id, media_id)
 values ('dddddddd-0000-0000-0000-0000000000d2',
         'cccccccc-0000-0000-0000-0000000000c2',
         'bbbbbbbb-0000-0000-0000-0000000000b4');
+
+-- Una pieza de Briza (c1), sin diseño propio, para probar que Otra no puede
+-- marcarla como diseño propio ni ponerle precio desde afuera.
+insert into public.portfolio_items (id, professional_id, media_id)
+values ('dddddddd-0000-0000-0000-0000000000d3',
+        'cccccccc-0000-0000-0000-0000000000c1',
+        'bbbbbbbb-0000-0000-0000-0000000000b2');
 
 set local role authenticated;
 set local request.jwt.claims = '{"sub":"aaaaaaaa-0000-0000-0000-0000000000a2","role":"authenticated"}';
@@ -248,6 +273,35 @@ select throws_ok(
   '42501',
   null,
   'No se puede mover una pieza propia al perfil de otra'
+);
+
+-- Ni tocando is_original_design/precio de una pieza ajena sin moverla. Acá no
+-- hay excepción que capturar: el `using` de portfolio_items_update_own ya
+-- excluye la fila de Briza del conjunto que Otra puede tocar, así que el
+-- UPDATE afecta 0 filas y termina sin error — mismo comportamiento que
+-- `update public.interactions set verdict = 'pass'` sin where en
+-- 20_cross_user.sql. Lo que importa, y lo que prueba el `is` de abajo, es que
+-- la fila de Briza sigue sin marca ni precio después de este intento.
+select lives_ok(
+  $$
+    update public.portfolio_items
+    set is_original_design = true,
+        size_label = '8x10cm',
+        price_cents = 500000,
+        price_currency = 'ARS',
+        priced_at = current_date
+    where id = 'dddddddd-0000-0000-0000-0000000000d3'
+  $$,
+  'El update sobre una pieza ajena no tira error: afecta 0 filas por RLS'
+);
+
+reset role;
+
+select is(
+  (select is_original_design from public.portfolio_items
+   where id = 'dddddddd-0000-0000-0000-0000000000d3'),
+  false,
+  'El intento fallido no dejó la pieza de Briza marcada como diseño propio'
 );
 
 reset role;

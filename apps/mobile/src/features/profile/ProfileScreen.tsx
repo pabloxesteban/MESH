@@ -802,9 +802,12 @@ function OwnDesignsGrid({
       testID="profile-own-designs-grid"
     >
       {pieces.map((piece) => {
-        // La restricción de base garantiza tamaño y precio cuando la pieza
-        // es diseño propio, pero se protege por ítem igual: una fila
-        // inconsistente no tira la pantalla entera.
+        // La restricción de base solo obliga en un sentido (ADR-034 §5): si
+        // NO es diseño propio, tamaño y precio tienen que ser nulos. No exige
+        // lo inverso — el Estudio pide los tres juntos al subir, pero nada en
+        // la base impide un diseño propio todavía sin precio declarado (ver
+        // ADR-034, "Lo que NO está"). Por eso se protege acá, por ítem: una
+        // pieza a medias no se muestra, y no tira la pantalla entera.
         if (piece.price == null || piece.sizeLabel == null) return null
         const { price, sizeLabel } = piece
 
