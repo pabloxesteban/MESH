@@ -27,6 +27,7 @@ import { ScrollView, View } from 'react-native'
 import { locationLabel, roundDistanceKm } from '@mesh/domain'
 
 import {
+  Avatar,
   Box,
   HAIRLINE,
   MIN_TOUCH_TARGET,
@@ -45,11 +46,8 @@ import type { TranslationKey } from '@/i18n/index.ts'
 
 import { avatarUrl, mediaUrl, type ArtistCardData } from './queries.ts'
 
-/** Ancho de cada obra del carrusel. Dos y media entran en una pantalla de 390. */
-const PIECE_WIDTH = 150
-
-/** Diámetro del avatar. Chico: la persona va después del trabajo. */
-const AVATAR = 36
+/** Ancho de cada obra del carrusel. Casi dos enteras entran en una pantalla de 390: el "showcase spread". */
+const PIECE_WIDTH = 200
 
 export interface ArtistCardProps {
   artist: ArtistCardData
@@ -131,8 +129,9 @@ function ArtistCardImpl({
         </ScrollView>
       )}
 
-      {/* Quién es. Toda la fila es tocable: un nombre de 14pt no es un
-          objetivo táctil, la fila entera sí. */}
+      {/* Quién es. Toda la fila es tocable: el nombre solo no es un objetivo
+          táctil de ancho confiable (una sola línea, con elipsis), la fila
+          entera sí. */}
       <Pressable
         onPress={onPress}
         accessibilityRole="button"
@@ -149,11 +148,17 @@ function ArtistCardImpl({
           paddingTop: spacing.sm,
         }}
       >
-        <Avatar artist={artist} />
+        <Avatar
+          source={
+            artist.avatarPath == null ? null : avatarUrl(artist.avatarPath)
+          }
+          size="sm"
+          testID={`${testID ?? 'artist'}-avatar`}
+        />
 
         <View style={{ flex: 1 }}>
           <Box direction="row" align="center" gap="xxs">
-            <Text role="body" numberOfLines={1}>
+            <Text role="titleLg" numberOfLines={1}>
               {artist.displayName}
             </Text>
             {artist.isFixture ? <FixtureBadge /> : null}
@@ -177,7 +182,7 @@ function ArtistCardImpl({
  * puede escribir adentro de un `map`.
  *
  * El recorte es el que delata la única diferencia con Explorar: acá el
- * carrusel muestra todas las obras en 4:5 para que la fila quede pareja,
+ * carrusel muestra todas las obras en 3:4 para que la fila quede pareja,
  * mientras que el hero del perfil respeta la forma real de la obra. La copia
  * que crece va cambiando de forma en el camino, que es lo correcto — está
  * mostrando la obra entera que el carrusel recortaba.
@@ -220,7 +225,7 @@ function CarouselPiece({
       })}
       style={{
         width: PIECE_WIDTH,
-        aspectRatio: 4 / 5,
+        aspectRatio: 3 / 4,
         borderRadius: radius.md,
         overflow: 'hidden',
         backgroundColor: theme.surfaceRaised,
@@ -262,44 +267,6 @@ function ubicacion(
     )
   }
   return partes.length > 0 ? partes.join(' · ') : t('artists.card.noLocation')
-}
-
-/**
- * La foto de perfil, o su ausencia.
- *
- * Ningún artista tiene avatar cargado todavía, así que el caso sin foto es el
- * normal y no un borde. En vez de una silueta genérica va la inicial del
- * nombre: es un dato real, deriva de algo que la persona escribió, y no
- * pretende ser una foto.
- */
-function Avatar({ artist }: { artist: ArtistCardData }) {
-  const theme = useTheme()
-
-  const base = {
-    width: AVATAR,
-    height: AVATAR,
-    borderRadius: radius.full,
-    backgroundColor: theme.surfaceRaised,
-  } as const
-
-  if (artist.avatarPath == null) {
-    return (
-      <View style={{ ...base, alignItems: 'center', justifyContent: 'center' }}>
-        <Text role="micro" color="textSecondary">
-          {artist.displayName.trim().charAt(0).toUpperCase()}
-        </Text>
-      </View>
-    )
-  }
-
-  return (
-    <Image
-      source={avatarUrl(artist.avatarPath)}
-      style={base}
-      contentFit="cover"
-      accessible={false}
-    />
-  )
 }
 
 export const ArtistCard = memo(ArtistCardImpl)

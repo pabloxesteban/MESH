@@ -190,15 +190,18 @@ describe('grilla de artistas', () => {
     expect(screen.getByText('No publicó su ubicación')).toBeTruthy()
   })
 
-  it('sin foto de perfil muestra la inicial, no una silueta genérica', async () => {
+  it('sin foto de perfil muestra la silueta genérica del design system, nunca una inicial', async () => {
     gridMock.mockResolvedValue([
       artista('uno', { displayName: 'Briza Maldonado', avatarPath: null }),
     ])
     renderArtists()
 
     await waitFor(() => expect(screen.getByTestId('artists-list')).toBeTruthy())
-    // Hoy ningún artista tiene avatar, así que este es el caso normal.
-    expect(screen.getByText('B')).toBeTruthy()
+    // Hoy ningún artista tiene avatar, así que este es el caso normal. El
+    // `Avatar` compartido dibuja la silueta, no la inicial generada que tenía
+    // la tarjeta antes.
+    expect(screen.getByTestId('artist-uno-avatar')).toBeTruthy()
+    expect(screen.queryByText('B')).toBeNull()
   })
 
   it('marca los registros de prueba en la tarjeta', async () => {

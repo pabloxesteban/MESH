@@ -356,12 +356,12 @@ function Loading() {
       {[0, 1].map((fila) => (
         <Box key={fila} gap="xs">
           <Box direction="row" gap="xxs">
-            <Skeleton height={188} width={150} radius="md" />
-            <Skeleton height={188} width={150} radius="md" />
+            <Skeleton height={267} width={200} radius="md" />
+            <Skeleton height={267} width={200} radius="md" />
           </Box>
           <Box direction="row" gap="xs" align="center">
             <Skeleton height={36} width={36} radius="full" />
-            <Skeleton height={16} width="50%" />
+            <Skeleton height={30} width="50%" />
           </Box>
         </Box>
       ))}
