@@ -74,7 +74,9 @@ export interface ProfileScreenProps {
   /** Quién está mirando. `null` deja los corazones afuera. */
   userId?: string | null
   /** Ausente cuando no se puede chatear: perfil sin reclamar, o sin sesión. */
-  onChat?: ((professionalId: string, name: string) => void) | undefined
+  onChat?:
+    | ((professionalId: string, name: string, initialDraft?: string) => void)
+    | undefined
 }
 
 export function ProfileScreen({
@@ -178,6 +180,11 @@ export function ProfileScreen({
         : pieces.find((piece) => piece.id === entrance.heroPieceId)
     const hero = tocada ?? pieces.find((piece) => piece.isFeatured) ?? pieces[0]
     const rest = pieces.filter((piece) => piece.id !== hero?.id)
+    // Diseños propios (ADR-034): su propia sub-sección, separada de "Obra" —
+    // que sigue siendo solo tatuajes ya hechos. La destacada sale del set
+    // completo más arriba y no cambia; acá solo se reparte lo que queda.
+    const obraPieces = rest.filter((piece) => !piece.isOriginalDesign)
+    const ownDesignPieces = rest.filter((piece) => piece.isOriginalDesign)
 
     // Se anota cuál es el hero para que la vuelta sepa qué obra devolver. Es un
     // ref y no estado: cambiarlo no tiene que redibujar nada.
@@ -318,10 +325,50 @@ export function ProfileScreen({
           </Section>
         ) : null}
 
-        {rest.length > 0 ? (
+        {/* Diseños propios: flash o boceto que el artista ya tiene listo,
+            con tamaño y precio declarados por él. Separada de "Obra" —
+            que sigue siendo solo tatuajes ya hechos en un cliente. Nunca la
+            palabra "disponible" sola, nunca un botón de reservar: el
+            contacto sigue siendo el chat de siempre. Ver ADR-034. */}
+        {ownDesignPieces.length > 0 ? (
+          <Section title={t('profile.ownDesigns')}>
+            <Text role="label" color="textTertiary">
+              {t('profile.ownDesigns.hint')}
+            </Text>
+            <OwnDesignsGrid
+              pieces={ownDesignPieces}
+              isSaved={userId == null ? null : saved.isSaved}
+              onToggleSaved={saved.toggle}
+              locale={locale}
+              onPress={
+                canChat && onChat != null
+                  ? (piece) => {
+                      if (piece.price == null || piece.sizeLabel == null) {
+                        return
+                      }
+                      onChat(
+                        professional.id,
+                        professional.displayName,
+                        t('ownDesign.chat.draft', {
+                          size: piece.sizeLabel,
+                          price: formatMoney(
+                            piece.price.cents,
+                            piece.price.currency,
+                            locale,
+                          ),
+                        }),
+                      )
+                    }
+                  : null
+              }
+            />
+          </Section>
+        ) : null}
+
+        {obraPieces.length > 0 ? (
           <Section title={t('profile.portfolio')}>
             <Grid
-              pieces={rest}
+              pieces={obraPieces}
               isSaved={userId == null ? null : saved.isSaved}
               onToggleSaved={saved.toggle}
             />
@@ -710,6 +757,131 @@ function Grid({
           ) : null}
         </View>
       ))}
+    </ScrollView>
+  )
+}
+
+/**
+ * Grilla de diseños propios (ADR-034).
+ *
+ * Misma geometría que `Grid` —mismo ancho de pieza, mismo `ScrollView`
+ * horizontal, mismo corazón absolutamente posicionado— pero cada ítem puede
+ * ser tocable: abre el chat con un mensaje armado, editable, nunca enviado
+ * solo. Sin `onPress` es exactamente la misma tarjeta que `Grid`, sin gesto.
+ *
+ * Debajo de la imagen van tamaño, precio y la fecha en que el artista los
+ * declaró — mismo patrón de confianza que `profile.price.asOf`. Sin altura
+ * fija: la tipografía dinámica no tiene por qué recortarse acá.
+ */
+function OwnDesignsGrid({
+  pieces,
+  isSaved,
+  onToggleSaved,
+  locale,
+  onPress,
+}: {
+  pieces: readonly PortfolioPiece[]
+  /** `null` cuando no hay sesión: sin dónde guardarlo, no se ofrece. */
+  isSaved: ((portfolioItemId: string) => boolean) | null
+  onToggleSaved: (portfolioItemId: string) => void
+  locale: string
+  /** `null` cuando no se puede chatear: la tarjeta no es tocable. */
+  onPress: ((piece: PortfolioPiece) => void) | null
+}) {
+  const theme = useTheme()
+  const t = useT()
+
+  return (
+    <ScrollView
+      horizontal
+      showsHorizontalScrollIndicator={false}
+      contentContainerStyle={{
+        gap: spacing.xxs,
+        paddingHorizontal: SCREEN_GUTTER,
+      }}
+      testID="profile-own-designs-grid"
+    >
+      {pieces.map((piece) => {
+        // La restricción de base garantiza tamaño y precio cuando la pieza
+        // es diseño propio, pero se protege por ítem igual: una fila
+        // inconsistente no tira la pantalla entera.
+        if (piece.price == null || piece.sizeLabel == null) return null
+        const { price, sizeLabel } = piece
+
+        const priceLabel = formatMoney(price.cents, price.currency, locale)
+        const dateLabel = formatDate(price.pricedAt, locale)
+
+        const image = (
+          <Image
+            // `sm`: una miniatura de 168pt no necesita 1600px.
+            source={mediaUrl(piece.mediaPath, 'sm')}
+            placeholder={
+              piece.blurhash != null ? { blurhash: piece.blurhash } : null
+            }
+            placeholderContentFit="cover"
+            contentFit="cover"
+            recyclingKey={piece.id}
+            transition={0}
+            accessible={false}
+            style={{
+              width: PORTFOLIO_PIECE_WIDTH,
+              aspectRatio: 1,
+              borderRadius: radius.md,
+              backgroundColor: theme.surfaceRaised,
+            }}
+          />
+        )
+
+        return (
+          <View key={piece.id} style={{ width: PORTFOLIO_PIECE_WIDTH }}>
+            {/* La imagen y el corazón comparten este contenedor, del mismo
+                tamaño que la imagen — nada más. El corazón se posiciona
+                `absolute` contra ESTE `View`, no contra la tarjeta entera: si
+                compartiera contenedor con el bloque de texto de abajo (como
+                pasó en un primer intento), "bottom" se mediría contra la
+                altura de imagen+texto y el corazón terminaría flotando sobre
+                el precio en vez de la esquina de la foto. */}
+            <View>
+              {onPress != null ? (
+                <Pressable
+                  onPress={() => onPress(piece)}
+                  accessibilityRole="button"
+                  accessibilityLabel={t(
+                    'profile.ownDesigns.piece.a11yLabel',
+                    { size: sizeLabel, price: priceLabel, fecha: dateLabel },
+                  )}
+                  accessibilityHint={t('profile.ownDesigns.piece.a11yHint')}
+                  testID={`profile-own-design-${piece.id}`}
+                >
+                  {image}
+                </Pressable>
+              ) : (
+                <View testID={`profile-own-design-${piece.id}`}>{image}</View>
+              )}
+              {isSaved != null ? (
+                <View
+                  style={{
+                    position: 'absolute',
+                    right: spacing.xxs,
+                    bottom: spacing.xxs,
+                  }}
+                >
+                  <SaveHeart
+                    isSaved={isSaved(piece.id)}
+                    onToggle={() => onToggleSaved(piece.id)}
+                    testID={`profile-own-design-heart-${piece.id}`}
+                  />
+                </View>
+              ) : null}
+            </View>
+            <Text role="body">{sizeLabel}</Text>
+            <Text role="body">{priceLabel}</Text>
+            <Text role="micro" color="textTertiary">
+              {t('profile.ownDesigns.price.asOf', { fecha: dateLabel })}
+            </Text>
+          </View>
+        )
+      })}
     </ScrollView>
   )
 }

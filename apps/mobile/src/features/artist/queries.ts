@@ -31,6 +31,9 @@ export interface OwnedPiece {
   readonly mediaPath: string
   readonly isFeatured: boolean
   readonly styleSlugs: readonly string[]
+  readonly isOwnDesign: boolean
+  readonly sizeLabel: string | null
+  readonly price: { cents: number; currency: string } | null
 }
 
 /**
@@ -140,7 +143,7 @@ export async function fetchOwnedPieces(
   const { data, error } = await supabase
     .from('portfolio_items')
     .select(
-      'id, is_featured, sort_order, media_assets ( path ), portfolio_item_styles ( weight, styles ( slug ) )',
+      'id, is_featured, sort_order, is_original_design, size_label, price_cents, price_currency, media_assets ( path ), portfolio_item_styles ( weight, styles ( slug ) )',
     )
     .eq('professional_id', professionalId)
     .order('sort_order', { ascending: true })
@@ -156,6 +159,12 @@ export async function fetchOwnedPieces(
       .sort((a, b) => Number(b.weight) - Number(a.weight))
       .map((entry) => entry.styles?.slug)
       .filter((slug): slug is string => slug != null),
+    isOwnDesign: row.is_original_design,
+    sizeLabel: row.size_label,
+    price:
+      row.price_cents == null
+        ? null
+        : { cents: row.price_cents, currency: row.price_currency ?? 'ARS' },
   }))
 }
 
@@ -173,6 +182,9 @@ export interface NewPiece {
   readonly mediaId: string
   readonly styleSlugsInOrder: readonly string[]
   readonly isFeatured: boolean
+  readonly isOriginalDesign: boolean
+  readonly sizeLabel: string | null
+  readonly priceCents: number | null
 }
 
 /**
@@ -190,6 +202,14 @@ export async function addPiece(piece: NewPiece): Promise<string> {
       professional_id: piece.professionalId,
       media_id: piece.mediaId,
       is_featured: piece.isFeatured,
+      is_original_design: piece.isOriginalDesign,
+      size_label: piece.sizeLabel,
+      price_cents: piece.priceCents,
+      // Precio completo o ausente, mismo espíritu que la restricción de base
+      // (ADR-034): si no hay precio declarado, tampoco hay moneda ni fecha.
+      price_currency: piece.priceCents != null ? 'ARS' : null,
+      priced_at:
+        piece.priceCents != null ? new Date().toISOString().slice(0, 10) : null,
     })
     .select('id')
     .single()

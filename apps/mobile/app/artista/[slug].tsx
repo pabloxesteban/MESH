@@ -11,8 +11,13 @@ export default function ProfileRoute() {
   const raw = useLocalSearchParams<{ slug: string }>()
   const slug = asSlug(raw.slug)
   const { userId } = useSession()
-  const chat = useOpenChat(userId, (conversationId, title) =>
-    router.push(`/chat/${conversationId}?title=${encodeURIComponent(title)}`),
+  const chat = useOpenChat(userId, (conversationId, title, initialDraft) =>
+    router.push(
+      `/chat/${conversationId}?title=${encodeURIComponent(title)}` +
+        (initialDraft != null
+          ? `&initialDraft=${encodeURIComponent(initialDraft)}`
+          : ''),
+    ),
   )
 
   // Un enlace malformado se ve como "no encontramos esto", que es la verdad, y

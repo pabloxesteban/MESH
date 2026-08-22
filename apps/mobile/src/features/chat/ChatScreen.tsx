@@ -56,6 +56,12 @@ export interface ChatScreenProps {
   userId: string
   title: string
   onBack: () => void
+  /**
+   * Texto pre-armado en el compositor, p. ej. al llegar desde un diseño
+   * propio (ADR-034). Editable y nunca enviado solo — mismo principio que
+   * `sendBrief.*`: solo llena el campo, la persona decide si lo manda.
+   */
+  initialDraft?: string
 }
 
 export function ChatScreen({
@@ -63,13 +69,14 @@ export function ChatScreen({
   userId,
   title,
   onBack,
+  initialDraft,
 }: ChatScreenProps) {
   const t = useT()
   const theme = useTheme()
   const insets = useSafeAreaInsets()
   const client = useQueryClient()
 
-  const [draft, setDraft] = useState('')
+  const [draft, setDraft] = useState(initialDraft ?? '')
   const [error, setError] = useState<string | null>(null)
 
   const messages = useQuery({

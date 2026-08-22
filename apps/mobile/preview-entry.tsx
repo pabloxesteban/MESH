@@ -222,9 +222,13 @@ function Shell({ abrirEstudio }: { abrirEstudio: boolean }) {
   const device = useDeviceLocation()
   const [contacto, setContacto] = useState<string | null>(null)
   const [estudio, setEstudio] = useState(abrirEstudio)
-  const [chat, setChat] = useState<{ id: string; titulo: string } | null>(null)
-  const abrirChat = useOpenChat(USUARIO, (id, titulo) =>
-    setChat({ id, titulo }),
+  const [chat, setChat] = useState<{
+    id: string
+    titulo: string
+    initialDraft?: string
+  } | null>(null)
+  const abrirChat = useOpenChat(USUARIO, (id, titulo, initialDraft) =>
+    setChat({ id, titulo, ...(initialDraft != null ? { initialDraft } : {}) }),
   )
   // Resultado de "buscar por fotos": un ProjectBriefInput armado a partir del
   // proyecto liviano que creó QuickSearchScreen. `null` mientras se busca o
@@ -438,6 +442,9 @@ function Shell({ abrirEstudio }: { abrirEstudio: boolean }) {
           userId={USUARIO}
           title={chat.titulo}
           onBack={() => setChat(null)}
+          {...(chat.initialDraft != null
+            ? { initialDraft: chat.initialDraft }
+            : {})}
         />
       )
     }

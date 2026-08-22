@@ -13,21 +13,31 @@ import { openConversation } from './queries.ts'
 
 export function useOpenChat(
   userId: string | null,
-  onOpened: (conversationId: string, title: string) => void,
+  onOpened: (
+    conversationId: string,
+    title: string,
+    initialDraft?: string,
+  ) => void,
 ) {
   const mutation = useMutation({
-    mutationFn: async (input: { professionalId: string; name: string }) => ({
+    mutationFn: async (input: {
+      professionalId: string
+      name: string
+      initialDraft: string | undefined
+    }) => ({
       id: await openConversation(userId as string, input.professionalId),
       name: input.name,
+      initialDraft: input.initialDraft,
     }),
-    onSuccess: (result) => onOpened(result.id, result.name),
+    onSuccess: (result) =>
+      onOpened(result.id, result.name, result.initialDraft),
   })
 
   return {
     isOpening: mutation.isPending,
-    open: (professionalId: string, name: string) => {
+    open: (professionalId: string, name: string, initialDraft?: string) => {
       if (userId == null) return
-      mutation.mutate({ professionalId, name })
+      mutation.mutate({ professionalId, name, initialDraft })
     },
   }
 }

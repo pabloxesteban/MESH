@@ -21,6 +21,9 @@ export interface PortfolioPiece {
   readonly year: number | null
   readonly isFeatured: boolean
   readonly styles: readonly string[]
+  readonly isOriginalDesign: boolean
+  readonly sizeLabel: string | null
+  readonly price: { cents: number; currency: string; pricedAt: string } | null
 }
 
 export interface ProfileData {
@@ -48,6 +51,7 @@ const PROFESSIONAL_SELECT = `
 
 const PIECES_SELECT = `
   id, caption, year, is_featured, sort_order,
+  is_original_design, size_label, price_cents, price_currency, priced_at,
   media_assets ( path, blurhash, width, height ),
   portfolio_item_styles ( weight, styles ( slug ) )
 `
@@ -124,6 +128,11 @@ interface PieceRow {
   caption: string | null
   year: number | null
   is_featured: boolean
+  is_original_design: boolean
+  size_label: string | null
+  price_cents: number | null
+  price_currency: string | null
+  priced_at: string | null
   media_assets: {
     path: string
     blurhash: string | null
@@ -209,6 +218,16 @@ function toPiece(row: PieceRow): PortfolioPiece {
       .filter((style) => style.styles != null)
       .sort((a, b) => Number(b.weight) - Number(a.weight))
       .map((style) => String(style.styles?.slug)),
+    isOriginalDesign: row.is_original_design,
+    sizeLabel: row.size_label,
+    price:
+      row.price_cents == null
+        ? null
+        : {
+            cents: row.price_cents,
+            currency: row.price_currency ?? 'ARS',
+            pricedAt: row.priced_at ?? '',
+          },
   }
 }
 

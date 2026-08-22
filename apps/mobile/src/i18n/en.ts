@@ -165,6 +165,14 @@ export const en: Readonly<Record<TranslationKey, string>> = {
   'profile.availability.asOf': 'Per the artist, on {fecha}',
   'profile.availability.stale': 'No update since {fecha}',
   'profile.travels': 'Travels',
+  'profile.ownDesigns': 'Original designs',
+  'profile.ownDesigns.hint':
+    'Designs the artist already has ready to tattoo. To ask for one, message them in chat.',
+  'profile.ownDesigns.price.asOf': 'Declared on {fecha}',
+  'profile.ownDesigns.piece.a11yLabel':
+    'Original design, {size}, {price}, declared on {fecha}.',
+  'profile.ownDesigns.piece.a11yHint':
+    'Opens the chat with a ready-made message to ask about this design.',
   'profile.portfolio': 'Work',
   'profile.back': 'Back',
   'profile.contact': 'Write to them',
@@ -383,7 +391,18 @@ export const en: Readonly<Record<TranslationKey, string>> = {
   'studio.empty.title': 'Nothing uploaded yet',
   'studio.empty.body':
     'Your work is the only thing someone sees before deciding to reach out.',
+  'studio.ownDesign.off': 'Mark as an original design',
+  'studio.ownDesign.on': "It's an original design, not a tattoo already done",
+  'studio.ownDesign.hint':
+    "For a flash or sketch you haven't tattooed on anyone yet. Work stays for tattoos already done.",
+  'studio.ownDesign.size.label': 'Size',
+  'studio.ownDesign.size.hint':
+    'However you\'d say it: "8x10cm", "small hand", "full forearm".',
+  'studio.ownDesign.price.label': 'Price',
+  'studio.ownDesign.price.hint':
+    "What you charge for this design at this size. Shown with today's date.",
   'studio.piece.featured': 'Opens your profile',
+  'studio.piece.ownDesign': 'Original design · {size} · {price}',
   'studio.piece.remove': 'Remove',
   'studio.piece.removed': 'Removed',
   'studio.entry.label': 'Do you tattoo?',
@@ -777,6 +796,9 @@ export const en: Readonly<Record<TranslationKey, string>> = {
     'You can send it as your first message, so they can quote you without asking five things.',
   'sendBrief.preview': 'See what they get',
   'sendBrief.send': 'Send my request',
+
+  'ownDesign.chat.draft':
+    "Hi, I'm interested in one of your ready-made designs ({size}, {price}).",
 
   'chat.title': 'Messages',
   'chat.empty.title': "You haven't written to anyone yet",

@@ -343,6 +343,109 @@ describe('StudioScreen', () => {
     expect(pieza.getByText('Lettering')).toBeTruthy()
   })
 
+  describe('diseño propio (ADR-034)', () => {
+    it('con el interruptor en ON, tamaño o precio vacíos dejan el botón deshabilitado', async () => {
+      fetchProfileMock.mockResolvedValue(ownedProfile())
+      renderStudio()
+      await waitFor(() =>
+        expect(screen.getByTestId('studio-content')).toBeTruthy(),
+      )
+
+      fireEvent.press(screen.getByTestId('studio-style-lettering'))
+      fireEvent.press(screen.getByTestId('studio-own-design-toggle'))
+
+      // Ni tamaño ni precio cargados: sigue deshabilitado.
+      expect(
+        screen.getByTestId('studio-pick').props.accessibilityState.disabled,
+      ).toBe(true)
+
+      // Solo tamaño: sigue deshabilitado.
+      fireEvent.changeText(
+        screen.getByTestId('studio-own-design-size'),
+        '8x10cm',
+      )
+      expect(
+        screen.getByTestId('studio-pick').props.accessibilityState.disabled,
+      ).toBe(true)
+
+      // Precio en 0 no cuenta como cargado.
+      fireEvent.changeText(screen.getByTestId('studio-own-design-price'), '0')
+      expect(
+        screen.getByTestId('studio-pick').props.accessibilityState.disabled,
+      ).toBe(true)
+    })
+
+    it('con tamaño y precio completos, se habilita', async () => {
+      fetchProfileMock.mockResolvedValue(ownedProfile())
+      renderStudio()
+      await waitFor(() =>
+        expect(screen.getByTestId('studio-content')).toBeTruthy(),
+      )
+
+      fireEvent.press(screen.getByTestId('studio-style-lettering'))
+      fireEvent.press(screen.getByTestId('studio-own-design-toggle'))
+      fireEvent.changeText(
+        screen.getByTestId('studio-own-design-size'),
+        '8x10cm',
+      )
+      fireEvent.changeText(
+        screen.getByTestId('studio-own-design-price'),
+        '5000',
+      )
+
+      expect(
+        screen.getByTestId('studio-pick').props.accessibilityState.disabled,
+      ).toBe(false)
+    })
+
+    it('sube con is_original_design, tamaño y precio en centavos', async () => {
+      fetchProfileMock.mockResolvedValue(ownedProfile())
+      addPieceMock.mockResolvedValue('pieza-1')
+      renderStudio()
+      await waitFor(() =>
+        expect(screen.getByTestId('studio-content')).toBeTruthy(),
+      )
+
+      fireEvent.press(screen.getByTestId('studio-style-lettering'))
+      fireEvent.press(screen.getByTestId('studio-own-design-toggle'))
+      fireEvent.changeText(
+        screen.getByTestId('studio-own-design-size'),
+        '8x10cm',
+      )
+      fireEvent.changeText(
+        screen.getByTestId('studio-own-design-price'),
+        '5000',
+      )
+      fireEvent.press(screen.getByTestId('studio-pick'))
+
+      await waitFor(() => expect(addPieceMock).toHaveBeenCalled())
+      expect(addPieceMock.mock.calls[0]?.[0]).toMatchObject({
+        isOriginalDesign: true,
+        sizeLabel: '8x10cm',
+        priceCents: 500_000,
+      })
+    })
+
+    it('con el interruptor en OFF, no manda ninguno de los tres campos', async () => {
+      fetchProfileMock.mockResolvedValue(ownedProfile())
+      addPieceMock.mockResolvedValue('pieza-1')
+      renderStudio()
+      await waitFor(() =>
+        expect(screen.getByTestId('studio-content')).toBeTruthy(),
+      )
+
+      fireEvent.press(screen.getByTestId('studio-style-lettering'))
+      fireEvent.press(screen.getByTestId('studio-pick'))
+
+      await waitFor(() => expect(addPieceMock).toHaveBeenCalled())
+      expect(addPieceMock.mock.calls[0]?.[0]).toMatchObject({
+        isOriginalDesign: false,
+        sizeLabel: null,
+        priceCents: null,
+      })
+    })
+  })
+
   describe('ubicación del estudio', () => {
     beforeEach(() => {
       fetchProfileMock.mockResolvedValue(ownedProfile())

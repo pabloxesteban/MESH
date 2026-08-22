@@ -35,7 +35,8 @@ import {
 } from '@/design-system/index.ts'
 import { ErrorView } from '@/components/ErrorView.tsx'
 import { mediaUrl } from '@/features/discovery/queries.ts'
-import { useT } from '@/i18n/I18nProvider.tsx'
+import { formatMoney } from '@/features/profile/format.ts'
+import { useI18n, useT } from '@/i18n/I18nProvider.tsx'
 
 import { StudioSaves } from '@/features/saved/StudioSaves.tsx'
 import { AvailabilityEditor } from '@/features/scheduling/AvailabilityEditor.tsx'
@@ -84,7 +85,7 @@ export function StudioScreen({
   onBack,
   onOpenChat,
 }: StudioScreenProps) {
-  const t = useT()
+  const { t, locale } = useI18n()
   const theme = useTheme()
   const insets = useSafeAreaInsets()
   const client = useQueryClient()
@@ -169,6 +170,9 @@ export function StudioScreen({
       uri: string
       styleSlugs: readonly string[]
       isFeatured: boolean
+      isOriginalDesign: boolean
+      sizeLabel: string | null
+      priceCents: number | null
     }) => {
       if (professional == null || userId == null) return
       const media = await uploadPortfolioPiece(
@@ -181,6 +185,9 @@ export function StudioScreen({
         mediaId: media.mediaId,
         styleSlugsInOrder: input.styleSlugs,
         isFeatured: input.isFeatured,
+        isOriginalDesign: input.isOriginalDesign,
+        sizeLabel: input.sizeLabel,
+        priceCents: input.priceCents,
       })
     },
     onSuccess: () => {
@@ -363,8 +370,22 @@ export function StudioScreen({
 
         <AddPiece
           busy={upload.isPending}
-          onPick={(uri, styleSlugs, isFeatured) =>
-            upload.mutate({ uri, styleSlugs, isFeatured })
+          onPick={(
+            uri,
+            styleSlugs,
+            isFeatured,
+            isOriginalDesign,
+            sizeLabel,
+            priceCents,
+          ) =>
+            upload.mutate({
+              uri,
+              styleSlugs,
+              isFeatured,
+              isOriginalDesign,
+              sizeLabel,
+              priceCents,
+            })
           }
           {...(uploadError != null ? { error: uploadError } : {})}
         />
@@ -417,6 +438,18 @@ export function StudioScreen({
                   {piece.isFeatured ? (
                     <Text role="micro" color="textTertiary">
                       {t('studio.piece.featured')}
+                    </Text>
+                  ) : null}
+                  {piece.isOwnDesign && piece.price != null ? (
+                    <Text role="micro" color="textTertiary">
+                      {t('studio.piece.ownDesign', {
+                        size: piece.sizeLabel ?? '',
+                        price: formatMoney(
+                          piece.price.cents,
+                          piece.price.currency,
+                          locale,
+                        ),
+                      })}
                     </Text>
                   ) : null}
                 </Box>
@@ -569,11 +602,21 @@ function AddPiece({
     uri: string,
     styleSlugs: readonly string[],
     isFeatured: boolean,
+    isOriginalDesign: boolean,
+    sizeLabel: string | null,
+    priceCents: number | null,
   ) => void
 }) {
   const t = useT()
   const [styleSlugs, setStyleSlugs] = useState<readonly string[]>([])
   const [isFeatured, setIsFeatured] = useState(false)
+  // Diseño propio (ADR-034): flash o boceto ofrecido tal cual está, en vez
+  // de un tatuaje ya hecho en un cliente. `priceText` son los dígitos crudos
+  // que la persona tipea en pesos enteros — se pasa a centavos recién al
+  // armar el payload, nunca antes.
+  const [isOriginalDesign, setIsOriginalDesign] = useState(false)
+  const [sizeLabel, setSizeLabel] = useState('')
+  const [priceText, setPriceText] = useState('')
 
   return (
     <Box gap="sm" testID="studio-add">
@@ -610,6 +653,45 @@ function AddPiece({
         testID="studio-featured-toggle"
       />
 
+      {/* Diseño propio: un flash o boceto que el artista ofrece tal cual
+          está, no un tatuaje ya hecho. Mismo patrón que el toggle de arriba
+          — un botón cuya etiqueta cambia con el estado, no un `Switch`
+          nuevo. Ver ADR-034. */}
+      <Button
+        label={
+          isOriginalDesign
+            ? t('studio.ownDesign.on')
+            : t('studio.ownDesign.off')
+        }
+        variant="secondary"
+        onPress={() => setIsOriginalDesign((previous) => !previous)}
+        testID="studio-own-design-toggle"
+      />
+      <Text role="label" color="textTertiary">
+        {t('studio.ownDesign.hint')}
+      </Text>
+
+      {isOriginalDesign ? (
+        <>
+          <Input
+            label={t('studio.ownDesign.size.label')}
+            hint={t('studio.ownDesign.size.hint')}
+            value={sizeLabel}
+            onChangeText={setSizeLabel}
+            maxLength={60}
+            testID="studio-own-design-size"
+          />
+          <Input
+            label={t('studio.ownDesign.price.label')}
+            hint={t('studio.ownDesign.price.hint')}
+            value={priceText}
+            onChangeText={setPriceText}
+            keyboardType="numeric"
+            testID="studio-own-design-price"
+          />
+        </>
+      ) : null}
+
       {error != null ? (
         <Text role="micro" color="stateNegative" testID="studio-upload-error">
           {error}
@@ -618,7 +700,11 @@ function AddPiece({
 
       <Button
         label={t('studio.add.pick')}
-        disabled={styleSlugs.length === 0}
+        disabled={
+          styleSlugs.length === 0 ||
+          (isOriginalDesign &&
+            (sizeLabel.trim().length === 0 || !(Number(priceText) > 0)))
+        }
         loading={busy}
         fullWidth
         testID="studio-pick"
@@ -635,9 +721,19 @@ function AddPiece({
             })
             const uri = result.assets?.[0]?.uri
             if (result.canceled || uri == null) return
-            onPick(uri, styleSlugs, isFeatured)
+            onPick(
+              uri,
+              styleSlugs,
+              isFeatured,
+              isOriginalDesign,
+              isOriginalDesign ? sizeLabel.trim() : null,
+              isOriginalDesign ? Math.round(Number(priceText) * 100) : null,
+            )
             setStyleSlugs([])
             setIsFeatured(false)
+            setIsOriginalDesign(false)
+            setSizeLabel('')
+            setPriceText('')
           })()
         }}
       />

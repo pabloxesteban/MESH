@@ -24,6 +24,9 @@ export interface PortfolioPiece {
   readonly year: number | null
   readonly isFeatured: boolean
   readonly styles: readonly string[]
+  readonly isOriginalDesign: boolean
+  readonly sizeLabel: string | null
+  readonly price: { cents: number; currency: string; pricedAt: string } | null
 }
 
 export interface ProfileData {
@@ -85,9 +88,12 @@ export async function fetchProfile(slug: string): Promise<ProfileData | null> {
           year: null,
           isFeatured: piece.featured,
           styles: piece.styles.map((style) => style.slug),
+          isOriginalDesign: false,
+          sizeLabel: null,
+          price: null,
         }),
       ),
-      ...artist.pieces.map((piece) => ({
+      ...artist.pieces.map((piece, index) => ({
         id: piece.id,
         mediaPath: piece.id,
         blurhash: null,
@@ -97,6 +103,27 @@ export async function fetchProfile(slug: string): Promise<ProfileData | null> {
         year: piece.year,
         isFeatured: piece.featured,
         styles: piece.styles.map((style) => style.slug),
+        // La data generada (`data.generated.ts`, ver ADR-034: llegó después)
+        // no tiene diseño propio — no es un dato real de ningún artista. Para
+        // que la sección "Diseños propios" sea recorrible en el preview sin
+        // inventar sobre un artista de verdad, la primera pieza NO destacada
+        // de cada artista fixture se muestra también como diseño propio de
+        // ejemplo, con un tamaño y precio ficticios y claramente de prueba.
+        // Nunca la destacada: esa es el hero, y marcarla la sacaría de la
+        // grilla de "Obra" sin sacarla del hero, un estado que no existe en
+        // producción.
+        ...(!piece.featured &&
+        index === artist.pieces.findIndex((p) => !p.featured)
+          ? {
+              isOriginalDesign: true,
+              sizeLabel: 'Mano chica',
+              price: {
+                cents: 4_500_000,
+                currency: 'ARS',
+                pricedAt: '2026-08-04',
+              },
+            }
+          : { isOriginalDesign: false, sizeLabel: null, price: null }),
       })),
     ],
   }

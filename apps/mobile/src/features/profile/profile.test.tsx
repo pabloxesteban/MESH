@@ -18,6 +18,13 @@ jest.mock('@/features/discovery/queries.ts', () => ({
   mediaUrl: (path: string, size: string) =>
     `https://ejemplo.test/${path}/${size}`,
 }))
+// Sin esto, tocar un corazón dispara una llamada real a Supabase — el mismo
+// riesgo que `saved.test.tsx` ya evita mockeando esta consulta.
+jest.mock('@/features/saved/queries.ts', () => ({
+  fetchSavedIds: jest.fn().mockResolvedValue(new Set()),
+  savePiece: jest.fn().mockResolvedValue(undefined),
+  unsavePiece: jest.fn().mockResolvedValue(undefined),
+}))
 
 import { fetchProfile } from './queries.ts'
 const fetchMock = fetchProfile as jest.MockedFunction<typeof fetchProfile>
@@ -47,11 +54,21 @@ function professional(overrides: Partial<Professional> = {}): Professional {
 function data(
   overrides: Partial<Professional> = {},
   pieces: ProfileData['pieces'] = [],
+  canChat = false,
 ): ProfileData {
-  return { professional: professional(overrides), pieces, canChat: false }
+  return { professional: professional(overrides), pieces, canChat }
 }
 
-function render() {
+function render(
+  overrides: {
+    userId?: string | null
+    onChat?: (
+      professionalId: string,
+      name: string,
+      initialDraft?: string,
+    ) => void
+  } = {},
+) {
   const client = new QueryClient({
     defaultOptions: { queries: { retry: false, gcTime: 0 } },
   })
@@ -65,6 +82,10 @@ function render() {
           today={HOY}
           onBack={onBack}
           onContact={onContact}
+          {...(overrides.userId !== undefined
+            ? { userId: overrides.userId }
+            : {})}
+          {...(overrides.onChat != null ? { onChat: overrides.onChat } : {})}
         />
       </I18nProvider>
     </QueryClientProvider>,
@@ -86,6 +107,9 @@ function pieza(
     year: null,
     isFeatured: false,
     styles: [],
+    isOriginalDesign: false,
+    sizeLabel: null,
+    price: null,
     ...overrides,
   }
 }
@@ -317,5 +341,87 @@ describe('la salida del perfil', () => {
     )
     // Dos "Volver" no son dos salidas: son una pregunta sobre cuál hace qué.
     expect(screen.queryByTestId('profile-back')).toBeNull()
+  })
+})
+
+describe('diseños propios (ADR-034)', () => {
+  const OBRA = pieza('foto-1', { isFeatured: true })
+  const DISENO = pieza('flash-1', {
+    isOriginalDesign: true,
+    sizeLabel: '8x10cm',
+    price: { cents: 5_000_000, currency: 'ARS', pricedAt: '2026-08-01' },
+  })
+
+  it('la sección no existe cuando no hay diseños propios', async () => {
+    fetchMock.mockResolvedValue(data({}, [OBRA]))
+    render()
+
+    await waitFor(() =>
+      expect(screen.getByTestId('profile-content')).toBeTruthy(),
+    )
+    expect(screen.queryByText('Diseños propios')).toBeNull()
+    expect(screen.queryByTestId('profile-own-designs-grid')).toBeNull()
+  })
+
+  it('muestra la sección con la pieza, el precio y la fecha declarada', async () => {
+    fetchMock.mockResolvedValue(data({}, [OBRA, DISENO]))
+    render()
+
+    await waitFor(() =>
+      expect(screen.getByTestId('profile-content')).toBeTruthy(),
+    )
+    expect(screen.getByText('Diseños propios')).toBeTruthy()
+    expect(screen.getByTestId('profile-own-design-flash-1')).toBeTruthy()
+    expect(screen.getByText('8x10cm')).toBeTruthy()
+    expect(screen.getByText(/Declarado el .*agosto/)).toBeTruthy()
+    // No es solo "Obra": la pieza de diseño propio no aparece ahí también.
+    expect(screen.queryByTestId('profile-piece-flash-1')).toBeNull()
+  })
+
+  it('sin onChat/canChat la tarjeta no es tocable', async () => {
+    fetchMock.mockResolvedValue(data({}, [OBRA, DISENO], false))
+    render()
+
+    await waitFor(() =>
+      expect(screen.getByTestId('profile-own-design-flash-1')).toBeTruthy(),
+    )
+    const tarjeta = screen.getByTestId('profile-own-design-flash-1')
+    expect(tarjeta.props.accessibilityRole).not.toBe('button')
+  })
+
+  it('tocar la tarjeta abre el chat con el mensaje armado', async () => {
+    fetchMock.mockResolvedValue(data({}, [OBRA, DISENO], true))
+    const onChat = jest.fn()
+    render({ userId: 'u1', onChat })
+
+    await waitFor(() =>
+      expect(screen.getByTestId('profile-own-design-flash-1')).toBeTruthy(),
+    )
+    fireEvent.press(screen.getByTestId('profile-own-design-flash-1'))
+
+    expect(onChat).toHaveBeenCalledTimes(1)
+    const [professionalId, name, draft] = onChat.mock.calls[0] as [
+      string,
+      string,
+      string,
+    ]
+    expect(professionalId).toBe('p1')
+    expect(name).toBe('Aguja Fina')
+    expect(draft).toContain('8x10cm')
+  })
+
+  it('tocar el corazón sobre una tarjeta tocable no dispara el chat', async () => {
+    fetchMock.mockResolvedValue(data({}, [OBRA, DISENO], true))
+    const onChat = jest.fn()
+    render({ userId: 'u1', onChat })
+
+    await waitFor(() =>
+      expect(
+        screen.getByTestId('profile-own-design-heart-flash-1'),
+      ).toBeTruthy(),
+    )
+    fireEvent.press(screen.getByTestId('profile-own-design-heart-flash-1'))
+
+    expect(onChat).not.toHaveBeenCalled()
   })
 })

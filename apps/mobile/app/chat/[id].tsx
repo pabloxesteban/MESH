@@ -13,6 +13,12 @@ export default function ChatRoute() {
   // pueda empujar un encabezado de mil caracteres.
   const raw = params['title']
   const title = typeof raw === 'string' ? raw.slice(0, 80) : ''
+  // El texto pre-armado de "Diseños propios" (ADR-034): editable, nunca
+  // enviado solo. Sin acotar, un deep link podría empujar un compositor
+  // ilegible — mismo criterio que ya usa `title` en esta misma ruta.
+  const rawDraft = params['initialDraft']
+  const initialDraft =
+    typeof rawDraft === 'string' ? rawDraft.slice(0, 2000) : undefined
 
   if (id == null || userId == null) return null
 
@@ -22,6 +28,7 @@ export default function ChatRoute() {
       userId={userId}
       title={title}
       onBack={() => router.back()}
+      {...(initialDraft != null ? { initialDraft } : {})}
     />
   )
 }
