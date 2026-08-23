@@ -30,7 +30,16 @@ import {
   View,
   useWindowDimensions,
   type NativeScrollEvent,
+  type ViewStyle,
 } from 'react-native'
+import Animated, {
+  Extrapolation,
+  interpolate,
+  useAnimatedScrollHandler,
+  useAnimatedStyle,
+  useSharedValue,
+  type SharedValue,
+} from 'react-native-reanimated'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import {
@@ -52,6 +61,12 @@ import { locationLabel } from '@mesh/domain'
 
 import { ErrorView } from '@/components/ErrorView.tsx'
 import { FixtureBadge } from '@/components/FixtureBadge.tsx'
+import {
+  DIM_PEEK,
+  IMAGE_OVERSCALE,
+  SCALE_FOCUS,
+  SCALE_PEEK,
+} from '@/features/artists/carouselMotion.ts'
 import { SaveHeart } from '@/features/saved/SaveHeart.tsx'
 import { PublicCalendar } from '@/features/scheduling/PublicCalendar.tsx'
 import { ReviewList } from '@/features/reviews/ReviewList.tsx'
@@ -59,7 +74,7 @@ import { SafetyRow } from '@/features/moderation/SafetyRow.tsx'
 import { useSaved } from '@/features/saved/useSaved.ts'
 import { mediaUrl } from '@/features/discovery/queries.ts'
 import { GrowingArtwork } from '@/features/transitions/GrowingArtwork.tsx'
-import { ratioOf } from '@/features/transitions/geometry.ts'
+import { DEFAULT_RATIO } from '@/features/transitions/geometry.ts'
 import { useArtworkEntrance } from '@/features/transitions/useArtworkEntrance.ts'
 import { useI18n, useT } from '@/i18n/I18nProvider.tsx'
 import type { TranslationKey } from '@/i18n/index.ts'
@@ -119,8 +134,6 @@ export function ProfileScreen({
             portfolioItemId: piece.id,
             mediaPath: piece.mediaPath,
             blurhash: piece.blurhash,
-            width: piece.width,
-            height: piece.height,
             scrollY: scrollY.current,
           },
     )
@@ -623,36 +636,72 @@ function BackControl({
 }
 
 /**
- * El hero y el resto de la obra, en un solo carrusel horizontal grande.
+ * Geometría compartida por la imagen y el velo de atenuación de cada página
+ * del carrusel, dentro de `Frame` — mismo objeto para las dos, mismo motivo
+ * que `OVERSCALE_FRAME_STYLE` de `ArtistCard.tsx`: si el velo se quedara al
+ * 100% mientras la imagen está sobredimensionada, un anillo de imagen sin
+ * atenuar quedaría visible en el borde al encogerse.
+ */
+const HERO_OVERSCALE_FRAME_STYLE = {
+  position: 'absolute',
+  left: `${-(IMAGE_OVERSCALE - 1) * 50}%`,
+  top: `${-(IMAGE_OVERSCALE - 1) * 50}%`,
+  width: `${IMAGE_OVERSCALE * 100}%`,
+  height: `${IMAGE_OVERSCALE * 100}%`,
+} as const
+
+/**
+ * El hero y el resto de la obra, en un solo carrusel horizontal grande, con
+ * el mismo efecto de foco que ya tiene el carrusel de Inicio.
  *
  * Antes eran dos cosas: una foto estática a ancho completo (`Hero`) y, más
  * abajo, una fila de miniaturas de 168pt (`Grid`). Un pedido directo cambió
- * eso: la obra tiene que verse grande, deslizable, arriba de todo, junto con
- * lo que antes era solo el hero.
+ * eso: la obra tiene que verse grande, deslizable, arriba de todo — y
+ * después, otro pedido directo, que se vea con el mismo lenguaje de foco
+ * (escala + atenuación) que Inicio, y que el tamaño de la caja sea el mismo
+ * en todos los perfiles, no uno distinto por artista.
  *
- * **La geometría del hero no cambió — sigue siendo la que espera D-011.**
- * `heroRect()` calcula el destino de la transición obra → perfil con estas
- * mismas cuentas: ancho de pantalla menos `SCREEN_GUTTER` de cada lado, y
- * `y = insetTop + spacing.md`. Acá la primera página (`pieces[0]`, siempre el
- * hero) ocupa exactamente esa caja — mismo ancho, mismo `y`, sin `gap` ni
- * `peek` que la angoste — porque el `ScrollView` vive adentro del mismo
- * `padding: SCREEN_GUTTER` que ya tenía `Hero`, y `pagingEnabled` pagina por
- * el ancho propio del `ScrollView`, que es esa misma caja. Si esto cambiara,
- * la transición aterrizaría en un rectángulo que ya no coincide con lo que se
- * ve — y no hay test que lo cace, a diferencia de la geometría de
- * `heroRect()` misma, que si tiene uno. Tocar esta función es tocar esa
- * geometría.
+ * **La geometría del hero no cambió de lugar — sigue siendo la que espera
+ * D-011.** `heroRect()` calcula el destino de la transición obra → perfil
+ * con estas mismas cuentas: ancho de pantalla menos `SCREEN_GUTTER` de cada
+ * lado, y `y = insetTop + spacing.md`. Acá la primera página (`pieces[0]`,
+ * siempre el hero) ocupa exactamente esa caja — mismo ancho, mismo `y`, sin
+ * `gap` ni `peek` que la angoste — porque el `ScrollView` vive adentro del
+ * mismo `padding: SCREEN_GUTTER` que ya tenía `Hero`, y `pagingEnabled`
+ * pagina por el ancho propio del `ScrollView`, que es esa misma caja.
  *
- * **El alto es fijo, según la proporción real del hero, no de cada foto.**
- * Las demás piezas de obra pueden tener otra relación de aspecto real —se
- * recortan con `cover` dentro de la misma caja, mismo criterio que ya usa
- * `OwnDesignsGrid`— para que el alto no salte al deslizar de una página a
- * otra.
+ * **Lo que sí cambió: el alto ya no sale de la forma real de la obra —
+ * `DEFAULT_RATIO` fijo, mismo default que ya comparten `heroRect()` y el
+ * resto del sistema de transiciones.** Antes cada perfil se veía con un alto
+ * distinto según la relación de aspecto real de su hero (D-011: "el hero del
+ * perfil respeta la forma real de la obra"); el pedido de mismo tamaño en
+ * todos los perfiles revierte eso a propósito. Como el destino de la
+ * transición también tiene que coincidir con lo que se dibuja acá,
+ * `useArtworkEntrance.ts` cambió con esto — los dos usan `DEFAULT_RATIO`
+ * ahora, no la forma real de la pieza tocada. Todas las fotos se recortan
+ * con `cover` dentro de esa misma caja, mismo criterio que ya usa
+ * `OwnDesignsGrid`.
  *
- * **Sin peek.** El carrusel de Inicio (`carouselMotion.ts`) sí lo tiene
- * porque ahí conviene mostrar que hay más al costado; acá angostar la
- * primera página rompería la geometría de arriba. La señal de que hay más
- * fotos es el gesto mismo, no un asomo visual.
+ * **El efecto de foco reusa las constantes de `carouselMotion.ts` tal
+ * cual** —`SCALE_PEEK`, `SCALE_FOCUS`, `DIM_PEEK`, `IMAGE_OVERSCALE`— porque
+ * el pedido fue literalmente "el mismo efecto", no uno nuevo con números
+ * propios. La cuenta de cobertura de `IMAGE_OVERSCALE` ya está hecha para el
+ * peor caso de ese archivo (combinado con el foco vertical de
+ * `ArtistsScreen`, que acá ni existe); el caso de acá —solo horizontal, sin
+ * ningún otro eje— es más chico que ese peor caso, así que el mismo valor ya
+ * cubierto alcanza de sobra acá también (ver el caso "horizontal solo" que
+ * ya calcula ese archivo).
+ *
+ * **Sin peek.** El carrusel de Inicio sí lo tiene porque ahí conviene
+ * mostrar que hay más al costado; acá angostar la primera página rompería la
+ * geometría de arriba. El efecto de foco igual se nota — en el gesto de
+ * deslizar, cuando dos páginas se ven a la vez a mitad de camino — sin
+ * necesitar que ninguna se vea nunca recortada en reposo.
+ *
+ * Cada página no tiene ancla de `useArtworkAnchor` —a diferencia de
+ * `CarouselPiece` de Inicio, acá no hay una transición obra → perfil que
+ * salga de esta pantalla, ya se está en el perfil— así que no rige la regla
+ * de nunca animar el `Pressable` ancla: no hay ningún `Pressable` acá.
  */
 function HeroCarousel({
   pieces,
@@ -667,66 +716,152 @@ function HeroCarousel({
   isSaved: ((portfolioItemId: string) => boolean) | null
   onToggleSaved: (portfolioItemId: string) => void
 }) {
-  const theme = useTheme()
   const { width } = useWindowDimensions()
   const pageWidth = Math.max(width - SCREEN_GUTTER * 2, 0)
-  const heroAspectRatio = ratioOf(pieces[0]?.width, pieces[0]?.height)
+
+  const scrollX = useSharedValue(0)
+  const scrollHandler = useAnimatedScrollHandler({
+    onScroll: (event) => {
+      scrollX.value = event.contentOffset.x
+    },
+  })
 
   return (
-    <ScrollView
+    <Animated.ScrollView
       horizontal
       pagingEnabled
       showsHorizontalScrollIndicator={false}
+      onScroll={scrollHandler}
+      scrollEventThrottle={16}
       testID="profile-hero-carousel"
     >
-      {pieces.map((piece, index) => {
-        const hidden = index === 0 && heroHidden
-        return (
-          <View key={piece.id} style={{ width: pageWidth }}>
-            <Image
-              // `lg`: son las únicas imágenes a ancho completo de la pantalla.
-              source={mediaUrl(piece.mediaPath, 'lg')}
-              placeholder={
-                piece.blurhash != null ? { blurhash: piece.blurhash } : null
-              }
-              placeholderContentFit="cover"
-              contentFit="cover"
-              recyclingKey={piece.id}
-              transition={0}
-              accessible
-              accessibilityRole="image"
-              accessibilityLabel={piece.caption ?? ''}
-              testID={`profile-piece-${piece.id}`}
-              style={{
-                width: pageWidth,
-                aspectRatio: heroAspectRatio,
-                borderRadius: radius.lg,
-                backgroundColor: theme.surfaceRaised,
-                opacity: hidden ? 0 : 1,
-              }}
-            />
-            {/* Abajo a la derecha, encima de la obra. Ponerlo debajo
-                empujaría el nombre del artista fuera de la primera pantalla,
-                y el nombre es lo que contesta a quién estás mirando. */}
-            {isSaved != null && !hidden ? (
-              <View
-                style={{
-                  position: 'absolute',
-                  right: spacing.xs,
-                  bottom: spacing.xs,
-                }}
-              >
-                <SaveHeart
-                  isSaved={isSaved(piece.id)}
-                  onToggle={() => onToggleSaved(piece.id)}
-                  testID={`profile-piece-heart-${piece.id}`}
-                />
-              </View>
-            ) : null}
-          </View>
-        )
-      })}
-    </ScrollView>
+      {pieces.map((piece, index) => (
+        <HeroCarouselPage
+          key={piece.id}
+          piece={piece}
+          index={index}
+          pageWidth={pageWidth}
+          scrollX={scrollX}
+          hidden={index === 0 && heroHidden}
+          isSaved={isSaved}
+          onToggleSaved={onToggleSaved}
+        />
+      ))}
+    </Animated.ScrollView>
+  )
+}
+
+function HeroCarouselPage({
+  piece,
+  index,
+  pageWidth,
+  scrollX,
+  hidden,
+  isSaved,
+  onToggleSaved,
+}: {
+  piece: PortfolioPiece
+  index: number
+  pageWidth: number
+  scrollX: SharedValue<number>
+  /** Invisible mientras la copia que crece viaja hacia acá. */
+  hidden: boolean
+  isSaved: ((portfolioItemId: string) => boolean) | null
+  onToggleSaved: (portfolioItemId: string) => void
+}) {
+  const theme = useTheme()
+  const { reduceMotion } = useMotion()
+
+  // Posición de reposo de esta página. JS puro: `pageWidth` no cambia
+  // mientras la pantalla está montada (solo con una rotación de dispositivo,
+  // que remonta la pantalla igual).
+  const itemLeft = index * pageWidth
+
+  const frameStyle = useAnimatedStyle<ViewStyle>(() => {
+    if (reduceMotion) return { transform: [{ scale: 1 }], opacity: hidden ? 0 : 1 }
+
+    const distance = itemLeft - scrollX.value
+    const scale = interpolate(
+      distance,
+      [-pageWidth, 0, pageWidth],
+      [SCALE_PEEK, SCALE_FOCUS, SCALE_PEEK],
+      Extrapolation.CLAMP,
+    )
+    return { transform: [{ scale }], opacity: hidden ? 0 : 1 }
+  })
+
+  const scrimStyle = useAnimatedStyle<ViewStyle>(() => {
+    if (reduceMotion) return { opacity: 0 }
+
+    const distance = itemLeft - scrollX.value
+    const dim = interpolate(
+      distance,
+      [-pageWidth, 0, pageWidth],
+      [DIM_PEEK, 0, DIM_PEEK],
+      Extrapolation.CLAMP,
+    )
+    return { opacity: dim }
+  })
+
+  return (
+    <View style={{ width: pageWidth }}>
+      <View
+        style={{
+          width: pageWidth,
+          aspectRatio: DEFAULT_RATIO,
+          borderRadius: radius.lg,
+          overflow: 'hidden',
+          backgroundColor: theme.surfaceRaised,
+        }}
+      >
+        <Animated.View
+          style={[{ width: '100%', height: '100%' }, frameStyle]}
+        >
+          <Image
+            // `lg`: son las únicas imágenes a ancho completo de la pantalla.
+            source={mediaUrl(piece.mediaPath, 'lg')}
+            placeholder={
+              piece.blurhash != null ? { blurhash: piece.blurhash } : null
+            }
+            placeholderContentFit="cover"
+            contentFit="cover"
+            recyclingKey={piece.id}
+            transition={0}
+            accessible
+            accessibilityRole="image"
+            accessibilityLabel={piece.caption ?? ''}
+            testID={`profile-piece-${piece.id}`}
+            style={HERO_OVERSCALE_FRAME_STYLE}
+          />
+          <Animated.View
+            style={[
+              HERO_OVERSCALE_FRAME_STYLE,
+              { backgroundColor: theme.overlayScrim },
+              scrimStyle,
+            ]}
+          />
+        </Animated.View>
+      </View>
+      {/* Abajo a la derecha, encima de la obra. Ponerlo debajo empujaría el
+          nombre del artista fuera de la primera pantalla, y el nombre es lo
+          que contesta a quién estás mirando. Afuera de `Frame` a propósito:
+          el corazón no tiene que achicarse ni atenuarse con el foco. */}
+      {isSaved != null && !hidden ? (
+        <View
+          style={{
+            position: 'absolute',
+            right: spacing.xs,
+            bottom: spacing.xs,
+          }}
+        >
+          <SaveHeart
+            isSaved={isSaved(piece.id)}
+            onToggle={() => onToggleSaved(piece.id)}
+            testID={`profile-piece-heart-${piece.id}`}
+          />
+        </View>
+      ) : null}
+    </View>
   )
 }
 

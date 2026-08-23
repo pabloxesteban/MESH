@@ -18,7 +18,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { SCREEN_GUTTER, spacing } from '@/design-system/index.ts'
 
 import type { ArtworkScope } from './artworkRegistry.ts'
-import { heroRect, isWorthAnimating, ratioOf, type Rect } from './geometry.ts'
+import { DEFAULT_RATIO, heroRect, isWorthAnimating, type Rect } from './geometry.ts'
 import {
   armReturn,
   claimArtwork,
@@ -53,13 +53,17 @@ export interface ArtworkEntrance {
   readonly armReturnTo: (hero: ReturnableHero | null) => void
 }
 
-/** Lo que el perfil sabe del hero que está mostrando. */
+/**
+ * Lo que el perfil sabe del hero que está mostrando.
+ *
+ * Sin `width`/`height`: el rectángulo de vuelta ya no depende de la forma
+ * real de la obra (`DEFAULT_RATIO` fijo, ver `armReturnTo` más abajo), así
+ * que la medida real de la pieza no le hace falta a esta cuenta.
+ */
 export interface ReturnableHero {
   readonly portfolioItemId: string
   readonly mediaPath: string
   readonly blurhash: string | null
-  readonly width: number | null
-  readonly height: number | null
   /** Cuánto scrolleó el perfil: el hero está más arriba de donde se dibujó. */
   readonly scrollY: number
 }
@@ -94,7 +98,12 @@ export function useArtworkEntrance(professionalSlug: string): ArtworkEntrance {
       const dibujado = heroRect({
         screenWidth: width,
         insetTop: insets.top,
-        aspectRatio: ratioOf(hero.width, hero.height),
+        // `DEFAULT_RATIO`, no la forma real de esta obra: el carrusel del
+        // perfil dejó de respetar la relación de aspecto real de cada foto —
+        // pedido directo, para que las fotos midan lo mismo en todos los
+        // perfiles y no cambien de alto según cuál artista se esté mirando.
+        // Ver el comentario de `HeroCarousel` en `ProfileScreen.tsx`.
+        aspectRatio: DEFAULT_RATIO,
         gutter: SCREEN_GUTTER,
         topSpacing: spacing.md,
       })
@@ -111,7 +120,7 @@ export function useArtworkEntrance(professionalSlug: string): ArtworkEntrance {
         portfolioItemId: hero.portfolioItemId,
         mediaPath: hero.mediaPath,
         blurhash: hero.blurhash,
-        aspectRatio: ratioOf(hero.width, hero.height),
+        aspectRatio: DEFAULT_RATIO,
         from: enPantalla,
         scope,
       })
@@ -131,7 +140,10 @@ export function useArtworkEntrance(professionalSlug: string): ArtworkEntrance {
   const to = heroRect({
     screenWidth: width,
     insetTop: insets.top,
-    aspectRatio: claimed.aspectRatio,
+    // `DEFAULT_RATIO`, no `claimed.aspectRatio` (la forma real de la obra
+    // tocada): mismo motivo que en `armReturnTo` — el carrusel del perfil ya
+    // no respeta la forma real de cada foto.
+    aspectRatio: DEFAULT_RATIO,
     gutter: SCREEN_GUTTER,
     topSpacing: spacing.md,
   })
