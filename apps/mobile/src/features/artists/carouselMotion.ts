@@ -48,17 +48,50 @@ export const PITCH = PIECE_WIDTH + spacing.xxs // 204
 
 /**
  * Escala de una pieza en el punto de mayor distancia al centro (a un `PITCH`
- * entero o más — clampeado ahí). Apenas por debajo de 1: la pieza vecina se
- * ve "de reojo", nunca protagonista ni descartada del todo.
+ * entero o más — clampeado ahí).
+ *
+ * Bajó de 0.95 a 0.86 para un contraste más editorial entre lo enfocado y lo
+ * que no —pedido directo, con referencias visuales de una grilla de
+ * categorías y un carrusel de contenido, citando a Tattoodo como inspiración
+ * pero pidiendo explícitamente no copiarlo—. Sigue siendo "de reojo", nunca
+ * descartada del todo: la vecina se ve, solo que ahora con más recorte
+ * revelado (14% del marco original visible en el borde, contra 5% antes).
  */
-export const SCALE_PEEK = 0.95
+export const SCALE_PEEK = 0.86
+
+/**
+ * Escala de la pieza centrada (`distance = 0`), reemplaza el `1` implícito
+ * de antes de este cambio.
+ *
+ * **Ojo con lo que esto NO hace**: `Frame` lleva el `transform`, pero quien
+ * recorta es el `Pressable` —el ancla de `useArtworkAnchor`, que nunca puede
+ * llevar `style` animado— y su tamaño de layout no cambia con ningún
+ * `scale`. Un valor mayor a 1 acá no agranda la tarjeta como una ficha que
+ * "crece" (eso pedía una de las referencias): es un acercamiento leve sobre
+ * la imagen sobredimensionada, adentro de la misma ventana con esquinas
+ * redondeadas de siempre. Un valor modesto (1.04) alcanza para una
+ * intimidad extra sin distorsionar el encuadre que eligió el artista; nunca
+ * iba a leerse como "más grande" por más que subiera, así que no vale la
+ * pena forzarlo.
+ */
+export const SCALE_FOCUS = 1.04
 
 /**
  * Opacidad del velo de atenuación (`Scrim`) en el punto de mayor distancia.
  * 0 en el centro, esto en los extremos — nunca tapa del todo: es foco, no un
  * carrusel de tarjetas apagadas.
+ *
+ * Subió de 0.18 a 0.40 (más del doble) en el mismo pedido que bajó
+ * `SCALE_PEEK`: las referencias mostraban un contraste mucho más marcado
+ * entre lo enfocado y lo que no. **No se persiguió un teñido de color** —
+ * `visual-language.md` §4 prohíbe sin excepción teñir la obra con color de
+ * marca — así que todo el contraste "vívido vs. apagado" que pedían las
+ * referencias sale de este número solo: 0% de velo en el centro contra 40%+
+ * en el borde. Si en dispositivo real se ve más "apagado" que "foco", el
+ * repliegue documentado es bajar esto a 0.32, no tocar `CARD_DIM_RECEDE`
+ * (otro eje, fuera de este cambio).
  */
-export const DIM_PEEK = 0.18
+export const DIM_PEEK = 0.4
 
 /**
  * Cuánto más grande que su caja se renderiza la imagen de cada obra —en las
@@ -103,29 +136,37 @@ export const DIM_PEEK = 0.18
  * mismo margen relativo, solo que en más puntos absolutos.
  *
  * `s` combinado es monotónico creciente entre `s_min` (los dos mínimos a la
- * vez) y 1 (los dos efectos en su centro) — así que el margen relativo
- * también lo es, y el peor caso (el margen más chico) es el extremo
- * combinado, nunca un punto intermedio:
+ * vez) y `SCALE_FOCUS` (los dos efectos en su máximo) — así que el margen
+ * relativo también lo es, y el peor caso (el margen más chico) es el mínimo
+ * combinado, nunca un punto intermedio ni el máximo:
  *
- *   s_min = SCALE_PEEK × CARD_SCALE_RECEDE = 0.95 × 0.92 = 0.874
+ *   s_min = SCALE_PEEK × CARD_SCALE_RECEDE = 0.86 × 0.92 = 0.7912
  *
- *   margen_por_lado = 200 × (1.24 × 0.874 − 1) / 2
- *                    = 200 × (1.08376 − 1) / 2
- *                    = 200 × 0.04188
- *                    = 8.38pt
+ * **Subió de 1.24 a 1.36** — `SCALE_PEEK` bajó (0.95→0.86) en el mismo
+ * cambio que agregó este contraste más fuerte, y un `s_min` más chico exige
+ * más sobra de imagen para no dejar ver el `Pressable` crudo detrás:
+ *
+ *   margen_por_lado = 200 × (1.36 × 0.7912 − 1) / 2
+ *                    = 200 × (1.076032 − 1) / 2
+ *                    = 200 × 0.038016
+ *                    ≈ 7.60pt
  *
  * Positivo, con margen — nunca cero, nunca negativo. En alto: 266,67 ×
- * 0.04188 ≈ 11.17pt, más holgado todavía. Y el caso de un solo efecto activo
- * (el que ya andaba en producción) queda **más** cubierto que antes, no
- * menos: horizontal solo, `s = SCALE_PEEK = 0.95` →
- * `200 × (1.24 × 0.95 − 1) / 2 ≈ 17.8pt` — sin regresión sobre lo que ya
- * funcionaba.
+ * 0.038016 ≈ 10.14pt, más holgado todavía. Casos de un solo eje, para
+ * contexto (el mínimo combinado sigue siendo el peor caso, estos dan más
+ * margen):
  *
- * (El número de la spec de `interaction-designer` daba lo mismo, ≈8.38pt —
- * esto es la verificación independiente que pide el Paso 2, hecha de nuevo,
- * no una copia de la de la spec.)
+ *   horizontal solo, s = SCALE_PEEK = 0.86:
+ *     200 × (1.36 × 0.86 − 1) / 2 ≈ 16.96pt
+ *   foco máximo, s = SCALE_FOCUS = 1.04 (el otro eje también en su centro,
+ *   `verticalScale = 1`):
+ *     200 × (1.36 × 1.04 − 1) / 2 ≈ 41.44pt
+ *
+ * (El número de la spec de `interaction-designer` daba lo mismo en los tres
+ * casos — esto es la verificación independiente que pide el Paso 2, hecha de
+ * nuevo con los valores finales, no una copia de la de la spec.)
  */
-export const IMAGE_OVERSCALE = 1.24
+export const IMAGE_OVERSCALE = 1.36
 
 // --- foco vertical entre tarjetas ------------------------------------------
 
@@ -152,9 +193,17 @@ export const CARD_SCALE_RECEDE = 0.92
  * Opacidad extra del velo de una tarjeta en receso total, combinada con la
  * del foco horizontal — nunca sumada directo. Dos velos semitransparentes
  * apilados se combinan como `1 − (1 − a)(1 − b)`, la fórmula correcta de
- * opacidad compuesta: nunca puede superar 1, y con los dos extremos a la vez
- * (`DIM_PEEK=0.18`, esto en `0.35`) da `1 − (0.82)(0.65) ≈ 0.467` — nunca
- * tapa la obra a la mitad, sigue siendo foco, no apagado.
+ * opacidad compuesta: nunca puede superar 1.
+ *
+ * Con `DIM_PEEK` en 0.4 (subió de 0.18 en el mismo cambio que este valor no
+ * tocó), el extremo combinado da `1 − (1 − 0.4)(1 − 0.35) = 1 − (0.6)(0.65)
+ * ≈ 0.61` — pasa el "nunca tapa la obra a la mitad" que valía con el
+ * `DIM_PEEK` anterior. Se sostiene igual: ese extremo exige que una pieza
+ * esté en el borde del snap horizontal Y en el borde vertical de pantalla a
+ * la vez — por construcción, cuanto más lejos del centro en los dos ejes
+ * juntos, menos foco de atención real recibe. Si en dispositivo real se ve
+ * más "apagado" que "foco" en ese punto, el repliegue es bajar `DIM_PEEK` a
+ * 0.32 (combinado → 0.56), no este valor — es de otro eje.
  */
 export const CARD_DIM_RECEDE = 0.35
 

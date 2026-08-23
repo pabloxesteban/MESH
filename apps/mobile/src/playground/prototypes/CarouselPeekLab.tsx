@@ -64,6 +64,7 @@ import {
   IMAGE_OVERSCALE,
   PIECE_WIDTH,
   PITCH,
+  SCALE_FOCUS,
   SCALE_PEEK,
 } from '@/features/artists/carouselMotion.ts'
 
@@ -133,9 +134,10 @@ export function CarouselPeekLab() {
   return (
     <Box gap="md" padding="md">
       <Text role="body" color="textSecondary">
-        Arrastrá el carrusel. La pieza centrada queda a tamaño real; las
-        vecinas se achican al {Math.round(SCALE_PEEK * 100)}% y se atenúan
-        hasta {Math.round(DIM_PEEK * 100)}%. Mirá el borde de cada foto al
+        Arrastrá el carrusel. La pieza centrada se acerca un poco (
+        {Math.round(SCALE_FOCUS * 100)}%); las vecinas se achican al{' '}
+        {Math.round(SCALE_PEEK * 100)}% y se atenúan hasta{' '}
+        {Math.round(DIM_PEEK * 100)}%. Mirá el borde de cada foto al
         encogerse — no tiene que verse el fondo de la caja en ningún punto.
       </Text>
 
@@ -211,7 +213,7 @@ function PeekPiece({
     const scale = interpolate(
       distance,
       [-PITCH, 0, PITCH],
-      [SCALE_PEEK, 1, SCALE_PEEK],
+      [SCALE_PEEK, SCALE_FOCUS, SCALE_PEEK],
       Extrapolation.CLAMP,
     )
     return { transform: [{ scale }] }

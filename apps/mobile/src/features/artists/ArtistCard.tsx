@@ -81,6 +81,7 @@ import {
   PIECE_WIDTH,
   PITCH,
   PLATEAU_RATIO,
+  SCALE_FOCUS,
   SCALE_PEEK,
 } from './carouselMotion.ts'
 import { avatarUrl, mediaUrl, type ArtistCardData } from './queries.ts'
@@ -91,7 +92,7 @@ import { avatarUrl, mediaUrl, type ArtistCardData } from './queries.ts'
  *
  * **Deliberadamente el mismo objeto para las dos.** El punto que la spec
  * marcó como fácil de perder: si el `Scrim` se quedara al 100% del `Frame`
- * mientras la imagen está al `IMAGE_OVERSCALE` (124%), al encogerse con
+ * mientras la imagen está al `IMAGE_OVERSCALE` (136%), al encogerse con
  * el `scale` mínimo quedaría un anillo de imagen sin atenuar en el borde —
  * la misma clase de bug de cobertura que se shippeó y se revirtió en el
  * intento anterior (174c920 → c4bd77c), solo que ahí era una franja y acá
@@ -417,7 +418,7 @@ export function CarouselPiece({
     const horizontalScale = interpolate(
       distance,
       [-PITCH, 0, PITCH],
-      [SCALE_PEEK, 1, SCALE_PEEK],
+      [SCALE_PEEK, SCALE_FOCUS, SCALE_PEEK],
       Extrapolation.CLAMP,
     )
     const verticalScale = interpolate(
